@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+* {
+  --white: #FFFFFF;
+  --yellow-400: #FACC15;
+  --gray-300: #D3D3D3;
+  --gray-400: #CBCBCB;
+  --gray-800: #52525B;
+  --violet-800: #662977;
+  --violet-600: #66297780;
+  --red-400: #f87171;
+  --black: #000000;
+
+  --border-radius: 6px;
+}
+
+body {
+  overflow: hidden;
+  letter-spacing: 1px;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--violet-800);
+  border-radius: 1rem;
+
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--violet-800);
+}

@@ -1,0 +1,221 @@
+import { Controller } from "react-hook-form";
+
+import { MultiSelect } from "primereact/multiselect";
+import { InputMask } from "primereact/inputmask";
+import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
+import { Checkbox } from 'primereact/checkbox';
+
+import { colorsData, colorsTextData } from "../../util/util";
+import { clsx } from 'clsx';
+
+export interface InputProps {
+  id: string;
+  type: string;
+  labelText: string;
+  value?: any;
+  options?: any;
+  customClass?: string;
+  customCol?: string;
+  disabled?: boolean;
+  onChange?: (value: any) => void;
+  validate?: object;
+  errors?: any;
+  control?: any;
+}
+
+export interface OptionsProps  {
+  nome: string;
+  value: string | number;
+}
+
+export function Input({ 
+  onChange,
+  value,
+  labelText,
+  id,
+  type,
+  customClass,
+  options,
+  customCol,
+  validate,
+  errors,
+  control,
+  disabled,
+}: InputProps) {
+  const setColorChips = () => {
+    setTimeout(() => {
+      const chips: any = document.querySelectorAll(".p-multiselect-token") || [];
+      chips.forEach((chip: any) => {
+        const color = colorsData[chip.textContent.toUpperCase()];
+        const text = colorsTextData[chip.textContent.toUpperCase()];
+
+        chip.style.background = color;
+        chip.style.color = text;
+      });
+    }, 0);
+  };
+
+  const renderType = () => {
+    switch (type) {
+      case "select":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <Dropdown
+                value={field.value}
+                options={options}
+                onChange={(e: any) => field.onChange(e.value)}
+                optionLabel="nome"
+                filter
+                showClear
+                filterBy="nome"
+              />
+            )}
+          />
+        );
+      case "multiselect":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <MultiSelect
+                id={field.id}
+                display="chip"
+                optionLabel="nome"
+                filter
+                value={field.value}
+                onChange={(e: any) => {
+                  setColorChips();
+                  return field.onChange(e.value);
+                }}
+                options={options}
+              />
+            )}
+          />
+        );
+      case "textarea":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <textarea
+                id={field.id}
+                {...field}
+                value={field.value}
+                className={customClass}
+                placeholder={field.placeholder}
+              />
+            )}
+          />
+        );
+      case "switch":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => {
+              return (
+                <div className="grid grid-cols-6 justify-start items-center h-8">
+                  <span className="col-span-4 text-violet-800">
+                    {" "}
+                    {labelText}{" "}
+                  </span>
+                  <div className="col-span-2">
+                    <InputSwitch
+                      checked={field.value}
+                      onChange={field.onChange}
+                      color="#685ec5"
+                      value={value}
+                      disabled={disabled}
+                    />
+                  </div>
+                </div>
+              );
+            }}
+          />
+        );
+      case "tel":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <InputMask
+                value={field.value}
+                key={field.id}
+                type={type}
+                className={"inputAnimado " + customClass}
+                mask="(99) 9999-9999"
+                onChange={(e: any) => {
+                  return field.onChange(e.value);
+                }}
+              />
+            )}
+          />
+        );
+      case "checkbox":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <>
+                <Checkbox
+                  checked={value}
+                  type={type}
+                  className={"inputAnimado " + customClass}
+                  onChange={ (e: any) =>{
+                    field.onChange(e.target.checked)
+                    onChange && onChange(e.target.checked)
+                  }}
+                />
+                <span className="col-span-4 text-violet-800">
+                {" "}
+                {labelText}{" "}
+              </span>
+            </>
+            )}
+          />
+        );
+        default:
+          return (
+            <Controller
+              name={id}
+              control={control}
+              rules={validate}
+              render={({ field }: any) => (
+                <input
+                  id={field.id}
+                  {...field}
+                  value={field.value}
+                  key={field.id}
+                  type={type}
+                  className={"inputAnimado "  + customClass}
+                />
+              )}
+            />
+          );
+    }
+  };
+
+  return (
+    <div className={clsx('label-float', {'my-5': !customCol}, customCol)} >
+      {renderType()}
+      {type !== "switch" && type !== "checkbox" && <label> {labelText} </label>}
+      {errors && errors[id] && (
+        <p className="text-xs text-red-400 text-end">{errors[id].message}</p>
+      )}
+    </div>
+  );
+}

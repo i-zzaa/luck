@@ -1,0 +1,87 @@
+.label-float {
+  position: relative;
+  padding-top: 18px;
+}
+
+/* .searchBox :not([type="checkbox"]) */
+.label-float input,
+select,
+textarea {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  outline: none;
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  transition: all .1s linear;
+  -webkit-transition: all .1s linear;
+  -moz-transition: all .1s linear;
+  -webkit-appearance: none;
+}
+
+.searchBox {
+  border-radius: 5px;
+  outline: none;
+  width: inherit !important;
+  font-size: 16px;
+  transition: all .1s linear;
+  -webkit-transition: all .1s linear;
+  -moz-transition: all .1s linear;
+  -webkit-appearance: none !important;
+}
+
+.checkbox {
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+}
+
+.label-float input:focus,
+select:focus,
+textarea:focus {
+  border: 2px solid #675dc4;
+}
+
+.label-float input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: transparent;
+}
+
+.label-float label {
+  pointer-events: none;
+  position: absolute;
+  top: calc(50% - 8px);
+  left: 15px;
+  transition: all .1s linear;
+  -webkit-transition: all .1s linear;
+  -moz-transition: all .1s linear;
+  background-color: white;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+/* input:required:invalid + label, select:required:invalid + label{
+  color: red;
+}
+input:focus:required:invalid{
+  border: 2px solid red;
+} */
+input:required:invalid+label:before {
+  content: '*';
+}
+
+.label-float input:focus+label,
+.label-float select:focus+label,
+.label-float textarea:focus+label,
+.label-float :not(:placeholder-shown)+label {
+  font-size: 13px;
+  top: 0;
+  color: #675dc4;
+}
+
+.ellipis {
+  width: 3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
