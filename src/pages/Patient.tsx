@@ -118,7 +118,7 @@ export default function Patient() {
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true)
     const format: any = {
-      naFila: formState.naFila === undefined ? false : !formState.naFila,
+      naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled:  formState.disabled === undefined ? false : formState.disabled,
       devolutiva:  formState.devolutiva === undefined ? false : formState.devolutiva,
     };
