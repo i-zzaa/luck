@@ -118,9 +118,9 @@ export default function Patient() {
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true)
     const format: any = {
-      naFila: !formState.naFila,
-      disabled: !!formState.disabled,
-      devolutiva: !!formState.devolutiva,
+      naFila: formState.naFila === undefined ? false : !formState.naFila,
+      disabled:  formState.disabled === undefined ? false : formState.disabled,
+      devolutiva:  formState.devolutiva === undefined ? false : formState.devolutiva,
     };
     delete formState.naFila;
     delete formState.disabled;
@@ -174,7 +174,7 @@ export default function Patient() {
         id: item.vaga.id,
         devolutiva: !item.vaga.devolutiva,
       };
-      sendUpdate("vagas/devolutiva", body, { naFila: !item.vaga.naFila, devolutiva: item.vaga.devolutiva });
+      sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
     }
   };
 
@@ -267,6 +267,7 @@ export default function Patient() {
           items={patients}
           iconButton=""
           textButton=""
+          rule={perfil === COORDENADOR}
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {
             setPatient(pacient_);

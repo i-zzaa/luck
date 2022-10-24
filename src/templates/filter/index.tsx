@@ -2,6 +2,7 @@ import { Card } from "../../components/card";
 import { Input } from "../../components/input";
 import { ButtonHeron } from "../../components/button";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 export interface FilterProps {
   id: string;
@@ -26,16 +27,31 @@ export function Filter({
   onInclude,
   onReset,
 }: FilterProps) {
-  const {  handleSubmit, control, reset } = useForm();
+  const { setValue, handleSubmit, control, reset } = useForm();
 
   const handleReset = () => {
     reset();
     onReset();
   }
 
+  const handleSubmit2 = (formState: any) => {
+    if (formState.devolutiva) {
+      setValue("naFila", true);
+      formState.naFila = true;
+    }
+    onSubmit(formState);
+  };
+
+  useEffect(()=> {
+    if (rule) {
+      setValue("naFila", true);
+    }
+  })
+
+
   return (
     <Card legend={legend}>
-      <form id={id}  action="#"  onSubmit={handleSubmit(onSubmit)} className="flex-1">
+      <form id={id}  action="#"  onSubmit={handleSubmit(handleSubmit2)} className="flex-1">
         <div className="grid grid-cols-2 gap-4">
           {fields.map((field: any) => (
             <Input
@@ -78,7 +94,7 @@ export function Filter({
                 type="primary"
                 size="full"
                 loading={loading}
-                onClick={()=> handleSubmit(onSubmit)}
+                onClick={()=> handleSubmit(handleSubmit2)}
               />
             </div>
           </div>

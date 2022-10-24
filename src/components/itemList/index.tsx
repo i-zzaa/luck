@@ -4,6 +4,7 @@ import { Tag, TagProps } from "../tag";
 import { Text } from "../text";
 import { clsx } from 'clsx';
 import { Tooltip } from "primereact/tooltip";
+import { COORDENADOR, permissionAuth } from "../../contexts/permission";
 
 export interface ActionProps {
   onClickEdit?: () => void;
@@ -13,6 +14,7 @@ export interface ActionProps {
   actionEdit?: boolean;
   actionTrash?: boolean;
   actionReturn?: boolean;
+  permission?: boolean;
  }
 
  export interface FooterButtonProps {
@@ -38,6 +40,7 @@ export interface ActionProps {
   actionTrash?: boolean;
   actionReturn?: boolean;
   children?: ReactNode;
+  permission?: boolean
 }
 
 export interface RootProps extends FooterButtonProps {
@@ -51,11 +54,12 @@ function actionButtons ({
    positionActions = 'left',   
    actionEdit,
    actionTrash,
-   actionReturn
+   actionReturn,
+   permission
 }: ActionProps) {
   return (
     <div className={clsx('', {'flex justify-start': positionActions === 'left',  'text-right': positionActions === 'right' })}>
-      {actionEdit && ( <ButtonHeron 
+      {actionEdit && !permission && ( <ButtonHeron 
           text= "Edit"
           icon= 'pi pi-pencil'
           type= 'transparent'
@@ -64,7 +68,7 @@ function actionButtons ({
           onClick={onClickEdit}
         />)}
 
-      {actionTrash && (<ButtonHeron 
+      {actionTrash && !permission && (<ButtonHeron 
         text= "Trash"
         icon= 'pi pi-trash'
         type= 'transparent'
@@ -73,7 +77,7 @@ function actionButtons ({
         onClick={onClickTrash}
       />)}
 
-      {actionReturn && (<ButtonHeron 
+      {actionReturn && !permission && (<ButtonHeron 
         text= "Return"
         icon= 'pi pi-replay'
         type= 'transparent'
@@ -86,6 +90,10 @@ function actionButtons ({
 }
 
 function footerButton({ onClick, textButtonFooter, iconButtonFooter, sizeButtonFooter, typeButtonFooter}: FooterButtonProps) {
+  if (textButtonFooter === '' ) {
+    return <></>
+  }
+ 
   return (
     <>
     <div className="hidden sm:block flex-1 text-end">
@@ -146,7 +154,8 @@ function itemListSimples({
   actionTrash,
   actionReturn
 }: itemListCompleteProps) {
-  
+  const { hasPermition } = permissionAuth();
+
   return (
     <ItemList.Root
       textButtonFooter={textButtonFooter}
@@ -162,7 +171,7 @@ function itemListSimples({
           <span></span>
         </div>
         
-        { actionButtons({ 
+        { hasPermition('btnsAction') ?  actionButtons({ 
           onClickEdit, 
           onClickTrash , 
           onClickReturn,
@@ -170,7 +179,7 @@ function itemListSimples({
           actionEdit,
           actionTrash,
           actionReturn
-          }) }
+          }) : <div></div> }
       </div>
 
       <div className="mt-1  flex items-center gap-2">
@@ -210,11 +219,13 @@ function itemListComplete({
   positionActions = 'left',
   children
 }: itemListCompleteProps) {
+  const { hasPermition, perfil } = permissionAuth();
+
   const renderTags = () => {
     return (
       <div className="text-right flex gap-1 h-8 justify-end">
         {tags?.map((item: TagProps) => (
-            <Tag  key={item.type} onClick={onClickLink}   type={item.type}  disabled={item?.disabled}  />
+            <Tag  key={item.type} onClick={perfil !== COORDENADOR ? onClickLink : undefined}   type={item.type}  disabled={item?.disabled}  />
           ))}
       </div>
     )
@@ -230,16 +241,15 @@ function itemListComplete({
     >
       <>
       <div className="grid grid-rows-2 sm:grid-cols-2 mb-4 sm:mb-0 h-12 mt-6">
-        { 
-          actionButtons({ 
+        { hasPermition('btnsAction') ?  actionButtons({ 
             onClickEdit, 
             onClickTrash , 
             onClickReturn,
             positionActions,
             actionEdit,
             actionTrash,
-            actionReturn 
-          }) 
+            actionReturn
+          }) : <div></div>
         }
         { renderTags() }
       </div>
@@ -253,10 +263,14 @@ function itemListComplete({
             <div className="flex justify-center items-center ">
               <Text  text={textSecondLeft}  size='md' color='gray-dark' />
             </div>
+
+            { hasPermition("textTelefone") ? (
             <div className="flex items-center gap-2 p-2 font-sans text-left">
               <i className="pi pi-phone text-gray-400 text-xs" ></i>
               <Text  text={textSecondCenter}  size='md' color='gray-dark' />
-            </div>
+            </div>) : <></>}
+
+
             <Text  text={textSecondRight}  size='md' color='gray-dark' />
           </div>
 

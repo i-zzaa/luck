@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const ADMINISTRADOR = "administrador";
-export const ATENDENTE = "atendente";
+export const ATENDENTE = "recepcionista";
 export const DESENVOLVEDOR = "developer";
 export const COORDENADOR = "coordenador";
 
@@ -20,10 +20,14 @@ const ROUTERS_PERMISSIONS: any = {
   home: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR],
   dashboard: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
   pacientes: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR],
+  usuarios: [DESENVOLVEDOR, ADMINISTRADOR],
+ 
   btnAgendar: [DESENVOLVEDOR, ADMINISTRADOR],
   btnDevolutiva: [COORDENADOR],
+  btnsAction: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
   btnRetornarAFila: [DESENVOLVEDOR, ATENDENTE],
-  usuarios: [DESENVOLVEDOR, ADMINISTRADOR],
+
+  textTelefone: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
   login: "*",
 };
 

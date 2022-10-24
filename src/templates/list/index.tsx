@@ -2,11 +2,14 @@ import { ItemList } from "../../components/itemList";
 import { NotFound } from "../../components/notFound";
 import { clsx } from 'clsx';
 import { TextSubtext } from "../../components/textSubtext";
+import { permissionAuth } from "../../contexts/permission";
+import { formatdate } from "../../util/util";
 
 export interface ListProps {
   onSubmit?: (e: any) => any;
   textButton: string;
   iconButton: string;
+  rule: boolean;
   items: any[];
   type: 'simples' | 'complete';
   onClickLink: (e: any) => any;
@@ -23,11 +26,12 @@ export function List({
   onClickEdit,
   onClickTrash,
   onClickReturn,
-  items
+  items,
+  rule,
 }: ListProps) {
 
-  const hasPermition = (agenda: string)  => agenda == 'btnAgendar' 
-  
+  const { hasPermition } = permissionAuth();
+
   const renderStatus = (item: any) => {
     const status = `${item.vaga.status.nome}`;
     switch (status) {
@@ -145,6 +149,8 @@ export function List({
           onClick={()=> onClick({item, typeButtonFooter})}
           textButtonFooter={buttonFooter.text}
           iconButtonFooter={buttonFooter.icon}
+          typeButtonFooter={buttonFooter.type}
+          permission={rule}
           tags={tags}
           onClickLink={() => onClickLink(item)}
           sizeButtonFooter="sm"
@@ -161,11 +167,11 @@ export function List({
               <TextSubtext text="Tipo: " subtext={item?.vaga.tipoSessao.nome} size="sm" color="gray-dark" display="flex"/>
               { renderStatus(item) }
               {
-                item.vaga.devolutiva && <TextSubtext text="Devolutiva:" subtext={item.vaga?.dataDevolutiva} size="sm" color="gray-dark" display="flex"/>
+                item.vaga.dataDevolutiva && <TextSubtext text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
               }
             </div>
             <div className="text-end">
-              <TextSubtext text="Inclusão: " subtext={item?.vaga.dataContato} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
             </div>
           </div>
      

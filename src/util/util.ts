@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const colorsData: any = {
   TO: "#ef6c00",
   FONO: "#f6bf26",
@@ -50,4 +52,8 @@ export const setColorChips = () => {
       chip.style.color = text;
     });
   }, 0);
+};
+
+export const formatdate = (date: any) => {
+  return moment(date).format("DD/MM/YYYY");
 };
