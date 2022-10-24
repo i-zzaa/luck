@@ -56,27 +56,27 @@ export const ToastProvider = ({ children }: Props) => {
     switch (type) {
       case "success":
         setColor(
-          "text-green-700 bg-green-100 rounded-lg  w-24 dark:bg-green-200 dark:text-green-800"
+          "text-white bg-green-400 rounded-lg  w-24 "
         );
         break;
       case "failure":
         setColor(
-          "text-red-700 bg-red-100 rounded-lg  w-24 dark:bg-red-200 dark:text-red-800"
+          "text-white bg-red-400 rounded-lg  w-24"
         );
         break;
       case "warning":
         setColor(
-          "text-yellow-700 bg-yellow-100 rounded-lg  w-24 dark:bg-yellow-200 dark:text-yellow-800"
+          "text-white bg-yellow-400 rounded-lg  w-24"
         );
         break;
       case "info":
         setColor(
-          "text-blue-700 bg-blue-100 rounded-lg  w-24 dark:bg-blue-200 dark:text-blue-800"
+          "text-white bg-gray-400 rounded-lg  w-24"
         );
         break;
       default:
         setColor(
-          "text-gray-700 bg-gray-100 rounded-lg  w-24 dark:bg-gray-700 dark:text-gray-300"
+          "text-white bg-gray-400 rounded-lg  w-24"
         );
         break;
     }

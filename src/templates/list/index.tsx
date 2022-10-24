@@ -34,21 +34,19 @@ export function List({
       case "Urgente":
         return (
           <TextSubtext text="Prioridade: " subtext={(
-            <strong className="text-red-800  px-1 flex">
+            <strong className="text-red-900  px-1 flex">
               {status}
               <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-800"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-900"></span>
               </span>
             </strong>
-          )} size="sm" color="gray" display="flex"/>
+          )} size="sm" color="gray-dark" display="flex"/>
         );
-      case "Padrao":
-        return <TextSubtext text="Prioridade: " subtext=" secondText" size="sm" color="gray" display="flex"/>;
+      case "Padrão":
+        return <TextSubtext text="Prioridade: " subtext="Padrão" size="sm" color="gray-dark" display="flex"/>;
       case "Voltou ABA":
-        return <TextSubtext text="Prioridade: " subtext=" secondText" size="sm" color="gray" display="flex"/>;
-      default:
-        return <TextSubtext text="Prioridade: " subtext=" secondText" size="sm" color="gray" display="flex"/>;
+        return <TextSubtext text="Prioridade: " subtext="Voltou ABA" size="sm" color="gray-dark" display="flex"/>;
     }
   };
 
@@ -159,15 +157,15 @@ export function List({
         > 
           <div className="flex justify-between">
             <div className="sm:flex items-center sm:gap-4">
-              <TextSubtext text="Período: " subtext={item?.vaga.periodo.nome} size="sm" color="gray" display="flex"/>
-              <TextSubtext text="Tipo: " subtext={item?.vaga.tipoSessao.nome} size="sm" color="gray" display="flex"/>
+              <TextSubtext text="Período: " subtext={item?.vaga.periodo.nome} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext text="Tipo: " subtext={item?.vaga.tipoSessao.nome} size="sm" color="gray-dark" display="flex"/>
               { renderStatus(item) }
               {
-                item.vaga.devolutiva && <TextSubtext text="Devolutiva:" subtext={item.vaga?.dataDevolutiva} size="sm" color="gray" display="flex"/>
+                item.vaga.devolutiva && <TextSubtext text="Devolutiva:" subtext={item.vaga?.dataDevolutiva} size="sm" color="gray-dark" display="flex"/>
               }
             </div>
             <div className="text-end">
-              <TextSubtext text="Inclusão: " subtext={item?.vaga.dataContato} size="sm" color="gray" display="flex"/>
+              <TextSubtext text="Inclusão: " subtext={item?.vaga.dataContato} size="sm" color="gray-dark" display="flex"/>
             </div>
           </div>
      

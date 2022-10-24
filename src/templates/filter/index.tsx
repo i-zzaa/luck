@@ -67,7 +67,7 @@ export function Filter({
                 text="Limpar"
                 icon="pi pi-filter-slash"
                 type="second"
-                size="md"
+                size="full"
                 onClick={handleReset}
               />
             </div>
@@ -76,7 +76,7 @@ export function Filter({
                 text="Pesquisar"
                 icon="pi pi-filter"
                 type="primary"
-                size="md"
+                size="full"
                 loading={loading}
                 onClick={()=> handleSubmit(onSubmit)}
               />

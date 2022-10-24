@@ -39,17 +39,15 @@ export const firtUpperCase = (string: string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-export const resetChipsMultiselect = (idForm: string) => {
-  const chipsSelects = document.querySelectorAll(`${idForm} .chip`);
+export const setColorChips = () => {
+  setTimeout(() => {
+    const chips: any = document.querySelectorAll(".p-multiselect-token") || [];
+    chips.forEach((chip: any) => {
+      const color = colorsData[chip.textContent.toUpperCase()];
+      const text = colorsTextData[chip.textContent.toUpperCase()];
 
-  chipsSelects.forEach((chip: any) => {
-    const classChip = Object.values(chip.classList);
-    const isSingle = classChip.includes("singleChip");
-
-    if (isSingle) {
-      chip.textContent = null;
-    } else {
-      chip.remove();
-    }
-  });
+      chip.style.background = color;
+      chip.style.color = text;
+    });
+  }, 0);
 };

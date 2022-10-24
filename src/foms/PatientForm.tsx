@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { patientFields } from "../constants/formFields";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
 
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components/index";
+import { setColorChips } from "../util/util";
 
 const fields = patientFields;
 interface OptionProps {
@@ -27,7 +28,7 @@ export default function PatientForm({
   dropdown,
   value,
 }: Props) {
-  const [disabled, onDisabled] = useState<boolean>(false);
+  const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
 
   const defaultValues = value || {
@@ -51,7 +52,7 @@ export default function PatientForm({
     control,
   } = useForm({ defaultValues });
   const onSubmit = async (body: any) => {
-    onDisabled(true);
+    setLoaging(true);
     try {
       let data;
       const formatValues = {
@@ -71,7 +72,7 @@ export default function PatientForm({
       }
 
       reset();
-      onDisabled(false);
+      setLoaging(false);
       renderToast({
         type: "success",
         title: "",
@@ -81,7 +82,7 @@ export default function PatientForm({
 
       return onClose();
     } catch (error) {
-      onDisabled(false);
+      setLoaging(false);
       renderToast({
         type: "failure",
         title: "401",
@@ -90,6 +91,12 @@ export default function PatientForm({
       });
     }
   };
+
+  
+  useEffect(() => {
+    value?.nome &&  setColorChips()
+  }, [value])
+
 
   return (
     <form
@@ -122,6 +129,7 @@ export default function PatientForm({
         type={value?.nome ? "second" : "primary"}
         size="full"
         onClick={handleSubmit(onSubmit)}
+        loading={loading}
       /> 
     </form>
   );

@@ -101,7 +101,7 @@ export default function Dashboard() {
   const renderChart = (type: string, data: any) => {
     return (
       <Card>
-        <div className="grid gap-4 items-center  mx-auto">
+        <div className="grid gap-4 items-center mx-auto">
           <Title size="md">{type}</Title>
 
           {data && data.datasets[0].data.length ? (
@@ -125,33 +125,35 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="h-screen w-full m-auto mb-48">
-      <Card>
-        <TextSubtext
-          text="Tempo de espera: "
-          subtext={wait}
-          color="gray"
-          size="lg"
-          icon="pi pi-hourglass"
-          display="grid"
-        />
+    <div className="mb-48 mx-auto">
+      <div className="grid justify-beteween w-full">
+        <Card>
+          <TextSubtext
+            text="Tempo de espera: "
+            subtext={wait}
+            color="gray-dark"
+            size="md"
+            icon="pi pi-hourglass"
+            display="grid"
+            />
 
-        <TextSubtext
-          text="Retornos para fila:  "
-          subtext={returnTrend}
-          color="gray"
-          size="lg"
-          icon="pi pi-sync"
-          display="grid"
-        />
-        {chatStatus && (
-          <div className="text-lg p-2 grid grid-rows gap-4">
-            <div className=" grid m-auto text-left">
-              <Bar options={options} data={chatStatus} />
+          <TextSubtext
+            text="Retornos para fila:  "
+            subtext={returnTrend}
+            color="gray-dark"
+            size="md"
+            icon="pi pi-sync"
+            display="grid"
+            />
+          {chatStatus && (
+            <div className="text-lg p-2 grid grid-rows gap-4">
+              <div className=" grid m-auto text-left">
+                <Bar options={options} data={chatStatus} />
+              </div>
             </div>
-          </div>
-        )}
-      </Card>
+          )}
+        </Card>
+      </div>
       <div className="grid md:grid-cols-2 gap-4 justify-beteween w-full">
         {renderChart("Especialidades por Demanda", chatEspecialidades)}
         {renderChart("Tipo de sessão por Demanda", chatTipoSessao)}

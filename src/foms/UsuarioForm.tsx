@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { userFields } from "../constants/formFields";
-import { create, dropDown, ResponseSuccessProps } from "../server";
+import { create, dropDown, update } from "../server";
 import { useToast } from "../contexts/toast";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components/index";
 
-const fields = userFields;
+const _fields = userFields;
 interface OptionProps {
   id: string;
   nome: string;
@@ -18,16 +18,19 @@ interface Props {
 
 //userFields
 const fieldsState: any = {};
-fields.forEach((field: any) => (fieldsState[field.id] = ""));
+_fields.forEach((field: any) => (fieldsState[field.id] = ""));
 
 export default function UsuarioForm({ onClose, value }: Props) {
+  const [loading, setLoaging] = useState<boolean>(false);
+  const [fields, setFields] = useState(_fields)
+
   const [perfies, setPerfies] = useState<OptionProps[]>([]);
   const { renderToast } = useToast();
   const defaultValues = value || {
     nome: "",
     login: "",
     senha: "",
-    perfilId: null,
+    perfilId: "",
   };
 
   const {
@@ -37,20 +40,33 @@ export default function UsuarioForm({ onClose, value }: Props) {
     control,
   } = useForm({ defaultValues });
 
+
   const onSubmit = async (userState: any) => {
     try {
-      const { data }: ResponseSuccessProps = await create("usuarios", {
+      setLoaging(true)
+
+      let data;
+      const formatValues = {
         ...userState,
         perfilId: userState.perfilId.id,
-      });
+      };
+
+      if (value?.nome) {
+        formatValues.id = value.id;
+        data = await update("usuarios", formatValues);
+      } else {
+        data = await create("usuarios", formatValues);
+      }
+
       reset();
       renderToast({
         type: "success",
         title: "",
-        message: data.message,
+        message: data.data.message,
         open: true,
       });
-      return onClose;
+      setLoaging(false)
+      return onClose();
     } catch ({ message }: any) {
       renderToast({
         type: "failure",
@@ -58,6 +74,7 @@ export default function UsuarioForm({ onClose, value }: Props) {
         message: `${message}`,
         open: true,
       });
+      setLoaging(false)
       return;
     }
   };
@@ -68,6 +85,10 @@ export default function UsuarioForm({ onClose, value }: Props) {
   }, []);
 
   useEffect(() => {
+    if (value?.nome) {
+      const filter = fields.filter((item:any) => item.id !== 'senha')
+      setFields(filter)
+    }
     renderPerfil();
   }, [renderPerfil]);
 
@@ -88,12 +109,13 @@ export default function UsuarioForm({ onClose, value }: Props) {
         ))}
       </div>
 
-      <ButtonHeron 
-        text="Cadastrar"
-        type="primary"
+      <ButtonHeron
+        text={value?.nome ? "Atualizar" : "Cadastrar"}
+        type={value?.nome ? "second" : "primary"}
         size="full"
         onClick={handleSubmit(onSubmit)}
-      />
+        loading={loading}
+      /> 
     </form>
   );
 }

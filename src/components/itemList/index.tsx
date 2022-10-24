@@ -246,18 +246,18 @@ function itemListComplete({
         <div>
           <div className="flex items-end gap-2 sm:gap-8 text-left ">
             <Text text={textPrimaryLeft}  size='lg' color='violet' />
-            <Text text={textPrimaryCenter} size='xs' color='gray' />		
+            <Text text={textPrimaryCenter} size='xs' color='gray-dark' />		
           </div>
 
           <div className="mt-1 grid sm:flex items-center sm:gap-2 justify-between font-light text-left" >
             <div className="flex justify-center items-center ">
-              <Text  text={textSecondLeft}  size='md' color='gray' />
+              <Text  text={textSecondLeft}  size='md' color='gray-dark' />
             </div>
             <div className="flex items-center gap-2 p-2 font-sans text-left">
               <i className="pi pi-phone text-gray-400 text-xs" ></i>
-              <Text  text={textSecondCenter}  size='md' color='gray' />
+              <Text  text={textSecondCenter}  size='md' color='gray-dark' />
             </div>
-            <Text  text={textSecondRight}  size='md' color='gray' />
+            <Text  text={textSecondRight}  size='md' color='gray-dark' />
           </div>
 
           <div className="mt-2">
@@ -267,7 +267,7 @@ function itemListComplete({
           <div className="mt-4 flex items-center gap-2 text-ellipsis overflow-hidden">
             <Tooltip target=".obs" mouseTrack className="w-2/4 sm:w-1/4" />
               <p
-                className=" text-gray-400  text-sm justify-start text-start obs text-ellipsis overflow-hidden"
+                className=" text-gray-800  text-sm justify-start text-start obs text-ellipsis overflow-hidden"
                 data-pr-tooltip={textFooter}
               >
                 {textFooter}

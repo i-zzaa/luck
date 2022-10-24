@@ -19,6 +19,7 @@ module.exports = {
       "violet-800": "#662977",
       "violet-600": "#66297780",
       "red-400": "#f87171",
+      "red-900": "#7f1d1d",
       "green-400": "#4ade80",
       black: "#000000",
       to: "#ef6c00",
@@ -29,9 +30,6 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Raleway", "sans-serif"],
-      },
-      animation: {
-        wiggle: "wiggle 1s ease-in-out infinite",
       },
     },
   },

@@ -6,7 +6,7 @@ import { Dropdown } from "primereact/dropdown";
 import { InputSwitch } from "primereact/inputswitch";
 import { Checkbox } from 'primereact/checkbox';
 
-import { colorsData, colorsTextData } from "../../util/util";
+import { colorsData, colorsTextData, setColorChips } from "../../util/util";
 import { clsx } from 'clsx';
 
 export interface InputProps {
@@ -43,18 +43,6 @@ export function Input({
   control,
   disabled,
 }: InputProps) {
-  const setColorChips = () => {
-    setTimeout(() => {
-      const chips: any = document.querySelectorAll(".p-multiselect-token") || [];
-      chips.forEach((chip: any) => {
-        const color = colorsData[chip.textContent.toUpperCase()];
-        const text = colorsTextData[chip.textContent.toUpperCase()];
-
-        chip.style.background = color;
-        chip.style.color = text;
-      });
-    }, 0);
-  };
 
   const renderType = () => {
     switch (type) {
@@ -66,7 +54,7 @@ export function Input({
             rules={validate}
             render={({ field }: any) => (
               <Dropdown
-                value={field.value}
+                value={value || field.value}
                 options={options}
                 onChange={(e: any) => field.onChange(e.value)}
                 optionLabel="nome"
@@ -89,7 +77,7 @@ export function Input({
                 display="chip"
                 optionLabel="nome"
                 filter
-                value={field.value}
+                value={value || field.value}
                 onChange={(e: any) => {
                   setColorChips();
                   return field.onChange(e.value);
@@ -109,7 +97,7 @@ export function Input({
               <textarea
                 id={field.id}
                 {...field}
-                value={field.value}
+                value={value || field.value}
                 className={customClass}
                 placeholder={field.placeholder}
               />
@@ -151,7 +139,7 @@ export function Input({
             rules={validate}
             render={({ field }: any) => (
               <InputMask
-                value={field.value}
+                value={value || field.value}
                 key={field.id}
                 type={type}
                 className={"inputAnimado " + customClass}
@@ -198,7 +186,7 @@ export function Input({
                 <input
                   id={field.id}
                   {...field}
-                  value={field.value}
+                  value={value || field.value}
                   key={field.id}
                   type={type}
                   className={"inputAnimado "  + customClass}

@@ -2,7 +2,7 @@ export interface TextSubtextProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' ;
   text?: string;
   subtext?: ReactNode;
-  color?: 'gray' | 'gray-dark' | 'gray-light' | 'yellow' | 'violet' | 'black' | 'white';
+  color?: 'gray' | 'gray-dark' | 'gray-light' | 'yellow' | 'violet' | 'black' | 'white' | 'red';
   display: 'flex' | 'grid';
   icon?: string ;
 }
@@ -24,6 +24,7 @@ export function TextSubtext({ size = 'md', color = 'gray-dark', text, display="g
     'text-gray-800': color === 'gray-dark',
     'text-violet-800': color === 'violet',
     'text-yellow-400': color === 'yellow',
+    'text-red-900': color === 'red',
     'text-black': color === 'black',
     
     })}>

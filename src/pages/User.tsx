@@ -20,7 +20,7 @@ interface UserProps {
 }
 
 export default function User() {
-  const [users, setUsers] = useState<UserProps[]>([]);
+  const [users, setUsers] = useState<UserProps[] | null>([]);
   const [user, setUser] = useState<UserProps>();
   const [open, setOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -105,7 +105,10 @@ export default function User() {
   return (
     <>
       <SearchAdd 
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setUser(undefined)
+          setOpen(true)
+        }}
         onSubmit={handleSubmit(handleClick)}
         textButton="Cadastrar usuário"
         iconButton="pi pi-user-plus"
@@ -121,7 +124,11 @@ export default function User() {
             setOpenConfirm(true);
           }}
           onClickEdit={(user_: any) => {
-            setUser(user_);
+            const user__ = {...user_}
+            user__.perfilId = user_.perfil
+            delete user__.perfil
+
+            setUser(user__);
             setOpen(true);
           }}
           onClick={(user_: any) => handleResetSenha(user_.id)}
@@ -138,7 +145,10 @@ export default function User() {
         open={open}
         onClose={() => setOpen(false)}
       >
-        <UsuarioForm onClose={() => setOpen(false)} value={user}/>
+        <UsuarioForm onClose={() => {
+          renderUser()
+          setOpen(false)
+        }} value={user}/>
       </Modal>
 
       <Confirm

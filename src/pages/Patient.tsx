@@ -191,6 +191,28 @@ export default function Patient() {
     sendUpdate("vagas/agendar", body, { naFila: !patient.vaga.naFila });
   };
 
+
+  const formtDate = (value: PacientsProps) => {
+    const data = {
+      id: value.id,
+      nome: value.nome,
+      dataNascimento: value.dataNascimento,
+      telefone: value.telefone,
+      responsavel: value.responsavel,
+      periodoId: value.vaga.periodo,
+      convenioId: value.convenio,
+      statusId: value.vaga.status,
+      dataContato: value.vaga.dataContato,
+      especialidades: value.vaga.especialidades.map(
+        (item: any) => item.especialidade
+      ),
+      tipoSessaoId: value.vaga.tipoSessao,
+      observacao: value.vaga.observacao,
+    };
+    setPatient(data);
+    setOpen(true);
+  };
+
   useLayoutEffect(() => {
     if (perfil === COORDENADOR) {
       const filterInput = fieldsConst.filter(
@@ -254,10 +276,7 @@ export default function Patient() {
             setPatient(pacient_);
             setOpenConfirm(true);
           }}
-          onClickEdit={(pacient_: any) => {
-            setPatient(pacient_);
-            setOpen(true);
-          }}
+          onClickEdit={formtDate}
           onClickReturn={(pacient_: any) => {
             setPatient(pacient_);
             setOpenConfirm(true);
@@ -288,7 +307,7 @@ export default function Patient() {
       >
         <ScheduleForm
           onSubmit={handleScheduleResponse}
-          especialidades={patient?.vaga.especialidades}
+          especialidades={patient?.vaga?.especialidades}
         />
       </Modal>
 
