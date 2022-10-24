@@ -190,6 +190,7 @@ export function Input({
                   key={field.id}
                   type={type}
                   className={"inputAnimado "  + customClass}
+                  autoComplete={false}
                 />
               )}
             />

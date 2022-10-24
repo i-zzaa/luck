@@ -265,8 +265,6 @@ export default function Patient() {
         <List  
           type="complete"
           items={patients}
-          iconButton=""
-          textButton=""
           rule={perfil === COORDENADOR}
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {

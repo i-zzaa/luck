@@ -5,16 +5,16 @@ import { Routes, Route } from "react-router-dom";
 import { permissionAuth } from "../contexts/permission";
 import { Layout } from "../foms/Layout";
 import { Nav } from "../foms/Nav";
+import { Crud } from "../pages/Crud";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 import Patient from "../pages/Patient";
-import User from "../pages/User";
 
 export enum CONSTANTES_ROUTERS {
   HOME = "home",
   DASHBOARD = "dashboard",
-  USER = "usuarios",
-  PATIENT = "pacientes",
+  // PATIENT = "pacientes",
+  CRUD = "cadastro",
 }
 interface Props {
   path: string;
@@ -27,8 +27,7 @@ const OtherRoutes = () => {
   const routes: Props[] = [
     { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home },
     { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard },
-    { path: CONSTANTES_ROUTERS.USER, componentRoute: User },
-    { path: CONSTANTES_ROUTERS.PATIENT, componentRoute: Patient },
+    { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
   ];
 
   // const renderRoutes = () => {
@@ -77,28 +76,27 @@ const OtherRoutes = () => {
               }
             />
           ) : null}
-          {hasPermition(CONSTANTES_ROUTERS.USER) ? (
+          {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
             <Route
-              path={`/${CONSTANTES_ROUTERS.USER}`}
-              element={
-                // <AlertDialog.Root>
-                  <Layout>
-                    <User />
-                  </Layout>
-                // </AlertDialog.Root>
-              }
-            />
-          ) : null}
-          {hasPermition(CONSTANTES_ROUTERS.PATIENT) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.PATIENT}`}
+              path={`/${CONSTANTES_ROUTERS.CRUD}`}
               element={
                 <Layout>
-                  <Patient />
+                  <Crud />
                 </Layout>
               }
             />
           ) : null}
+
+          {/* {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
+            <Route
+              path={`/${CONSTANTES_ROUTERS.CALENDAR}`}
+              element={
+                <Layout>
+                  <Schedule />
+                </Layout>
+              }
+            />
+          ) : null} */}
         </Routes>
       </>
     </div>

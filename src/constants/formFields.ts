@@ -372,4 +372,132 @@ const filterFields = [
   },
 ];
 
+const usuariosFields: any = [
+  {
+    labelText: "Nome",
+    labelFor: "nome",
+    id: "nome",
+    name: "nome",
+    type: "text",
+    autoComplete: "nome",
+    isRequired: true,
+    placeholder: "Nome",
+    validate: {
+      pattern: {
+        value: /^[ a-zA-Zá]*$/i,
+        message: "Apenas letras",
+      },
+      required: "Campo obrigatório!",
+      minlength: 8,
+    },
+  },
+  {
+    labelText: "Login",
+    labelFor: "login",
+    id: "login",
+    name: "login",
+    type: "text",
+    autoComplete: "email",
+    isRequired: true,
+    placeholder: "Login (nome.sobrenome)",
+    validate: {
+      pattern: {
+        value: /^([a-z]{3,})+\.([a-z]{3,})$/i,
+        message: "formato padrão, ex.: nome.sobrenome",
+      },
+      required: "Campo obrigatório!",
+      minlength: 8,
+    },
+  },
+  {
+    labelText: "Senha",
+    labelFor: "senha",
+    id: "senha",
+    name: "senha",
+    type: "password",
+    autoComplete: "current-password",
+    isRequired: true,
+    placeholder: "senha",
+    validate: {
+      required: "Campo obrigatório!",
+      minlength: 8,
+    },
+  },
+  {
+    labelText: "Perfil",
+    labelFor: "perfil",
+    id: "perfilId",
+    name: "perfilId",
+    type: "select",
+    autoComplete: "perfil",
+    isRequired: true,
+    placeholder: "Selecione a permissão",
+    validate: {
+      required: "Campo obrigatório!",
+    },
+  },
+];
+
+const funcaoFields = [
+  {
+    labelText: "Nome",
+    labelFor: "nome",
+    id: "nome",
+    name: "nome",
+    autoComplete: "nome",
+    isRequired: true,
+    placeholder: "Nome",
+    customCol: "col-span-6 sm:col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+  {
+    labelText: "Especialidade",
+    labelFor: "especialidade",
+    id: "especialidadeId",
+    name: "especialidade",
+    autoComplete: "especialidades",
+    isRequired: false,
+    placeholder: "Especialidades",
+    customCol: "col-span-6",
+    type: "select",
+    singleSelect: false,
+  },
+];
+
+const localidadeFields = [
+  {
+    labelText: "Casa",
+    labelFor: "casa",
+    id: "casa",
+    name: "casa",
+    autoComplete: "casa",
+    isRequired: true,
+    placeholder: "Casa",
+    customCol: "col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+  {
+    labelText: "Sala",
+    labelFor: "sala",
+    id: "sala",
+    name: "sala",
+    autoComplete: "sala",
+    isRequired: true,
+    placeholder: "Sala",
+    customCol: "col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+];
+
 export { loginFields, patientFields, userFields, filterFields };
+
+export const Fields: any = { usuariosFields, funcaoFields, localidadeFields };

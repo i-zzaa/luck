@@ -46,6 +46,8 @@
   border-radius: var( --border-radius);
 }
 
+.p-tabview-nav-link{}
+
 :root {
   --surface-a:#ffffff;
   --surface-b:#f8f9fa;
@@ -4200,6 +4202,8 @@
   background: #ffffff;
   border: 1px solid #dee2e6;
   border-width: 0 0 2px 0;
+  display: flex;
+  justify-content: space-between;
 }
 .p-tabview .p-tabview-nav li {
   margin-right: 0;
@@ -4216,6 +4220,8 @@
   border-top-left-radius: 6px;
   transition: box-shadow 0.2s;
   margin: 0 0 -2px 0;
+  display: flex;
+  gap: 0.5rem;
 }
 .p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus {
   outline: 0 none;

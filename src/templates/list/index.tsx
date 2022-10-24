@@ -7,8 +7,8 @@ import { formatdate } from "../../util/util";
 
 export interface ListProps {
   onSubmit?: (e: any) => any;
-  textButton: string;
-  iconButton: string;
+  textButtonFooter?: string;
+  iconButtonFooter?: string;
   rule?: boolean;
   items: any[];
   type: 'simples' | 'complete';
@@ -20,7 +20,9 @@ export interface ListProps {
 }
 
 export function List({ 
-  type = 'simples', 
+  type = 'simples',
+  iconButtonFooter,
+  textButtonFooter,
   onClickLink,
   onClick,
   onClickEdit,
@@ -58,20 +60,20 @@ export function List({
   const renderlistSimples = () => {
     return  items.map((item: any) => {
       const textPrimaryLeft = item?.nome || item?.casa
-      const textPrimaryRight = item?.perfil.nome.toUpperCase() || item?.sala
-      const textSecondLeft = item?.login || item?.id
+      const textPrimaryRight = item?.perfil?.nome.toUpperCase() || item?.sala || item?.especialidade?.nome
+      const textSecondLeft = item?.login || ''
       const ATIVO = !!item?.ativo
 
       return  (
         <ItemList.Simples
-          key={textSecondLeft}
+          key={item?.login || item.id}
           textPrimaryLeft={textPrimaryLeft} 
           textPrimaryRight={textPrimaryRight}
           textSecondLeft={textSecondLeft}
           onClickLink={() => onClickLink(item)}
           onClick={() => onClick(item)}
-          textButtonFooter="Reset de senha"
-          iconButtonFooter="pi pi-sync"
+          textButtonFooter={textButtonFooter}
+          iconButtonFooter={iconButtonFooter}
           typeButtonFooter="second"
           sizeButtonFooter="sm"
           onClickEdit={() => onClickEdit(item)}

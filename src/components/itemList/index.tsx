@@ -18,7 +18,7 @@ export interface ActionProps {
  }
 
  export interface FooterButtonProps {
-  textButtonFooter: string;
+  textButtonFooter?: string;
   iconButtonFooter?: string;
   typeButtonFooter?: any ;
   sizeButtonFooter?: 'sm' | 'full' | 'md' ;
@@ -90,7 +90,7 @@ function actionButtons ({
 }
 
 function footerButton({ onClick, textButtonFooter, iconButtonFooter, sizeButtonFooter, typeButtonFooter}: FooterButtonProps) {
-  if (textButtonFooter === '' ) {
+  if (textButtonFooter === '' || textButtonFooter === undefined) {
     return <></>
   }
  
@@ -182,14 +182,14 @@ function itemListSimples({
           }) : <div></div> }
       </div>
 
-      <div className="mt-1  flex items-center gap-2">
+      {textSecondLeft && (<div className="mt-1  flex items-center gap-2">
         <i className="pi pi-user text-sm text-gray-400 "></i>
         <Text
           text= {textSecondLeft}
           size='xs'
           color='gray'
           />	
-      </div>
+      </div>)}
       </>
     </ItemList.Root>
   )
