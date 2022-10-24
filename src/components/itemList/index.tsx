@@ -20,7 +20,7 @@ export interface ActionProps {
  export interface FooterButtonProps {
   textButtonFooter: string;
   iconButtonFooter?: string;
-  typeButtonFooter?: 'primary' | 'second' ;
+  typeButtonFooter?: any ;
   sizeButtonFooter?: 'sm' | 'full' | 'md' ;
   onClick: () => void;
  }
@@ -267,7 +267,7 @@ function itemListComplete({
             { hasPermition("textTelefone") ? (
             <div className="flex items-center gap-2 p-2 font-sans text-left">
               <i className="pi pi-phone text-gray-400 text-xs" ></i>
-              <Text  text={textSecondCenter}  size='md' color='gray-dark' />
+              <Text  text={textSecondCenter}  size='md' color='gray-dark' className="font-sans-serif"/>
             </div>) : <></>}
 
 

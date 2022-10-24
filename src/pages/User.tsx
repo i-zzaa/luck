@@ -20,7 +20,7 @@ interface UserProps {
 }
 
 export default function User() {
-  const [users, setUsers] = useState<UserProps[] | null>([]);
+  const [users, setUsers] = useState<any>([]);
   const [user, setUser] = useState<UserProps>();
   const [open, setOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);

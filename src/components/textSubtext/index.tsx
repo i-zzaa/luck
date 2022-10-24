@@ -5,11 +5,12 @@ export interface TextSubtextProps {
   color?: 'gray' | 'gray-dark' | 'gray-light' | 'yellow' | 'violet' | 'black' | 'white' | 'red';
   display: 'flex' | 'grid';
   icon?: string ;
+  className?: string
 }
 import { clsx } from 'clsx';
 import { ReactNode } from 'react';
 
-export function TextSubtext({ size = 'md', color = 'gray-dark', text, display="grid",  subtext, icon}: TextSubtextProps) {
+export function TextSubtext({ size = 'md', color = 'gray-dark', text, display="grid",  subtext, icon, className}: TextSubtextProps) {
   return (
    <div 
     className={clsx('flex gap-4 font-normal tracking-wider text-start items-center', { 
@@ -27,7 +28,7 @@ export function TextSubtext({ size = 'md', color = 'gray-dark', text, display="g
     'text-red-900': color === 'red',
     'text-black': color === 'black',
     
-    })}>
+    }, className)}>
       {
         icon && (<div className='flex items-center'>
           <i className={icon}></i>

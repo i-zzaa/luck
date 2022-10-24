@@ -9,7 +9,7 @@ export interface ListProps {
   onSubmit?: (e: any) => any;
   textButton: string;
   iconButton: string;
-  rule: boolean;
+  rule?: boolean;
   items: any[];
   type: 'simples' | 'complete';
   onClickLink: (e: any) => any;
@@ -167,11 +167,11 @@ export function List({
               <TextSubtext text="Tipo: " subtext={item?.vaga.tipoSessao.nome} size="sm" color="gray-dark" display="flex"/>
               { renderStatus(item) }
               {
-                item.vaga.dataDevolutiva && <TextSubtext text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
+                item.vaga.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
               }
             </div>
             <div className="text-end">
-              <TextSubtext text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext className="font-sans-serif" text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
             </div>
           </div>
      

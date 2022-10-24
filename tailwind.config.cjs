@@ -13,6 +13,7 @@ module.exports = {
     colors: {
       white: "#FFFFFF",
       "yellow-400": "#FACC15",
+      "gray-200": "#e4e4e7",
       "gray-300": "#D3D3D3",
       "gray-400": "#CBCBCB",
       "gray-800": "#52525B",
@@ -30,6 +31,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Raleway", "sans-serif"],
+        "sans-serif": "sans-serif",
       },
     },
   },
