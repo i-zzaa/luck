@@ -8,6 +8,11 @@ import "primereact/resources/primereact.css";
 import "./styles/primereact.css";
 import "./styles/label.css";
 import "./styles/global.css";
+
+import "@fullcalendar/common/main.css";
+import "@fullcalendar/daygrid/main.css";
+import "@fullcalendar/timegrid/main.css";
+
 // import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 function App() {

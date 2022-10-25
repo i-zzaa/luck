@@ -1,4 +1,5 @@
 import  {  useRef } from "react";
+import '@fullcalendar/react/dist/vdom';
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -16,12 +17,12 @@ import "@fullcalendar/timegrid/main.min.css";
 // import '@fullcalendar/core/main.css';
 // import "@fullcalendar/daygrid/main.css";
 // import "@fullcalendar/timegrid/main.css";
-import ptLocale from "@fullcalendar/core/locales/pt";
+// import ptLocale from "@fullcalendar/common/locales/pt";
 
 
 // import dayGridPlugin from "@fullcalendar/daygrid";
-// import timeGridPlugin from '@fullcalendar/timegrid';
-// import listPlugin from "@fullcalendar/list";
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from "@fullcalendar/list";
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
 export const CalendarComponent = ({ events, openModalEdit }: any) => {
@@ -30,10 +31,10 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
   return (
     <div>
       <div className="card">
-        {/* <FullCalendar
-          plugins={[dayGridPlugin ]}
+        <FullCalendar
+          plugins={[dayGridPlugin,listPlugin,  timeGridPlugin ]}
           locale="pt"
-          locales={[ptLocale]}
+          // locales={[ptLocale]}
           initialView="dayGridMonth"
           events={events}
           headerToolbar={{
@@ -49,7 +50,7 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
               dayMaxEventRows: 6,
             },
           }}
-        /> */}
+        />
 
 
       </div>
