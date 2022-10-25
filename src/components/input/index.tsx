@@ -5,6 +5,7 @@ import { InputMask } from "primereact/inputmask";
 import { Dropdown } from "primereact/dropdown";
 import { InputSwitch } from "primereact/inputswitch";
 import { Checkbox } from 'primereact/checkbox';
+import { ListBox } from "primereact/listbox";
 
 import { colorsData, colorsTextData, setColorChips } from "../../util/util";
 import { clsx } from 'clsx';
@@ -87,6 +88,25 @@ export function Input({
             )}
           />
         );
+      case "list":
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <ListBox
+                value={field.value}
+                options={options}
+                onChange={(e) => field.onChange(e.value)}
+                multiple
+                filter
+                optionLabel="nome"
+                listStyle={{ maxHeight: "300px" }}
+              />
+            )}
+          />
+        );
       case "textarea":
         return (
           <Controller
@@ -142,7 +162,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={"inputAnimado " + customClass}
+                className={"inputAnimado font-sans-serif" + customClass}
                 mask="(99) 9999-9999"
                 onChange={(e: any) => {
                   return field.onChange(e.value);
@@ -176,6 +196,28 @@ export function Input({
             )}
           />
         );
+      case "time":
+        return (
+          <Controller
+          name={id}
+          control={control}
+          rules={validate}
+          render={({ field }: any) => (
+            <input
+              id={field.id}
+              {...field}
+              value={value || field.value}
+              key={field.id}
+              type={type}
+              className={"inputAnimado font-sans-serif "  + customClass}
+              onInput={(e: any)=> {
+                field.onInput(e)
+                onChange && onChange(e)
+              }}
+            />
+          )}
+        />
+      );
         default:
           return (
             <Controller
@@ -190,7 +232,7 @@ export function Input({
                   key={field.id}
                   type={type}
                   className={"inputAnimado "  + customClass}
-                  autoComplete={false}
+                  autoComplete="off"
                 />
               )}
             />

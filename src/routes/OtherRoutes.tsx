@@ -9,12 +9,14 @@ import { Crud } from "../pages/Crud";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 import Patient from "../pages/Patient";
+import Schedule from "../pages/Schedule";
 
 export enum CONSTANTES_ROUTERS {
   HOME = "home",
   DASHBOARD = "dashboard",
   // PATIENT = "pacientes",
   CRUD = "cadastro",
+  CALENDAR = "Calendário",
 }
 interface Props {
   path: string;
@@ -24,11 +26,12 @@ interface Props {
 const OtherRoutes = () => {
   const { hasPermition } = permissionAuth();
 
-  const routes: Props[] = [
-    { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home },
-    { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard },
-    { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
-  ];
+  // const routes: Props[] = [
+  //   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home },
+  //   { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard },
+  //   { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
+  // { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule },
+  // ];
 
   // const renderRoutes = () => {
   //   return routes.map((item: Props) => hasPermition(CONSTANTES_ROUTERS.HOME) ? (
@@ -87,7 +90,7 @@ const OtherRoutes = () => {
             />
           ) : null}
 
-          {/* {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
+          {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
             <Route
               path={`/${CONSTANTES_ROUTERS.CALENDAR}`}
               element={
@@ -96,7 +99,7 @@ const OtherRoutes = () => {
                 </Layout>
               }
             />
-          ) : null} */}
+          ) : null}
         </Routes>
       </>
     </div>

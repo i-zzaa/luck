@@ -55,7 +55,7 @@ export const Crud = () => {
   return (
     <div className="card">
       <TabView className="tabview-custom">
-        <TabPanel header="Pacientes" leftIcon="pi pi-user">
+        <TabPanel header="Lista de espera" leftIcon="pi pi-user">
           <Patient />
         </TabPanel>
         <TabPanel header="Usuários" leftIcon="pi pi-user">
