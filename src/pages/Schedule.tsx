@@ -98,6 +98,17 @@ export default function Schedule() {
               options={terapeutasList}
             />
           </div>
+          <div className="card text-xs">
+            <Input
+              labelText="Status"
+              id="status-calendario"
+              type="list"
+              errors={errors}
+              customCol="my-12"
+              control={control}
+              options={terapeutasList}
+            />
+          </div>
         </div>
         <div className="col-span-4 sm:col-span-3">
           <CalendarComponent

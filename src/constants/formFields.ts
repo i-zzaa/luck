@@ -679,6 +679,64 @@ const localidadeFields = [
   },
 ];
 
+const modalidadeFields = [
+  {
+    labelText: "Nome",
+    labelFor: "nome",
+    id: "nome",
+    name: "nome",
+    autoComplete: "nome",
+    isRequired: true,
+    placeholder: "nome",
+    customCol: "col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+];
+
+const frequenciaFields = [
+  {
+    labelText: "Nome",
+    labelFor: "nome",
+    id: "nome",
+    name: "nome",
+    autoComplete: "nome",
+    isRequired: true,
+    placeholder: "nome",
+    customCol: "col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+];
+
+const statusEventosFields = [
+  {
+    labelText: "Nome",
+    labelFor: "nome",
+    id: "nome",
+    name: "nome",
+    autoComplete: "nome",
+    isRequired: true,
+    placeholder: "nome",
+    customCol: "col-span-6",
+    type: "text",
+    validate: {
+      required: true,
+    },
+  },
+];
+
 export { loginFields, patientFields, userFields, filterFields, calendarFields };
 
-export const Fields: any = { usuariosFields, funcaoFields, localidadeFields };
+export const Fields: any = {
+  usuariosFields,
+  funcaoFields,
+  localidadeFields,
+  modalidadeFields,
+  frequenciaFields,
+  statusEventosFields,
+};

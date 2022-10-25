@@ -8,13 +8,13 @@ import { Nav } from "../foms/Nav";
 import { Crud } from "../pages/Crud";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
-import Patient from "../pages/Patient";
+import Queue from "../pages/Queue";
 import Schedule from "../pages/Schedule";
 
 export enum CONSTANTES_ROUTERS {
   HOME = "home",
   DASHBOARD = "dashboard",
-  // PATIENT = "pacientes",
+  QUEUE = "fila",
   CRUD = "cadastro",
   CALENDAR = "Calendário",
 }
@@ -55,7 +55,7 @@ const OtherRoutes = () => {
             path="*"
             element={
               <Layout>
-                {hasPermition(CONSTANTES_ROUTERS.HOME) ? <Home /> : <Patient />}
+                {hasPermition(CONSTANTES_ROUTERS.HOME) ? <Home /> : <Queue />}
               </Layout>
             }
           />
@@ -85,6 +85,16 @@ const OtherRoutes = () => {
               element={
                 <Layout>
                   <Crud />
+                </Layout>
+              }
+            />
+          ) : null}
+          {hasPermition(CONSTANTES_ROUTERS.QUEUE) ? (
+            <Route
+              path={`/${CONSTANTES_ROUTERS.QUEUE}`}
+              element={
+                <Layout>
+                  <Queue />
                 </Layout>
               }
             />

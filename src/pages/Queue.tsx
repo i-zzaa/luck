@@ -34,7 +34,7 @@ interface OptionProps {
   nome: string;
 }
 
-export default function Patient() {
+export default function Queue() {
   const { perfil } = permissionAuth();
   const [fields, setFields] = useState(fieldsConst);
 

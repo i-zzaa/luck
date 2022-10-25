@@ -1,7 +1,7 @@
 import React, { useCallback, useLayoutEffect, useState } from 'react';
 import { TabView, TabPanel } from 'primereact/tabview';
 
-import Patient from './Patient';
+// import Patient from './Queue';
 import CrudSimples from '../templates/crudSimples';
 import { dropDown, getList } from '../server';
 import { useToast } from '../contexts/toast';
@@ -18,14 +18,15 @@ export const Crud = () => {
   const { renderToast } = useToast();
 
   const renderDropDownEspecialidade = useCallback(async () => {
-    const especialidadeState: OptionProps[] = await dropDown("especialidade");
-    setListEspecialidade(especialidadeState);
+    const arr: OptionProps[] = await dropDown("especialidade");
+    setListEspecialidade(arr);
   }, []);
 
   const renderPerfil = useCallback(async () => {
-    const perfilState: OptionProps[] = await dropDown("perfil");
-    setPerfies(perfilState);
+    const arr: OptionProps[] = await dropDown("perfil");
+    setPerfies(arr);
   }, []);
+
 
   const handleResetSenha = async (userId: number) => {
     try {
@@ -55,9 +56,9 @@ export const Crud = () => {
   return (
     <div className="card">
       <TabView className="tabview-custom">
-        <TabPanel header="Lista de espera" leftIcon="pi pi-user">
+        {/* <TabPanel header="Lista de espera" leftIcon="pi pi-user">
           <Patient />
-        </TabPanel>
+        </TabPanel> */}
         <TabPanel header="Usuários" leftIcon="pi pi-user">
           <CrudSimples 
             namelist="usuarios" 
@@ -67,6 +68,24 @@ export const Crud = () => {
             dropDown={{ perfil }}
           />
         </TabPanel>
+        <TabPanel header="Modalidade" leftIcon="pi pi-sitemap">
+          <CrudSimples 
+            namelist="modalidade" 
+            onClick={()=>{}} 
+          />
+        </TabPanel>
+        <TabPanel header="Status eventos" leftIcon="pi pi-calendar-plus">
+          <CrudSimples 
+            namelist="statusEventos" 
+            onClick={()=>{}} 
+          />
+        </TabPanel>
+        <TabPanel header="Frequência" leftIcon="pi pi-table">
+          <CrudSimples 
+            namelist="frequencia" 
+            onClick={()=>{}} 
+          />
+        </TabPanel>
        <TabPanel header="Função" leftIcon="pi pi-slack" >
           <CrudSimples 
             namelist="funcao" 
@@ -74,7 +93,7 @@ export const Crud = () => {
             dropDown={{ especialidade }}
           />
         </TabPanel>
-        <TabPanel header="Localidade" leftIcon="pi pi-map">
+        <TabPanel header="Localidade" leftIcon="pi pi-map-marker">
          <CrudSimples 
           namelist="localidade" 
           onClick={()=>{}} 
