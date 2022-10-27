@@ -14,10 +14,10 @@ export const api = axios.create({
   },
 });
 
-export const intercepttRoute = (token: string) => {
+export const intercepttRoute = (token: string, login: string) => {
   api.interceptors.request.use(
     async (config: any) => {
-      if (!config.url.endsWith("login") || !config.url.endsWith("signup")) {
+      if (!config.url.endsWith("login")) {
         // const userTokenExpiration = new Date(auth.accessToken);
         // const today = new Date();
         // if (today > userTokenExpiration) {
@@ -26,6 +26,7 @@ export const intercepttRoute = (token: string) => {
         //   config.headers.Authorization = `Bearer ${auth.accessToken}`;
         // }
         config.headers.Authorization = `Bearer ${token}`;
+        config.headers.login = login;
       }
       return config;
     },

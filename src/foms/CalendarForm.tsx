@@ -1,41 +1,30 @@
 //userFields
 import moment from "moment";
 moment.locale('pt-br')
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components";
 import { SelectButtonComponent } from "../components/selectButton";
-import { calendarFields } from "../constants/formFields";
-import { dropDown, getList } from "../server";
+import { create, update } from "../server";
 
-const fields = calendarFields;
-const fieldsState: any = {};
-fields.forEach((field: any) => (fieldsState[field.id] = ""));
-
-interface OptionProps {
-  id: string;
-  nome: string;
-}
-
-export const CalendarForm = ({ value, onClose }: any) => {
-  const [dropDownList, setDropdow] = useState<any>({});
+export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
 
-
-  const defaultValues = {
-    data: "",
+  const defaultValues = value || {
+    dataInicio: "",
+    dataFim: "",
     start:"",
     end: "",
-    repeticao: "",
-    repetDays: [],
-    pacienteId: "",
-    especialidadeId: "",
-    modalidadeId: "",
-    terapeutaId: "",
-    funcaoId: "",
-    localidadeId: "",
-    frequenciaId: "",
-    statusEventoId: "",
+    paciente: "",
+    especialidade: "",
+    modalidade: "",
+    terapeuta: "",
+    funcao: "",
+    localidade: "",
+    frequencia: "",
+    statusEventos: "",
+    diasFrequencia: [],
     observacao: "",
   };
 
@@ -55,44 +44,38 @@ export const CalendarForm = ({ value, onClose }: any) => {
     control,
   } = useForm({ defaultValues });
 
-  const onSubmit = async (body: any) => {
-    setLoading(true)
-    console.log(body);
-    setLoading(false)
 
+  const onSubmit = async (formValueState: any) => {
+    try {
+      setLoading(true)
+
+      let data;
+      if (value?.id) {
+        formValueState.id = value.id;
+        data = await update('evento', formValueState);
+      } else {
+        data = await create('evento', formValueState);
+      }
+
+      onClose()
+      renderToast({
+        type: "success",
+        title: "",
+        message: data.data.message,
+        open: true,
+      });
+      setLoading(false)
+    } catch ({ message }: any) {
+      renderToast({
+        type: "failure",
+        title: "401",
+        message: `${message}`,
+        open: true,
+      });
+      setLoading(false)
+      return;
+    }
   };
-
-  const renderTerapeutas = async () => {
-    const response: any = await getList("/usuarios/terapeutas");
-    const arr = Object.values(response).map((values: any) => values);
-    setDropdow({...dropDownList, terapeutas: arr});
-  };
-
-  const renderDropDownEspecialidade = async () => {
-    const arr: OptionProps[] = await dropDown("especialidade");
-    setDropdow({...dropDownList, especialidades: arr});
-  };
-
-  const renderDropDownFuncao = async () => {
-    const arr: OptionProps[] = await dropDown("funcao");
-    setDropdow({...dropDownList, funcoes: arr});
-  };
-
-  const renderDropDownLocalidade = async () => {
-    const arr: OptionProps[] = await dropDown("localidade");
-    setDropdow({...dropDownList, localidades: arr});
-  };
-
-  const renderDropDownPaciente = async () => {
-    const arr: OptionProps[] = await dropDown("paciente");
-    setDropdow({...dropDownList, pacientes: arr});
-  };
-
-  useEffect(() => {
-    renderDropDownEspecialidade();
-    renderDropDownPaciente();
-    renderTerapeutas();
-  }, []);
 
   return (
     <form
@@ -103,7 +86,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
       <div className="grid grid-cols-6 gap-4 mb-8 min-h-[300px] overflow-y-auto">
           <Input
             labelText="Data"
-            id="data"
+            id="dataInicio"
             type="date"
             customCol="col-span-6 sm:col-span-2"
             errors={errors}
@@ -155,6 +138,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
             customCol="col-span-6 sm:col-span-6"
             errors={errors}
             control={control}
+            options={dropDownList?.pacientes}
             validate={{
               required: true,
             }}
@@ -162,11 +146,12 @@ export const CalendarForm = ({ value, onClose }: any) => {
 
         <Input
           labelText="Modalidade"
-          id="modalidadade"
+          id="modalidade"
           type="select"
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.modalidades}
           validate={{
             required: true,
           }}
@@ -179,6 +164,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.especialidades}
           validate={{
             required: true,
           }}
@@ -191,6 +177,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.terapeutas}
           validate={{
             required: true,
           }}
@@ -203,11 +190,11 @@ export const CalendarForm = ({ value, onClose }: any) => {
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.funcoes}
           validate={{
             required: true,
           }}
         />  
-
 
         <Input
           labelText="Local"
@@ -216,18 +203,20 @@ export const CalendarForm = ({ value, onClose }: any) => {
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.localidades}
           validate={{
             required: true,
           }}
         />  
 
         <Input
-          labelText="Status"
-          id="staus_evento"
+          labelText="Status Eventos"
+          id="statusEventos"
           type="select"
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.statusEventos}
           validate={{
             required: true,
           }}
@@ -235,24 +224,25 @@ export const CalendarForm = ({ value, onClose }: any) => {
 
         <Input
           labelText="Frequência"
-          id="tipoRepeticao"
+          id="frequencia"
           type="select"
           customCol="col-span-6 sm:col-span-3"
           errors={errors}
           control={control}
+          options={dropDownList?.frequencias}
+          onChange={(e: any)=> setHasFrequencia(e.nome === 'Semanal')}
           validate={{
             required: true,
           }}
         />  
 
-      <div className="col-span-6 sm:col-span-3">
-        <SelectButtonComponent id="calendar" title="Dias da semana" options={weekOption} control={control} />
-      </div>
-
+      {hasFrequencia && (<div className="col-span-6 sm:col-span-3">
+        <SelectButtonComponent id="diasFrequencia" title="Dias da semana" options={weekOption} control={control} />
+      </div>)}
 
       <Input
           labelText="Observação"
-          id="obeservacao"
+          id="observacao"
           type="textarea"
           customCol="col-span-6 sm:col-span-6"
           errors={errors}
@@ -261,11 +251,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
             required: true,
           }}
         />  
-  
       </div>
-
-
-
 
       <ButtonHeron
         text="Agendar"
@@ -277,3 +263,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
     </form>
   );
 };
+
+function renderToast(arg0: { type: string; title: string; message: any; open: boolean; }) {
+  throw new Error("Function not implemented.");
+}

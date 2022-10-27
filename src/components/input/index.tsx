@@ -57,7 +57,10 @@ export function Input({
               <Dropdown
                 value={value || field.value}
                 options={options}
-                onChange={(e: any) => field.onChange(e.value)}
+                onChange={(e: any) => {
+                  onChange && onChange(e.value)
+                  return field.onChange(e.value)
+                }}
                 optionLabel="nome"
                 filter
                 showClear
@@ -211,7 +214,7 @@ export function Input({
               type={type}
               className={"inputAnimado font-sans-serif "  + customClass}
               onInput={(e: any)=> {
-                field.onInput(e)
+                field.onChange(e)
                 onChange && onChange(e)
               }}
             />

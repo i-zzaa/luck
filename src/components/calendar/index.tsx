@@ -44,6 +44,7 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
           }}
           ref={calendarRef}
           eventClick={openModalEdit}
+          // eventChange={openModalEdit}
           dayMaxEventRows={true}
           views={{
             timeGrid: {
