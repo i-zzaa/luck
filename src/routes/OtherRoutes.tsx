@@ -16,7 +16,7 @@ export enum CONSTANTES_ROUTERS {
   DASHBOARD = "dashboard",
   QUEUE = "fila",
   CRUD = "cadastro",
-  CALENDAR = "Calendário",
+  CALENDAR = "calendário",
 }
 interface Props {
   path: string;

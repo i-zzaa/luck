@@ -21,7 +21,7 @@ export const Nav = () => {
       hasPermition(item) ? (
         <NavLink
           key={item}
-          to={`/${item}`}
+          to={`${item}`}
           className={({ isActive }) => (isActive ? activeClass : desativeClass)}
         >
           {firtUpperCase(item)}

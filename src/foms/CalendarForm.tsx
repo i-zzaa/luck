@@ -112,7 +112,12 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
                 useGrouping: false
               })
 
-              const end = `${hours}:${startCalc?._data?.minutes}:00`;
+              const minutes = (startCalc?._data?.minutes).toLocaleString('pt-Br', {
+                minimumIntegerDigits: 2, 
+                useGrouping: false
+              })
+
+              const end = `${hours}:${minutes}`;
               setValue('end', end)
             }}
             validate={{
@@ -237,7 +242,15 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
         />  
 
       {hasFrequencia && (<div className="col-span-6 sm:col-span-3">
-        <SelectButtonComponent id="diasFrequencia" title="Dias da semana" options={weekOption} control={control} />
+        <SelectButtonComponent 
+        id="diasFrequencia" 
+        title="Dias da semana" 
+        options={weekOption} 
+        control={control}
+        rules={{
+          required: !!getValues('frequencias'),
+        }} 
+        />
       </div>)}
 
       <Input
@@ -248,7 +261,7 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
           errors={errors}
           control={control}
           validate={{
-            required: true,
+            required: false,
           }}
         />  
       </div>

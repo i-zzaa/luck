@@ -2,11 +2,12 @@ import  {  useRef } from "react";
 import '@fullcalendar/react/dist/vdom';
 
 import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
+import dayGridPlugin from '@fullcalendar/daygrid';
 
 import "@fullcalendar/common/main.min.css";
 import "@fullcalendar/daygrid/main.min.css";
 import "@fullcalendar/timegrid/main.min.css";
+import rrulePlugin from '@fullcalendar/rrule'
 
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
 // import { FullCalendar } from 'primereact/fullcalendar';
@@ -30,17 +31,17 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
 
   return (
     <div>
-      <div className="card">
+      <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[dayGridPlugin,listPlugin,  timeGridPlugin ]}
+          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin ]}
           locale="pt"
           // locales={[ptLocale]}
-          initialView="dayGridMonth"
+          initialView="listWeek"
           events={events}
           headerToolbar={{
-            left: "prev,next today",
+            left: "prev,next",
             center: "title",
-            right: "dayGridMonth,timeGridWeek,listWeek",
+            right: "dayGridMonth,timeGridWeek,listWeek timeGridDay,listDay",
           }}
           ref={calendarRef}
           eventClick={openModalEdit}

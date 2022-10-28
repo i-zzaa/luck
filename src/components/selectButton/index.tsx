@@ -7,6 +7,7 @@ interface SelectButtonProps {
   title: string;
   options: any[];
   control: any;
+  rules: any;
 }
 
 export const SelectButtonComponent = ({
@@ -14,6 +15,7 @@ export const SelectButtonComponent = ({
   options,
   control,
   id,
+  rules,
 }: SelectButtonProps) => {
   return (
     <div>
@@ -22,6 +24,7 @@ export const SelectButtonComponent = ({
         <Controller
             name={id}
             control={control}
+            rules={rules}
             render={({ field }: any) => (
               <SelectButton value={field.value} options={options} onChange={field.onChange} optionLabel="nome" multiple />
             )}
