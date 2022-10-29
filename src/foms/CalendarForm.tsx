@@ -10,6 +10,7 @@ import { create, update } from "../server";
 export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
+  const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
 
   const defaultValues = value || {
     dataInicio: "",
@@ -28,13 +29,6 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
     observacao: "",
   };
 
-  const weekOption = [
-    {nome: 'S', value: 1},
-    {nome: 'T', value: 2},
-    {nome: 'Q', value: 3},
-    {nome: 'Q', value: 4},
-    {nome: 'S', value: 5},
-];
 
   const {
     getValues,
@@ -157,10 +151,23 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
           errors={errors}
           control={control}
           options={dropDownList?.modalidades}
+          onChange={(e: any)=> setIsAvalicao(e.nome === 'Avaliação')}
           validate={{
             required: true,
           }}
         />
+
+      {isAvaliacao && (<Input
+          labelText="Data Final"
+          id="dataFim"
+          type="date"
+          customCol="col-span-6 sm:col-span-2"
+          errors={errors}
+          control={control}
+          validate={{
+            required: true,
+          }}
+        />)}
 
         <Input
           labelText="Especialidade"
@@ -241,11 +248,25 @@ export const CalendarForm = ({ value, onClose, dropDownList }: any) => {
           }}
         />  
 
+        <Input
+          labelText="Intervalo"
+          id="intervalo"
+          type="select"
+          customCol="col-span-6 sm:col-span-3"
+          errors={errors}
+          control={control}
+          options={dropDownList?.intervalos}
+          // onChange={(e: any)=> setHasFrequencia(e.nome === 'Semanal')}
+          validate={{
+            required: true,
+          }}
+        />  
+
       {hasFrequencia && (<div className="col-span-6 sm:col-span-3">
         <SelectButtonComponent 
         id="diasFrequencia" 
         title="Dias da semana" 
-        options={weekOption} 
+        options={dropDownList?.diasFrequencia} 
         control={control}
         rules={{
           required: !!getValues('frequencias'),

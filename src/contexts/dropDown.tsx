@@ -10,7 +10,9 @@ export interface DropdownContextData {
   renderLocalidade: () => void;
   renderFuncao: () => void;
   renderTerapeutas: () => void;
+  renderEspecialidadeFuncao: (especialidade: string) => void;
   renderDropdownCalendario: () => any;
+  renderDropdownCrud: () => any;
 }
 
 interface Props {
@@ -20,6 +22,20 @@ interface Props {
 const DropdownContext = createContext<DropdownContextData>({} as DropdownContextData);
 
 export const DropdownProvider = ({ children }: Props) => {
+  const weekOption = [
+    {nome: 'S', value: 1},
+    {nome: 'T', value: 2},
+    {nome: 'Q', value: 3},
+    {nome: 'Q', value: 4},
+    {nome: 'S', value: 5},
+  ];
+
+  const intervaloOption = [
+    {nome: '2 semanas', value: 2},
+    {nome: '3 semanas', value: 3}
+  ];
+
+
   const renderPacientes = useCallback(async () => {
     const response: any = await dropDown("paciente");
     return response
@@ -55,6 +71,16 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   }, []);
 
+  const renderPerfil = useCallback(async () => {
+    const response: any = await dropDown("perfil");
+    return response
+  }, []);
+
+  const renderEspecialidadeFuncao = useCallback(async (especialidade: string) => {
+    const response: any = await dropDown('especialidade-funcao', `especialidade=${especialidade}` );
+    return response
+  }, []);
+
   const renderTerapeutas = async () => {
     const response: any = await getList("/usuarios/terapeutas");
     return response
@@ -69,7 +95,19 @@ export const DropdownProvider = ({ children }: Props) => {
       localidades:await renderLocalidade(),
       funcoes: await renderFuncao(),
       terapeutas: await renderTerapeutas(),
-      especialidades: await renderEspecialidade()
+      especialidades: await renderEspecialidade(),
+      intervalos: intervaloOption,
+      diasFrequencia: weekOption,
+    }
+
+    return dropDownList
+  };
+
+  const renderDropdownCrud = async () => {
+    const dropDownList= {
+      funcoes: await renderFuncao(),
+      especialidades: await renderEspecialidade(),
+      perfies:await renderPerfil(),
     }
 
     return dropDownList
@@ -85,7 +123,9 @@ export const DropdownProvider = ({ children }: Props) => {
       renderLocalidade,
       renderFuncao,
       renderTerapeutas,
-      renderDropdownCalendario
+      renderDropdownCalendario,
+      renderDropdownCrud,
+      renderEspecialidadeFuncao
      }}>
       {children}
     </DropdownContext.Provider>

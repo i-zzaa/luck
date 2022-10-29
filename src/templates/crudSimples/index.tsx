@@ -1,20 +1,18 @@
-// import Modal from "../components/Modal";
 
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useToast } from "../../contexts/toast";
 import { useForm } from "react-hook-form";
 import { Card, Modal, SearchAdd, List, Confirm, ButtonHeron, Input } from "../../components/index";
 import { create, getList, search, update } from "../../server";
 
 import { Fields } from "../../constants/formFields";
+import { useDropdown } from "../../contexts/dropDown";
 
 interface Props {
   namelist: string;
   onClick: (e:any) => void;
   iconButtonFooter?: string;
   textButtonFooter?: string;
-  dropDown?: any;
 }
 
 export default function CrudSimples({
@@ -22,19 +20,29 @@ export default function CrudSimples({
   onClick,
   iconButtonFooter,
   textButtonFooter,
-  dropDown
 }:Props) {
   const [list, setList] = useState<any>([]);
   const [item, setItem] = useState<any>({});
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [hidden, setHidden] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
 
   const [fields, setFields] = useState([])
+  const [dropDownList, setDropDownList] = useState<any>([]);
+  const { renderDropdownCrud, renderEspecialidadeFuncao } = useDropdown()
 
   const { renderToast } = useToast();
-  const {  handleSubmit,  control,  formState: { errors }, setValue} = useForm<any>();
+
+  const {  
+    handleSubmit,  
+    control,  
+    formState: { errors }, 
+    setValue,
+    unregister,
+    reset,
+  } = useForm<any>();
 
   const renderList = useCallback(async () => {
     const response = await getList(namelist);
@@ -69,7 +77,11 @@ export default function CrudSimples({
 
       Object.keys(userState).forEach((index) => {
         if (index.indexOf('Id') !== -1) {
-          formatValues[index] = userState[index].id
+          if(!userState[index]) {
+            delete formatValues[index];
+          } else {
+            formatValues[index] = userState[index].id
+          }
         }
       })
 
@@ -82,6 +94,7 @@ export default function CrudSimples({
         data = await create(namelist, formatValues);
       }
 
+      reset()
       renderList()
       setIsEdit(false)
       setOpen(false)
@@ -130,9 +143,46 @@ export default function CrudSimples({
     });
   };
 
-  useEffect(() => {
-    renderList();
-  }, [renderList]);
+  const actionFieldId = async(value: any, fieldId: string) => {
+    switch (fieldId) {
+      case 'perfilId':
+        setHidden(value.nome !== 'Terapeuta')
+        if (value.nome !== 'Terapeuta') {
+          unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
+        }
+       
+        break;
+      case 'especialidadeId':
+        const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
+        setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
+        break;
+    
+      default:
+        break;
+    }
+  }
+
+  const handleChange=(value: any, fieldId: string) => {
+    switch (namelist) {
+      case 'usuarios':
+        actionFieldId(value, fieldId)
+        break;
+    
+      default:
+        break;
+    }
+  }
+
+  const renderAgendar =useCallback(async()=> {
+    const list = await renderDropdownCrud()
+    setDropDownList(list)
+  },[])
+
+
+  useLayoutEffect(() => {
+    renderAgendar()
+  }, [renderAgendar]);
+
 
   useEffect(() => {
     const index: string = `${namelist}Fields`
@@ -142,11 +192,20 @@ export default function CrudSimples({
     setFields(_fields)
   }, []);
 
+  useEffect(() => {
+    renderList()
+  }, [renderList]);
+
+  useEffect(() => {
+     unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
+  }, [fields]);
+
   return (
     <>
       <SearchAdd 
         onClick={() => {
-          setItem(undefined)
+          reset()
+          setIsEdit(false)
           setOpen(true)
         }}
         onSubmit={handleSubmit(handleClick)}
@@ -193,7 +252,10 @@ export default function CrudSimples({
       <Modal
         title="Cadastro"
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false)
+          reset()
+        }}
       >
       <form onSubmit={handleSubmit(onSubmit)} action="#">
           <div>
@@ -203,10 +265,12 @@ export default function CrudSimples({
                 labelText={field.labelText}
                 id={field.id}
                 type={field.type}
-                options={field.type === "select" && dropDown[field.labelFor]}
-                validate={field.validate}
+                options={field.type === "select" && dropDownList[field.labelFor]}
+                validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
                 errors={errors}
                 control={control}
+                onChange={(values: any)=> handleChange(values, field.id)}
+                hidden={namelist === 'usuarios' && field.hidden && hidden }
               />
             ))}
           </div>

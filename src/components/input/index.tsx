@@ -20,8 +20,9 @@ export interface InputProps {
   customCol?: string;
   disabled?: boolean;
   onChange?: (value: any) => void;
-  validate?: object;
+  validate?: any;
   errors?: any;
+  hidden?: any;
   control?: any;
 }
 
@@ -43,6 +44,7 @@ export function Input({
   errors,
   control,
   disabled,
+  hidden
 }: InputProps) {
 
   const renderType = () => {
@@ -244,7 +246,7 @@ export function Input({
   };
 
   return (
-    <div className={clsx('label-float', {'my-5': !customCol}, customCol)} >
+    <div className={clsx('label-float', {'my-5': !customCol, "hidden": hidden && hidden}, customCol)} >
       {renderType()}
       {type !== "switch" && type !== "checkbox" && <label> {labelText} </label>}
       {errors && errors[id] && (

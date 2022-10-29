@@ -15,7 +15,7 @@ export function ButtonHeron({
   size = 'full', 
   type = 'primary',  
   color = 'white',  
-  text, loading=false, 
+  text, loading, 
   onClick
 }: ButtonProps) {
   return (

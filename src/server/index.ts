@@ -36,8 +36,9 @@ export const intercepttRoute = (token: string, login: string) => {
   );
 };
 
-export const dropDown = async (type: string) => {
-  const response = await api(`/dropdrown/${type}`);
+export const dropDown = async (type: string, query?: string) => {
+  const url = query ? `${type}?${query}` : type;
+  const response = await api(`/dropdrown/${url}`);
   if (response.status === 200) {
     return response.data?.data || response.data;
   }

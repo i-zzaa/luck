@@ -5,6 +5,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import CrudSimples from '../templates/crudSimples';
 import { dropDown, getList } from '../server';
 import { useToast } from '../contexts/toast';
+import { useDropdown } from '../contexts/dropDown';
 
 
 interface OptionProps {
@@ -13,19 +14,7 @@ interface OptionProps {
 }
 
 export const Crud = () => {
-  const [especialidade, setListEspecialidade] = useState([] as OptionProps[]);
-  const [perfil, setPerfies] = useState<OptionProps[]>([]);
   const { renderToast } = useToast();
-
-  const renderDropDownEspecialidade = useCallback(async () => {
-    const arr: OptionProps[] = await dropDown("especialidade");
-    setListEspecialidade(arr);
-  }, []);
-
-  const renderPerfil = useCallback(async () => {
-    const arr: OptionProps[] = await dropDown("perfil");
-    setPerfies(arr);
-  }, []);
 
 
   const handleResetSenha = async (userId: number) => {
@@ -48,11 +37,6 @@ export const Crud = () => {
     }
   };
 
-  useLayoutEffect(() => {
-    renderDropDownEspecialidade()
-    renderPerfil()
-  }, [renderDropDownEspecialidade, renderPerfil]);
-
   return (
     <div className="card">
       <TabView className="tabview-custom">
@@ -65,7 +49,6 @@ export const Crud = () => {
             onClick={handleResetSenha} 
             iconButtonFooter="pi pi-sync"
             textButtonFooter="Reset de senha"
-            dropDown={{ perfil }}
           />
         </TabPanel>
         <TabPanel header="Modalidade" leftIcon="pi pi-sitemap">
@@ -90,7 +73,6 @@ export const Crud = () => {
           <CrudSimples 
             namelist="funcao" 
             onClick={()=>{}} 
-            dropDown={{ especialidade }}
           />
         </TabPanel>
         <TabPanel header="Localidade" leftIcon="pi pi-map-marker">
