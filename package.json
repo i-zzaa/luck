@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite --port=3000",
-    "start": "node serve.js",
+    "start": "node --max-old-space-size=4096 serve.js",
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
