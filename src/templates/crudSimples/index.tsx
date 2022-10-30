@@ -7,6 +7,7 @@ import { create, getList, search, update } from "../../server";
 
 import { Fields } from "../../constants/formFields";
 import { useDropdown } from "../../contexts/dropDown";
+import { identity } from "@fullcalendar/react";
 
 interface Props {
   namelist: string;
@@ -82,6 +83,8 @@ export default function CrudSimples({
           } else {
             formatValues[index] = userState[index].id
           }
+        }else if(Array.isArray(userState[index]) && userState[index].length) {
+          formatValues[index] = formatValues[index].map((item: any) => item.id)
         }
       })
 
@@ -153,6 +156,7 @@ export default function CrudSimples({
        
         break;
       case 'especialidadeId':
+        setValue('funcoes', [])
         const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
         break;
@@ -183,7 +187,6 @@ export default function CrudSimples({
     renderAgendar()
   }, [renderAgendar]);
 
-
   useEffect(() => {
     const index: string = `${namelist}Fields`
     const _fields = Fields[index]
@@ -196,9 +199,9 @@ export default function CrudSimples({
     renderList()
   }, [renderList]);
 
-  useEffect(() => {
-     unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
-  }, [fields]);
+  // useEffect(() => {
+  //    unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
+  // }, [fields]);
 
   return (
     <>
@@ -225,16 +228,24 @@ export default function CrudSimples({
           }}
           onClickEdit={(item_: any) => {
             Object.keys(item_).forEach((index: any) => {
-              if (typeof item_[index] === 'object') {
+             if (typeof item_[index] === 'object' && 
+             !Array.isArray(item_[index]) &&
+             index !== 'terapeuta' && 
+             index.indexOf('Id') === -1
+             ) {
                 item_[`${index}Id`] = item_[index]
                 index = `${index}Id`
               }
               setValue(index, item_[index])
             })
-          
+            
             setIsEdit(true)
             setItem(item_);
             setOpen(true);
+
+            if (item_.hasOwnProperty('terapeuta') && item_?.terapeuta) {
+              setHidden(false)
+            }
           }}
           onClick={(item_: any) => onClick(item_.id)}
           items={list}
@@ -265,7 +276,7 @@ export default function CrudSimples({
                 labelText={field.labelText}
                 id={field.id}
                 type={field.type}
-                options={field.type === "select" && dropDownList[field.labelFor]}
+                options={(field.type === "select" || field.type === "multiselect" ) && dropDownList[field.labelFor]}
                 validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
                 errors={errors}
                 control={control}

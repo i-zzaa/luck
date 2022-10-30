@@ -204,7 +204,12 @@ export default function Queue() {
       statusId: value.vaga.status,
       dataContato: value.vaga.dataContato,
       especialidades: value.vaga.especialidades.map(
-        (item: any) => item.especialidade
+        (item: any) => {
+          return {
+            nome: item.especialidade.nome,
+            id:item.especialidade.id
+          }
+        }
       ),
       tipoSessaoId: value.vaga.tipoSessao,
       observacao: value.vaga.observacao,

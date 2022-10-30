@@ -3,10 +3,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { dropDown, getList } from "../server";
 import { useForm } from "react-hook-form";
 import moment from "moment";
-import { ButtonHeron, Input, Modal } from "../components";
+import { ButtonHeron, Card, Filter, Input, Modal } from "../components";
 import { CalendarComponent } from "../components/calendar";
 import { CalendarForm } from "../foms/CalendarForm";
 import { useDropdown } from "../contexts/dropDown";
+import { filterCalendarFields } from "../constants/formFields";
+
+
+const fieldsConst = filterCalendarFields;
+
+//userFields
+const fieldsState: any = {};
+fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
 interface UserProps {
   id: string;
@@ -20,13 +28,12 @@ interface UserProps {
 }
 
 export default function Schedule() {
-  const [terapeutasList, setTerapeutasList] = useState<any[]>([]);
-  const [pacientesList, setPacientesList] = useState<any[]>([]);
-  const [statusEventosList, setStatusEventosList] = useState<any[]>([]);
+  const [terapeutas, setTerapeutasList] = useState<any[]>([]);
+  const [pacientes, setPacientesList] = useState<any[]>([]);
+  const [statusEventos, setStatusEventosList] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [dropDownList, setDropDownList] = useState<any[]>([]);
- 
-  const { renderDropdownCalendario, renderPacientes, renderStatusEventos, renderTerapeutas } = useDropdown()
+  const { renderPacientes, renderStatusEventos, renderTerapeutas } = useDropdown()
 
   const [event, setEvent] = useState<any[]>();
   const [open, setOpen] = useState<boolean>(false);
@@ -36,8 +43,6 @@ export default function Schedule() {
     control,
     formState: { errors },
   } = useForm<any>();
-
-
 
   const handleTerapeutas = useCallback(async () => {
     const response: any = await renderTerapeutas()
@@ -61,9 +66,16 @@ export default function Schedule() {
     setEventsList(response);
   }, []);
 
+  const handleSubmitFilter = useCallback(async () => {
+    setLoading(true)
+    const current = new Date();
+    const response: any = await getList(`/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`);
+
+    setEventsList(response);
+    setLoading(false)
+  }, []);
+
   const renderAgendar = async()=> {
-    const list = await renderDropdownCalendario()
-    setDropDownList(list)
     setOpen(true)
   }
 
@@ -81,6 +93,7 @@ export default function Schedule() {
   
   useEffect(() => {
     rendeFiltro
+    renderAgendar()  
   }, []);
 
   useEffect(() => {
@@ -89,8 +102,28 @@ export default function Schedule() {
 
   return (
     <>
-      <div className="grid grid-cols-4 gap-8 justify-between">
-        <div className="col-span-4 sm:col-span-1">
+
+
+      {/* <div className="grid grid-cols-4 gap-8 justify-between"> */}
+      <Filter
+        id="form-filter-patient"
+        legend="Filtro"
+        nameButton="Agendar"
+        fields={fieldsConst}
+        onSubmit={handleSubmitFilter}
+        onReset={renderEvents}
+        rule={true}
+        loading={loading}
+        dropdown={{ pacientes, terapeutas, statusEventos }}
+        onInclude={()=> {
+          // setPatient(null);
+          setOpen(true)
+        }}
+      />
+      <Card >
+
+
+        {/* <div className="col-span-4 sm:col-span-1">
           <div className="col-span-1 flex items-end justify-end">
             <ButtonHeron
               text="Agendar"
@@ -104,8 +137,8 @@ export default function Schedule() {
           <div className="card text-xs">
             <Input
               labelText="Pacientes"
-              id="terapeuta-calendario"
-              type="list"
+              id="pacientes"
+              type="multiselect"
               errors={errors}
               customCol="my-12"
               control={control}
@@ -115,8 +148,8 @@ export default function Schedule() {
           <div className="card text-xs">
             <Input
               labelText="Terapeutas"
-              id="terapeuta-calendario"
-              type="list"
+              id="terapeutas"
+              type="multiselect"
               errors={errors}
               customCol="my-12"
               control={control}
@@ -126,28 +159,27 @@ export default function Schedule() {
           <div className="card text-xs">
             <Input
               labelText="Status"
-              id="status-calendario"
-              type="list"
+              id="statusEventos"
+              type="multiselect"
               errors={errors}
               customCol="my-12"
               control={control}
               options={statusEventosList}
             />
           </div>
-        </div>
-        <div className="col-span-4 sm:col-span-3">
+        </div> */}
+        <div className="flex-1">
           <CalendarComponent
             openModalEdit={renderModalEdit}
             events={evenetsList}
           />
         </div>
-      </div>
+      </Card>
 
       {open && (
-        <Modal title="Agendamento" open={open} onClose={() => setOpen(false)}>
+        <Modal title="Agendamento" open={open} onClose={() => setOpen(false)} width="80vw">
           <CalendarForm
             value={event}
-            dropDownList={dropDownList}
             onClose={() => {
               renderEvents();
               setOpen(false);

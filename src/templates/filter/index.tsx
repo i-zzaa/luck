@@ -7,6 +7,7 @@ import { useEffect } from "react";
 export interface FilterProps {
   id: string;
   legend?: string;
+  nameButton?: string;
   fields: any;
   dropdown: any;
   rule: boolean;
@@ -22,6 +23,7 @@ export function Filter({
   fields,
   rule,
   loading,
+  nameButton,
   dropdown,
   onSubmit,
   onInclude,
@@ -52,7 +54,7 @@ export function Filter({
   return (
     <Card legend={legend}>
       <form id={id}  action="#"  onSubmit={handleSubmit(handleSubmit2)} className="flex-1">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-6 gap-4">
           {fields.map((field: any) => (
             <Input
               key={field.id}
@@ -70,7 +72,7 @@ export function Filter({
         <div className="flex items-center mt-10 gap-2 justify-between">    
           <div className='sm:text-end'>
             <ButtonHeron 
-              text="Cadastrar"
+              text={nameButton || "Cadastrar"}
               icon="pi pi-user-plus"
               type="primary"
               size="sm"
