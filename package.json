@@ -2,16 +2,16 @@
   "name": "@heron-list/web",
   "version": "0.0.0",
   "private": true,
-  "main": "index.html",
   "type": "module",
   "engines": {
-    "node": "v16.14.0",
+    "node": "16.14.0",
+    "yarn": "1.22.19",
     "npm": "8.3.1"
   },
   "scripts": {
+    "build": "tsc && vite build",
     "dev": "vite --port=3000",
-    "start": "react-scripts  --max_old_space_size=4096  start",
-    "build": "react-scripts  --max_old_space_size=4096  build",
+    "start": "node --max-old-space-size=4096 serve.js",
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
