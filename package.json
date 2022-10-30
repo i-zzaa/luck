@@ -5,13 +5,13 @@
   "main": "index.html",
   "type": "module",
   "engines": {
-    "node": "16.14.0",
-    "yarn": "1.22.19",
+    "node": "v16.14.0",
     "npm": "8.3.1"
   },
   "scripts": {
     "dev": "vite --port=3000",
-    "start": "node --max-old-space-size=4096 serve.js",
+    "start": "react-scripts  --max_old_space_size=4096  start",
+    "build": "react-scripts  --max_old_space_size=4096  build",
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
