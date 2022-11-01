@@ -43,7 +43,7 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
           headerToolbar={{
             left: "prev,next",
             center: "title",
-            right: "dayGridMonth,timeGridWeek,listWeek timeGridDay,listDay",
+            right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
           }}
           ref={calendarRef}
           eventClick={openModalEdit}

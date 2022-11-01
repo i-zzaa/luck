@@ -19,9 +19,6 @@ export default function LoginPage() {
     <>
       <Header
         heading="Fila de Espera"
-        paragraph="Não tem cadastro? "
-        linkName="Cadastrar"
-        linkUrl="/signup"
       />
       <Login />
       <div className="absolute bottom-0 text-gray-300 left-0  w-full flex justify-center">

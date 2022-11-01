@@ -13,7 +13,7 @@ import { ReactNode } from 'react';
 export function TextSubtext({ size = 'md', color = 'gray-dark', text, display="grid",  subtext, icon, className}: TextSubtextProps) {
   return (
    <div 
-    className={clsx('flex gap-4 font-normal tracking-wider text-start items-center', { 
+    className={clsx('flex gap-4 font-normal tracking-wider text-start items-center text-ellipsis overflow-hidden whitespace-nowrap', { 
     'text-xs': size === 'xs',
     'text-sm': size === 'sm',
     'text-md': size === 'md',

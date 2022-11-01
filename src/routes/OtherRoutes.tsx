@@ -16,7 +16,7 @@ export enum CONSTANTES_ROUTERS {
   DASHBOARD = "dashboard",
   QUEUE = "fila",
   CRUD = "cadastro",
-  CALENDAR = "calendário",
+  CALENDAR = "agenda",
 }
 interface Props {
   path: string;
@@ -73,9 +73,9 @@ const OtherRoutes = () => {
             <Route
               path={`/${CONSTANTES_ROUTERS.DASHBOARD}`}
               element={
-                <Layout>
+     
                   <Dashboard />
-                </Layout>
+      
               }
             />
           ) : null}
