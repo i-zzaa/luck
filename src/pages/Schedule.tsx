@@ -31,18 +31,15 @@ export default function Schedule() {
   const [terapeutas, setTerapeutasList] = useState<any[]>([]);
   const [pacientes, setPacientesList] = useState<any>([]);
   const [statusEventos, setStatusEventosList] = useState<any[]>([]);
+  const [modalidades, setModalidadeList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { renderPacientes, renderStatusEventos, renderTerapeutas } = useDropdown()
+  const { renderPacientes, renderStatusEventos, renderTerapeutas, renderModalidade } = useDropdown()
 
   const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
-  const {
-    control,
-    formState: { errors },
-  } = useForm<any>();
 
   const handleTerapeutas = useCallback(async () => {
     const response: any = await renderTerapeutas()
@@ -57,6 +54,11 @@ export default function Schedule() {
   const handleStatusEventos = useCallback(async () => {
     const response: any = await renderStatusEventos();
     setStatusEventosList(response);
+  }, []);
+
+  const handleModalidade = useCallback(async () => {
+    const response: any = await renderModalidade();
+    setModalidadeList(response);
   }, []);
 
   const renderEvents = useCallback(async () => {
@@ -91,6 +93,7 @@ export default function Schedule() {
     handlePacientes()
     handleStatusEventos()
     handleTerapeutas()
+    handleModalidade()
   }, [])
 
   const renderModalEdit = ({ event }: any) => {
@@ -123,7 +126,7 @@ export default function Schedule() {
         onReset={renderEvents}
         rule={true}
         loading={loading}
-        dropdown={{ pacientes, terapeutas, statusEventos }}
+        dropdown={{ pacientes, terapeutas, statusEventos, modalidades }}
         onInclude={()=> {
           setEvent(null);
           setOpen(true)
