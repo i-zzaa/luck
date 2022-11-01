@@ -17,7 +17,7 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
 
   const [dropDownList, setDropDownList] = useState<any>([]);
  
-  const { renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao } = useDropdown()
+  const { renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
   
   const defaultValues = value || {
     dataInicio: "",
@@ -82,6 +82,11 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
   const filtrarDropDown = async(value: any, type: string) => {
     let list: any = []
     switch (type) {
+      case 'paciente-especialidade':
+        list = await renderPacienteEspecialidade(value)
+        setDropDownList({ ...dropDownList, especialidades: list })
+        setValue('funcao', [])
+        break;
       case 'especialidade-terapeuta':
         list = await renderEspecialidadeTerapeuta(value)
         setDropDownList({ ...dropDownList, terapeutas: list })
@@ -274,6 +279,8 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
           errors={errors}
           control={control}
           options={dropDownList?.pacientes}
+          onChange={(e: any)=>filtrarDropDown(e.id, 'paciente-especialidade')}
+
           validate={{
             required: true,
           }}
