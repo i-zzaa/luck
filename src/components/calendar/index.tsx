@@ -27,7 +27,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from "@fullcalendar/list";
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
-export const CalendarComponent = ({ events, openModalEdit }: any) => {
+export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: any) => {
   const calendarRef = useRef(null);
 
   return (
@@ -60,6 +60,7 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
             day:      'Dia',
             list:     'Lista'
           }}
+          eventMouseEnter={eventMouseEnter}
         />
 
 

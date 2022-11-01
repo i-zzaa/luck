@@ -89,6 +89,11 @@ export default function Schedule() {
     }
   }, []);
 
+  const eventMouseEnter = ((event: any) => {
+    console.log(event);
+    
+  })
+
   const rendeFiltro = useMemo(() => {
     handlePacientes()
     handleStatusEventos()
@@ -182,6 +187,7 @@ export default function Schedule() {
           <CalendarComponent
             openModalEdit={renderModalEdit}
             events={evenetsList}
+            eventMouseEnter={eventMouseEnter}
           />
         </div>
       </Card>
