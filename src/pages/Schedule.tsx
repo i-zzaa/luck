@@ -66,13 +66,25 @@ export default function Schedule() {
     setEventsList(response);
   }, []);
 
-  const handleSubmitFilter = useCallback(async () => {
-    setLoading(true)
-    const current = new Date();
-    const response: any = await getList(`/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`);
+  const handleSubmitFilter = useCallback(async (formvalue: any) => {
+    try {
+      setLoading(true)
 
-    setEventsList(response);
-    setLoading(false)
+      const filter: string[] = []
+      Object.keys(formvalue).map((key: string) => {
+        if (formvalue[key]?.id) {
+          filter.push(`${key}=${formvalue[key].id}`)
+        }
+      })
+      
+      const current = new Date();
+      const response: any = await getList(`/evento/filter/${current.getMonth() + 1}/${current.getFullYear()}?${filter.join('&')}`);
+  
+      setEventsList(response);
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+    }
   }, []);
 
   const rendeFiltro = useMemo(() => {
