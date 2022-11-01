@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   dropDown,
   filter,
@@ -9,11 +9,12 @@ import {
 import { useToast } from "../contexts/toast";
 import { COORDENADOR, permissionAuth } from "../contexts/permission";
 import { Card, Confirm, Filter, Modal, List } from "../components/index";
-import { filterFields } from "../constants/formFields";
+import { filterPatientFields } from "../constants/formFields";
 import PatientForm from "../foms/PatientForm";
 import { ScheduleForm } from "../foms/ScheduleForm";
+import { useDropdown } from "../contexts/dropDown";
 
-const fieldsConst = filterFields;
+const fieldsConst = filterPatientFields;
 
 //userFields
 const fieldsState: any = {};
@@ -34,7 +35,7 @@ interface OptionProps {
   nome: string;
 }
 
-export default function Queue() {
+export default function Patient() {
   const { perfil } = permissionAuth();
   const [fields, setFields] = useState(fieldsConst);
 
@@ -46,48 +47,14 @@ export default function Queue() {
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [paciente, setListPaciente] = useState([] as OptionProps[]);
-  const [periodo, setListPeriodo] = useState([] as OptionProps[]);
-  const [convenio, setListConvenio] = useState([] as OptionProps[]);
-  const [tipoSessao, setListTipoSessao] = useState([] as OptionProps[]);
-  const [especialidade, setListEspecialidade] = useState([] as OptionProps[]);
-  const [status, setListStatus] = useState([] as OptionProps[]);
+  const [dropDownList, setDropDownList] = useState<any>([]);
   const { renderToast } = useToast();
 
-  const renderDropDownPaciente = useCallback(async () => {
-    setListPaciente([]);
-    const pacienteState: OptionProps[] = await dropDown("paciente?emAtendimento=false");
-    setListPaciente(pacienteState);
-  }, []);
+  const { renderPacientes, renderDropdownPatientCrud } = useDropdown()
 
-  const renderDropDownPeriodo = useCallback(async () => {
-    const periodoState: OptionProps[] = await dropDown("periodo");
-    setListPeriodo(periodoState);
-  }, []);
-
-  const renderDropDownConvenio = useCallback(async () => {
-    const convenioState: OptionProps[] = await dropDown("convenio");
-    setListConvenio(convenioState);
-  }, []);
-
-  const renderDropDownTipoSessao = useCallback(async () => {
-    const tipoSessaoState: OptionProps[] = await dropDown("tipo-sessao");
-    setListTipoSessao(tipoSessaoState);
-  }, []);
-
-  const renderDropDownEspecialidade = useCallback(async () => {
-    const especialidadeState: OptionProps[] = await dropDown("especialidade");
-    setListEspecialidade(especialidadeState);
-  }, []);
-
-  const renderDropdownStatus = useCallback(async () => {
-    const statusState: OptionProps[] = await dropDown("status");
-    setListStatus(statusState);
-  }, []);
-
-  const renderPatient = useCallback(async () => {
+  const renderPatient = useMemo(async () => {
     setPatients([]);
-    const pacientes = await getList("pacientes?emAtendimento=false");
+    const pacientes = await getList("pacientes?emAtendimento=true");
     setPatients(pacientes);
   }, []);
 
@@ -121,7 +88,7 @@ export default function Queue() {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled:  formState.disabled === undefined ? false : formState.disabled,
       devolutiva:  formState.devolutiva === undefined ? false : formState.devolutiva,
-      emAtendimento: false
+      emAtendimento: true
     };
     delete formState.naFila;
     delete formState.disabled;
@@ -228,23 +195,18 @@ export default function Queue() {
     }
   }, [perfil]);
 
+  const renderAgendar =useCallback(async()=> {
+    const list = await renderDropdownPatientCrud(true)
+    setDropDownList(list)
+  },[])
+
   useEffect(() => {
     perfil === COORDENADOR
       ? handleSubmitFilter({ naFila: true })
-      : renderPatient();
-    renderDropDownPeriodo();
-    renderDropDownConvenio();
-    renderDropDownTipoSessao();
-    renderDropDownEspecialidade();
-    renderDropDownPaciente();
-    renderDropdownStatus();
+      : renderPatient;
+      renderAgendar()
   }, [
-    renderDropDownPeriodo, 
-    renderDropDownConvenio, 
-    renderDropDownTipoSessao,
-    renderDropDownEspecialidade,
-    renderDropDownPaciente,
-    renderDropdownStatus,
+    renderAgendar,
     renderPatient,
     perfil
   ]);
@@ -258,9 +220,9 @@ export default function Queue() {
         fields={fields}
         rule={perfil === COORDENADOR}
         onSubmit={handleSubmitFilter}
-        onReset={renderPatient}
+        onReset={()=> renderPatient}
         loading={loading}
-        dropdown={{ paciente, periodo, convenio, tipoSessao, especialidade, status }}
+        dropdown={dropDownList}
         onInclude={()=> {
           setPatient(null);
           setOpen(true)
@@ -295,14 +257,16 @@ export default function Queue() {
         onClose={() => setOpen(false)}
       >
         <PatientForm
-          onClose={() => {
-            renderDropDownPaciente();
+          onClose={async() => {
+            const pacientes = await renderPacientes(true)
+            setDropDownList({...dropDownList, pacientes })
+
             renderPatient();
             setOpen(false);
           }}
-          dropdown={{ paciente, periodo, convenio, tipoSessao, especialidade, status }}
+          dropdown={dropDownList}
           value={patient}
-          screen="queue"
+          screen="emAtendimento"
         />
       </Modal>
       
