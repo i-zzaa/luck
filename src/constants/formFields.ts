@@ -745,7 +745,7 @@ const filterCalendarFields = [
   {
     labelText: "Pacientes",
     labelFor: "pacientes",
-    id: "pacientes",
+    id: "pacienteId",
     name: "pacientes",
     autoComplete: "paciente",
     isRequired: false,
@@ -757,7 +757,7 @@ const filterCalendarFields = [
   {
     labelText: "Terapeutas",
     labelFor: "terapeutas",
-    id: "terapeutas",
+    id: "terapeutaId",
     name: "terapeutas",
     autoComplete: "terapeuta",
     isRequired: false,
@@ -769,7 +769,7 @@ const filterCalendarFields = [
   {
     labelText: "Status Eventos",
     labelFor: "statusEventos",
-    id: "statusEventos",
+    id: "statusEventosId",
     name: "statusEventos",
     autoComplete: "statusEventos",
     isRequired: false,
