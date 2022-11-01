@@ -5102,6 +5102,20 @@ textarea {
   .p-menubar .p-menubar-root-list .p-submenu-list .p-menuitem-active > .p-menuitem-link > .p-submenu-icon {
     transform: rotate(-90deg);
   }
+  .p-menuitem {
+    padding: 0.5rem;
+  }
+
+  .p-menubar .p-menubar-root-list .p-menuitem:hover {
+    background: #ffffff63;
+    color: var(--violet-800);
+  }
+
+  .p-menubar .p-menubar-root-list .p-menuitem:active {
+    background: #ffffff63;
+    color: var(--violet-800);
+  }
+
   .p-menubar .p-menubar-root-list .p-menuitem {
     width: 100%;
     position: static;

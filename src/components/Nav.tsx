@@ -15,9 +15,9 @@ export const Nav = () => {
   const RouterLinks: string[] = Object.values(CONSTANTES_ROUTERS);
 
   const activeClass =
-    "font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans hover:border-white  hover:border-b-2  border-b-2  border-violet-800 sm:border-white";
+    "font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans  border-violet-800 md:border-white md:border-b-2";
   const desativeClass =
-    "font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans hover:border-white  hover:border-b-2 border-none";
+    "font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans hover:border-white   border-none";
 
   const renderNav = () => {
     const arr: any =  RouterLinks.map((route: string) => {
@@ -40,6 +40,17 @@ export const Nav = () => {
     });
     setItems(arr)
   };
+
+  const menuEnd = (
+    <NavLink
+    to="/login"
+    className="rounded-full bg-violet-800 p-1 mr-8 text-yellow-400 hover:text-violet-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+    onClick={Logout}
+  >
+    <span className="sr-only">Sair</span>
+    <i className="pi pi-sign-out" />
+  </NavLink>
+  )
 
   useEffect(()=> {
     renderNav()
@@ -89,7 +100,7 @@ export const Nav = () => {
     className="bg-violet-800 fixed w-full mb-10 z-30 text-white h-16 rounded-none border-none p-2 text-sm font-sans"
       model={items} 
       start={<img className="h-12 sm:h-24 py-2" src={logoSm} alt="logo" />} 
-      // end={end} 
+      end={menuEnd} 
     />
   );
 };
