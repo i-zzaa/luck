@@ -261,7 +261,7 @@ export default function Patient() {
             const pacientes = await renderPacientes(true)
             setDropDownList({...dropDownList, pacientes })
 
-            renderPatient();
+            renderPatient;
             setOpen(false);
           }}
           dropdown={dropDownList}
