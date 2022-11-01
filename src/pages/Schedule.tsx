@@ -47,7 +47,7 @@ export default function Schedule() {
   }, []);
 
   const handlePacientes = useCallback(async () => {
-    const response: any = await renderPacientes();
+    const response: any = await renderPacientes(true);
     setPacientesList(response);
   }, []);
 

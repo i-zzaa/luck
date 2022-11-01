@@ -6,8 +6,9 @@ import { create, update } from "../server";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components/index";
 import { setColorChips } from "../util/util";
+import { useDropdown } from "../contexts/dropDown";
 
-const fields = patientFields;
+const fieldsCostant = patientFields;
 interface OptionProps {
   id: string;
   nome: string;
@@ -17,19 +18,22 @@ interface Props {
   onClose: () => void;
   dropdown: any,
   value: any;
+  screen: string;
 }
 
 //userFields
 const fieldsState: any = {};
-fields.forEach((field: any) => (fieldsState[field.id] = ""));
+fieldsCostant.forEach((field: any) => (fieldsState[field.id] = ""));
 
 export default function PatientForm({
   onClose,
   dropdown,
   value,
+  screen
 }: Props) {
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
+  const [fields, setFields] = useState(fieldsCostant)
 
   const defaultValues = value || {
     nome: "",
@@ -62,6 +66,7 @@ export default function PatientForm({
         statusId: body.statusId.id,
         tipoSessaoId: body.tipoSessaoId.id,
         especialidades: body.especialidades.map((item: OptionProps) => item.id),
+        emAtendimento: screen === 'emAtendimento'
       };
 
       if (value?.nome) {
@@ -76,7 +81,7 @@ export default function PatientForm({
       renderToast({
         type: "success",
         title: "",
-        message: data.data.message,
+        message: data?.data.message,
         open: true,
       });
 
@@ -91,10 +96,22 @@ export default function PatientForm({
       });
     }
   };
-
   
   useEffect(() => {
     value?.nome &&  setColorChips()
+  }, [value])
+
+  useEffect(() => {
+    const excludes = ['periodos', 'status']
+    switch (screen) {
+      case 'emAtendimento':
+        const list = fields.filter((item: any) => !excludes.includes(item.name))
+        setFields(list)
+        break;
+    
+      default:
+        break;
+    }
   }, [value])
 
 

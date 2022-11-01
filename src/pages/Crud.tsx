@@ -6,6 +6,7 @@ import CrudSimples from '../templates/crudSimples';
 import { dropDown, getList } from '../server';
 import { useToast } from '../contexts/toast';
 import { useDropdown } from '../contexts/dropDown';
+import Patient from './Patient';
 
 
 interface OptionProps {
@@ -40,9 +41,9 @@ export const Crud = () => {
   return (
     <div className="card">
       <TabView className="tabview-custom">
-        {/* <TabPanel header="Lista de espera" leftIcon="pi pi-user">
+        <TabPanel header="Pacientes" leftIcon="pi pi-user">
           <Patient />
-        </TabPanel> */}
+        </TabPanel>
         <TabPanel header="Usuários" leftIcon="pi pi-user">
           <CrudSimples 
             namelist="usuarios" 

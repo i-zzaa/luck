@@ -35,7 +35,9 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    const status = `${item.vaga.status.nome}`;
+    if (!item.vaga.status) return null
+
+    const status = `${item.vaga.status?.nome}`;
     switch (status) {
       case "Urgente":
         return (
@@ -100,28 +102,28 @@ export function List({
 
       const buttonFooter = {text: '', icon: '', type: 'second', size: 'md'}
       switch (true) {
-        case item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case !item.emAtendimento &&  item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
           buttonFooter.text = 'Agendado' 
           buttonFooter.icon = 'pi pi-calendar-minus' 
           buttonFooter.type = 'primary' 
           buttonFooter.size = 'md' 
           typeButtonFooter  =  'agendado' 
           break;
-        case !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case !item.emAtendimento &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
           buttonFooter.text = 'Retornar' 
           buttonFooter.icon = 'pi pi-sync' 
           buttonFooter.type = 'second' 
           buttonFooter.size = 'md'
           typeButtonFooter  =  'agendado'  
           break;
-        case !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        case !item.emAtendimento &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnDevolutiva"):
           buttonFooter.text = 'Devolutiva' 
           buttonFooter.icon = 'pi pi-check-circle' 
           buttonFooter.type = 'primary' 
           buttonFooter.size = 'md'
           typeButtonFooter  =  'devolutiva' 
           break;
-        case !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        case !item.emAtendimento &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
           buttonFooter.text = 'Retornar Devolutiva' 
           buttonFooter.icon = 'pi pi-check-circle' 
           buttonFooter.type = 'second' 
@@ -163,10 +165,11 @@ export function List({
           actionTrash={!DISABLED}
           actionReturn={DISABLED}
         > 
+          {!item.emAtendimento &&(
           <div className="flex justify-between">
             <div className="sm:flex items-center sm:gap-4">
-              <TextSubtext text="Período: " subtext={item?.vaga.periodo.nome} size="sm" color="gray-dark" display="flex"/>
-              <TextSubtext text="Tipo: " subtext={item?.vaga.tipoSessao.nome} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext text="Período: " subtext={item?.vaga?.periodo?.nome} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext text="Tipo: " subtext={item?.vaga?.tipoSessao?.nome} size="sm" color="gray-dark" display="flex"/>
               { renderStatus(item) }
               {
                 item.vaga.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
@@ -175,7 +178,7 @@ export function List({
             <div className="text-end">
               <TextSubtext className="font-sans-serif" text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
             </div>
-          </div>
+          </div>)}
      
         </ItemList.Complete>
       )
