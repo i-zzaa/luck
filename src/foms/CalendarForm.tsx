@@ -98,7 +98,7 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
   }
 
   const rendeFiltro = useMemo(async() => {
-    const list = await renderDropdownCalendario()
+    const list = await renderDropdownCalendario(true)
     setDropDownList(list)
   }, [])
 
@@ -138,6 +138,16 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
           customCol={`col-span-6 ${isAvaliacao ? 'sm:col-span-2' : 'sm:col-span-3'}`}
           errors={errors}
           control={control}
+          onChange={()=> {
+            const frequencia = getValues('frequencia')
+            if (frequencia.nome === 'Recorrente') {
+              const dataInicio = getValues('dataInicio')
+              const date = moment(dataInicio); // Thursday Feb 2015
+              const dow = Number(date.day());
+              
+              setValue('diasFrequencia', [dow])
+            }
+          }}
           validate={{
             required: true,
           }}
@@ -205,7 +215,17 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
           errors={errors}
           control={control}
           options={dropDownList?.frequencias}
-          onChange={(e: any)=> setHasFrequencia(e.nome === 'Recorrente')}
+          onChange={(e: any)=> {
+            setHasFrequencia(e.nome === 'Recorrente')
+            if (e.nome === 'Recorrente') {
+              const dataInicio = getValues('dataInicio')
+              const date = moment(dataInicio); // Thursday Feb 2015
+              const dow = Number(date.day());
+              
+              setValue('diasFrequencia', [dow])
+            }
+
+          }}
           validate={{
             required: true,
           }}

@@ -238,6 +238,10 @@ export function Input({
                   type={type}
                   className={"inputAnimado "  + customClass}
                   autoComplete="off"
+                  onInput={(e: any)=> {
+                    field.onChange(e)
+                    onChange && onChange(e)
+                  }}
                 />
               )}
             />
