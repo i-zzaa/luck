@@ -1,6 +1,5 @@
-import { createContext, useContext, useCallback, useState } from "react";
-import { dropDown, getList } from "../server";
-
+import { createContext, useContext, useCallback } from "react";
+import { dropDown } from "../server";
 
 export interface DropdownContextData {
   renderPacientes: () => void;
@@ -12,7 +11,7 @@ export interface DropdownContextData {
   renderTerapeutas: () => void;
   renderEspecialidadeFuncao: (especialidade: string) => void;
   renderEspecialidadeTerapeuta: (especialidade: string) => void;
-  renderTerapeutaFuncao: (terapeuta: string) => void;
+  renderTerapeutaFuncao: (terapeutaId: number) => void;
   renderDropdownCalendario: () => any;
   renderDropdownCrud: () => any;
 }
@@ -31,12 +30,6 @@ export const DropdownProvider = ({ children }: Props) => {
     {nome: 'Q', value: 4},
     {nome: 'S', value: 5},
   ];
-
-  const intervaloOption = [
-    {nome: '2 semanas', value: 2},
-    {nome: '3 semanas', value: 3}
-  ];
-
 
   const renderPacientes = useCallback(async () => {
     const response: any = await dropDown("paciente");
@@ -88,13 +81,18 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   }, []);
 
-  const renderTerapeutaFuncao = useCallback(async (terapeuta: string) => {
-    const response: any = await dropDown('terapeuta-funcao', `terapeuta=${terapeuta}` );
+  const renderTerapeutaFuncao = useCallback(async (terapeutaId: number) => {
+    const response: any = await dropDown('terapeuta-funcao', `terapeutaId=${terapeutaId}` );
     return response
   }, []);
 
   const renderTerapeutas = async () => {
     const response: any = await dropDown("terapeuta");
+    return response
+  };
+
+  const renderIntervalos = async () => {
+    const response: any = await dropDown("intervalo");
     return response
   };
 
@@ -106,9 +104,9 @@ export const DropdownProvider = ({ children }: Props) => {
       frequencias:await renderFrequencia(),
       localidades:await renderLocalidade(),
       funcoes: await renderFuncao(),
-      terapeutas: await renderTerapeutas(),
+      terapeutas: await renderTerapeutas(),      
       especialidades: await renderEspecialidade(),
-      intervalos: intervaloOption,
+      intervalos: await renderIntervalos(),
       diasFrequencia: weekOption,
     }
 
@@ -124,7 +122,6 @@ export const DropdownProvider = ({ children }: Props) => {
 
     return dropDownList
   };
-
 
   return (
     <DropdownContext.Provider value={{ 

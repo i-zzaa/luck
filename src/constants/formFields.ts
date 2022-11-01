@@ -647,7 +647,7 @@ const funcaoFields = [
   },
   {
     labelText: "Especialidade",
-    labelFor: "especialidade",
+    labelFor: "especialidades",
     id: "especialidadeId",
     name: "especialidade",
     autoComplete: "especialidades",

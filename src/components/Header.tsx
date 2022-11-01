@@ -1,6 +1,6 @@
 
 import logoLg from "../assets/logo-lg.jpg";
-import { Title } from "../components/index";
+import { Title } from "./index";
 
 interface Props {
   heading: string;
