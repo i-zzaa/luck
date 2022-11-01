@@ -54,6 +54,12 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
               dayMaxEventRows: 8,
             },
           }}
+          buttonText={{
+            month:    'Mês',
+            week:     'Semana',
+            day:      'Dia',
+            list:     'Lista'
+          }}
         />
 
 

@@ -115,7 +115,7 @@ export default function Schedule() {
   }, [event]);
 
   return (
-    <>
+    <div className="h-max-screen">
       {/* <div className="grid grid-cols-4 gap-8 justify-between"> */}
       <Filter
         id="form-filter-patient"
@@ -199,6 +199,6 @@ export default function Schedule() {
           />
         </Modal>
       )}
-    </>
+    </div>
   );
 }
