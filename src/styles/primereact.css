@@ -16,6 +16,12 @@
   font-family: Raleway, sans-serif !important;
 }
 
+
+textarea {
+  padding-left: 0.5rem !important;
+  padding-top: 0.5rem !important;
+}
+
 .p-calendar,
 .p-datepicker-calendar {
   font-family: sans-serif !important;

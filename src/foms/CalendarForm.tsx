@@ -9,12 +9,11 @@ import { useDropdown } from "../contexts/dropDown";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
 
-export const CalendarForm = ({ value, onClose }: any) => {
+export const CalendarForm = ({ value, onClose, isEdit }: any) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
   const { renderToast } = useToast();
-
 
   const [dropDownList, setDropDownList] = useState<any>([]);
  
@@ -86,6 +85,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
       case 'especialidade-terapeuta':
         list = await renderEspecialidadeTerapeuta(value)
         setDropDownList({ ...dropDownList, terapeutas: list })
+        setValue('funcao', [])
         break;
       case 'terapeuta-funcao':
         list = await renderTerapeutaFuncao(value)
@@ -205,7 +205,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
           errors={errors}
           control={control}
           options={dropDownList?.frequencias}
-          onChange={(e: any)=> setHasFrequencia(e.nome === 'Semanal')}
+          onChange={(e: any)=> setHasFrequencia(e.nome === 'Recorrente')}
           validate={{
             required: true,
           }}
@@ -279,6 +279,7 @@ export const CalendarForm = ({ value, onClose }: any) => {
           errors={errors}
           control={control}
           options={dropDownList?.terapeutas}
+          onChange={(e: any)=>filtrarDropDown(e.id, 'terapeuta-funcao')}
           validate={{
             required: true,
           }}
@@ -333,8 +334,8 @@ export const CalendarForm = ({ value, onClose }: any) => {
       </div>
 
       <ButtonHeron
-        text="Agendar"
-        type="primary"
+        text={isEdit ? "Atualizar" : "Cadastrar"}
+        type={isEdit ? "second" : "primary"}
         size="full"
         onClick={handleSubmit(onSubmit)}
         loading={loading}

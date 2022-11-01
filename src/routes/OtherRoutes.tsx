@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 // import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { permissionAuth } from "../contexts/permission";
 import { Layout } from "../foms/Layout";
-import { Nav } from "../foms/Nav";
+import { Nav } from "../components/Nav";
 import { Crud } from "../pages/Crud";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";

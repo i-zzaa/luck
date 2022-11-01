@@ -20,7 +20,8 @@ import rrulePlugin from '@fullcalendar/rrule'
 // import "@fullcalendar/timegrid/main.css";
 // import ptLocale from "@fullcalendar/common/locales/pt";
 
-
+import { toMoment } from '@fullcalendar/moment'; // only for formatting
+import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from "@fullcalendar/list";
@@ -33,8 +34,9 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin ]}
+          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin, momentTimezonePlugin  ]}
           locale="pt"
+          timeZone='local'
           // locales={[ptLocale]}
           initialView="listWeek"
           events={events}
@@ -49,7 +51,7 @@ export const CalendarComponent = ({ events, openModalEdit }: any) => {
           dayMaxEventRows={true}
           views={{
             timeGrid: {
-              dayMaxEventRows: 6,
+              dayMaxEventRows: 8,
             },
           }}
         />

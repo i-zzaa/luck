@@ -29,13 +29,13 @@ interface UserProps {
 
 export default function Schedule() {
   const [terapeutas, setTerapeutasList] = useState<any[]>([]);
-  const [pacientes, setPacientesList] = useState<any[]>([]);
+  const [pacientes, setPacientesList] = useState<any>([]);
   const [statusEventos, setStatusEventosList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const { renderPacientes, renderStatusEventos, renderTerapeutas } = useDropdown()
 
-  const [event, setEvent] = useState<any[]>();
+  const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
@@ -75,10 +75,6 @@ export default function Schedule() {
     setLoading(false)
   }, []);
 
-  const renderAgendar = async()=> {
-    setOpen(true)
-  }
-
   const rendeFiltro = useMemo(() => {
     handlePacientes()
     handleStatusEventos()
@@ -86,14 +82,17 @@ export default function Schedule() {
   }, [])
 
   const renderModalEdit = ({ event }: any) => {
-    renderAgendar()
-    setEvent(event._def.extendedProps);
+    const evento = {
+      id: Number(event.id),
+      ...event._def.extendedProps,
+      ...event._def.extendedProps.data
+    }
+    setEvent(evento);
     setOpen(true);
   };
   
   useEffect(() => {
     rendeFiltro
-    renderAgendar()  
   }, []);
 
   useEffect(() => {
@@ -102,8 +101,6 @@ export default function Schedule() {
 
   return (
     <>
-
-
       {/* <div className="grid grid-cols-4 gap-8 justify-between"> */}
       <Filter
         id="form-filter-patient"
@@ -116,13 +113,11 @@ export default function Schedule() {
         loading={loading}
         dropdown={{ pacientes, terapeutas, statusEventos }}
         onInclude={()=> {
-          // setPatient(null);
+          setEvent(null);
           setOpen(true)
         }}
       />
       <Card >
-
-
         {/* <div className="col-span-4 sm:col-span-1">
           <div className="col-span-1 flex items-end justify-end">
             <ButtonHeron
@@ -180,7 +175,9 @@ export default function Schedule() {
         <Modal title="Agendamento" open={open} onClose={() => setOpen(false)} width="80vw">
           <CalendarForm
             value={event}
+            isEdit={!!event}
             onClose={() => {
+              setEvent(null)
               renderEvents();
               setOpen(false);
             }}
