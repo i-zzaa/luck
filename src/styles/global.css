@@ -43,3 +43,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--violet-800);
 }
+
+@media screen and (max-width: 960px) {
+  .fc .fc-toolbar {
+    display: grid;
+    gap: 1rem;
+  }
+}

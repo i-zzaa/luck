@@ -53,17 +53,17 @@ export default function Home() {
 
 
   return (
-    <div className="h-screen w-full m-auto">
+    <>
       <Card>
         <TextSubtext
           text= {user?.nome}
           subtext={user?.login}
           color="violet"
-          size="lg"
+          size="md"
           icon="pi pi-id-card"
           display="grid"
         />
-        <div className="flex gap-2 col-spam-1 sm:col-spam-2 mb-10 md:mb-0 items-center">
+        <div className="flex gap-2 col-spam-1 sm:col-spam-2 my-6 sm:my-0  items-center">
           <Input
             labelText="Alterar senha"
             id="senha"
@@ -85,6 +85,6 @@ export default function Home() {
           </div>
         </div>
       </Card>
-    </div>
+    </>
   );
 }

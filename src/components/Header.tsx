@@ -11,7 +11,7 @@ interface Props {
 
 export default function Header({
   heading,
-}: Props) {
+}: any) {
   return (
     <div className="mb-10 text-center">
       <div className="flex justify-center">

@@ -50,7 +50,6 @@ export function Filter({
     }
   })
 
-
   return (
     <Card legend={legend}>
       <form id={id}  action="#"  onSubmit={handleSubmit(handleSubmit2)} className="flex-1">
@@ -79,7 +78,7 @@ export function Filter({
               onClick={onInclude}
             />
           </div>
-          <div className="sm:w-2/4 ml-auto grid grid-cols-2 gap-2">
+          <div className="hidden sm:w-2/4 ml-auto sm:grid grid-cols-2 gap-2">
             <div className='text-end'>
               <ButtonHeron 
                 text="Limpar"
@@ -95,6 +94,27 @@ export function Filter({
                 icon="pi pi-filter"
                 type="primary"
                 size="full"
+                loading={loading}
+                onClick={()=> handleSubmit(handleSubmit2)}
+              />
+            </div>
+          </div>
+          <div className="sm:w-2/4 ml-auto grid sm:hidden grid-cols-2 gap-2">
+            <div className='text-end'>
+              <ButtonHeron 
+                text="Limpar"
+                icon="pi pi-filter-slash"
+                type="second"
+                size="icon"
+                onClick={handleReset}
+              />
+            </div>
+            <div className='text-end'>
+              <ButtonHeron 
+                text="Pesquisar"
+                icon="pi pi-filter"
+                type="primary"
+                size="icon"
                 loading={loading}
                 onClick={()=> handleSubmit(handleSubmit2)}
               />
