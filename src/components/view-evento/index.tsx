@@ -3,12 +3,19 @@ import { weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
 
+interface Props {
+  evento: any;
+  open: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+}
+
 export const ViewEvento = ({
   evento,
   open,
   onClose,
   onEdit
-}, any) => {
+}: Props) => {
   const header = (
     <div className='flex justify-between items-center gap-8'>
       <Tag type={evento.especialidade.nome} disabled={false}/>
