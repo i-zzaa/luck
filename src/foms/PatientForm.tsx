@@ -102,7 +102,7 @@ export default function PatientForm({
   }, [value])
 
   useEffect(() => {
-    const excludes = ['periodos', 'status']
+    const excludes = ['periodos', 'status', 'dataContato']
     switch (screen) {
       case 'emAtendimento':
         const list = fields.filter((item: any) => !excludes.includes(item.name))
