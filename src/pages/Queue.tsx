@@ -12,6 +12,7 @@ import { Card, Confirm, Filter, Modal, List } from "../components/index";
 import { filterFields } from "../constants/formFields";
 import PatientForm from "../foms/PatientForm";
 import { ScheduleForm } from "../foms/ScheduleForm";
+import { CalendarForm } from "../foms/CalendarForm";
 
 const fieldsConst = filterFields;
 
@@ -40,8 +41,10 @@ export default function Queue() {
 
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
+  const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
 
   const [open, setOpen] = useState<boolean>(false);
+  const [openCalendarForm, setOpenCalendarForm] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -168,7 +171,9 @@ export default function Queue() {
         sendUpdate("vagas/agendar", body, { naFila: !item.vaga.naFila });
       } else {
         setPatient(item)
-        setOpenSchedule(true);
+        formatCalendar(item)
+        // setOpenSchedule(true);
+        setOpenCalendarForm(true)
       }
     }else {
       const body: any = {
@@ -178,6 +183,14 @@ export default function Queue() {
       sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
     }
   };
+
+  const formatCalendar = (item: any) => {
+   const format = {
+      paciente: {nome: item.nome, id: item.id},
+    }
+    setPatient(item);
+    setPatientFormatCalendar(format)
+  }
 
   const handleScheduleResponse = (agendar: number[], desagendar: number[]) => {
     const body: any = {
@@ -305,6 +318,31 @@ export default function Queue() {
           screen="queue"
         />
       </Modal>
+
+      {openCalendarForm && (
+        <Modal title="Agendamento" open={openCalendarForm} onClose={() => setOpenCalendarForm(false)} width="80vw">
+          <CalendarForm
+            value={patientFormatCalendar}
+            isEdit={false}
+            screen="queue"
+            onClose={async (formValueState: any) => {
+
+              sendUpdate(
+              	'vagas/agendar/especialidade', 
+                {
+                  vagaId: patient.vaga.id,
+                  especialidadeId: formValueState.especialidade.id
+                },
+                { naFila: !patient.vaga.naFila }
+              );
+
+              renderPatient();
+              setOpenCalendarForm(false);
+            }}
+          />
+        </Modal>
+      )}
+      
       
       <Modal
         title="Selecione a(s) especialidade(s) agendada(s)"
