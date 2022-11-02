@@ -1,7 +1,7 @@
 //userFields
 import moment from "moment";
 moment.locale('pt-br')
-import {  useEffect, useMemo, useState } from "react";
+import {  useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Input, Title } from "../components";
 import { SelectButtonComponent } from "../components/selectButton";
@@ -9,7 +9,7 @@ import { useDropdown } from "../contexts/dropDown";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
 
-export const CalendarForm = ({ value, onClose, isEdit }: any) => {
+export const CalendarForm = ({ value, onClose, isEdit,  screen}: any) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
@@ -17,7 +17,7 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
 
   const [dropDownList, setDropDownList] = useState<any>([]);
  
-  const { renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
+  const { renderDropdownQueue, renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
   
   const defaultValues = value || {
     dataInicio: "",
@@ -59,7 +59,7 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
         data = await create('evento', formValueState);
       }
 
-      onClose()
+      onClose(formValueState)
       renderToast({
         type: "success",
         title: "",
@@ -102,14 +102,24 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
     }
   }
 
-  const rendeFiltro = useMemo(async() => {
-    const list = await renderDropdownCalendario(true)
+  const rendeFiltro = useCallback(async() => {
+    let list = []
+    switch (screen) {
+      case 'calendar':
+        list = await renderDropdownCalendario(true)
+        break;
+      case 'queue':
+        list = await renderDropdownQueue(value.paciente.id)
+        break;
+      default:
+        break;
+    }
     setDropDownList(list)
   }, [])
 
   
   useEffect(() => {
-    rendeFiltro
+    rendeFiltro()
   }, []);
 
 

@@ -203,6 +203,7 @@ export default function Schedule() {
           <CalendarForm
             value={event}
             isEdit={!!event}
+            screen="calendar"
             onClose={() => {
               setEvent(null)
               renderEvents();

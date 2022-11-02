@@ -16,6 +16,7 @@ export interface DropdownContextData {
   renderDropdownCrud: () => any;
   renderDropdownPatientCrud: (emAtedimento:boolean) => any;
   renderPacienteEspecialidade: (pacienteId:number) => any;
+  renderDropdownQueue: (pacienteId:number) => any;
 }
 
 interface Props {
@@ -135,6 +136,23 @@ export const DropdownProvider = ({ children }: Props) => {
     return dropDownList
   };
 
+  const renderDropdownQueue = async (pacienteId: number) => {
+    const dropDownList= {
+      pacientes: await renderPacientes(false) ,
+      statusEventos: await renderStatusEventos(),
+      modalidades: await renderModalidade(),
+      frequencias:await renderFrequencia(),
+      localidades:await renderLocalidade(),
+      funcoes: await renderFuncao(),
+      terapeutas: await renderTerapeutas(),      
+      especialidades: await renderPacienteEspecialidade(pacienteId),
+      intervalos: await renderIntervalos(),
+      diasFrequencia: weekOption,
+    }
+
+    return dropDownList
+  };
+
   const renderDropdownPatientCrud = async (emAtedimento: boolean) => {
     const dropDownList= {
       pacientes: await renderPacientes(emAtedimento) ,
@@ -176,6 +194,7 @@ export const DropdownProvider = ({ children }: Props) => {
       renderTerapeutaFuncao,
       renderDropdownPatientCrud,
       renderPacienteEspecialidade,
+      renderDropdownQueue
      }}>
       {children}
     </DropdownContext.Provider>
