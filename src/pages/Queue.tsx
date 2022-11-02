@@ -46,11 +46,11 @@ export default function Queue() {
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [paciente, setListPaciente] = useState([] as OptionProps[]);
-  const [periodo, setListPeriodo] = useState([] as OptionProps[]);
-  const [convenio, setListConvenio] = useState([] as OptionProps[]);
+  const [pacientes, setListPaciente] = useState([] as OptionProps[]);
+  const [periodos, setListPeriodo] = useState([] as OptionProps[]);
+  const [convenios, setListConvenio] = useState([] as OptionProps[]);
   const [tipoSessao, setListTipoSessao] = useState([] as OptionProps[]);
-  const [especialidade, setListEspecialidade] = useState([] as OptionProps[]);
+  const [especialidades, setListEspecialidade] = useState([] as OptionProps[]);
   const [status, setListStatus] = useState([] as OptionProps[]);
   const { renderToast } = useToast();
 
@@ -61,34 +61,34 @@ export default function Queue() {
   }, []);
 
   const renderDropDownPeriodo = useCallback(async () => {
-    const periodoState: OptionProps[] = await dropDown("periodo");
-    setListPeriodo(periodoState);
+    const response: OptionProps[] = await dropDown("periodo");
+    setListPeriodo(response);
   }, []);
 
   const renderDropDownConvenio = useCallback(async () => {
-    const convenioState: OptionProps[] = await dropDown("convenio");
-    setListConvenio(convenioState);
+    const response: OptionProps[] = await dropDown("convenio");
+    setListConvenio(response);
   }, []);
 
   const renderDropDownTipoSessao = useCallback(async () => {
-    const tipoSessaoState: OptionProps[] = await dropDown("tipo-sessao");
-    setListTipoSessao(tipoSessaoState);
+    const response: OptionProps[] = await dropDown("tipo-sessao");
+    setListTipoSessao(response);
   }, []);
 
   const renderDropDownEspecialidade = useCallback(async () => {
-    const especialidadeState: OptionProps[] = await dropDown("especialidade");
-    setListEspecialidade(especialidadeState);
+    const response: OptionProps[] = await dropDown("especialidade");
+    setListEspecialidade(response);
   }, []);
 
   const renderDropdownStatus = useCallback(async () => {
-    const statusState: OptionProps[] = await dropDown("status");
-    setListStatus(statusState);
+    const response: OptionProps[] = await dropDown("status");
+    setListStatus(response);
   }, []);
 
   const renderPatient = useCallback(async () => {
     setPatients([]);
-    const pacientes = await getList("pacientes?emAtendimento=false");
-    setPatients(pacientes);
+    const response = await getList("pacientes?emAtendimento=false");
+    setPatients(response);
   }, []);
 
   const handleDisabledUser = async () => {
@@ -260,7 +260,7 @@ export default function Queue() {
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
-        dropdown={{ paciente, periodo, convenio, tipoSessao, especialidade, status }}
+        dropdown={{ pacientes, periodos, convenios, tipoSessao, especialidades, status }}
         onInclude={()=> {
           setPatient(null);
           setOpen(true)
@@ -300,7 +300,7 @@ export default function Queue() {
             renderPatient();
             setOpen(false);
           }}
-          dropdown={{ paciente, periodo, convenio, tipoSessao, especialidade, status }}
+          dropdown={{ pacientes, periodos, convenios, tipoSessao, especialidades, status }}
           value={patient}
           screen="queue"
         />
