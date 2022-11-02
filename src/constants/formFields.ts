@@ -260,6 +260,20 @@ const patientFields = [
       required: "Campo obrigatório!",
     },
   },
+
+  {
+    labelText: "Data Voltou Aba",
+    labelFor: "dataVoltouAba",
+    id: "dataVoltouAba",
+    name: "dataVoltouAba",
+    type: "date",
+    autoComplete: "dataVoltouAba",
+    isRequired: true,
+    placeholder: "Data Voltou Aba",
+    customCol: "col-span-6 sm:col-span-3",
+    singleSelect: false,
+    hidden: true,
+  },
   {
     labelText: "Observação",
     labelFor: "Observação",
@@ -271,6 +285,9 @@ const patientFields = [
     placeholder: "",
     customCol: "col-span-6 sm:col-span-6",
     singleSelect: false,
+    validate: {
+      required: false,
+    },
   },
 ];
 

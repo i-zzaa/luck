@@ -1,4 +1,5 @@
 import moment from "moment";
+import { PacientsProps } from "../pages/Patient";
 
 export const colorsData: any = {
   TO: "#ef6c00",
@@ -72,4 +73,27 @@ export const getDateFormat = (date: any) => {
   const dow = Number(dateFormat.day());
 
   return `${weekDay[dow]}, ${dateFormat.format("ll")}`;
+};
+
+export const formtDatePatient = (value: PacientsProps) => {
+  return {
+    id: value.id,
+    nome: value.nome,
+    dataNascimento: value.dataNascimento,
+    telefone: value.telefone,
+    responsavel: value.responsavel,
+    periodoId: value.vaga.periodo,
+    convenioId: value.convenio,
+    statusId: value.vaga.status,
+    dataContato: value.vaga.dataContato,
+    dataVoltouAba: value?.vaga?.dataVoltouAba,
+    especialidades: value.vaga.especialidades.map((item: any) => {
+      return {
+        nome: item.especialidade.nome,
+        id: item.especialidade.id,
+      };
+    }),
+    tipoSessaoId: value.vaga.tipoSessao,
+    observacao: value.vaga.observacao,
+  };
 };
