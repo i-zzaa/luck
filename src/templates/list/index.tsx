@@ -174,6 +174,9 @@ export function List({
               {
                 item.vaga.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
               }
+              {
+                item.vaga.dataVoltouAba && <TextSubtext className="font-sans-serif" text="Voltou Aba:" subtext={formatdate(item.vaga?.dataVoltouAba)} size="sm" color="gray-dark" display="flex"/>
+              }
             </div>
             <div className="text-end">
               <TextSubtext className="font-sans-serif" text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
