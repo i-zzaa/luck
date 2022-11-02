@@ -13,6 +13,7 @@ import { filterFields } from "../constants/formFields";
 import PatientForm from "../foms/PatientForm";
 import { ScheduleForm } from "../foms/ScheduleForm";
 import { CalendarForm } from "../foms/CalendarForm";
+import { formtDatePatient } from "../util/util";
 
 const fieldsConst = filterFields;
 
@@ -207,27 +208,7 @@ export default function Queue() {
 
 
   const formtDate = (value: PacientsProps) => {
-    const data = {
-      id: value.id,
-      nome: value.nome,
-      dataNascimento: value.dataNascimento,
-      telefone: value.telefone,
-      responsavel: value.responsavel,
-      periodoId: value.vaga.periodo,
-      convenioId: value.convenio,
-      statusId: value.vaga.status,
-      dataContato: value.vaga.dataContato,
-      especialidades: value.vaga.especialidades.map(
-        (item: any) => {
-          return {
-            nome: item.especialidade.nome,
-            id:item.especialidade.id
-          }
-        }
-      ),
-      tipoSessaoId: value.vaga.tipoSessao,
-      observacao: value.vaga.observacao,
-    };
+    const data = formtDatePatient(value)
     setPatient(data);
     setOpen(true);
   };
@@ -343,7 +324,7 @@ export default function Queue() {
         </Modal>
       )}
       
-      
+    
       <Modal
         title="Selecione a(s) especialidade(s) agendada(s)"
         open={openSchedule}

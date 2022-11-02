@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components/index";
 import { setColorChips } from "../util/util";
 import { useDropdown } from "../contexts/dropDown";
+import moment from "moment";
 
 const fieldsCostant = patientFields;
 interface OptionProps {
@@ -34,6 +35,9 @@ export default function PatientForm({
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
   const [fields, setFields] = useState(fieldsCostant)
+  const [hidden, setHidden] = useState<boolean>(true);
+
+  const isEdit = !!value?.nome
 
   const defaultValues = value || {
     nome: "",
@@ -52,9 +56,27 @@ export default function PatientForm({
   const {
     reset,
     handleSubmit,
+    setValue,
     formState: { errors },
     control,
   } = useForm({ defaultValues });
+
+
+  const handleChange = async (e:any, input: string) => {
+    switch (true) {
+      case input === 'statusId' && e.nome === 'Voltou ABA' && isEdit:
+        setHidden(false)
+
+        if (!value?.dataVoltouAba) {
+          const date = moment(new Date).format('YYYY-MM-DD')
+          setValue('dataVoltouAba', date)
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
   const onSubmit = async (body: any) => {
     setLoaging(true);
     try {
@@ -69,7 +91,7 @@ export default function PatientForm({
         emAtendimento: screen === 'emAtendimento'
       };
 
-      if (value?.nome) {
+      if (isEdit) {
         formatValues.id = value.id;
         data = await update("pacientes", formatValues);
       } else {
@@ -102,10 +124,11 @@ export default function PatientForm({
   }, [value])
 
   useEffect(() => {
-    const excludes = ['periodos', 'status', 'dataContato']
+    const excludesCrud = ['periodos', 'status', 'dataContato']
+    let list = []
     switch (screen) {
       case 'emAtendimento':
-        const list = fields.filter((item: any) => !excludes.includes(item.name))
+        list = fields.filter((item: any) => !excludesCrud.includes(item.name))
         setFields(list)
         break;
     
@@ -114,6 +137,11 @@ export default function PatientForm({
     }
   }, [value])
 
+  useEffect(() => {
+    if (isEdit) {
+      handleChange( value?.statusId, 'statusId')
+    }
+  }, [])
 
   return (
     <form
@@ -130,8 +158,10 @@ export default function PatientForm({
             type={field.type}
             customCol={field.customCol}
             errors={errors}
-            validate={field.validate}
+            validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
             control={control}
+            onChange={(e:any)=> handleChange(e, field.id)}
+            hidden={field.hidden && hidden }
             options={
               field.type === "select" || field.type === "multiselect"
                 ? dropdown[field.name]
@@ -142,8 +172,8 @@ export default function PatientForm({
       </div>
 
       <ButtonHeron
-        text={value?.nome ? "Atualizar" : "Cadastrar"}
-        type={value?.nome ? "second" : "primary"}
+        text={isEdit ? "Atualizar" : "Cadastrar"}
+        type={isEdit ? "second" : "primary"}
         size="full"
         onClick={handleSubmit(onSubmit)}
         loading={loading}
