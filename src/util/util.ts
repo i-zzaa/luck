@@ -57,3 +57,19 @@ export const setColorChips = () => {
 export const formatdate = (date: any) => {
   return moment(date).format("DD/MM/YYYY");
 };
+
+export const weekDay = [
+  "Segunda-feira",
+  "Terca-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
+
+export const getDateFormat = (date: any) => {
+  const dateFormat = moment(date); // Thursday Feb 2015
+  const dow = Number(dateFormat.day());
+
+  return `${weekDay[dow]}, ${dateFormat.format("ll")}`;
+};

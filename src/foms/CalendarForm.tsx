@@ -112,6 +112,17 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
     rendeFiltro
   }, []);
 
+
+  useEffect(() => {
+    if (isEdit && value?.frequencia?.nome === 'Recorrente') {
+      setHasFrequencia(true)
+    }
+
+    if (isEdit && value?.mododalidade?.nome === 'Avaliação') {
+      setIsAvalicao(true)
+    }
+  }, []);
+
   return (
     <form
       action="#"
@@ -229,7 +240,6 @@ export const CalendarForm = ({ value, onClose, isEdit }: any) => {
               
               setValue('diasFrequencia', [dow])
             }
-
           }}
           validate={{
             required: true,

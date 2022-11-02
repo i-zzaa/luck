@@ -1,14 +1,12 @@
-// import { CalendarComponent } from "../../components/CalendarComponent";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { dropDown, getList } from "../server";
-import { useForm } from "react-hook-form";
-import moment from "moment";
-import { ButtonHeron, Card, Filter, Input, Modal } from "../components";
+import {  getList } from "../server";
+import {  Card, Filter, Modal } from "../components";
 import { CalendarComponent } from "../components/calendar";
+import { ViewEvento } from "../components/view-evento";
 import { CalendarForm } from "../foms/CalendarForm";
 import { useDropdown } from "../contexts/dropDown";
 import { filterCalendarFields } from "../constants/formFields";
-
+import {  getDateFormat } from "../util/util";
 
 const fieldsConst = filterCalendarFields;
 
@@ -38,6 +36,7 @@ export default function Schedule() {
 
   const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
+  const [openView, setOpenView] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
 
@@ -89,11 +88,6 @@ export default function Schedule() {
     }
   }, []);
 
-  const eventMouseEnter = ((event: any) => {
-    console.log(event);
-    
-  })
-
   const rendeFiltro = useMemo(() => {
     handlePacientes()
     handleStatusEventos()
@@ -101,13 +95,19 @@ export default function Schedule() {
     handleModalidade()
   }, [])
 
-  const renderModalEdit = ({ event }: any) => {
+  const renderModalView = ({ event }: any) => {
     const evento = {
       id: Number(event.id),
       ...event._def.extendedProps,
-      ...event._def.extendedProps.data
+      ...event._def.extendedProps.data,
+      date: getDateFormat(event._instance.range.start)
     }
     setEvent(evento);
+    setOpenView(true);
+  };
+
+  const renderModalEdit = () => {
+    setOpenView(false);
     setOpen(true);
   };
   
@@ -185,12 +185,18 @@ export default function Schedule() {
         </div> */}
         <div className="flex-1">
           <CalendarComponent
-            openModalEdit={renderModalEdit}
+            openModalEdit={renderModalView}
             events={evenetsList}
-            eventMouseEnter={eventMouseEnter}
           />
         </div>
       </Card>
+
+      {openView && (<ViewEvento 
+        evento={event}
+        open={openView}
+        onEdit={renderModalEdit}
+        onClose={()=> setOpenView(false)}
+      />)}
 
       {open && (
         <Modal title="Agendamento" open={open} onClose={() => setOpen(false)} width="80vw">
