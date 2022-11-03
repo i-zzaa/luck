@@ -4209,7 +4209,7 @@ textarea {
   border: 1px solid #dee2e6;
   border-width: 0 0 2px 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 .p-tabview .p-tabview-nav li {
   margin-right: 0;

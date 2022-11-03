@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
-import { patientFields } from "../constants/formFields";
+import { useForm } from "react-hook-form";
+
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
-
-import { useForm } from "react-hook-form";
 import { ButtonHeron, Input } from "../components/index";
 import { setColorChips } from "../util/util";
-import { useDropdown } from "../contexts/dropDown";
-import moment from "moment";
 
-const fieldsCostant = patientFields;
 interface OptionProps {
   id: string;
   nome: string;
@@ -19,76 +15,56 @@ interface Props {
   onClose: () => void;
   dropdown: any,
   value: any;
-  screen: string;
+  statusPacienteId: number;
+  fieldsCostant: any;
 }
 
-//userFields
-const fieldsState: any = {};
-fieldsCostant.forEach((field: any) => (fieldsState[field.id] = ""));
-
-export default function PatientForm({
+export const PatientTherapy = ({
   onClose,
   dropdown,
   value,
-  screen,
-}: Props) {
+  statusPacienteId,
+  fieldsCostant
+}: Props) => {
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
-  const [fields, setFields] = useState(fieldsCostant)
-  const [hidden, setHidden] = useState<boolean>(true);
+  const [fields, setFields] = useState(fieldsCostant);
 
   const isEdit = !!value?.nome
-
-  const defaultValues = value || {
-    nome: "",
-    dataNascimento: "",
-    telefone: "",
-    responsavel: "",
-    periodoId: "",
-    convenioId: "",
-    statusId: "",
-    dataContato: "",
-    especialidades: [],
-    tipoSessaoId: "",
-    observacao: "",
-  };
+  const defaultValues = value || {};
 
   const {
     reset,
     handleSubmit,
-    setValue,
     formState: { errors },
     control,
   } = useForm({ defaultValues });
 
-  const handleChange = async (e:any, input: string) => {
-    switch (true) {
-      case input === 'statusId' && e.nome === 'Voltou ABA' && isEdit:
-        setHidden(false)
-
-        if (!value?.dataVoltouAba) {
-          const date = moment(new Date).format('YYYY-MM-DD')
-          setValue('dataVoltouAba', date)
-        }
-        break;
-      default:
-        break;
-    }
-  }
 
   const onSubmit = async (body: any) => {
     setLoaging(true);
+
     try {
       let data;
-      const formatValues = {
+      const formatValues = statusPacienteId === 1 ? 
+      {
         ...body,
         periodoId: body.periodoId.id,
         convenioId: body.convenioId.id,
         statusId: body.statusId.id,
         tipoSessaoId: body.tipoSessaoId.id,
         especialidades: body.especialidades.map((item: OptionProps) => item.id),
-        emAtendimento: screen === 'emAtendimento'
-      };
+        statusPacienteId: statusPacienteId
+      } : 
+      {
+        ...body,
+        periodoId: body.periodoId.id,
+        convenioId: body.convenioId.id,
+        statusId: body.statusId.id,
+        tipoSessaoId: 2,
+        especialidades: body.especialidades.map((item: OptionProps) => item.id),
+        statusPacienteId: statusPacienteId
+      }
 
       if (isEdit) {
         formatValues.id = value.id;
@@ -123,23 +99,10 @@ export default function PatientForm({
   }, [value])
 
   useEffect(() => {
-    const excludesCrud = ['periodos', 'status', 'dataContato']
-    let list = []
-    switch (screen) {
-      case 'emAtendimento':
-        list = fields.filter((item: any) => !excludesCrud.includes(item.name))
-        setFields(list)
-        break;
-    
-      default:
-        break;
-    }
-  }, [value])
-
-  useEffect(() => {
-    if (isEdit) {
-      handleChange( value?.statusId, 'statusId')
-    }
+    const fieldsFormat = fieldsCostant;
+    const fieldsState: any = {};
+    fieldsFormat.forEach((field: any) => (fieldsState[field.id] = ""));
+    setFields(fieldsFormat)
   }, [])
 
   return (
@@ -149,7 +112,7 @@ export default function PatientForm({
       id="form-cadastro-patient"
     >
       <div className="grid grid-cols-6 gap-4 mb-4 min-h-[300px] overflow-y-auto">
-        {fields.map((field) => (
+        {fields.map((field: any) => (
           <Input
             key={field.id}
             labelText={field.labelText}
@@ -157,10 +120,8 @@ export default function PatientForm({
             type={field.type}
             customCol={field.customCol}
             errors={errors}
-            validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
+            validate={field.validate }
             control={control}
-            onChange={(e:any)=> handleChange(e, field.id)}
-            hidden={field.hidden && hidden }
             options={
               field.type === "select" || field.type === "multiselect"
                 ? dropdown[field.name]
