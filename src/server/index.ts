@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 
 export interface ResponseSuccessProps {
   data: {
@@ -9,15 +9,15 @@ export interface ResponseSuccessProps {
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL,
   headers: {
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "application/json",
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
   },
 });
 
 export const intercepttRoute = (token: string, login: string) => {
   api.interceptors.request.use(
     async (config: any) => {
-      if (!config.url.endsWith("login")) {
+      if (!config.url.endsWith('login')) {
         // const userTokenExpiration = new Date(auth.accessToken);
         // const today = new Date();
         // if (today > userTokenExpiration) {

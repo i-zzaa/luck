@@ -1,37 +1,37 @@
-import moment from "moment";
-import { PacientsProps } from "../pages/Patient";
+import moment from 'moment';
+import { PacientsProps } from '../pages/Patient';
 
 export const colorsData: any = {
-  TO: "#ef6c00",
-  FONO: "#f6bf26",
-  PSICO: "#8e24aa",
-  PSICOPEDAG: "#000000",
+  TO: '#ef6c00',
+  FONO: '#f6bf26',
+  PSICO: '#8e24aa',
+  PSICOPEDAG: '#000000',
 };
 
 export const colorsTextData: any = {
-  TO: "#ffffff",
-  FONO: "#ffffff",
-  PSICO: "#ffffff",
-  PSICOPEDAG: "#ffffff",
+  TO: '#ffffff',
+  FONO: '#ffffff',
+  PSICO: '#ffffff',
+  PSICOPEDAG: '#ffffff',
 };
 
 export const corEspecialidade = (type: string) => {
-  let tipo = "";
+  let tipo = '';
   switch (type.toUpperCase()) {
-    case "TO":
-      tipo = "bg-to";
+    case 'TO':
+      tipo = 'bg-to';
       break;
-    case "FONO":
-      tipo = "bg-fono";
+    case 'FONO':
+      tipo = 'bg-fono';
       break;
-    case "PSICO":
-      tipo = "bg-psico";
+    case 'PSICO':
+      tipo = 'bg-psico';
       break;
-    case "PSICOPEDAG":
-      tipo = "bg-psico-pdeg";
+    case 'PSICOPEDAG':
+      tipo = 'bg-psico-pdeg';
       break;
     default:
-      tipo = "p-multiselect-token";
+      tipo = 'p-multiselect-token';
       break;
   }
 
@@ -44,7 +44,7 @@ export const firtUpperCase = (string: string) => {
 
 export const setColorChips = () => {
   setTimeout(() => {
-    const chips: any = document.querySelectorAll(".p-multiselect-token") || [];
+    const chips: any = document.querySelectorAll('.p-multiselect-token') || [];
     chips.forEach((chip: any) => {
       const color = colorsData[chip.textContent.toUpperCase()];
       const text = colorsTextData[chip.textContent.toUpperCase()];
@@ -56,23 +56,23 @@ export const setColorChips = () => {
 };
 
 export const formatdate = (date: any) => {
-  return moment(date).format("DD/MM/YYYY");
+  return moment(date).format('DD/MM/YYYY');
 };
 
 export const weekDay = [
-  "Segunda-feira",
-  "Terca-feira",
-  "Quarta-feira",
-  "Quinta-feira",
-  "Sexta-feira",
-  "Sábado",
+  'Segunda-feira',
+  'Terca-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
 ];
 
 export const getDateFormat = (date: any) => {
   const dateFormat = moment(date); // Thursday Feb 2015
   const dow = Number(dateFormat.day());
 
-  return `${weekDay[dow]}, ${dateFormat.format("ll")}`;
+  return `${weekDay[dow]}, ${dateFormat.format('ll')}`;
 };
 
 export const formtDatePatient = (value: PacientsProps) => {
