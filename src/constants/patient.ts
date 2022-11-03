@@ -2,6 +2,7 @@ export enum statusPacienteId {
   queue_avaliation = 1,
   queue_therapy = 2,
   therapy = 3,
+  avaliation = 4,
 }
 
 export const patientAvaliationFields = [

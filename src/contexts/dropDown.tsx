@@ -15,8 +15,10 @@ export interface DropdownContextData {
   renderDropdownCalendario: (statusPacienteId: number) => any;
   renderDropdownCrud: () => any;
   renderDropdownPatientCrud: (statusPacienteId:number) => any;
-  renderPacienteEspecialidade: (pacienteId:number) => any;
+  renderPacienteEspecialidade: (pacienteId:number, statusPacienteId: number) => any;
   renderDropdownQueue: (statusPacienteId:number) => any;
+  renderDropdownCalendar: (statusPacienteId:number) => any;
+  renderDropdownQueueCalendar : (statusPacienteId:number,  pacienteId: number) => any;
 }
 
 interface Props {
@@ -89,8 +91,8 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   }, []);
 
-  const renderPacienteEspecialidade = useCallback(async (pacienteId: number) => {
-    const response: any = await dropDown('paciente-especialidade', `pacienteId=${pacienteId}` );
+  const renderPacienteEspecialidade = useCallback(async (pacienteId: number, statusPacienteId: number) => {
+    const response: any = await dropDown('paciente-especialidade', `pacienteId=${pacienteId}&statusPacienteId=${statusPacienteId}` );
     return response
   }, []);
 
@@ -141,22 +143,22 @@ export const DropdownProvider = ({ children }: Props) => {
     return dropDownList
   };
 
-  // const renderDropdownQueue = async (pacienteId: number) => {
-  //   const dropDownList= {
-  //     pacientes: await renderPacientes(1) ,
-  //     statusEventos: await renderStatusEventos(),
-  //     modalidades: await renderModalidade(),
-  //     frequencias:await renderFrequencia(),
-  //     localidades:await renderLocalidade(),
-  //     funcoes: await renderFuncao(),
-  //     terapeutas: await renderTerapeutas(),      
-  //     especialidades: await renderPacienteEspecialidade(pacienteId),
-  //     intervalos: await renderIntervalos(),
-  //     diasFrequencia: weekOption,
-  //   }
+  const renderDropdownQueueCalendar = async (statusPacienteId: number, pacienteId: number ) => {
+    const dropDownList= {
+      pacientes: await renderPacientes(statusPacienteId) ,
+      statusEventos: await renderStatusEventos(),
+      modalidades: await renderModalidade(),
+      frequencias:await renderFrequencia(),
+      localidades:await renderLocalidade(),
+      funcoes: await renderFuncao(),
+      terapeutas: await renderTerapeutas(),      
+      especialidades: await renderPacienteEspecialidade(pacienteId, statusPacienteId),
+      intervalos: await renderIntervalos(),
+      diasFrequencia: weekOption,
+    }
 
-  //   return dropDownList
-  // };
+    return dropDownList
+  };
 
   const renderDropdownQueue = async (statusPacienteId: number) => {
     const dropDownList= {
@@ -186,6 +188,18 @@ export const DropdownProvider = ({ children }: Props) => {
     return dropDownList
   };
 
+  const renderDropdownCalendar = async (statusPacienteId: number) => {
+    const dropDownList= {
+      pacientes: await renderPacientes(statusPacienteId) ,
+      statusEventos: await renderStatusEventos(),
+      modalidades: await renderModalidade(),
+      terapeutas: await renderTerapeutas(),      
+    }
+
+    return dropDownList
+  };
+
+
   const renderDropdownCrud = async () => {
     const dropDownList= {
       funcoes: await renderFuncao(),
@@ -212,7 +226,9 @@ export const DropdownProvider = ({ children }: Props) => {
       renderTerapeutaFuncao,
       renderDropdownPatientCrud,
       renderPacienteEspecialidade,
-      renderDropdownQueue
+      renderDropdownQueue,
+      renderDropdownQueueCalendar,
+      renderDropdownCalendar
      }}>
       {children}
     </DropdownContext.Provider>

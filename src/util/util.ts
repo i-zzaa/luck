@@ -84,7 +84,7 @@ export const formtDatePatient = (value: PacientsProps) => {
     responsavel: value.responsavel,
     periodoId: value.vaga.periodo,
     convenioId: value.convenio,
-    statusId: value.vaga.status,
+    statusId: value.status,
     dataContato: value.vaga.dataContato,
     dataVoltouAba: value?.vaga?.dataVoltouAba,
     especialidades: value.vaga.especialidades.map((item: any) => {
@@ -93,7 +93,7 @@ export const formtDatePatient = (value: PacientsProps) => {
         id: item.especialidade.id,
       };
     }),
-    tipoSessaoId: value.vaga.tipoSessao,
+    tipoSessaoId: value.tipoSessao,
     observacao: value.vaga.observacao,
   };
 };

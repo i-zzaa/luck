@@ -7,6 +7,7 @@ import { CalendarForm } from "../foms/CalendarForm";
 import { useDropdown } from "../contexts/dropDown";
 import { filterCalendarFields } from "../constants/formFields";
 import {  getDateFormat } from "../util/util";
+import { statusPacienteId } from "../constants/patient";
 
 const fieldsConst = filterCalendarFields;
 
@@ -32,7 +33,10 @@ export default function Schedule() {
   const [modalidades, setModalidadeList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { renderPacientes, renderStatusEventos, renderTerapeutas, renderModalidade } = useDropdown()
+  const [dropDownList, setDropDownList] = useState<any>([]);
+  const {  renderDropdownCalendar, renderPacientes } = useDropdown()
+
+  // const { renderDropdownCalendar, renderStatusEventos, renderTerapeutas, renderModalidade } = useDropdown()
 
   const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
@@ -40,25 +44,25 @@ export default function Schedule() {
 
   const [evenetsList, setEventsList] = useState<any>([]);
 
-  const handleTerapeutas = useCallback(async () => {
-    const response: any = await renderTerapeutas()
-    setTerapeutasList(response);
-  }, []);
+  // const handleTerapeutas = useCallback(async () => {
+  //   const response: any = await renderTerapeutas()
+  //   setTerapeutasList(response);
+  // }, []);
 
-  const handlePacientes = useCallback(async () => {
-    const response: any = await renderPacientes(true);
-    setPacientesList(response);
-  }, []);
+  // const handlePacientes = useCallback(async () => {
+  //   const response: any = await renderPacientes(statusPacienteId.therapy);
+  //   setPacientesList(response);
+  // }, []);
 
-  const handleStatusEventos = useCallback(async () => {
-    const response: any = await renderStatusEventos();
-    setStatusEventosList(response);
-  }, []);
+  // const handleStatusEventos = useCallback(async () => {
+  //   const response: any = await renderStatusEventos();
+  //   setStatusEventosList(response);
+  // }, []);
 
-  const handleModalidade = useCallback(async () => {
-    const response: any = await renderModalidade();
-    setModalidadeList(response);
-  }, []);
+  // const handleModalidade = useCallback(async () => {
+  //   const response: any = await renderModalidade();
+  //   setModalidadeList(response);
+  // }, []);
 
   const renderEvents = useCallback(async () => {
     const current = new Date();
@@ -88,11 +92,9 @@ export default function Schedule() {
     }
   }, []);
 
-  const rendeFiltro = useMemo(() => {
-    handlePacientes()
-    handleStatusEventos()
-    handleTerapeutas()
-    handleModalidade()
+  const rendeFiltro = useMemo(async() => {
+    const list = await renderDropdownCalendar(statusPacienteId.therapy)
+    setDropDownList(list)
   }, [])
 
   const renderModalView = ({ event }: any) => {
@@ -131,7 +133,7 @@ export default function Schedule() {
         onReset={renderEvents}
         rule={true}
         loading={loading}
-        dropdown={{ pacientes, terapeutas, statusEventos, modalidades }}
+        dropdown={dropDownList}
         onInclude={()=> {
           setEvent(null);
           setOpen(true)

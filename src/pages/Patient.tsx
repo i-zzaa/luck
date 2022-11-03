@@ -21,6 +21,11 @@ const fieldsConst = filterPatientFields;
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
+
+interface OptionProps {
+  id: string;
+  nome: string;
+}
 export interface PacientsProps {
   id: string;
   nome: string;
@@ -29,11 +34,8 @@ export interface PacientsProps {
   dataNascimento: string;
   convenio: string;
   vaga: any;
-}
-
-interface OptionProps {
-  id: string;
-  nome: string;
+  status: OptionProps;
+  tipoSessao: OptionProps;
 }
 
 export default function Patient() {

@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { TextSubtext } from "../../components/textSubtext";
 import { permissionAuth } from "../../contexts/permission";
 import { formatdate } from "../../util/util";
+import { statusPacienteId } from "../../constants/patient";
 
 export interface ListProps {
   onSubmit?: (e: any) => any;
@@ -98,32 +99,32 @@ export function List({
       const textSecondRight = item?.convenio ? item?.convenio.nome : ''
       const textFooter = item?.vaga?.observacao 
       const DISABLED = !!item?.disabled
-      let typeButtonFooter: 'agendado'  | 'devolutiva'
+      let typeButtonFooter: 'agendado'  | 'devolutiva' | 'retornar'  
 
       const buttonFooter = {text: '', icon: '', type: 'second', size: 'md'}
       switch (true) {
-        case !item.emAtendimento &&  item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
           buttonFooter.text = 'Agendado' 
           buttonFooter.icon = 'pi pi-calendar-minus' 
           buttonFooter.type = 'primary' 
           buttonFooter.size = 'md' 
           typeButtonFooter  =  'agendado' 
           break;
-        case !item.emAtendimento &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
           buttonFooter.text = 'Retornar' 
           buttonFooter.icon = 'pi pi-sync' 
           buttonFooter.type = 'second' 
           buttonFooter.size = 'md'
-          typeButtonFooter  =  'agendado'  
+          typeButtonFooter  =  'retornar'  
           break;
-        case !item.emAtendimento &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnDevolutiva"):
           buttonFooter.text = 'Devolutiva' 
           buttonFooter.icon = 'pi pi-check-circle' 
           buttonFooter.type = 'primary' 
           buttonFooter.size = 'md'
           typeButtonFooter  =  'devolutiva' 
           break;
-        case !item.emAtendimento &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
           buttonFooter.text = 'Retornar Devolutiva' 
           buttonFooter.icon = 'pi pi-check-circle' 
           buttonFooter.type = 'second' 
@@ -150,7 +151,7 @@ export function List({
           textSecondCenter={textSecondCenter}
           textSecondRight={textSecondRight}
           textFooter={textFooter}
-          onClick={()=> onClick({item, typeButtonFooter})}
+          onClick={()=> onClick({item, typeButtonFooter })}
           textButtonFooter={buttonFooter.text}
           iconButtonFooter={buttonFooter.icon}
           typeButtonFooter={buttonFooter.type}
