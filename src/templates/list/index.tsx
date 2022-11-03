@@ -96,7 +96,7 @@ export function List({
       const textSecondLeft = item?.responsavel ? `Responsável: ${item.responsavel}` : '' 
       const textSecondCenter = item?.telefone 
       const textSecondRight = item?.convenio ? item?.convenio.nome : ''
-      const textFooter = item?.vaga.observacao 
+      const textFooter = item?.vaga?.observacao 
       const DISABLED = !!item?.disabled
       let typeButtonFooter: 'agendado'  | 'devolutiva'
 

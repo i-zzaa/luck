@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback } from "react";
 import { dropDown } from "../server";
 
 export interface DropdownContextData {
-  renderPacientes: (emAtendimento: boolean) => void;
+  renderPacientes: (statusPacienteId: number) => void;
   renderStatusEventos: () => void;
   renderModalidade: () => void;
   renderFrequencia: () => void;
@@ -12,11 +12,11 @@ export interface DropdownContextData {
   renderEspecialidadeFuncao: (especialidade: string) => void;
   renderEspecialidadeTerapeuta: (especialidade: string) => void;
   renderTerapeutaFuncao: (terapeutaId: number) => void;
-  renderDropdownCalendario: (emAtedimento: boolean) => any;
+  renderDropdownCalendario: (statusPacienteId: number) => any;
   renderDropdownCrud: () => any;
-  renderDropdownPatientCrud: (emAtedimento:boolean) => any;
+  renderDropdownPatientCrud: (statusPacienteId:number) => any;
   renderPacienteEspecialidade: (pacienteId:number) => any;
-  renderDropdownQueue: (pacienteId:number) => any;
+  renderDropdownQueue: (statusPacienteId:number) => any;
 }
 
 interface Props {
@@ -34,8 +34,8 @@ export const DropdownProvider = ({ children }: Props) => {
     {nome: 'S', value: 5},
   ];
 
-  const renderPacientes = useCallback(async (emAtendimento: boolean) => {
-    const response: any = await dropDown(`paciente?emAtendimento=${emAtendimento}`);
+  const renderPacientes = useCallback(async (statusPacienteId: number) => {
+    const response: any = await dropDown(`paciente?statusPacienteId=${statusPacienteId}`);
     return response
   }, []);
 
@@ -74,13 +74,18 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   }, []);
 
-  const renderTipoSessao = useCallback(async () => {
-    const response: any = await dropDown("tipo-sessao");
+  const renderPeriodo = useCallback(async () => {
+    const response: any = await dropDown("periodo");
     return response
   }, []);
 
-  const renderPrioridade = useCallback(async () => {
-    const response: any = await dropDown("prioridade");
+  const renderStatus = useCallback(async (statusPacienteId: number) => {
+    const response: any = await dropDown(`status?statusPacienteId=${statusPacienteId}`);
+    return response
+  }, []);
+
+  const renderTipoSessao = useCallback(async () => {
+    const response: any = await dropDown("tipo-sessao");
     return response
   }, []);
 
@@ -119,9 +124,9 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   };
 
-  const renderDropdownCalendario = async (emAtedimento: boolean) => {
+  const renderDropdownCalendario = async (statusPacienteId: number) => {
     const dropDownList= {
-      pacientes: await renderPacientes(emAtedimento) ,
+      pacientes: await renderPacientes(statusPacienteId) ,
       statusEventos: await renderStatusEventos(),
       modalidades: await renderModalidade(),
       frequencias:await renderFrequencia(),
@@ -136,33 +141,46 @@ export const DropdownProvider = ({ children }: Props) => {
     return dropDownList
   };
 
-  const renderDropdownQueue = async (pacienteId: number) => {
+  // const renderDropdownQueue = async (pacienteId: number) => {
+  //   const dropDownList= {
+  //     pacientes: await renderPacientes(1) ,
+  //     statusEventos: await renderStatusEventos(),
+  //     modalidades: await renderModalidade(),
+  //     frequencias:await renderFrequencia(),
+  //     localidades:await renderLocalidade(),
+  //     funcoes: await renderFuncao(),
+  //     terapeutas: await renderTerapeutas(),      
+  //     especialidades: await renderPacienteEspecialidade(pacienteId),
+  //     intervalos: await renderIntervalos(),
+  //     diasFrequencia: weekOption,
+  //   }
+
+  //   return dropDownList
+  // };
+
+  const renderDropdownQueue = async (statusPacienteId: number) => {
     const dropDownList= {
-      pacientes: await renderPacientes(false) ,
-      statusEventos: await renderStatusEventos(),
-      modalidades: await renderModalidade(),
-      frequencias:await renderFrequencia(),
-      localidades:await renderLocalidade(),
-      funcoes: await renderFuncao(),
-      terapeutas: await renderTerapeutas(),      
-      especialidades: await renderPacienteEspecialidade(pacienteId),
-      intervalos: await renderIntervalos(),
-      diasFrequencia: weekOption,
+      pacientes: await renderPacientes(statusPacienteId) ,
+      convenios: await renderConvenio(),
+      especialidades: await renderEspecialidade(),
+      tipoSessao: await renderTipoSessao(),
+      periodos: await renderPeriodo(),
+      status: await renderStatus(statusPacienteId),
     }
 
     return dropDownList
-  };
+  }
 
-  const renderDropdownPatientCrud = async (emAtedimento: boolean) => {
+  const renderDropdownPatientCrud = async (statusPacienteId: number) => {
     const dropDownList= {
-      pacientes: await renderPacientes(emAtedimento) ,
+      pacientes: await renderPacientes(statusPacienteId) ,
       statusEventos: await renderStatusEventos(),
       modalidades: await renderModalidade(),
       terapeutas: await renderTerapeutas(),      
       especialidades: await renderEspecialidade(),
       convenios: await renderConvenio(),
       tipoSessao: await renderTipoSessao(),
-      status: await renderPrioridade(),
+      status: await renderStatus(statusPacienteId),
     }
 
     return dropDownList
