@@ -15,7 +15,9 @@
     "start": "node serve.js",
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "format": "prettier --write \"src/**/*.{ts,js}\"",
+    "lint": "eslint \"src/**/*.{ts,js}\" --quiet"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^5.11.3",
