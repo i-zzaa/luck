@@ -15,20 +15,12 @@ import { formtDatePatient } from "../util/util";
 import { useDropdown } from "../contexts/dropDown";
 import { patientTherapyFields, statusPacienteId } from "../constants/patient";
 import { PatientTherapy } from "../foms/PatientTherapy";
+import { PacientsProps } from "./Patient";
 
 const fieldsConst = filterTerapyFields;
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
-export interface PacientsProps {
-  id: string;
-  nome: string;
-  responsavel: string;
-  telefone: string;
-  dataNascimento: string;
-  convenio: string;
-  vaga: any;
-}
 
 export default function Therapy() {
   const { perfil } = permissionAuth();
@@ -113,9 +105,23 @@ export default function Therapy() {
       });
     }
   };
-
+  
   const handleSchedule = async ({item, typeButtonFooter}: any) => {
-    if (typeButtonFooter === 'agendado') {
+    switch (typeButtonFooter) {
+      case 'agendado':
+        setPatient(item)
+        formatCalendar(item)
+        setOpenCalendarForm(true)
+        break;
+      case 'devolutiva':
+        const body: any = {
+          id: item.vaga.id,
+          devolutiva: !item.vaga.devolutiva,
+        };
+        sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
+        break;
+    
+      default:
       if (item.vaga.especialidades.length === 1) {
         const especialidade = item.vaga.especialidades[0];
         const body: any = {
@@ -131,15 +137,10 @@ export default function Therapy() {
       } else {
         setPatient(item)
         formatCalendar(item)
-        // setOpenSchedule(true);
+        setOpenSchedule(true);
         setOpenCalendarForm(true)
       }
-    }else {
-      const body: any = {
-        id: item.vaga.id,
-        devolutiva: !item.vaga.devolutiva,
-      };
-      sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
+        break;
     }
   };
 
@@ -258,7 +259,7 @@ export default function Therapy() {
           <CalendarForm
             value={patientFormatCalendar}
             isEdit={false}
-            screen="queue"
+            statusPacienteId={statusPacienteId.queue_therapy}
             onClose={async (formValueState: any) => {
 
               sendUpdate(
@@ -276,7 +277,6 @@ export default function Therapy() {
           />
         </Modal>
       )}
-      
     
       <Modal
         title="Selecione a(s) especialidade(s) agendada(s)"

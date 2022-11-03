@@ -9,7 +9,7 @@ import { useDropdown } from "../contexts/dropDown";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
 
-export const CalendarForm = ({ value, onClose, isEdit,  screen}: any) => {
+export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
@@ -17,7 +17,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  screen}: any) => {
 
   const [dropDownList, setDropDownList] = useState<any>([]);
  
-  const { renderDropdownQueue, renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
+  const { renderDropdownQueueCalendar, renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
   
   const defaultValues = value || {
     dataInicio: "",
@@ -83,7 +83,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  screen}: any) => {
     let list: any = []
     switch (type) {
       case 'paciente-especialidade':
-        list = await renderPacienteEspecialidade(value)
+        list = await renderPacienteEspecialidade(value, statusPacienteId)
         setDropDownList({ ...dropDownList, especialidades: list })
         setValue('funcao', [])
         break;
@@ -104,14 +104,12 @@ export const CalendarForm = ({ value, onClose, isEdit,  screen}: any) => {
 
   const rendeFiltro = useCallback(async() => {
     let list = []
-    switch (screen) {
-      case 'calendar':
-        list = await renderDropdownCalendario(true)
-        break;
-      case 'queue':
-        list = await renderDropdownQueue(value.paciente.id)
+    switch (statusPacienteId) {
+      case 3:
+        list = await renderDropdownCalendario(statusPacienteId)
         break;
       default:
+        list = await renderDropdownQueueCalendar(statusPacienteId, value.paciente.id)
         break;
     }
     setDropDownList(list)
