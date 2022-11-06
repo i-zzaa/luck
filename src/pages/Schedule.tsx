@@ -8,6 +8,7 @@ import { useDropdown } from "../contexts/dropDown";
 import { filterCalendarFields } from "../constants/formFields";
 import {  formatdateeua, getDateFormat } from "../util/util";
 import { statusPacienteId } from "../constants/patient";
+import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
 
 const fieldsConst = filterCalendarFields;
 
@@ -27,6 +28,8 @@ interface UserProps {
 }
 
 export default function Schedule() {
+  const { perfil } = permissionAuth();
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -38,11 +41,22 @@ export default function Schedule() {
 
   const [evenetsList, setEventsList] = useState<any>([]);
 
-  const renderEvents = useMemo(async () => {
-    const current = new Date();
-    const response: any = await getList(`/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`);
+  const renderEvents = useCallback(async () => {
+    if (perfil === COORDENADOR) {
+      const auth: any = await sessionStorage.getItem('auth')
+      const user = JSON.parse(auth)
+      handleSubmitFilter({
+        terapeutaId: {
+          id: user.id
+        }
+      })
 
-    setEventsList(response);
+    }else {
+      const current = new Date();
+      const response: any = await getList(`/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`);
+      setEventsList(response);
+    }
+
   }, []);
 
   const handleSubmitFilter = useCallback(async (formvalue: any) => {
@@ -93,7 +107,7 @@ export default function Schedule() {
   }, []);
 
   useEffect(() => {
-    renderEvents
+    renderEvents()
   }, []);
 
   return (
@@ -104,8 +118,8 @@ export default function Schedule() {
         nameButton="Agendar"
         fields={fieldsConst}
         onSubmit={handleSubmitFilter}
-        onReset={()=> renderEvents}
-        rule={true}
+        onReset={renderEvents}
+        rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA}
         loading={loading}
         dropdown={dropDownList}
         onInclude={()=> {
@@ -138,7 +152,7 @@ export default function Schedule() {
             statusPacienteId={statusPacienteId.therapy}
             onClose={() => {
               setEvent(null)
-              renderEvents;
+              renderEvents();
               setOpen(false);
             }}
           />

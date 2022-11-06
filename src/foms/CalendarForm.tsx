@@ -6,10 +6,15 @@ import { useForm } from "react-hook-form";
 import { ButtonHeron, Input, Title } from "../components";
 import { SelectButtonComponent } from "../components/selectButton";
 import { useDropdown } from "../contexts/dropDown";
+import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
 
 export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) => {
+  const { perfil } = permissionAuth();
+
+  const isDisabled = perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA
+
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
@@ -43,10 +48,10 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
     observacao: "",
   };
 
-
   const {
     getValues,
     setValue,
+    setFocus ,
     handleSubmit,
     formState: { errors },
     control,
@@ -138,6 +143,13 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
     }
   }, []);
 
+    
+  // useEffect(() => {
+  //   if (isDisabled) {
+  //     setFocus("statusEventos", { shouldSelect: true });
+  //   }
+  // }, [isDisabled]);
+
   return (
     <form
       action="#"
@@ -163,6 +175,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />
         <Input
           labelText="Data"
@@ -184,6 +197,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />
 
         {isAvaliacao && (<Input
@@ -196,6 +210,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
+            disabled={isDisabled}
           />)}
 
           <Input
@@ -226,6 +241,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
+            disabled={isDisabled}
           />
           <Input
             labelText="Horario Final"
@@ -237,6 +253,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
+            disabled={isDisabled}
           />
 
         {!isDevolutiva && (<Input
@@ -261,6 +278,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         /> )} 
 
         {hasFrequencia && (
@@ -276,6 +294,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
+            disabled={isDisabled}
           />  
         )}
 
@@ -290,6 +309,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
               required: !!getValues('frequencias'),
             }} 
             />
+            disabled={isDisabled}
           </div>
         )}
 
@@ -311,6 +331,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />
         <Input
           labelText="Especialidade"
@@ -324,6 +345,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />  
         <Input
           labelText="Terapeuta"
@@ -337,6 +359,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />  
         <Input
           labelText="Função"
@@ -349,6 +372,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />  
         <Input
           labelText="Local"
@@ -361,6 +385,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={isDisabled}
         />  
         <Input
           labelText="Status Eventos"

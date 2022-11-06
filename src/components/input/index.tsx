@@ -55,18 +55,21 @@ export function Input({
             name={id}
             control={control}
             rules={validate}
+
             render={({ field }: any) => (
               <Dropdown
-                value={value || field.value}
-                options={options}
-                onChange={(e: any) => {
-                  onChange && onChange(e.value)
-                  return field.onChange(e.value)
-                }}
-                optionLabel="nome"
-                filter
-                showClear
-                filterBy="nome"
+              value={value || field.value}
+              virtualScrollerOptions={{ itemSize: 38 }}
+              options={options}
+              onChange={(e: any) => {
+                onChange && onChange(e.value)
+                return field.onChange(e.value)
+              }}
+              optionLabel="nome"
+              filter
+              showClear
+              filterBy="nome"
+              disabled={disabled}
               />
             )}
           />
@@ -79,6 +82,7 @@ export function Input({
             rules={validate}
             render={({ field }: any) => (
               <MultiSelect
+                disabled={disabled}
                 id={field.id}
                 display="chip"
                 optionLabel="nome"
@@ -125,6 +129,7 @@ export function Input({
                 value={value || field.value}
                 className={customClass}
                 placeholder={field.placeholder}
+                disabled={disabled}
               />
             )}
           />
@@ -164,6 +169,7 @@ export function Input({
             rules={validate}
             render={({ field }: any) => (
               <InputMask
+                disabled={disabled}
                 value={value || field.value}
                 key={field.id}
                 type={type}
@@ -209,12 +215,13 @@ export function Input({
           rules={validate}
           render={({ field }: any) => (
             <input
-              id={field.id}
-              {...field}
-              value={value || field.value}
-              key={field.id}
-              type={type}
-              className={"inputAnimado font-sans-serif "  + customClass}
+            id={field.id}
+            {...field}
+            value={value || field.value}
+            key={field.id}
+            type={type}
+            className={"inputAnimado font-sans-serif "  + customClass}
+            disabled={disabled} 
               onInput={(e: any)=> {
                 field.onChange(e)
                 onChange && onChange(e)
@@ -231,6 +238,7 @@ export function Input({
               rules={validate}
               render={({ field }: any) => (
                 <input
+                  disabled={disabled}
                   id={field.id}
                   {...field}
                   value={value || field.value}

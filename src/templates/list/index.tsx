@@ -124,13 +124,13 @@ export function List({
           buttonFooter.size = 'md'
           typeButtonFooter  =  'devolutiva' 
           break;
-        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
-          buttonFooter.text = 'Retornar Devolutiva' 
-          buttonFooter.icon = 'pi pi-check-circle' 
-          buttonFooter.type = 'second' 
-          buttonFooter.size = 'md' 
-          typeButtonFooter  =  'devolutiva' 
-          break;
+        // case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        //   buttonFooter.text = 'Retornar Devolutiva' 
+        //   buttonFooter.icon = 'pi pi-check-circle' 
+        //   buttonFooter.type = 'second' 
+        //   buttonFooter.size = 'md' 
+        //   typeButtonFooter  =  'devolutiva' 
+        //   break;
         default:
           break;
       }

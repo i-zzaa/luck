@@ -149,8 +149,9 @@ export default function CrudSimples({
   const actionFieldId = async(value: any, fieldId: string) => {
     switch (fieldId) {
       case 'perfilId':
-        setHidden(value.nome !== 'Terapeuta')
-        if (value.nome !== 'Terapeuta') {
+        const valid = value.nome !== 'Terapeuta' && value.nome !== 'Coordenador-terapeuta'
+        setHidden(valid)
+        if (!valid) {
           unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
         }
        
