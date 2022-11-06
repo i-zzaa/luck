@@ -6,7 +6,7 @@ import { ViewEvento } from "../components/view-evento";
 import { CalendarForm } from "../foms/CalendarForm";
 import { useDropdown } from "../contexts/dropDown";
 import { filterCalendarFields } from "../constants/formFields";
-import {  getDateFormat } from "../util/util";
+import {  formatdateeua, getDateFormat } from "../util/util";
 import { statusPacienteId } from "../constants/patient";
 
 const fieldsConst = filterCalendarFields;
@@ -76,6 +76,7 @@ export default function Schedule() {
       id: Number(event.id),
       ...event._def.extendedProps,
       ...event._def.extendedProps.data,
+      dataAtual: formatdateeua(event._instance.range.start),
       date: getDateFormat(event._instance.range.start)
     }
     setEvent(evento);
