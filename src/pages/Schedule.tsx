@@ -9,6 +9,7 @@ import { filterCalendarFields } from "../constants/formFields";
 import {  formatdateeua, getDateFormat } from "../util/util";
 import { statusPacienteId } from "../constants/patient";
 import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
+import { NotFound } from "../components/notFound";
 
 const fieldsConst = filterCalendarFields;
 
@@ -42,7 +43,7 @@ export default function Schedule() {
   const [evenetsList, setEventsList] = useState<any>([]);
 
   const renderEvents = useCallback(async () => {
-    if (perfil === COORDENADOR) {
+    if (perfil === COORDENADOR || perfil === TERAPEUTA || perfil === COORDENADOR_TERAPEUTA) {
       const auth: any = await sessionStorage.getItem('auth')
       const user = JSON.parse(auth)
       handleSubmitFilter({
@@ -128,12 +129,14 @@ export default function Schedule() {
         }}
       />
       <Card >
-        <div className="flex-1">
-          <CalendarComponent
-            openModalEdit={renderModalView}
-            events={evenetsList}
-          />
-        </div>
+        {evenetsList.length ? (
+          <div className="flex-1">
+            <CalendarComponent
+              openModalEdit={renderModalView}
+              events={evenetsList}
+            />
+          </div>
+        ): <NotFound />}
       </Card>
 
       {openView && (<ViewEvento 
