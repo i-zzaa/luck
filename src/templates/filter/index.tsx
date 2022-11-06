@@ -64,12 +64,13 @@ export function Filter({
               control={control}
               disabled={rule && field.id === "naFila"}
               options={field.type === "select" ? dropdown[field.name] : undefined}
+              hidden={field.hidden && rule}
             />
           ))}
         </div>
 
         <div className="flex items-center mt-10 gap-2 justify-between">    
-          <div className='sm:text-end'>
+          {!rule && (<div className='sm:text-end'>
             <ButtonHeron 
               text={nameButton || "Cadastrar"}
               icon="pi pi-user-plus"
@@ -77,7 +78,7 @@ export function Filter({
               size="sm"
               onClick={onInclude}
             />
-          </div>
+          </div>)}
           <div className="hidden sm:w-2/4 ml-auto sm:grid grid-cols-2 gap-2">
             <div className='text-end'>
               <ButtonHeron 

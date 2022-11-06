@@ -100,7 +100,7 @@ const OtherRoutes = () => {
             />
           ) : null}
 
-          {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
+          {hasPermition(CONSTANTES_ROUTERS.CALENDAR) ? (
             <Route
               path={`/${CONSTANTES_ROUTERS.CALENDAR}`}
               element={

@@ -72,11 +72,13 @@ export default function Avaliation() {
 
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true)
+
+    const devolutiva = formState.devolutiva === undefined ? false : formState.devolutiva
     const format: any = {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled:  formState.disabled === undefined ? false : formState.disabled,
       devolutiva:  formState.devolutiva === undefined ? false : formState.devolutiva,
-      statusPacienteId: statusPacienteId.queue_avaliation
+      statusPacienteId: devolutiva ? statusPacienteId.queue_therapy : statusPacienteId.queue_avaliation
     };
     delete formState.naFila;
     delete formState.disabled;

@@ -1,5 +1,6 @@
 import { createContext, useContext, useCallback } from "react";
 import { dropDown } from "../server";
+import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "./permission";
 
 export interface DropdownContextData {
   renderPacientes: (statusPacienteId: number) => void;
@@ -28,6 +29,8 @@ interface Props {
 const DropdownContext = createContext<DropdownContextData>({} as DropdownContextData);
 
 export const DropdownProvider = ({ children }: Props) => {
+  const { perfil } = permissionAuth();
+
   const weekOption = [
     {nome: 'S', value: 1},
     {nome: 'T', value: 2},
@@ -38,6 +41,11 @@ export const DropdownProvider = ({ children }: Props) => {
 
   const renderPacientes = useCallback(async (statusPacienteId: number) => {
     const response: any = await dropDown(`paciente?statusPacienteId=${statusPacienteId}`);
+    return response
+  }, []);
+
+  const renderPacientesTerapeuta = useCallback(async (terapeutaId: number) => {
+    const response: any = await dropDown(`paciente-terapeuta?terapeutaId=${terapeutaId}`);
     return response
   }, []);
 
@@ -189,8 +197,18 @@ export const DropdownProvider = ({ children }: Props) => {
   };
 
   const renderDropdownCalendar = async (statusPacienteId: number) => {
+
+    let pacientes;
+    if (perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA) {
+      const auth: any = await sessionStorage.getItem('auth')
+      const user = JSON.parse(auth)
+      pacientes = await renderPacientesTerapeuta(user.id)
+    }else {
+      pacientes = await renderPacientes(statusPacienteId)
+    }
+
     const dropDownList= {
-      pacientes: await renderPacientes(statusPacienteId) ,
+      pacientes: pacientes ,
       statusEventos: await renderStatusEventos(),
       modalidades: await renderModalidade(),
       terapeutas: await renderTerapeutas(),      
