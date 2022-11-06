@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { PacientsProps } from '../pages/Patient';
+import { PacientsProps } from '../foms/PatientForm';
 
 export const colorsData: any = {
   TO: '#ef6c00',
@@ -57,6 +57,16 @@ export const setColorChips = () => {
 
 export const formatdate = (date: any) => {
   return moment(date).format('DD/MM/YYYY');
+};
+
+export const formatdateeua = (date: any) => {
+  return moment(date).format('YYYY-MM-DD');
+};
+
+export const diffWeek = (dataInicio: any, dataAtual: any) => {
+  const inicio = moment(dataInicio);
+  const atual = moment(dataAtual);
+  return atual.diff(inicio, 'weeks') + 1;
 };
 
 export const weekDay = [
