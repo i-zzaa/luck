@@ -3,6 +3,7 @@ export enum statusPacienteId {
   queue_therapy = 2,
   therapy = 3,
   avaliation = 4,
+  crud_therapy = 5,
 }
 
 export const patientAvaliationFields = [
@@ -458,5 +459,134 @@ export const filterPatientFields = [
     customCol: 'col-span-6 sm:col-span-3',
     type: 'select',
     singleSelect: false,
+  },
+];
+
+export const filterCurdPatientFields = [
+  {
+    labelText: 'Paciente',
+    id: 'pacientes',
+    name: 'pacientes',
+    customCol: 'col-span-6 sm:col-span-3',
+    type: 'select',
+    singleSelect: false,
+  },
+  {
+    labelText: 'Convênio',
+    id: 'convenios',
+    name: 'convenios',
+    customCol: 'col-span-6 sm:col-span-3',
+    type: 'select',
+    singleSelect: false,
+  },
+  {
+    labelText: 'Especialidade',
+    id: 'especialidades',
+    name: 'especialidades',
+    customCol: 'col-span-6 sm:col-span-3',
+    type: 'select',
+    singleSelect: false,
+  },
+];
+
+export const patientCrudFields = [
+  {
+    labelText: 'Paciente',
+    id: 'nome',
+    name: 'pacientes',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-4',
+    singleSelect: false,
+    validate: {
+      pattern: {
+        value: /^[ a-zA-Zá]*$/i,
+        message: 'Apenas letras',
+      },
+      required: 'Campo obrigatório!',
+      minlength: 8,
+    },
+  },
+  {
+    labelText: 'Data de nascimento',
+    id: 'dataNascimento',
+    name: 'dataNascimento',
+    type: 'date',
+    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+  },
+  {
+    labelText: 'Responsável',
+    id: 'responsavel',
+    name: 'responsavel',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-4',
+    singleSelect: false,
+    validate: {
+      pattern: {
+        value: /^[ a-zA-Zá]*$/i,
+        message: 'Apenas letras',
+      },
+      required: 'Campo obrigatório!',
+      minlength: 8,
+    },
+  },
+  {
+    labelText: 'Telefone',
+    id: 'telefone',
+    name: 'telefone',
+    type: 'tel',
+    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+  },
+
+  {
+    labelText: 'Data do Contato',
+    id: 'dataVoltouAba',
+    name: 'dataVoltouAba',
+    type: 'date',
+    customCol: 'col-span-6 sm:col-span-3',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+  },
+  {
+    labelText: 'Convênio',
+    id: 'convenioId',
+    name: 'convenios',
+    type: 'select',
+    customCol: 'col-span-6 sm:col-span-3',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+  },
+  {
+    labelText: 'Especialidade',
+    id: 'especialidades',
+    name: 'especialidades',
+    type: 'multiselect',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+    customCol: 'col-span-6 sm:col-span-3',
+  },
+  {
+    labelText: 'Observação',
+    id: 'observacao',
+    name: 'observacao',
+    type: 'textarea',
+    customCol: 'col-span-6 sm:col-span-6',
+    singleSelect: false,
+    validate: {
+      required: false,
+    },
   },
 ];

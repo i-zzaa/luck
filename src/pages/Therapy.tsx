@@ -14,8 +14,7 @@ import { CalendarForm } from "../foms/CalendarForm";
 import { formtDatePatient } from "../util/util";
 import { useDropdown } from "../contexts/dropDown";
 import { patientTherapyFields, statusPacienteId } from "../constants/patient";
-import { PatientTherapy } from "../foms/PatientTherapy";
-import { PacientsProps } from "./Patient";
+import { PacientsProps, PatientForm } from "../foms/PatientForm";
 
 const fieldsConst = filterTerapyFields;
 const fieldsState: any = {};
@@ -240,7 +239,7 @@ export default function Therapy() {
         open={open}
         onClose={() => setOpen(false)}
       >
-        <PatientTherapy
+        <PatientForm
           onClose={async() => {
             const pacientes = await renderPacientes(statusPacienteId.queue_therapy)
             setDropDownList({...dropDownList, pacientes})
