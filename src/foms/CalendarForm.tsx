@@ -13,11 +13,18 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
+  const [isDevolutiva, setIsDevolutiva] = useState<boolean>(false);
   const { renderToast } = useToast();
 
   const [dropDownList, setDropDownList] = useState<any>([]);
  
-  const { renderDropdownQueueCalendar, renderDropdownCalendario, renderEspecialidadeTerapeuta, renderTerapeutaFuncao, renderPacienteEspecialidade } = useDropdown()
+  const { 
+    renderDropdownQueueCalendar, 
+    renderDropdownCalendario, 
+    renderEspecialidadeTerapeuta, 
+    renderTerapeutaFuncao, 
+    renderPacienteEspecialidade 
+  } = useDropdown()
   
   const defaultValues = value || {
     dataInicio: "",
@@ -150,6 +157,8 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
 
             trigger('dataFim',  { shouldFocus: true })
             setIsAvalicao(e.nome === 'Avaliação')
+            setIsDevolutiva(e.nome === 'Devolutiva')
+
           }}
           validate={{
             required: true,
@@ -230,7 +239,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             }}
           />
 
-        <Input
+        {!isDevolutiva && (<Input
           labelText="Frequência"
           id="frequencia"
           type="select"
@@ -252,7 +261,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-        />  
+        /> )} 
 
         {hasFrequencia && (
           <Input

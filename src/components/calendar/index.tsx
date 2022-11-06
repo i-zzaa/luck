@@ -61,6 +61,18 @@ export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: an
             list:     'Lista'
           }}
           eventMouseEnter={eventMouseEnter}
+          eventContent={(arg: any) => {
+            let italicEl = document.createElement('i')
+
+            if (arg.event.extendedProps.isUrgent) {
+              italicEl.innerHTML = 'urgent event'
+            } else {
+              italicEl.innerHTML = 'normal event'
+            }
+          
+            let arrayOfDomNodes = [ italicEl ]
+            // return { domNodes: arrayOfDomNodes }
+          }}
         />
 
 
