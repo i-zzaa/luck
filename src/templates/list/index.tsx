@@ -170,17 +170,17 @@ export function List({
           <div className="flex justify-between">
             <div className="sm:flex items-center sm:gap-4">
               <TextSubtext text="Período: " subtext={item?.vaga?.periodo?.nome} size="sm" color="gray-dark" display="flex"/>
-              <TextSubtext text="Tipo: " subtext={item?.vaga?.tipoSessao?.nome} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext text="Tipo: " subtext={item?.tipoSessao?.nome} size="sm" color="gray-dark" display="flex"/>
               { renderStatus(item) }
               {
-                item.vaga.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
+                item.vaga?.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
               }
               {
-                item.vaga.dataVoltouAba && <TextSubtext className="font-sans-serif" text="Voltou Aba:" subtext={formatdate(item.vaga?.dataVoltouAba)} size="sm" color="gray-dark" display="flex"/>
+                item.vaga?.dataVoltouAba && item.statusPacienteId < statusPacienteId.crud_therapy && <TextSubtext className="font-sans-serif" text="Voltou Aba:" subtext={formatdate(item.vaga?.dataVoltouAba)} size="sm" color="gray-dark" display="flex"/>
               }
             </div>
             <div className="text-end">
-              <TextSubtext className="font-sans-serif" text="Inclusão: " subtext={formatdate(item?.vaga.dataContato)} size="sm" color="gray-dark" display="flex"/>
+              <TextSubtext className="font-sans-serif" text="Inclusão: " subtext={formatdate(item?.vaga?.dataContato)} size="sm" color="gray-dark" display="flex"/>
             </div>
           </div>)}
      

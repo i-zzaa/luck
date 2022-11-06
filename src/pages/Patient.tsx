@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
-  dropDown,
   filter,
   getList,
   update,
@@ -9,34 +8,17 @@ import {
 import { useToast } from "../contexts/toast";
 import { COORDENADOR, permissionAuth } from "../contexts/permission";
 import { Card, Confirm, Filter, Modal, List } from "../components/index";
-import { filterPatientFields } from "../constants/formFields";
-import PatientForm from "../foms/PatientForm";
 import { ScheduleForm } from "../foms/ScheduleForm";
-import { useDropdown } from "../contexts/dropDown";
+import { CalendarForm } from "../foms/CalendarForm";
 import { formtDatePatient } from "../util/util";
+import { useDropdown } from "../contexts/dropDown";
+import { filterCurdPatientFields, patientCrudFields, statusPacienteId } from "../constants/patient";
+import { PacientsProps, PatientForm } from "../foms/PatientForm";
 
-const fieldsConst = filterPatientFields;
-
-//userFields
+const fieldsConst = filterCurdPatientFields;
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
-
-interface OptionProps {
-  id: string;
-  nome: string;
-}
-export interface PacientsProps {
-  id: string;
-  nome: string;
-  responsavel: string;
-  telefone: string;
-  dataNascimento: string;
-  convenio: string;
-  vaga: any;
-  status: OptionProps;
-  tipoSessao: OptionProps;
-}
 
 export default function Patient() {
   const { perfil } = permissionAuth();
@@ -44,24 +26,26 @@ export default function Patient() {
 
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
+  const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
 
   const [open, setOpen] = useState<boolean>(false);
+  const [openCalendarForm, setOpenCalendarForm] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [dropDownList, setDropDownList] = useState<any>([]);
-  const { renderPacientes, renderDropdownPatientCrud } = useDropdown()
+  const {  renderDropdownQueue, renderPacientes } = useDropdown()
   
   const { renderToast } = useToast();
 
-  const renderPatient = useMemo(async () => {
+  const renderPatient = useCallback(async () => {
     setPatients([]);
-    const pacientes = await getList("pacientes?emAtendimento=true");
-    setPatients(pacientes);
+    const response = await getList(`pacientes?statusPacienteId=${statusPacienteId.crud_therapy}`);
+    setPatients(response);
   }, []);
 
-  const handleDisabledUser = async () => {
+  const handleDisabled = async () => {
     setOpenConfirm(false);
     try {
       const response = await update("paciente/desabilitar", {
@@ -91,7 +75,7 @@ export default function Patient() {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled:  formState.disabled === undefined ? false : formState.disabled,
       devolutiva:  formState.devolutiva === undefined ? false : formState.devolutiva,
-      emAtendimento: true
+      statusPacienteId: statusPacienteId.crud_therapy
     };
     delete formState.naFila;
     delete formState.disabled;
@@ -123,7 +107,21 @@ export default function Patient() {
   };
 
   const handleSchedule = async ({item, typeButtonFooter}: any) => {
-    if (typeButtonFooter === 'agendado') {
+    switch (typeButtonFooter) {
+      case 'agendado':
+        setPatient(item)
+        formatCalendar(item)
+        setOpenCalendarForm(true)
+        break;
+      case 'devolutiva':
+        const body: any = {
+          id: item.vaga.id,
+          devolutiva: !item.vaga.devolutiva,
+        };
+        sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
+        break;
+    
+      default:
       if (item.vaga.especialidades.length === 1) {
         const especialidade = item.vaga.especialidades[0];
         const body: any = {
@@ -138,16 +136,21 @@ export default function Patient() {
         sendUpdate("vagas/agendar", body, { naFila: !item.vaga.naFila });
       } else {
         setPatient(item)
+        formatCalendar(item)
         setOpenSchedule(true);
+        setOpenCalendarForm(true)
       }
-    }else {
-      const body: any = {
-        id: item.vaga.id,
-        devolutiva: !item.vaga.devolutiva,
-      };
-      sendUpdate("vagas/devolutiva", body, { naFila: false, devolutiva: item.vaga.devolutiva });
+        break;
     }
   };
+
+  const formatCalendar = (item: any) => {
+   const format = {
+      paciente: {nome: item.nome, id: item.id},
+    }
+    setPatient(item);
+    setPatientFormatCalendar(format)
+  }
 
   const handleScheduleResponse = (agendar: number[], desagendar: number[]) => {
     const body: any = {
@@ -178,18 +181,17 @@ export default function Patient() {
     }
   }, [perfil]);
 
-  const renderAgendar =useCallback(async()=> {
-    const list = await renderDropdownPatientCrud(3)
+  const renderDropdown = useCallback(async()=> {
+    const list = await renderDropdownQueue(statusPacienteId.crud_therapy)
     setDropDownList(list)
   },[])
 
   useEffect(() => {
     perfil === COORDENADOR
       ? handleSubmitFilter({ naFila: true })
-      : renderPatient;
-      renderAgendar()
+      : renderPatient();
+      renderDropdown()
   }, [
-    renderAgendar,
     renderPatient,
     perfil
   ]);
@@ -203,7 +205,7 @@ export default function Patient() {
         fields={fields}
         rule={perfil === COORDENADOR}
         onSubmit={handleSubmitFilter}
-        onReset={()=> renderPatient}
+        onReset={renderPatient}
         loading={loading}
         dropdown={dropDownList}
         onInclude={()=> {
@@ -241,18 +243,43 @@ export default function Patient() {
       >
         <PatientForm
           onClose={async() => {
-            const pacientes = await renderPacientes(3)
-            setDropDownList({...dropDownList, pacientes })
-
-            renderPatient;
+            const pacientes = await renderPacientes(statusPacienteId.crud_therapy)
+            setDropDownList({...dropDownList, pacientes})
+            renderPatient();
             setOpen(false);
           }}
           dropdown={dropDownList}
           value={patient}
-          screen="emAtendimento"
+          statusPacienteId={statusPacienteId.crud_therapy}
+          fieldsCostant={patientCrudFields} 
         />
       </Modal>
+
+      {openCalendarForm && (
+        <Modal title="Agendamento" open={openCalendarForm} onClose={() => setOpenCalendarForm(false)} width="80vw">
+          <CalendarForm
+            value={patientFormatCalendar}
+            isEdit={false}
+            statusPacienteId={statusPacienteId.crud_therapy}
+            onClose={async (formValueState: any) => {
+
+              sendUpdate(
+              	'vagas/agendar/especialidade', 
+                {
+                  vagaId: patient.vaga.id,
+                  especialidadeId: formValueState.especialidade.id
+                },
+                { naFila: !patient.vaga.naFila }
+              );
+
+              renderPatient();
+              setOpenCalendarForm(false);
+            }}
+          />
+        </Modal>
+      )}
       
+    
       <Modal
         title="Selecione a(s) especialidade(s) agendada(s)"
         open={openSchedule}
@@ -266,7 +293,7 @@ export default function Patient() {
 
       <Confirm
         title=""
-        onAccept={handleDisabledUser}
+        onAccept={handleDisabled}
         onReject={() => setOpenConfirm(false)}
         onClose={() => setOpenConfirm(false)}
         message={
