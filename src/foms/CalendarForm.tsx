@@ -3,12 +3,13 @@ import moment from "moment";
 moment.locale('pt-br')
 import {  useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ButtonHeron, Input, Title } from "../components";
+import { ButtonHeron, Confirm, Input, Title } from "../components";
 import { SelectButtonComponent } from "../components/selectButton";
 import { useDropdown } from "../contexts/dropDown";
 import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
+import { confirmPopup } from 'primereact/confirmpopup';
 
 export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) => {
   const { perfil } = permissionAuth();
@@ -16,12 +17,15 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   const isDisabled = perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [openConfirm, setOpenConfirm] = useState<boolean>(false);
+
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
   const [isDevolutiva, setIsDevolutiva] = useState<boolean>(false);
   const { renderToast } = useToast();
 
   const [dropDownList, setDropDownList] = useState<any>([]);
+  const [event, setEvent] = useState<any>([]);
  
   const { 
     renderDropdownQueueCalendar, 
@@ -51,7 +55,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   const {
     getValues,
     setValue,
-    setFocus ,
+    unregister ,
     handleSubmit,
     formState: { errors },
     control,
@@ -59,13 +63,15 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   } = useForm({ defaultValues });
 
 
-  const onSubmit = async (formValueState: any) => {
+  const onSubmit = async (formValueState: any, changeAll: boolean | null) => {
+    setOpenConfirm(false)
     try {
       setLoading(true)
 
       let data;
-      if (value?.id) {
+      if (isEdit) {
         formValueState.id = value.id;
+        formValueState.changeAll = changeAll
         data = await update('evento', formValueState);
       } else {
         data = await create('evento', formValueState);
@@ -91,21 +97,31 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
     }
   };
 
-  const filtrarDropDown = async(value: any, type: string) => {
+  const handleConfirm = (_event:any) => {
+    if (isEdit && _event.frequencia.nome === 'Recorrente') {
+      _event.dataAtual = value.dataAtual
+      setEvent(_event)
+      setOpenConfirm(true)
+    } else {
+      onSubmit(_event, null)
+    }
+  }
+
+  const filtrarDropDown = async(_value: any, type: string) => {
     let list: any = []
     switch (type) {
       case 'paciente-especialidade':
-        list = await renderPacienteEspecialidade(value, statusPacienteId)
+        list = await renderPacienteEspecialidade(_value, statusPacienteId)
         setDropDownList({ ...dropDownList, especialidades: list })
         setValue('funcao', [])
         break;
       case 'especialidade-terapeuta':
-        list = await renderEspecialidadeTerapeuta(value)
+        list = await renderEspecialidadeTerapeuta(_value)
         setDropDownList({ ...dropDownList, terapeutas: list })
         setValue('funcao', [])
         break;
       case 'terapeuta-funcao':
-        list = await renderTerapeutaFuncao(value)
+        list = await renderTerapeutaFuncao(_value)
         setDropDownList({ ...dropDownList, funcoes: list })
         break;
     
@@ -136,6 +152,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   useEffect(() => {
     if (isEdit && value?.frequencia?.nome === 'Recorrente') {
       setHasFrequencia(true)
+      setValue('dataInicio', value.dataAtual)
     }
 
     if (isEdit && value?.mododalidade?.nome === 'Avaliação') {
@@ -144,16 +161,11 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   }, []);
 
     
-  // useEffect(() => {
-  //   if (isDisabled) {
-  //     setFocus("statusEventos", { shouldSelect: true });
-  //   }
-  // }, [isDisabled]);
-
   return (
+    <>
     <form
       action="#"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleConfirm)}
       id="form-cadastro-agendamento"
     >
       <div className="grid grid-cols-6 gap-4 mb-8 overflow-y-auto">
@@ -170,6 +182,17 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             trigger('dataFim',  { shouldFocus: true })
             setIsAvalicao(e.nome === 'Avaliação')
             setIsDevolutiva(e.nome === 'Devolutiva')
+
+            if (e.nome === 'Avaliação') {
+              setValue('frequencia', {id: 2, nome: 'Recorrente'})
+              setValue('intervalo', {id: 1, nome: 'Todas Semanas'})
+              setHasFrequencia(true)
+            }
+
+            if (e.nome === 'Devolutiva') {
+              setHasFrequencia(false)
+              unregister(['frequencia', 'intervalo'], {keepDirtyValues: true})
+            }
 
           }}
           validate={{
@@ -416,9 +439,24 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
         text={isEdit ? "Atualizar" : "Cadastrar"}
         type={isEdit ? "second" : "primary"}
         size="full"
-        onClick={handleSubmit(onSubmit)}
+        onClick={handleSubmit(handleConfirm)}
         loading={loading}
       /> 
     </form>
+
+
+      <Confirm
+        onAccept={()=> onSubmit(event, true)}
+        onReject={() => onSubmit(event, false)}
+        onClose={() => setOpenConfirm(false)}
+        title="Evento(s)"
+        message="Alterar todos eventos ou apenas o atual?"
+        icon="pi pi-exclamation-triangle"
+        open={openConfirm}
+        acceptLabel="Todos Eventos"
+        rejectLabel="Atual"
+      />	
+    </>
+    
   );
 };
