@@ -92,6 +92,7 @@ export default function Schedule() {
       ...event._def.extendedProps,
       ...event._def.extendedProps.data,
       dataAtual: formatdateeua(event._instance.range.start),
+      // dataInicio: formatdateeua(event._instance.range.start),
       date: getDateFormat(event._instance.range.start)
     }
     setEvent(evento);

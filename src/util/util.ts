@@ -1,4 +1,5 @@
 import moment from 'moment';
+moment.locale('pt-br');
 import { PacientsProps } from '../foms/PatientForm';
 
 export const colorsData: any = {
@@ -60,7 +61,7 @@ export const formatdate = (date: any) => {
 };
 
 export const formatdateeua = (date: any) => {
-  return moment(date).format('YYYY-MM-DD');
+  return moment(date).add(1, 'days').format('YYYY-MM-DD');
 };
 
 export const diffWeek = (dataInicio: any, dataAtual: any) => {
@@ -79,7 +80,7 @@ export const weekDay = [
 ];
 
 export const getDateFormat = (date: any) => {
-  const dateFormat = moment(date); // Thursday Feb 2015
+  const dateFormat = moment(date).add(1, 'days'); // Thursday Feb 2015
   const dow = Number(dateFormat.day());
 
   return `${weekDay[dow]}, ${dateFormat.format('ll')}`;

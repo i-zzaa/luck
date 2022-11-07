@@ -1,4 +1,7 @@
+import moment from 'moment';
+moment.locale('pt-br');
 import { Dialog } from 'primereact/dialog';
+import { useEffect, useState } from 'react';
 import { diffWeek, weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
@@ -16,6 +19,7 @@ export const ViewEvento = ({
   onClose,
   onEdit
 }: Props) => {
+  const [buttonEdit, setButtonEdit] = useState(true)
 
   const avaliationCount = (evento: any)=> {
     let text = evento.modalidade.nome
@@ -32,18 +36,23 @@ export const ViewEvento = ({
       <Tag type={evento.especialidade.nome} disabled={false}/>
       <span>{ evento.paciente.nome }</span>
       <div className='mt-[-0.5rem]'>
-       <ButtonHeron 
+      {buttonEdit && (       
+        <ButtonHeron 
           text= "Edit"
           icon= 'pi pi-pencil'
           type= 'transparent'
           color="violet"
           size= 'icon'
           onClick={onEdit}
-        />
+        />)}
       </div>
     </div>
   )
 
+    useEffect(() => {
+      const dateNow = moment().format('YYYY-MM-DD')
+      setButtonEdit(dateNow <= evento.dataAtual)
+    })
   return (
     <Dialog header={header} visible={open} onHide={onClose} breakpoints={{'960px': '80vw'}} >
       <div>
