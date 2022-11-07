@@ -6,7 +6,7 @@ import {
 } from "../server";
 
 import { useToast } from "../contexts/toast";
-import { COORDENADOR, permissionAuth } from "../contexts/permission";
+import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth } from "../contexts/permission";
 import { Card, Confirm, Filter, Modal, List } from "../components/index";
 import { filterAvaliationFields } from "../constants/formFields";
 import { ScheduleForm } from "../foms/ScheduleForm";
@@ -176,7 +176,7 @@ export default function Avaliation() {
   };
 
   useLayoutEffect(() => {
-    if (perfil === COORDENADOR) {
+    if (perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA) {
       const filterInput = fieldsConst.filter(
         (field) => field.id !== "disabled"
       );
@@ -190,7 +190,7 @@ export default function Avaliation() {
   },[])
 
   useEffect(() => {
-    perfil === COORDENADOR
+    perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
       renderDropdown()
@@ -206,7 +206,7 @@ export default function Avaliation() {
         id="form-filter-patient"
         legend="Filtro"
         fields={fields}
-        rule={perfil === COORDENADOR}
+        rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
@@ -221,7 +221,7 @@ export default function Avaliation() {
         <List  
           type="complete"
           items={patients}
-          rule={perfil === COORDENADOR}
+          rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {
             setPatient(pacient_);
