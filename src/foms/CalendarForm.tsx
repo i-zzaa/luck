@@ -308,8 +308,8 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             rules={{
               required: !!getValues('frequencias'),
             }} 
-            />
             disabled={isDisabled}
+          />
           </div>
         )}
 
