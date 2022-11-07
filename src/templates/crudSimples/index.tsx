@@ -200,10 +200,6 @@ export default function CrudSimples({
     renderList()
   }, [renderList]);
 
-  // useEffect(() => {
-  //    unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
-  // }, [fields]);
-
   return (
     <>
       <SearchAdd 
@@ -244,8 +240,11 @@ export default function CrudSimples({
             setItem(item_);
             setOpen(true);
 
-            if (item_.hasOwnProperty('terapeuta') && item_?.terapeuta) {
+            if (item_.hasOwnProperty('terapeuta') && item_?.terapeuta !== null) {
               setHidden(false)
+            }else {
+              setHidden(true)
+              unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
             }
           }}
           onClick={(item_: any) => onClick(item_.id)}
