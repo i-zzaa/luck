@@ -1,6 +1,6 @@
 //userFields
-import moment from "moment";
-moment.locale('pt-br')
+import moment from 'moment';
+moment.locale('pt-br');
 import {  useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Confirm, Input, Title } from "../components";
@@ -204,7 +204,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           labelText="Data"
           id="dataInicio"
           type="date"
-          customCol={`col-span-6 ${isAvaliacao ? 'sm:col-span-2' : 'sm:col-span-3'}`}
+          customCol={`col-span-6 ${(isAvaliacao || isEdit) ? 'sm:col-span-2' : 'sm:col-span-3'}`}
           errors={errors}
           control={control}
           onChange={()=> {
@@ -223,7 +223,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           disabled={isDisabled}
         />
 
-        {isAvaliacao && (<Input
+        {(isAvaliacao || isEdit) && (<Input
             labelText="Data Final"
             id="dataFim"
             type="date"

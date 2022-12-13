@@ -36,9 +36,11 @@ export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: an
         <FullCalendar
           plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin, momentTimezonePlugin  ]}
           locale="pt"
-          timeZone='local'
+          navLinks
+
+          timeZone='America/Brazil'
           // locales={[ptLocale]}
-          initialView="listWeek"
+          initialView="dayGridMonth"
           events={events}
           headerToolbar={{
             left: "prev,next",
