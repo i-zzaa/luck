@@ -50,3 +50,18 @@ body {
     gap: 1rem;
   }
 }
+
+/* .fc-daygrid-day-frame {
+  border-radius: 10px !important;
+  border:1px solid #ddd !important;
+  margin: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+  border: none !important;
+}
+
+tr {
+  margin-bottom:  3rem !important;
+} */

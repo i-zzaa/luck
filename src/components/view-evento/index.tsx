@@ -1,5 +1,4 @@
 import moment from 'moment';
-moment.locale('pt-br');
 import { Dialog } from 'primereact/dialog';
 import { useEffect, useState } from 'react';
 import { diffWeek, weekDay } from '../../util/util';

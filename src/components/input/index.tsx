@@ -9,6 +9,7 @@ import { ListBox } from "primereact/listbox";
 
 import { colorsData, colorsTextData, setColorChips } from "../../util/util";
 import { clsx } from 'clsx';
+import moment from "moment";
 
 export interface InputProps {
   id: string;
@@ -222,6 +223,34 @@ export function Input({
             type={type}
             className={"inputAnimado font-sans-serif "  + customClass}
             disabled={disabled} 
+              onInput={(e: any)=> {
+                field.onChange(e)
+                onChange && onChange(e)
+              }}
+            />
+          )}
+        />
+      );
+      case "date":
+        const date = new Date()
+        const dateFomart = moment(new Date).format('YYYY-MM-DD')
+
+        return (
+          <Controller
+          name={id}
+          control={control}
+          rules={validate}
+          render={({ field }: any) => (
+            <input
+              disabled={disabled}
+              id={field.id}
+              {...field}
+              value={value || field.value}
+              key={field.id}
+              type={type}
+              className={"inputAnimado "  + customClass}
+              autoComplete="off"
+              min={dateFomart}
               onInput={(e: any)=> {
                 field.onChange(e)
                 onChange && onChange(e)
