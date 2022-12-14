@@ -66,6 +66,16 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   const onSubmit = async (formValueState: any, changeAll: boolean | null) => {
     setOpenConfirm(false)
     try {
+      if (value == defaultValues) {
+        renderToast({
+          type: "warning",
+          title: "401",
+          message: 'Não houve alteração no evento!',
+          open: true,
+        });
+        return
+      }
+
       setLoading(true)
 
       let data;
@@ -173,7 +183,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           labelText="Modalidade"
           id="modalidade"
           type="select"
-          customCol={`col-span-6 ${isAvaliacao ? 'sm:col-span-2' : 'sm:col-span-3'}`}
+          customCol={`col-span-6 ${(isAvaliacao || isEdit) ? 'sm:col-span-2' : 'sm:col-span-3'}`}
           errors={errors}
           control={control}
           options={dropDownList?.modalidades}
@@ -230,9 +240,9 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             customCol="col-span-6 sm:col-span-2"
             errors={errors}
             control={control}
-            validate={{
-              required: true,
-            }}
+            // validate={{
+            //   required: true,
+            // }}
             disabled={isDisabled}
           />)}
 
@@ -301,7 +311,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={isDisabled || isEdit}
         /> )} 
 
         {hasFrequencia && (
@@ -317,7 +327,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
-            disabled={isDisabled}
+            disabled={isDisabled || isEdit}
           />  
         )}
 
@@ -331,7 +341,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             rules={{
               required: !!getValues('frequencias'),
             }} 
-            disabled={isDisabled}
+            disabled={isDisabled || isEdit}
           />
           </div>
         )}
@@ -450,10 +460,10 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
         onReject={() => onSubmit(event, false)}
         onClose={() => setOpenConfirm(false)}
         title="Evento(s)"
-        message="Alterar todos eventos ou apenas o atual?"
+        message="Alterar eventos futuros ou apenas o atual?"
         icon="pi pi-exclamation-triangle"
         open={openConfirm}
-        acceptLabel="Todos Eventos"
+        acceptLabel="Eventos Futuros"
         rejectLabel="Atual"
       />	
     </>

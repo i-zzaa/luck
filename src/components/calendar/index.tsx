@@ -20,7 +20,6 @@ import rrulePlugin from '@fullcalendar/rrule'
 // import "@fullcalendar/timegrid/main.css";
 // import ptLocale from "@fullcalendar/common/locales/pt";
 
-import { toMoment } from '@fullcalendar/moment'; // only for formatting
 import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -34,11 +33,11 @@ export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: an
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin, momentTimezonePlugin  ]}
+          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin  ]}
           locale="pt"
           navLinks
 
-          timeZone='America/Brazil'
+          timeZone='America/Sao_Paulo'
           // locales={[ptLocale]}
           initialView="dayGridMonth"
           events={events}
