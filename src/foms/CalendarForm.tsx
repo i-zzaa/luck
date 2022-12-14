@@ -34,7 +34,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
     renderTerapeutaFuncao, 
     renderPacienteEspecialidade 
   } = useDropdown()
-  
+
   const defaultValues = value || {
     dataInicio: "",
     dataFim: "",
@@ -66,7 +66,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
   const onSubmit = async (formValueState: any, changeAll: boolean | null) => {
     setOpenConfirm(false)
     try {
-      if (value == defaultValues) {
+      if (JSON.stringify(value) === JSON.stringify(formValueState)) {
         renderToast({
           type: "warning",
           title: "401",
@@ -233,7 +233,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           disabled={isDisabled}
         />
 
-        {(isAvaliacao || isEdit) && (<Input
+        {isAvaliacao && (<Input
             labelText="Data Final"
             id="dataFim"
             type="date"
@@ -289,7 +289,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             disabled={isDisabled}
           />
 
-        {!isDevolutiva && (<Input
+        {!isDevolutiva && (!value || value.id === value.groupId) &&  (<Input
           labelText="Frequência"
           id="frequencia"
           type="select"
