@@ -8,6 +8,7 @@ import { create, getList, search, update } from "../../server";
 import { Fields } from "../../constants/formFields";
 import { useDropdown } from "../../contexts/dropDown";
 import { identity } from "@fullcalendar/react";
+import { PickListHeron } from "../../components/pickListHeron";
 
 interface Props {
   namelist: string;
@@ -263,6 +264,7 @@ export default function CrudSimples({
       <Modal
         title="Cadastro"
         open={open}
+        width={namelist === 'usuarios' ? "75vw" : '50vw'}
         onClose={() => {
           setOpen(false)
           reset()
@@ -285,6 +287,10 @@ export default function CrudSimples({
               />
             ))}
           </div>
+
+          {
+            namelist === 'usuarios' &&	<PickListHeron list={dropDownList['permissoes']} />
+          }
 
           <ButtonHeron
             text={isEdit ? "Atualizar" : "Cadastrar"}
