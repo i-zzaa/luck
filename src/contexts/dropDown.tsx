@@ -124,6 +124,11 @@ export const DropdownProvider = ({ children }: Props) => {
     return response
   }, []);
 
+  const renderPermissao = useCallback(async () => {
+    const response: any = await dropDown("permissao");
+    return response
+  }, []);
+
   const renderTerapeutas = async () => {
     const response: any = await dropDown("terapeuta");
     return response
@@ -223,6 +228,7 @@ export const DropdownProvider = ({ children }: Props) => {
       funcoes: await renderFuncao(),
       especialidades: await renderEspecialidade(),
       perfies:await renderPerfil(),
+      permissoes: await renderPermissao()
     }
 
     return dropDownList
