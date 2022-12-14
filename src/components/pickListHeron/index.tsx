@@ -9,15 +9,19 @@ interface ItemProps {
 
 interface PickListHeronProps {
   list: ItemProps[];
+  selected: number[];
+  onChange: (list: any) => any;
 }
 
-export const PickListHeron = ({ list }: PickListHeronProps) => {
+export const PickListHeron = ({ list, onChange, selected }: PickListHeronProps) => {
     const [source, setSource] = useState(list);
-    const [target, setTarget] = useState([]);
+    const [target, setTarget] = useState(selected);
 
-    const onChange = (event: any) => {
-        setSource(event.source);
-        setTarget(event.target);
+    const handleChange = (event: any) => {
+      setSource(event.source);
+      setTarget(event.target);
+
+      onChange(event.target)
     }
 
     const itemTemplate = (item: ItemProps) => {
@@ -25,7 +29,8 @@ export const PickListHeron = ({ list }: PickListHeronProps) => {
         <div className="product-item">
           <div className="product-list-detail">
             <span className="text-sm text-gray-800">{item.descricao}</span>
-            <h5 className=" product-category text-xs text-gray-400">{item.cod}</h5>
+            <h5 className=" product-category text-xs text-gray-400">
+              {item.cod}</h5>
           </div>
         </div>
       );
@@ -42,7 +47,7 @@ export const PickListHeron = ({ list }: PickListHeronProps) => {
             targetHeader="Selecionados"
             showSourceControls={false}
             showTargetControls={false}
-            sourceStyle={{ height: '342px' }} targetStyle={{ height: '342px' }} onChange={onChange}
+            sourceStyle={{ height: '342px' }} targetStyle={{ height: '342px' }} onChange={handleChange}
             filterBy="descricao" sourceFilterPlaceholder="Pesquisar" targetFilterPlaceholder="Pesquisar" 
           />
         </div>

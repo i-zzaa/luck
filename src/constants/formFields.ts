@@ -731,6 +731,17 @@ const usuariosFields: any = [
     customCol: 'col-span-6 sm:col-span-3',
     hidden: true,
   },
+  {
+    labelText: 'Permissão',
+    labelFor: 'permissoes',
+    id: 'permissoesId',
+    name: 'permissao',
+    type: 'picker',
+    autoComplete: 'permissao',
+    isRequired: true,
+    placeholder: 'Selecione a permissão',
+    customCol: 'col-span-6 sm:col-span-3',
+  },
 ];
 
 const funcaoFields = [

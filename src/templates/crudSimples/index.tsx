@@ -25,6 +25,7 @@ export default function CrudSimples({
 }:Props) {
   const [list, setList] = useState<any>([]);
   const [item, setItem] = useState<any>({});
+  const [value, setValues] = useState<any>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [hidden, setHidden] = useState<boolean>(true);
@@ -81,12 +82,16 @@ export default function CrudSimples({
         if (index.indexOf('Id') !== -1) {
           if(!userState[index]) {
             delete formatValues[index];
-          } else {
+            return
+          } 
+
+          if(Array.isArray(userState[index]) && userState[index].length) {
+            formatValues[index] = formatValues[index].map((item_: any) => item_.id)
+          }else {
             formatValues[index] = userState[index].id
           }
-        }else if(Array.isArray(userState[index]) && userState[index].length) {
-          formatValues[index] = formatValues[index].map((item: any) => item.id)
         }
+        
       })
 
       delete formatValues.search
@@ -162,6 +167,7 @@ export default function CrudSimples({
         const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
         break;
+      break;
     
       default:
         break;
@@ -241,6 +247,10 @@ export default function CrudSimples({
             setItem(item_);
             setOpen(true);
 
+            if (namelist === 'usuarios') {
+              setValues(item_.permissoesId)
+            }
+
             if (item_.hasOwnProperty('terapeuta') && item_?.terapeuta !== null) {
               setHidden(false)
             }else {
@@ -278,19 +288,16 @@ export default function CrudSimples({
                 labelText={field.labelText}
                 id={field.id}
                 type={field.type}
-                options={(field.type === "select" || field.type === "multiselect" ) && dropDownList[field.labelFor]}
+                options={(field.type === "select" || field.type === "multiselect" || field.type === "picker" ) && dropDownList[field.labelFor]}
                 validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
                 errors={errors}
                 control={control}
                 onChange={(values: any)=> handleChange(values, field.id)}
                 hidden={namelist === 'usuarios' && field.hidden && hidden }
+                value={field.type === "picker" && value}
               />
             ))}
           </div>
-
-          {
-            namelist === 'usuarios' &&	<PickListHeron list={dropDownList['permissoes']} />
-          }
 
           <ButtonHeron
             text={isEdit ? "Atualizar" : "Cadastrar"}
