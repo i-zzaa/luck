@@ -22,9 +22,7 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
 
 export default function Avaliation() {
-  const { perfil } = permissionAuth();
-  const [fields, setFields] = useState(fieldsConst);
-
+  const { hasPermition } = permissionAuth();
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
@@ -175,38 +173,27 @@ export default function Avaliation() {
     setOpen(true);
   };
 
-  useLayoutEffect(() => {
-    if (perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA) {
-      const filterInput = fieldsConst.filter(
-        (field) => field.id !== "disabled"
-      );
-      setFields(filterInput);
-    }
-  }, [perfil]);
-
   const renderDropdown = useCallback(async()=> {
     const list = await renderDropdownQueue(statusPacienteId.queue_avaliation)
     setDropDownList(list)
   },[])
 
   useEffect(() => {
-    perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA
+    !hasPermition('FILA_AVALIACAO_FILTRO_SELECT_AGENDADOS')
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
       renderDropdown()
   }, [
-    renderPatient,
-    perfil
+    renderPatient
   ]);
 
   return (
     <div className="grid gap-8">
-
       <Filter
         id="form-filter-patient"
         legend="Filtro"
-        fields={fields}
-        rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
+        fields={fieldsConst}
+        screen="FILA_AVALIACAO"
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
@@ -221,7 +208,7 @@ export default function Avaliation() {
         <List  
           type="complete"
           items={patients}
-          rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
+          screen="FILA_AVALIACAO"
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {
             setPatient(pacient_);

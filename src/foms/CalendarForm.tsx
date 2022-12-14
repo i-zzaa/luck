@@ -1,20 +1,17 @@
 //userFields
 import moment from 'moment';
 moment.locale('pt-br');
-import {  useCallback, useEffect, useMemo, useState } from "react";
+import {  useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ButtonHeron, Confirm, Input, Title } from "../components";
 import { SelectButtonComponent } from "../components/selectButton";
 import { useDropdown } from "../contexts/dropDown";
-import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
+import { permissionAuth } from "../contexts/permission";
 import { useToast } from "../contexts/toast";
 import { create, update } from "../server";
-import { confirmPopup } from 'primereact/confirmpopup';
 
 export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) => {
-  const { perfil } = permissionAuth();
-
-  const isDisabled = perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA
+  const { hasPermition } = permissionAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
@@ -208,7 +205,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_MODALIDADE')}
         />
         <Input
           labelText="Data"
@@ -230,7 +227,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_INICIO')}
         />
 
         {isAvaliacao && (<Input
@@ -243,7 +240,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             // validate={{
             //   required: true,
             // }}
-            disabled={isDisabled}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_FIM')}
           />)}
 
           <Input
@@ -274,7 +271,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
-            disabled={isDisabled}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_HORA_INICIO')}
           />
           <Input
             labelText="Horario Final"
@@ -286,7 +283,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
-            disabled={isDisabled}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_HORA_FIM')}
           />
 
         {!isDevolutiva && (!value || value.id === value.groupId) &&  (<Input
@@ -311,7 +308,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled || isEdit}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FREQUENCIA') || isEdit}
         /> )} 
 
         {hasFrequencia && (
@@ -327,7 +324,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: true,
             }}
-            disabled={isDisabled || isEdit}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_INTERVALO') || isEdit}
           />  
         )}
 
@@ -341,7 +338,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             rules={{
               required: !!getValues('frequencias'),
             }} 
-            disabled={isDisabled || isEdit}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DIAS_FREQUENCIA') || isEdit}
           />
           </div>
         )}
@@ -364,7 +361,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_PACIENTE')}
         />
         <Input
           labelText="Especialidade"
@@ -378,7 +375,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_ESPECIALIDADE')}
         />  
         <Input
           labelText="Terapeuta"
@@ -392,7 +389,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_TERAPEUTA')}
         />  
         <Input
           labelText="Função"
@@ -405,7 +402,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FUNCAO')}
         />  
         <Input
           labelText="Local"
@@ -418,7 +415,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
-          disabled={isDisabled}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
         />  
         <Input
           labelText="Status Eventos"
@@ -431,6 +428,8 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
           validate={{
             required: true,
           }}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_STATUS_EVENTOS')}
+
         />
         <Input
             labelText="Observação"
@@ -442,16 +441,18 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             validate={{
               required: false,
             }}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_OBSERVACAO')}
+
           />  
       </div>
 
-      <ButtonHeron
+      {hasPermition('AGENDA_EVENTO_BOTAO_ATUALIZAR_SALVAR') ? <ButtonHeron
         text={isEdit ? "Atualizar" : "Cadastrar"}
         type={isEdit ? "second" : "primary"}
         size="full"
         onClick={handleSubmit(handleConfirm)}
         loading={loading}
-      /> 
+      />: null }
     </form>
 
 

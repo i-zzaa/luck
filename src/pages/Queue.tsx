@@ -1,13 +1,13 @@
 import { TabPanel, TabView } from "primereact";
-import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth } from "../contexts/permission";
+import { permissionAuth } from "../contexts/permission";
 import Avaliation from "./Avaliation";
 import Therapy from "./Therapy";
 
 export default function Queue() {
-  const { perfil } = permissionAuth();
+  const { hasPermition } = permissionAuth();
 
   const renderTabPanel = () => {
-    if (perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA) {
+    if (!hasPermition('FILA_TERAPIA')) {
       return  <Avaliation />
     } else {
       return (

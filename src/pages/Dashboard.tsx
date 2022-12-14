@@ -13,6 +13,7 @@ import { Bar } from "react-chartjs-2";
 import { getList } from "../server";
 import { Card, TextSubtext, Title } from "../components/index";
 import { NotFound } from "../components/notFound";
+import { permissionAuth } from "../contexts/permission";
 
 ChartJS.register(
   CategoryScale,
@@ -73,6 +74,9 @@ export default function Dashboard() {
   const [wait, setChatWait] = useState<string>("");
   const [returnTrend, setReturnTrend] = useState<string>("");
 
+  const { hasPermition } = permissionAuth();
+
+
   const setTipoSessao = useCallback(async () => {
     const data = await getList("/vagas/dashboard/tipoSessoes");
     setChatTipoSessao(data);
@@ -127,27 +131,27 @@ export default function Dashboard() {
   return (
     <div className=" overflow-y-auto h-screen">
       <div className=" py-6 mt-8 grid  gap-4 justify-center sm:justify-beteween w-full">
-
+<>
           <Card>
             <div className="grid gap-2 sm:flex">
-            <TextSubtext
-              text="Tempo de espera: "
-              subtext={wait}
-              color="gray-dark"
-              size="md"
-              icon="pi pi-hourglass"
-              display="grid"
-              />
+            {hasPermition('DASHBOARD_TEMPO_FILA') &&  <TextSubtext
+                text="Tempo de espera: "
+                subtext={wait}
+                color="gray-dark"
+                size="md"
+                icon="pi pi-hourglass"
+                display="grid"
+                />}
 
-            <TextSubtext
+            {hasPermition('DASHBOARD_RETORNO_FILA') &&  <TextSubtext
               text="Retornos para fila:  "
               subtext={returnTrend}
               color="gray-dark"
               size="md"
               icon="pi pi-sync"
               display="grid"
-              />
-            {chatStatus && (
+              />}
+            {chatStatus && hasPermition('DASHBOARD_GRAFICO_FILA') &&  (
               <div className="text-lg p-2 grid grid-rows gap-4">
                 <div className=" grid m-auto text-left">
                   <Bar options={options} data={chatStatus} />
@@ -156,10 +160,13 @@ export default function Dashboard() {
             )}
             </div>
           </Card>
-        <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
+         { hasPermition('DASHBOARD_GRAFICO_FILA') && (
+         <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
           {renderChart("Especialidades por Demanda", chatEspecialidades)}
           {renderChart("Tipo de sessão por Demanda", chatTipoSessao)}
         </div>
+        ) }
+        </>
       </div>
     </div>
   );

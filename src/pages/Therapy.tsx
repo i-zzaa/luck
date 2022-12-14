@@ -22,7 +22,7 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
 
 export default function Therapy() {
-  const { perfil } = permissionAuth();
+  const { hasPermition } = permissionAuth();
   const [fields, setFields] = useState(fieldsConst);
 
   const [patients, setPatients] = useState<PacientsProps[]>([]);
@@ -170,28 +170,18 @@ export default function Therapy() {
     setOpen(true);
   };
 
-  useLayoutEffect(() => {
-    if (perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA) {
-      const filterInput = fieldsConst.filter(
-        (field) => field.id !== "disabled"
-      );
-      setFields(filterInput);
-    }
-  }, [perfil]);
-
   const renderDropdown = useCallback(async()=> {
     const list = await renderDropdownQueue(statusPacienteId.queue_therapy)
     setDropDownList(list)
   },[])
 
   useEffect(() => {
-    perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA
+    !hasPermition('FILA_TERAPIA_FILTRO_SELECT_AGENDADOS')
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
       renderDropdown()
   }, [
-    renderPatient,
-    perfil
+    renderPatient
   ]);
 
   return (
@@ -201,7 +191,7 @@ export default function Therapy() {
         id="form-filter-patient"
         legend="Filtro"
         fields={fields}
-        rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
+        screen="FILA_TERAPIA"
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
@@ -216,7 +206,7 @@ export default function Therapy() {
         <List  
           type="complete"
           items={patients}
-          rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA}
+          screen="FILA_TERAPIA"
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {
             setPatient(pacient_);

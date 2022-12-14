@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { Dialog } from 'primereact/dialog';
 import { useEffect, useState } from 'react';
+import { permissionAuth } from '../../contexts/permission';
 import { diffWeek, weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
@@ -19,6 +20,7 @@ export const ViewEvento = ({
   onEdit
 }: Props) => {
   const [buttonEdit, setButtonEdit] = useState(true)
+  const { hasPermition } = permissionAuth();
 
   const avaliationCount = (evento: any)=> {
     let text = evento.modalidade.nome
@@ -34,8 +36,8 @@ export const ViewEvento = ({
     <div className='flex justify-between items-center gap-8'>
       <Tag type={evento.especialidade.nome} disabled={false}/>
       <span>{ evento.paciente.nome }</span>
-      <div className='mt-[-0.5rem]'>
-      {buttonEdit && (       
+      {hasPermition('AGENDA_LISTA_EDITAR') ? <div className='mt-[-0.5rem]'>
+      {buttonEdit &&  (       
         <ButtonHeron 
           text= "Edit"
           icon= 'pi pi-pencil'
@@ -44,7 +46,7 @@ export const ViewEvento = ({
           size= 'icon'
           onClick={onEdit}
         />)}
-      </div>
+      </div>: null}
     </div>
   )
 

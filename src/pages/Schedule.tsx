@@ -29,7 +29,7 @@ interface UserProps {
 }
 
 export default function Schedule() {
-  const { perfil } = permissionAuth();
+  const { hasPermition } = permissionAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -43,7 +43,7 @@ export default function Schedule() {
   const [evenetsList, setEventsList] = useState<any>([]);
 
   const renderEvents = useCallback(async () => {
-    if (perfil === COORDENADOR || perfil === TERAPEUTA || perfil === COORDENADOR_TERAPEUTA) {
+    if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth')
       const user = JSON.parse(auth)
       handleSubmitFilter({
@@ -121,7 +121,7 @@ export default function Schedule() {
         fields={fieldsConst}
         onSubmit={handleSubmitFilter}
         onReset={renderEvents}
-        rule={perfil === COORDENADOR || perfil === COORDENADOR_TERAPEUTA || perfil === TERAPEUTA}
+        screen="AGENDA"
         loading={loading}
         dropdown={dropDownList}
         onInclude={()=> {
@@ -147,7 +147,7 @@ export default function Schedule() {
         onClose={()=> setOpenView(false)}
       />)}
 
-      {open && (
+      {open &&  hasPermition('AGENDA_FILTRO_BOTAO_CADASTRAR') ? (
         <Modal title="Agendamento" open={open} onClose={() => setOpen(false)} width="80vw">
           <CalendarForm
             value={event}
@@ -161,7 +161,7 @@ export default function Schedule() {
             }}
           />
         </Modal>
-      )}
+      ): null}
     </div>
   );
 }

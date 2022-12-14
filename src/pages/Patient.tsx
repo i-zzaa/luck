@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   filter,
   getList,
@@ -6,7 +6,7 @@ import {
 } from "../server";
 
 import { useToast } from "../contexts/toast";
-import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth } from "../contexts/permission";
+import { permissionAuth } from "../contexts/permission";
 import { Card, Confirm, Filter, Modal, List } from "../components/index";
 import { ScheduleForm } from "../foms/ScheduleForm";
 import { CalendarForm } from "../foms/CalendarForm";
@@ -21,7 +21,9 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
 
 
 export default function Patient() {
-  const { perfil } = permissionAuth();
+  const SCREEN = 'CADASTRO_PACIENTES'
+  const { hasPermition } = permissionAuth();
+
   const [fields, setFields] = useState(fieldsConst);
 
   const [patients, setPatients] = useState<PacientsProps[]>([]);
@@ -172,28 +174,18 @@ export default function Patient() {
     setOpen(true);
   };
 
-  useLayoutEffect(() => {
-    if (perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA) {
-      const filterInput = fieldsConst.filter(
-        (field) => field.id !== "disabled"
-      );
-      setFields(filterInput);
-    }
-  }, [perfil]);
-
   const renderDropdown = useCallback(async()=> {
     const list = await renderDropdownQueue(statusPacienteId.crud_therapy)
     setDropDownList(list)
   },[])
 
   useEffect(() => {
-    perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA
+    !hasPermition('CADASTRO_PACIENTES_FILTRO_SELECT_AGENDADOS')
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
       renderDropdown()
   }, [
-    renderPatient,
-    perfil
+    renderPatient
   ]);
 
   return (
@@ -203,7 +195,7 @@ export default function Patient() {
         id="form-filter-patient"
         legend="Filtro"
         fields={fields}
-        rule={perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA}
+        screen={SCREEN}
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
@@ -218,7 +210,7 @@ export default function Patient() {
         <List  
           type="complete"
           items={patients}
-          rule={perfil === COORDENADOR|| perfil === COORDENADOR_TERAPEUTA}
+          screen={SCREEN}
           onClick={handleSchedule}
           onClickLink={(pacient_: any)=> {
             setPatient(pacient_);
@@ -278,7 +270,6 @@ export default function Patient() {
           />
         </Modal>
       )}
-      
     
       <Modal
         title="Selecione a(s) especialidade(s) agendada(s)"

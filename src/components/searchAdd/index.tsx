@@ -5,11 +5,14 @@ export interface SearchAddProps {
   iconButton: string;
   control: any;
   loading?: boolean;
+  screen: string;
 }
+import { permissionAuth } from '../../contexts/permission';
 import { ButtonHeron } from '../button';
 import { Search } from "../search";
 
 export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control, loading}: SearchAddProps) {
+  const { hasPermition } = permissionAuth();
 
   return (
     <div className="grid grid-cols-8 gap-2 justify-between">
@@ -18,7 +21,7 @@ export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control,
       </form>
 
       <div className="col-span-8 sm:col-span-1">
-        <div className='sm:hidden '>
+        {hasPermition(`${screen}__BOTAO_CADASTAR`) ? (<div className='sm:hidden '>
           <ButtonHeron 
             text={textButton}
             icon={iconButton}
@@ -26,9 +29,9 @@ export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control,
             size="full"
             onClick={onClick}
             />
-        </div>
+        </div>) : null}
 
-        <div className='hidden sm:block mt-5 text-end'>
+        {hasPermition(`${screen}__BOTAO_CADASTAR`) ? (<div className='hidden sm:block mt-5 text-end'>
           <ButtonHeron 
             text={textButton}
             icon={iconButton}
@@ -36,7 +39,7 @@ export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control,
             size="icon"
             onClick={onClick}
             />
-        </div>
+        </div>) : null}
       </div>
     </div>
   );
