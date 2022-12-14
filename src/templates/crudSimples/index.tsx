@@ -7,14 +7,13 @@ import { create, getList, search, update } from "../../server";
 
 import { Fields } from "../../constants/formFields";
 import { useDropdown } from "../../contexts/dropDown";
-import { identity } from "@fullcalendar/react";
-import { PickListHeron } from "../../components/pickListHeron";
 
 interface Props {
   namelist: string;
   onClick: (e:any) => void;
   iconButtonFooter?: string;
   textButtonFooter?: string;
+  screen: string;	
 }
 
 export default function CrudSimples({
@@ -22,6 +21,7 @@ export default function CrudSimples({
   onClick,
   iconButtonFooter,
   textButtonFooter,
+  screen
 }:Props) {
   const [list, setList] = useState<any>([]);
   const [item, setItem] = useState<any>({});
@@ -167,8 +167,6 @@ export default function CrudSimples({
         const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
         break;
-      break;
-    
       default:
         break;
     }
@@ -220,10 +218,12 @@ export default function CrudSimples({
         iconButton="pi pi-plus"
         control={control}
         loading={loading}
+        screen={screen} 
       />
 
       <Card>
-        <List  
+        <List 
+          screen={screen} 
           type="simples"
           onClickTrash={(item_: any) => {
             item_.ativo = true

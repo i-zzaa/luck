@@ -1,7 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-
-
-// import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { permissionAuth } from "../contexts/permission";
 import { Layout } from "../foms/Layout";
 import { Nav } from "../components/Nav";
@@ -26,94 +23,28 @@ interface Props {
 const OtherRoutes = () => {
   const { hasPermition } = permissionAuth();
 
-  // const routes: Props[] = [
-  //   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home },
-  //   { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard },
-  //   { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
-  // { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule },
-  // ];
-
-  // const renderRoutes = () => {
-  //   return routes.map((item: Props) => hasPermition(CONSTANTES_ROUTERS.HOME) ? (
-  //     <Route
-  //       path={`/${CONSTANTES_ROUTERS.HOME}`}
-  //       element={
-  //         <Layout>
-  //           <Home />
-  //         </Layout>
-  //       }
-  //     />
-  //   ) : null)
-  // }
+  const routes: Props[] = [
+    { path: '*', componentRoute: Home },
+    { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home },
+    { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard },
+    { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
+    { path: CONSTANTES_ROUTERS.QUEUE, componentRoute: Queue },
+    { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule },
+  ];
 
   return (
     <div className="min-h-full overflow-hidden">
-      <>
-        <Nav />
-        <Routes>
-          <Route
-            path="*"
-            element={
-              <Layout>
-                {hasPermition(CONSTANTES_ROUTERS.HOME) ? <Home /> : <Queue />}
-              </Layout>
-            }
-          />
-          {hasPermition(CONSTANTES_ROUTERS.HOME) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.HOME}`}
-              element={
-                <Layout>
-                  <Home />
-                </Layout>
-              }
-            />
-          ) : null}
-          {hasPermition(CONSTANTES_ROUTERS.DASHBOARD) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.DASHBOARD}`}
-              element={
-     
-                  <Dashboard />
-      
-              }
-            />
-          ) : null}
-          {hasPermition(CONSTANTES_ROUTERS.CRUD) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.CRUD}`}
-              element={
-                <Layout>
-                  <Crud />
-                </Layout>
-              }
-            />
-          ) : null}
-          {hasPermition(CONSTANTES_ROUTERS.QUEUE) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.QUEUE}`}
-              element={
-                <Layout>
-                  <Queue />
-                </Layout>
-              }
-            />
-          ) : null}
-
-          {hasPermition(CONSTANTES_ROUTERS.CALENDAR) ? (
-            <Route
-              path={`/${CONSTANTES_ROUTERS.CALENDAR}`}
-              element={
-                <Layout>
-                  <Schedule />
-                </Layout>
-              }
-            />
-          ) : null}
-        </Routes>
-      </>
+      <Nav />
+      <Routes>
+        {routes.map((route: Props, index: number) => (
+          <Route key={index} path={route.path} element={
+            hasPermition(route.path) ? <Layout><route.componentRoute /></Layout> : null
+          } />
+        ))}
+      </Routes>
     </div>
-  );
+  )
+
 };
 
 export default OtherRoutes;

@@ -1,9 +1,10 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getList } from "../server";
 import { useAuth } from "./auth";
 
 interface PermissionContextData {
   hasPermition(rule: string): void | boolean;
-  ROUTERS_PERMISSIONS: object;
+  permissions: string[];
   perfil: string | null;
 }
 
@@ -37,45 +38,39 @@ const ROUTERS_PERMISSIONS: any = {
   login: "*",
 };
 
-// const ACTIONS_PERMISSIONS_PATIENTS_SCREEN: any = {
-//   cadastrar: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-//   filtrar_inativos: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-//   desativar: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-//   editar: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-//   agendar: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-//   filtrar_agendadados: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-// }
-
 const PermissionContext = createContext<PermissionContextData>(
   {} as PermissionContextData
 );
 
 export const PermissionProvider = ({ children }: Props) => {
   const { perfil } = useAuth();
+  const [permissions, setPermissions] = useState<string[]>([])
 
-  const hasPermition = (menu: string) => {
+  useEffect(()=> {
+    getList('permissao').then((roles: string[])=> {
+      setPermissions(roles)
+    })
+  }, [])
+
+  const hasPermition = (role: string) => {
+    const rule = role || ''
+
     switch (true) {
       case !perfil:
         throw new Error("Voce não tem permissao");
-      case !Array.isArray(ROUTERS_PERMISSIONS[menu]):
+      case role === '*':
         return true;
       default:
-        if (ROUTERS_PERMISSIONS[menu].includes(perfil)) {
+        if (permissions.length && permissions.includes(rule.toUpperCase()) || perfil === DESENVOLVEDOR) {
           return true;
         }
         return false;
     }
   };
 
-  // const permissionDisabled = (menu: string) => {
-  //   switch (true) {
-  //     case perfil === COORDENADOR:
-  //       return true;
-  // }
-
   return (
     <PermissionContext.Provider
-      value={{ hasPermition, ROUTERS_PERMISSIONS, perfil }}
+      value={{ hasPermition, perfil, permissions }}
     >
       {children}
     </PermissionContext.Provider>

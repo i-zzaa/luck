@@ -3,6 +3,7 @@ import { Input } from "../../components/input";
 import { ButtonHeron } from "../../components/button";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
+import { permissionAuth } from "../../contexts/permission";
 
 export interface FilterProps {
   id: string;
@@ -10,7 +11,7 @@ export interface FilterProps {
   nameButton?: string;
   fields: any;
   dropdown: any;
-  rule: boolean;
+  screen: string;
   loading: boolean;
   onSubmit: (formState: any) => any; 
   onInclude: () => any; 
@@ -21,7 +22,7 @@ export function Filter({
   id,
   legend,
   fields,
-  rule,
+  screen,
   loading,
   nameButton,
   dropdown,
@@ -30,6 +31,7 @@ export function Filter({
   onReset,
 }: FilterProps) {
   const { setValue, handleSubmit, control, reset } = useForm();
+  const { hasPermition } = permissionAuth();
 
   const handleReset = () => {
     reset();
@@ -45,7 +47,7 @@ export function Filter({
   };
 
   useEffect(()=> {
-    if (rule) {
+    if (!hasPermition(`${screen}_FILTRO_SELECT_AGENDADOS`)) {
       setValue("naFila", true);
     }
   })
@@ -54,7 +56,7 @@ export function Filter({
     <Card legend={legend}>
       <form id={id}  action="#"  onSubmit={handleSubmit(handleSubmit2)} className="flex-1">
         <div className="grid grid-cols-6 gap-4">
-          {fields.map((field: any) => (
+          {fields.map((field: any) => hasPermition(field.rule) && (
             <Input
               key={field.id}
               labelText={field.labelText}
@@ -62,15 +64,15 @@ export function Filter({
               type={field.type}
               customCol={field.customCol}
               control={control}
-              disabled={rule && field.id === "naFila"}
               options={field.type === "select" ? dropdown[field.name] : undefined}
-              hidden={field.hidden && rule}
+              // hidden={field.hidden}
             />
           ))}
         </div>
 
-        <div className="flex items-center mt-10 gap-2 justify-between">    
-          {!rule && (<div className='sm:text-end'>
+        <div className="flex items-center mt-10 gap-2 justify-between"> 
+        <>   
+          {hasPermition(`${screen}_FILTRO_BOTAO_CADASTRAR`) && (<div className='sm:text-end'>
             <ButtonHeron 
               text={nameButton || "Cadastrar"}
               icon="pi pi-user-plus"
@@ -80,7 +82,8 @@ export function Filter({
             />
           </div>)}
           <div className="hidden sm:w-2/4 ml-auto sm:grid grid-cols-2 gap-2">
-            <div className='text-end'>
+            <>
+          {hasPermition(`${screen}_FILTRO_BOTAO_LIMPAR`) && (<div className='text-end'>
               <ButtonHeron 
                 text="Limpar"
                 icon="pi pi-filter-slash"
@@ -88,8 +91,8 @@ export function Filter({
                 size="full"
                 onClick={handleReset}
               />
-            </div>
-            <div className='text-end'>
+            </div>)}
+            {hasPermition(`${screen}_FILTRO_BOTAO_PESQUISAR`) && (<div className='text-end'>
               <ButtonHeron 
                 text="Pesquisar"
                 icon="pi pi-filter"
@@ -98,10 +101,12 @@ export function Filter({
                 loading={loading}
                 onClick={()=> handleSubmit(handleSubmit2)}
               />
-            </div>
+            </div>)}
+            </>
           </div>
           <div className="sm:w-2/4 ml-auto grid sm:hidden grid-cols-2 gap-2">
-            <div className='text-end'>
+            <>
+          {hasPermition(`${screen}_FILTRO_BOTAO_LIMPAR`) && (<div className='text-end'>
               <ButtonHeron 
                 text="Limpar"
                 icon="pi pi-filter-slash"
@@ -109,8 +114,8 @@ export function Filter({
                 size="icon"
                 onClick={handleReset}
               />
-            </div>
-            <div className='text-end'>
+            </div>)}
+            {hasPermition(`${screen}_FILTRO_BOTAO_PESQUISAR`) && ( <div className='text-end'>
               <ButtonHeron 
                 text="Pesquisar"
                 icon="pi pi-filter"
@@ -119,8 +124,10 @@ export function Filter({
                 loading={loading}
                 onClick={()=> handleSubmit(handleSubmit2)}
               />
-            </div>
+            </div>)}
+            </>
           </div>
+          </>
         </div>
       </form>
     </Card>

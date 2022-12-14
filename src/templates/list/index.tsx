@@ -10,7 +10,7 @@ export interface ListProps {
   onSubmit?: (e: any) => any;
   textButtonFooter?: string;
   iconButtonFooter?: string;
-  rule?: boolean;
+  screen: string;
   items: any[];
   type: 'simples' | 'complete';
   onClickLink: (e: any) => any;
@@ -30,7 +30,7 @@ export function List({
   onClickTrash,
   onClickReturn,
   items,
-  rule,
+  screen,
 }: ListProps) {
 
   const { hasPermition } = permissionAuth();
@@ -103,21 +103,21 @@ export function List({
 
       const buttonFooter = {text: '', icon: '', type: 'second', size: 'md'}
       switch (true) {
-        case item.statusPacienteId < statusPacienteId.therapy &&  item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
           buttonFooter.text = 'Agendado' 
           buttonFooter.icon = 'pi pi-calendar-minus' 
           buttonFooter.type = 'primary' 
           buttonFooter.size = 'md' 
           typeButtonFooter  =  'agendado' 
           break;
-        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnAgendar"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition(`${screen}_LISTA_BOTAO_RETORNAR_AGENDAR`):
           buttonFooter.text = 'Retornar' 
           buttonFooter.icon = 'pi pi-sync' 
           buttonFooter.type = 'second' 
           buttonFooter.size = 'md'
           typeButtonFooter  =  'retornar'  
           break;
-        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila &&  !item.vaga.devolutiva && hasPermition(`${screen}_LISTA_BOTAO_DEVOLUTIVA`):
           buttonFooter.text = 'Devolutiva' 
           buttonFooter.icon = 'pi pi-check-circle' 
           buttonFooter.type = 'primary' 
@@ -155,7 +155,6 @@ export function List({
           textButtonFooter={buttonFooter.text}
           iconButtonFooter={buttonFooter.icon}
           typeButtonFooter={buttonFooter.type}
-          permission={rule}
           tags={tags}
           onClickLink={() => onClickLink(item)}
           sizeButtonFooter="sm"
