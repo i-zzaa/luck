@@ -102,6 +102,39 @@ export default function Dashboard() {
     setReturnTrend(data);
   }, []);
 
+  const renderInfo = () => {
+    return (
+      <Card>
+      <div className="grid gap-2 sm:flex">
+      {hasPermition('DASHBOARD_TEMPO_FILA') &&  <TextSubtext
+          text="Tempo de espera: "
+          subtext={wait}
+          color="gray-dark"
+          size="md"
+          icon="pi pi-hourglass"
+          display="grid"
+          />}
+
+      {hasPermition('DASHBOARD_RETORNO_FILA') &&  <TextSubtext
+        text="Retornos para fila:  "
+        subtext={returnTrend}
+        color="gray-dark"
+        size="md"
+        icon="pi pi-sync"
+        display="grid"
+        />}
+      {chatStatus && hasPermition('DASHBOARD_GRAFICO_FILA') &&  (
+        <div className="text-lg p-2 grid grid-rows gap-4">
+          <div className=" grid m-auto text-left">
+            <Bar options={options} data={chatStatus} />
+          </div>
+        </div>
+      )}
+      </div>
+    </Card>
+    );
+  };
+
   const renderChart = (type: string, data: any) => {
     return (
       <Card>
@@ -129,37 +162,11 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className=" overflow-y-auto h-screen">
       <div className=" py-6 mt-8 grid  gap-4 justify-center sm:justify-beteween w-full">
 <>
-          <Card>
-            <div className="grid gap-2 sm:flex">
-            {hasPermition('DASHBOARD_TEMPO_FILA') &&  <TextSubtext
-                text="Tempo de espera: "
-                subtext={wait}
-                color="gray-dark"
-                size="md"
-                icon="pi pi-hourglass"
-                display="grid"
-                />}
-
-            {hasPermition('DASHBOARD_RETORNO_FILA') &&  <TextSubtext
-              text="Retornos para fila:  "
-              subtext={returnTrend}
-              color="gray-dark"
-              size="md"
-              icon="pi pi-sync"
-              display="grid"
-              />}
-            {chatStatus && hasPermition('DASHBOARD_GRAFICO_FILA') &&  (
-              <div className="text-lg p-2 grid grid-rows gap-4">
-                <div className=" grid m-auto text-left">
-                  <Bar options={options} data={chatStatus} />
-                </div>
-              </div>
-            )}
-            </div>
-          </Card>
+<div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
+   {renderInfo()}
+          </div>
          { hasPermition('DASHBOARD_GRAFICO_FILA') && (
          <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
           {renderChart("Especialidades por Demanda", chatEspecialidades)}
@@ -168,6 +175,5 @@ export default function Dashboard() {
         ) }
         </>
       </div>
-    </div>
   );
 }
