@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PickList } from 'primereact/picklist';
 import './styles.css';
 
@@ -15,7 +15,7 @@ interface PickListHeronProps {
 
 export const PickListHeron = ({ list, onChange, selected }: PickListHeronProps) => {
     const [source, setSource] = useState(list);
-    const [target, setTarget] = useState(selected);
+    const [target, setTarget] = useState<ItemProps[]>([]);
 
     const handleChange = (event: any) => {
       setSource(event.source);
@@ -23,6 +23,17 @@ export const PickListHeron = ({ list, onChange, selected }: PickListHeronProps) 
 
       onChange(event.target)
     }
+
+    useEffect(() => {
+      if (selected.length) {
+        const listItens = list.filter((item: any)=> !selected.includes(item.id))
+        const selectedItens = list.filter((item: any)=> selected.includes(item.id))
+
+        setSource(listItens);
+        setTarget(selectedItens);
+      }
+    }, [])
+    
 
     const itemTemplate = (item: ItemProps) => {
       return (
