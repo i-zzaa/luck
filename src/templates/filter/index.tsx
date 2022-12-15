@@ -56,7 +56,7 @@ export function Filter({
     <Card legend={legend}>
       <form id={id}  action="#"  onSubmit={handleSubmit(handleSubmit2)} className="flex-1">
         <div className="grid grid-cols-6 gap-4">
-          {fields.map((field: any) => hasPermition(field.rule) && (
+          {fields.map((field: any) => hasPermition(field.permission) && (
             <Input
               key={field.id}
               labelText={field.labelText}

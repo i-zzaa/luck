@@ -8,25 +8,12 @@ import { useDropdown } from "../contexts/dropDown";
 import { filterCalendarFields } from "../constants/formFields";
 import {  formatdateeua, getDateFormat } from "../util/util";
 import { statusPacienteId } from "../constants/patient";
-import { COORDENADOR, COORDENADOR_TERAPEUTA, permissionAuth, TERAPEUTA } from "../contexts/permission";
+import {  permissionAuth } from "../contexts/permission";
 import { NotFound } from "../components/notFound";
 
 const fieldsConst = filterCalendarFields;
-
-//userFields
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
-
-interface UserProps {
-  id: string;
-  nome: string;
-  login: string;
-  ativo: boolean;
-  perfil: {
-    id: string;
-    nome: string;
-  };
-}
 
 export default function Schedule() {
   const { hasPermition } = permissionAuth();

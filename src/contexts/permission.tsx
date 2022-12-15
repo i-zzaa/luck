@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getList } from "../server";
 import { useAuth } from "./auth";
 
 interface PermissionContextData {
   hasPermition(rule: string): void | boolean;
+  setPermissionsLogin: (rules: string[])=> void;
   permissions: string[];
   perfil: string | null;
 }
@@ -19,25 +20,6 @@ export const COORDENADOR = "coordenador";
 export const COORDENADOR_TERAPEUTA = "coordenador-terapeuta";
 export const TERAPEUTA = "terapeuta";
 
-const ROUTERS_PERMISSIONS: any = {
-  home: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR, COORDENADOR_TERAPEUTA, TERAPEUTA],
-  dashboard: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-  fila: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR],
-  cadastro: [DESENVOLVEDOR, ADMINISTRADOR],
-  agenda: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR, COORDENADOR_TERAPEUTA, TERAPEUTA],
-
-  tab_avaliacao: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE, COORDENADOR,COORDENADOR_TERAPEUTA],
-  tab_terapia: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-
-  btnAgendar: [DESENVOLVEDOR, ADMINISTRADOR],
-  btnDevolutiva: [COORDENADOR],
-  btnsAction: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-  btnRetornarAFila: [DESENVOLVEDOR, ATENDENTE],
-
-  textTelefone: [DESENVOLVEDOR, ADMINISTRADOR, ATENDENTE],
-  login: "*",
-};
-
 const PermissionContext = createContext<PermissionContextData>(
   {} as PermissionContextData
 );
@@ -46,10 +28,19 @@ export const PermissionProvider = ({ children }: Props) => {
   const { perfil } = useAuth();
   const [permissions, setPermissions] = useState<string[]>([])
 
+  const setPermissionsLogin = (permissionsList: string[]) => {
+    setPermissions(permissionsList)
+  }
+
+  const getPermissions = useMemo(async () => {
+    const list = await getList('permissao')
+    setPermissions(list)
+  }, [])
+
   useEffect(()=> {
-    getList('permissao').then((roles: string[])=> {
-      setPermissions(roles)
-    })
+    if (!permissions.length) {
+      getPermissions
+    }
   }, [])
 
   const hasPermition = (role: string) => {
@@ -70,7 +61,7 @@ export const PermissionProvider = ({ children }: Props) => {
 
   return (
     <PermissionContext.Provider
-      value={{ hasPermition, perfil, permissions }}
+      value={{ hasPermition, perfil, permissions, setPermissionsLogin }}
     >
       {children}
     </PermissionContext.Provider>

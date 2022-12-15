@@ -1,4 +1,3 @@
-//userFields
 import moment from 'moment';
 moment.locale('pt-br');
 import {  useCallback, useEffect, useState } from "react";

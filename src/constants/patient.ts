@@ -267,6 +267,7 @@ export const patientTherapyFields = [
 
 export const filterAvaliationFields = [
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_PACIENTE',
     labelText: 'Paciente',
     id: 'pacientes',
     name: 'pacientes',
@@ -275,6 +276,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_CONVENIO',
     labelText: 'Convênio',
     id: 'convenios',
     name: 'convenios',
@@ -283,6 +285,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_ESPECIALIDADE',
     labelText: 'Especialidade',
     id: 'especialidades',
     name: 'especialidades',
@@ -291,6 +294,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_PRIORIDADE',
     labelText: 'Prioridade',
     id: 'status',
     name: 'status',
@@ -299,6 +303,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_PERIODOS',
     labelText: 'Períodos',
     id: 'periodos',
     name: 'periodos',
@@ -307,6 +312,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_TIPO_SESSAO',
     labelText: 'Tipo sessão',
     id: 'tipoSessoes',
     name: 'tipoSessao',
@@ -315,6 +321,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_AGENDADOS',
     labelText: 'Agendados',
     id: 'naFila',
     name: 'naFila',
@@ -323,6 +330,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_INATIVOS',
     labelText: 'Inativos',
     id: 'disabled',
     name: 'disabled',
@@ -331,6 +339,7 @@ export const filterAvaliationFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_DEVOLUTIVAS',
     labelText: 'Devolutivas',
     id: 'devolutiva',
     name: 'devolutiva',
@@ -342,6 +351,7 @@ export const filterAvaliationFields = [
 
 export const filterTerapyFields = [
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_PACIENTE',
     labelText: 'Paciente',
     id: 'pacientes',
     name: 'pacientes',
@@ -350,6 +360,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_CONVENIO',
     labelText: 'Convênio',
     id: 'convenios',
     name: 'convenios',
@@ -358,6 +369,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_ESPECIALIDADE',
     labelText: 'Especialidade',
     id: 'especialidades',
     name: 'especialidades',
@@ -366,6 +378,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_PERIODOS',
     labelText: 'Períodos',
     id: 'periodos',
     name: 'periodos',
@@ -374,6 +387,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_PRIORIDADE',
     labelText: 'Prioridade',
     id: 'status',
     name: 'status',
@@ -382,6 +396,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_AGENDADOS',
     labelText: 'Agendados',
     id: 'naFila',
     name: 'naFila',
@@ -390,6 +405,7 @@ export const filterTerapyFields = [
     singleSelect: false,
   },
   {
+    permission: 'FILA_TERAPIA_FILTRO_SELECT_INATIVOS',
     labelText: 'Inativos',
     id: 'disabled',
     name: 'disabled',
@@ -401,6 +417,7 @@ export const filterTerapyFields = [
 
 export const filterPatientFields = [
   {
+    permission: 'CADASTRO_PACIENTES_FILTRO_SELECT_PACIENTE',
     labelText: 'Paciente',
     labelFor: 'pacientes',
     id: 'pacienteId',
@@ -413,6 +430,7 @@ export const filterPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES_FILTRO_SELECT_CONVENIO',
     labelText: 'Convênio',
     labelFor: 'convenios',
     id: 'convenioId',
@@ -425,6 +443,7 @@ export const filterPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES_FILTRO_SELECT_ESPECIALIDADE',
     labelText: 'Especialidade',
     labelFor: 'especialidades',
     id: 'especialidadeId',
@@ -437,6 +456,7 @@ export const filterPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES_FILTRO_SELECT_ESPECIALIDADE',
     labelText: 'Terapeuta',
     labelFor: 'terapeuta',
     id: 'terapeutaId',
@@ -449,6 +469,7 @@ export const filterPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES_FILTRO_SELECT_ESPECIALIDADE',
     labelText: 'Modalidade',
     labelFor: 'modalidades',
     id: 'modalidadeId',
@@ -464,6 +485,7 @@ export const filterPatientFields = [
 
 export const filterCurdPatientFields = [
   {
+    permission: 'CADASTRO_PACIENTES',
     labelText: 'Paciente',
     id: 'pacientes',
     name: 'pacientes',
@@ -472,6 +494,7 @@ export const filterCurdPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES',
     labelText: 'Convênio',
     id: 'convenios',
     name: 'convenios',
@@ -480,6 +503,7 @@ export const filterCurdPatientFields = [
     singleSelect: false,
   },
   {
+    permission: 'CADASTRO_PACIENTES',
     labelText: 'Especialidade',
     id: 'especialidades',
     name: 'especialidades',

@@ -1,12 +1,12 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { api, intercepttRoute } from "../server";
+import { permissionAuth } from "./permission";
 import { useToast } from "./toast";
 
 interface AuthContextData {
   signed: boolean;
   user: object | null;
   perfil: string | null; 
-  permissoes: string[] | null; 
   Login(user: object): Promise<void>;
   Logout(): void;
 }
@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 export const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<object | null>(null);
   const [perfil, setPerfil] = useState<string | null>(null);
-  const [permissoes, setPermissoes] = useState([] as string[]);
+  const { setPermissionsLogin } = permissionAuth();
   const { renderToast } = useToast();
 
   useEffect(() => {
@@ -51,9 +51,9 @@ export const AuthProvider = ({ children }: Props) => {
       sessionStorage.setItem("token", accessToken);
       sessionStorage.setItem("auth", JSON.stringify(user));
       sessionStorage.setItem("perfil", perfilName);
-      sessionStorage.setItem("permissoes", JSON.stringify(user.permissoes));
 
-      setPermissoes(user.permissoes);
+      setPermissionsLogin(user.permissoes)
+
       setPerfil(perfilName);
       setUser(user);
       await intercepttRoute(accessToken, user.login);
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   return (
     <AuthContext.Provider
-      value={{ signed: Boolean(user), user, Login, Logout, perfil, permissoes }}
+      value={{ signed: Boolean(user), user, Login, Logout, perfil }}
     >
       {children}
     </AuthContext.Provider>
