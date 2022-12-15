@@ -7,6 +7,7 @@ import { create, getList, search, update } from "../../server";
 
 import { Fields } from "../../constants/formFields";
 import { useDropdown } from "../../contexts/dropDown";
+import { COORDENADOR_TERAPEUTA, TERAPEUTA } from "../../contexts/permission";
 
 interface Props {
   namelist: string;
@@ -80,7 +81,7 @@ export default function CrudSimples({
 
       Object.keys(userState).forEach((index) => {
         if (index.indexOf('Id') !== -1) {
-          if(!userState[index]) {
+          if(!userState[index] || typeof userState[index][0] === 'number') {
             delete formatValues[index];
             return
           } 
@@ -158,12 +159,12 @@ export default function CrudSimples({
         const valid = value.nome !== 'Terapeuta' && value.nome !== 'Coordenador-terapeuta'
         setHidden(valid)
         if (!valid) {
-          unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
+          unregister(['especialidadeId', 'funcoesId'], {keepDirtyValues: true})
         }
        
         break;
       case 'especialidadeId':
-        setValue('funcoes', [])
+        setValue('funcoesId', [])
         const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
         break;
@@ -226,7 +227,7 @@ export default function CrudSimples({
           screen={screen} 
           type="simples"
           onClickTrash={(item_: any) => {
-            item_.ativo = true
+            item_.ativo = false
             setItem(item_);
             setOpenConfirm(true);
           }}
@@ -255,7 +256,7 @@ export default function CrudSimples({
               setHidden(false)
             }else {
               setHidden(true)
-              unregister(['especialidadeId', 'funcaoId'], {keepDirtyValues: true})
+              unregister(['especialidadeId', 'funcoesId'], {keepDirtyValues: true})
             }
           }}
           onClick={(item_: any) => onClick(item_.id)}

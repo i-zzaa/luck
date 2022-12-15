@@ -723,7 +723,7 @@ const usuariosFields: any = [
   {
     labelText: 'Função',
     labelFor: 'funcoes',
-    id: 'funcoes',
+    id: 'funcoesId',
     name: 'funcao',
     type: 'multiselect',
     autoComplete: 'funcao',
