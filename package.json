@@ -1,6 +1,6 @@
 {
   "name": "@heron-list/web",
-  "version": "0.5.0-beta.0",
+  "version": "0.7.0-beta.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,14 +10,14 @@
   },
   "stack": "heroku-20",
   "scripts": {
-    "build": "tsc && vite build",
     "dev": "vite --port=3000",
     "start": "node serve.js",
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "format": "prettier --write \"src/**/*.{ts,js}\"",
-    "lint": "eslint \"src/**/*.{ts,js}\" --quiet"
+    "lint": "eslint \"src/**/*.{ts,js}\" --quiet",
+    "build": "tsc && vite build && browserify -t [ babelify --presets [ react ] ] src/index.js -o dist/app.js"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^5.11.3",
