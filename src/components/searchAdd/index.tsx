@@ -11,7 +11,7 @@ import { permissionAuth } from '../../contexts/permission';
 import { ButtonHeron } from '../button';
 import { Search } from "../search";
 
-export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control, loading}: SearchAddProps) {
+export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control, loading, screen}: SearchAddProps) {
   const { hasPermition } = permissionAuth();
 
   return (
