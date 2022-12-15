@@ -23,6 +23,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
 
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [event, setEvent] = useState<any>([]);
+  const [minFinal, setMinFinal] = useState<any>();
  
   const { 
     renderDropdownQueueCalendar, 
@@ -222,10 +223,12 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
               const dow = Number(date.day());
               
               setValue('diasFrequencia', [dow])
+              setMinFinal(date.add(1, 'days'))
             }
           }}
           validate={{
             required: true,
+            min:  moment(new Date).format('YYYY-MM-DD')
           }}
           disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_INICIO')}
         />
@@ -237,9 +240,9 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
             customCol="col-span-6 sm:col-span-2"
             errors={errors}
             control={control}
-            // validate={{
-            //   required: true,
-            // }}
+            validate={{
+              min:  minFinal.format('YYYY-MM-DD')
+            }}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_FIM')}
           />)}
 

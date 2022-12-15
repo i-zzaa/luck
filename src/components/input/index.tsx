@@ -233,9 +233,6 @@ export function Input({
         />
       );
       case "date":
-        const date = new Date()
-        const dateFomart = moment(new Date).format('YYYY-MM-DD')
-
         return (
           <Controller
           name={id}
@@ -251,7 +248,7 @@ export function Input({
               type={type}
               className={"inputAnimado "  + customClass}
               autoComplete="off"
-              min={dateFomart}
+              min={validate.min}
               onInput={(e: any)=> {
                 field.onChange(e)
                 onChange && onChange(e)
