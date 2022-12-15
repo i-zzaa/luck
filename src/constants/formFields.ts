@@ -502,6 +502,7 @@ const calendarFields = [
     singleSelect: false,
     validate: {
       required: true,
+      min: true,
     },
   },
   {
