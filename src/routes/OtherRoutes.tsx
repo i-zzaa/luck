@@ -21,7 +21,7 @@ interface Props {
 }
 
 const OtherRoutes = () => {
-  const { hasPermition, permissions } = permissionAuth();
+  const { hasPermition } = permissionAuth();
 
   const routes: Props[] = [
     { path: '*', componentRoute: Home },
@@ -38,7 +38,7 @@ const OtherRoutes = () => {
       <Routes>
         {routes.map((route: Props, index: number) => (
           <Route key={index} path={route.path} element={
-            permissions.includes(route.path) ? <Layout><route.componentRoute /></Layout> : null
+            hasPermition(route.path) ? <Layout><route.componentRoute /></Layout> : null
           } />
         ))}
       </Routes>
