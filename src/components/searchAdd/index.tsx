@@ -21,7 +21,7 @@ export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control,
       </form>
 
       <div className="col-span-8 sm:col-span-1">
-        {hasPermition(`${screen}__BOTAO_CADASTAR`) ? (<div className='sm:hidden '>
+        {hasPermition(`${screen}_BOTAO_CADASTAR`) ? (<div className='sm:hidden '>
           <ButtonHeron 
             text={textButton}
             icon={iconButton}
@@ -31,7 +31,7 @@ export function SearchAdd({ onClick, onSubmit,  textButton, iconButton, control,
             />
         </div>) : null}
 
-        {hasPermition(`${screen}__BOTAO_CADASTAR`) ? (<div className='hidden sm:block mt-5 text-end'>
+        {hasPermition(`${screen}_BOTAO_CADASTAR`) ? (<div className='hidden sm:block mt-5 text-end'>
           <ButtonHeron 
             text={textButton}
             icon={iconButton}
