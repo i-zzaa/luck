@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 export const Nav = () => {
   const { Logout } = useAuth();
-  const { hasPermition } = permissionAuth();
+  const { hasPermition, permissions } = permissionAuth();
   const [items, setItems] = useState([]);
 
   const RouterLinks: string[] = Object.values(CONSTANTES_ROUTERS);
@@ -53,7 +53,7 @@ export const Nav = () => {
 
   useEffect(()=> {
     renderNav()
-  }, [])
+  }, [permissions])
 
   return (
     <Menubar 
