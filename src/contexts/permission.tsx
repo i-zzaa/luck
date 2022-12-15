@@ -50,7 +50,7 @@ export const PermissionProvider = ({ children }: Props) => {
     getList('permissao').then((roles: string[])=> {
       setPermissions(roles)
     })
-  }, [])
+  }, [permissions])
 
   const hasPermition = (role: string) => {
     const rule = role || ''

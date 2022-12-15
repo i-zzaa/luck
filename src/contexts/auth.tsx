@@ -48,18 +48,12 @@ export const AuthProvider = ({ children }: Props) => {
         ? user.perfil.nome.toLowerCase()
         : user.perfil.toLowerCase();
 
-      const permissoesList: string[] = []
-
-      user.permissoes?.map(({ permissao }: any)=> {
-        permissoesList.push(permissao.cod)
-      })
-
       sessionStorage.setItem("token", accessToken);
       sessionStorage.setItem("auth", JSON.stringify(user));
       sessionStorage.setItem("perfil", perfilName);
-      sessionStorage.setItem("permissoes", JSON.stringify(permissoesList));
+      sessionStorage.setItem("permissoes", JSON.stringify(user.permissoes));
 
-      setPermissoes(permissoesList);
+      setPermissoes(user.permissoes);
       setPerfil(perfilName);
       setUser(user);
       await intercepttRoute(accessToken, user.login);
