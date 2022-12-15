@@ -168,8 +168,14 @@ export function List({
           {!item.emAtendimento &&(
           <div className="flex justify-between">
             <div className="sm:flex items-center sm:gap-4">
-              <TextSubtext text="Período: " subtext={item?.vaga?.periodo?.nome} size="sm" color="gray-dark" display="flex"/>
-              <TextSubtext text="Tipo: " subtext={item?.tipoSessao?.nome} size="sm" color="gray-dark" display="flex"/>
+              {
+                statusPacienteId.crud_therapy !== item.statusPacienteId (
+                  <>
+                  <TextSubtext text="Período: " subtext={item?.vaga?.periodo?.nome} size="sm" color="gray-dark" display="flex"/>
+                  <TextSubtext text="Tipo: " subtext={item?.tipoSessao?.nome} size="sm" color="gray-dark" display="flex"/>
+                  </>
+                )
+              }
               { renderStatus(item) }
               {
                 item.vaga?.dataDevolutiva && <TextSubtext className="font-sans-serif" text="Devolutiva:" subtext={formatdate(item.vaga?.dataDevolutiva)} size="sm" color="gray-dark" display="flex"/>
