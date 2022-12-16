@@ -96,7 +96,7 @@ export function Input({
                 onChange={(e: any) => {
                   setColorChips();
                   onChange && onChange(e.value)
-                  return field.onChange(e.value);
+                  field.onChange(e.value);
                 }}
                 options={options}
               />
