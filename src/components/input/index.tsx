@@ -11,6 +11,9 @@ import { colorsData, colorsTextData, setColorChips } from "../../util/util";
 import { clsx } from 'clsx';
 import moment from "moment";
 import { PickListHeron } from "../pickListHeron";
+import { DataTableHeron } from "../dataTable";
+import { InputNumber } from "primereact/inputnumber";
+import { DataTableSessaoHeron } from "../dataTableSessao";
 
 export interface InputProps {
   id: string;
@@ -92,6 +95,7 @@ export function Input({
                 value={value || field.value}
                 onChange={(e: any) => {
                   setColorChips();
+                  onChange && onChange(e.value)
                   return field.onChange(e.value);
                 }}
                 options={options}
@@ -232,6 +236,26 @@ export function Input({
           )}
         />
       );
+      case "price":
+        return (
+          <Controller
+          name={id}
+          control={control}
+          rules={validate}
+          render={({ field }: any) => (
+            <div className={"inputAnimado font-sans-serif " + customClass }id={field.id}>
+                <div className="p-inputgroup">
+                    <InputNumber  value={value || field.value}  disabled={disabled} onInput={(e: any)=> {
+                field.onChange(e)
+                onChange && onChange(e)
+              }}/>
+                    <span className="p-inputgroup-addon">R$</span>
+
+                </div>
+            </div>
+          )}
+        />
+      );
       case "date":
         return (
           <Controller
@@ -275,30 +299,64 @@ export function Input({
           )}
         />
       );
-        default:
-          return (
-            <Controller
-              name={id}
-              control={control}
-              rules={validate}
-              render={({ field }: any) => (
-                <input
-                  disabled={disabled}
-                  id={field.id}
-                  {...field}
-                  value={value || field.value}
-                  key={field.id}
-                  type={type}
-                  className={"inputAnimado "  + customClass}
-                  autoComplete="off"
-                  onInput={(e: any)=> {
-                    field.onChange(e)
-                    onChange && onChange(e)
-                  }}
-                />
-              )}
+      case "dataTable":
+        return (
+          <Controller
+          name={id}
+          control={control}
+          rules={validate}
+          render={({ field }: any) => (
+            <DataTableHeron 
+            value={value} 
+            onChange={(e: any)=>  {
+              field.onChange(e)
+              onChange && onChange(e)
+            }}
             />
-          );
+          )}
+        />
+      );
+      case "sessao":
+        return (
+          <Controller
+          name={id}
+          control={control}
+          rules={validate}
+          render={({ field }: any) => (
+            <DataTableSessaoHeron 
+            value={value} 
+            onChange={(e: any)=>  {
+              field.onChange(e)
+              onChange && onChange(e)
+            }}
+            />
+          )}
+        />
+      );
+      default:
+        return (
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <input
+                disabled={disabled}
+                id={field.id}
+                {...field}
+                value={value || field.value}
+                key={field.id}
+                type={type}
+                className={"inputAnimado "  + customClass}
+                autoComplete="off"
+                onInput={(e: any)=> {
+                  field.onChange(e)
+                  onChange && onChange(e)
+                }}
+              />
+            )}
+          />
+        );
     }
   };
 

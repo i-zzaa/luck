@@ -28,7 +28,7 @@ export const patientAvaliationFields = [
     id: 'dataNascimento',
     name: 'dataNascimento',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -55,7 +55,7 @@ export const patientAvaliationFields = [
     id: 'telefone',
     name: 'telefone',
     type: 'tel',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -163,7 +163,7 @@ export const patientTherapyFields = [
     id: 'dataNascimento',
     name: 'dataNascimento',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -190,7 +190,7 @@ export const patientTherapyFields = [
     id: 'telefone',
     name: 'telefone',
     type: 'tel',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -202,7 +202,7 @@ export const patientTherapyFields = [
     id: 'dataVoltouAba',
     name: 'dataVoltouAba',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -213,7 +213,7 @@ export const patientTherapyFields = [
     id: 'convenioId',
     name: 'convenios',
     type: 'select',
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -224,7 +224,7 @@ export const patientTherapyFields = [
     id: 'periodoId',
     name: 'periodos',
     type: 'select',
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -239,14 +239,14 @@ export const patientTherapyFields = [
     validate: {
       required: 'Campo obrigatório!',
     },
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-4',
   },
   {
     labelText: 'Prioridade',
     id: 'statusId',
     name: 'status',
     type: 'select',
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -535,7 +535,7 @@ export const patientCrudFields = [
     id: 'dataNascimento',
     name: 'dataNascimento',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -562,7 +562,7 @@ export const patientCrudFields = [
     id: 'telefone',
     name: 'telefone',
     type: 'tel',
-    customCol: 'col-span-6 sm:col-span-4   sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -600,7 +600,17 @@ export const patientCrudFields = [
     validate: {
       required: 'Campo obrigatório!',
     },
-    customCol: 'col-span-6 sm:col-span-3',
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    labelText: '',
+    id: 'sessao',
+    name: 'sessao',
+    type: 'sessao',
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+    customCol: 'col-span-6 sm:col-span-6 mb-8',
   },
   {
     labelText: 'Observação',

@@ -22,7 +22,7 @@ export const CalendarForm = ({ value, onClose, isEdit,  statusPacienteId}: any) 
 
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [event, setEvent] = useState<any>([]);
-  const [minFinal, setMinFinal] = useState<any>();
+  const [minFinal, setMinFinal] = useState<any>(moment(new Date()));
  
   const { 
     renderDropdownQueueCalendar, 

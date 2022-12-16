@@ -7,7 +7,6 @@ import { create, getList, search, update } from "../../server";
 
 import { Fields } from "../../constants/formFields";
 import { useDropdown } from "../../contexts/dropDown";
-import { COORDENADOR_TERAPEUTA, TERAPEUTA } from "../../contexts/permission";
 
 interface Props {
   namelist: string;
@@ -32,6 +31,8 @@ export default function CrudSimples({
   const [hidden, setHidden] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
+
+  const isTerapeuta = ['especialidadeId', 'funcoesId', 'comissao', 'fazDevolutiva', 'cargaHoraria']
 
   const [fields, setFields] = useState([])
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -159,7 +160,7 @@ export default function CrudSimples({
         const valid = value.nome !== 'Terapeuta' && value.nome !== 'Coordenador-terapeuta'
         setHidden(valid)
         if (!valid) {
-          unregister(['especialidadeId', 'funcoesId'], {keepDirtyValues: true})
+          unregister(isTerapeuta, {keepDirtyValues: true})
         }
        
         break;
@@ -167,6 +168,8 @@ export default function CrudSimples({
         setValue('funcoesId', [])
         const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome)
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao })
+        break;
+      case 'cargaHoraria':
         break;
       default:
         break;
@@ -184,7 +187,7 @@ export default function CrudSimples({
     }
   }
 
-  const renderAgendar =useCallback(async()=> {
+  const renderAgendar = useCallback(async()=> {
     const list = await renderDropdownCrud()
     setDropDownList(list)
   },[])
@@ -256,7 +259,7 @@ export default function CrudSimples({
               setHidden(false)
             }else {
               setHidden(true)
-              unregister(['especialidadeId', 'funcoesId'], {keepDirtyValues: true})
+              unregister(isTerapeuta, {keepDirtyValues: true})
             }
           }}
           onClick={(item_: any) => onClick(item_.id)}
@@ -281,21 +284,22 @@ export default function CrudSimples({
           reset()
         }}
       >
-      <form onSubmit={handleSubmit(onSubmit)} action="#">
-          <div>
+      {<form onSubmit={handleSubmit(onSubmit)} action="#">
+          <div className="grid grid-cols-6 items-center gap-2">
             {fields.map((field: any) => (
               <Input
                 key={field.id}
                 labelText={field.labelText}
                 id={field.id}
                 type={field.type}
-                options={(field.type === "select" || field.type === "multiselect" || field.type === "picker" ) && dropDownList[field.labelFor]}
+                options={(field.type === "select" || field.type === "multiselect" || field.type === "picker" ) && dropDownList[field.name]}
                 validate={!!field.validate ? field.validate : !hidden && {required: "Campo obrigatório!"} }
                 errors={errors}
                 control={control}
                 onChange={(values: any)=> handleChange(values, field.id)}
                 hidden={namelist === 'usuarios' && field.hidden && hidden }
                 value={field.type === "picker" && value}
+                customCol={field.customCol}
               />
             ))}
           </div>
@@ -307,7 +311,7 @@ export default function CrudSimples({
             onClick={handleSubmit(onSubmit)}
             loading={loading}
           /> 
-        </form>
+        </form>}
       </Modal>
 
       <Confirm

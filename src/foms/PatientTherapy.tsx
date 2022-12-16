@@ -29,6 +29,7 @@ export const PatientTherapy = ({
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
   const [fields, setFields] = useState(fieldsCostant);
+  const [especialidades, setEspecialidades] = useState([]);
 
   const isEdit = !!value?.nome
   const defaultValues = value || {};
@@ -93,6 +94,17 @@ export const PatientTherapy = ({
       });
     }
   };
+
+  const handleChange=(value: any, fieldId: string) => {
+    switch (fieldId) {
+      case 'especialidades':
+        setEspecialidades(value)
+        break;
+    
+      default:
+        break;
+    }
+  }
   
   useEffect(() => {
     value?.nome &&  setColorChips()
@@ -121,7 +133,9 @@ export const PatientTherapy = ({
             customCol={field.customCol}
             errors={errors}
             validate={field.validate }
+            value={field.id === 'sessao'? especialidades : null}
             control={control}
+            onChange={(values: any)=> handleChange(values, field.id)}            
             options={
               field.type === "select" || field.type === "multiselect"
                 ? dropdown[field.name]
