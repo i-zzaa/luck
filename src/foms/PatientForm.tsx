@@ -41,6 +41,7 @@ export const PatientForm = ({
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
   const [fields, setFields] = useState(fieldsCostant);
+  const [sessoes, setSessoes] = useState([]);
 
   const isEdit = !!value?.nome
   const defaultValues = value || {};
@@ -106,6 +107,26 @@ export const PatientForm = ({
     }
   };
   
+  const handleChange=(value: any, fieldId: string) => {
+    switch (fieldId) {
+      case 'especialidades':
+        const list =  value.map((item: any) => {
+          return {
+            especialidade: item.nome,
+            especialidadeId: item.id,
+            valor: '80',
+            km: 0
+          }
+        })
+
+        setSessoes(list)
+        break;
+    
+      default:
+        break;
+    }
+  }
+
   useEffect(() => {
     value?.nome &&  setColorChips()
   }, [value])
@@ -123,7 +144,7 @@ export const PatientForm = ({
       onSubmit={handleSubmit(onSubmit)}
       id="form-cadastro-patient"
     >
-      <div className="grid grid-cols-6 gap-4 mb-4 min-h-[300px] overflow-y-auto">
+      <div className="grid grid-cols-6 gap-2 mb-4 min-h-[300px] overflow-y-auto">
         {fields.map((field: any) => (
           <Input
             key={field.id}
@@ -133,7 +154,9 @@ export const PatientForm = ({
             customCol={field.customCol}
             errors={errors}
             validate={field.validate }
+            value={field.id === 'sessao'? sessoes : null}
             control={control}
+            onChange={(values: any)=> handleChange(values, field.id)}
             options={
               field.type === "select" || field.type === "multiselect"
                 ? dropdown[field.name]
