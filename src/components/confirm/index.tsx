@@ -9,30 +9,30 @@ export interface ConfirmProps {
   onReject: () => void;
   onClose: () => void;
 }
-import { ConfirmDialog  } from 'primereact/confirmdialog';
+import { ConfirmDialog } from 'primereact/confirmdialog';
 
-export function Confirm({  
-  title, 
-  message, 
-  icon, 
-  onAccept, 
-  onReject, 
-  open, 
-  onClose, 
-  rejectLabel="Não", 
-  acceptLabel ="Sim"
+export function Confirm({
+  title,
+  message,
+  icon,
+  onAccept,
+  onReject,
+  open,
+  onClose,
+  rejectLabel = 'Não',
+  acceptLabel = 'Sim',
 }: ConfirmProps) {
   return (
-    <ConfirmDialog 
-      visible={open} 
-      onHide={onClose} 
+    <ConfirmDialog
+      visible={open}
+      onHide={onClose}
       message={message}
       header={title}
       icon={icon}
-      accept={onAccept} 
-      reject={onReject} 
+      accept={onAccept}
+      reject={onReject}
       acceptLabel={acceptLabel}
       rejectLabel={rejectLabel}
     />
-  )
+  );
 }

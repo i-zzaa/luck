@@ -7,7 +7,7 @@ export interface ResponseSuccessProps {
 }
 
 export const api = axios.create({
-  baseURL: 'https://api-multialcance.online/',
+  baseURL: 'http://localhost:3333/', //'https://api-multialcance.online/',
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',

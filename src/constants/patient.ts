@@ -606,7 +606,7 @@ export const patientCrudFields = [
     labelText: '',
     id: 'sessao',
     name: 'sessao',
-    type: 'sessao',
+    type: 'dataTableSessaoHeron',
     validate: {
       required: 'Campo obrigatório!',
     },

@@ -1,5 +1,5 @@
-import { ButtonHeron, Input } from "../components/index";
-import { useForm } from "react-hook-form";
+import { ButtonHeron, Input } from '../components/index';
+import { useForm } from 'react-hook-form';
 
 interface EspecialidadeProps {
   id: number;
@@ -70,7 +70,7 @@ export const ScheduleForm = ({ especialidades, onSubmit }: Props) => {
         type="primary"
         size="full"
         onClick={handleSubmit(handleProvSubmit)}
-      /> 
+      />
     </form>
   );
 };

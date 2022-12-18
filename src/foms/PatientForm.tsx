@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import { useToast } from "../contexts/toast";
-import { create, update } from "../server";
-import { ButtonHeron, Input } from "../components/index";
-import { setColorChips } from "../util/util";
+import { useToast } from '../contexts/toast';
+import { create, update } from '../server';
+import { ButtonHeron, Input } from '../components/index';
+import { setColorChips } from '../util/util';
 
 export interface OptionProps {
   id: string;
@@ -13,7 +13,7 @@ export interface OptionProps {
 
 interface Props {
   onClose: () => void;
-  dropdown: any,
+  dropdown: any;
   value: any;
   statusPacienteId: number;
   fieldsCostant: any;
@@ -36,14 +36,14 @@ export const PatientForm = ({
   dropdown,
   value,
   statusPacienteId,
-  fieldsCostant
+  fieldsCostant,
 }: Props) => {
   const [loading, setLoaging] = useState<boolean>(false);
   const { renderToast } = useToast();
   const [fields, setFields] = useState(fieldsCostant);
   const [sessoes, setSessoes] = useState([]);
 
-  const isEdit = !!value?.nome
+  const isEdit = !!value?.nome;
   const defaultValues = value || {};
 
   const {
@@ -53,44 +53,48 @@ export const PatientForm = ({
     control,
   } = useForm({ defaultValues });
 
-
   const onSubmit = async (body: any) => {
     setLoaging(true);
 
     try {
       let data;
-      const formatValues = statusPacienteId === 1 ? 
-      {
-        ...body,
-        periodoId: body.periodoId.id,
-        convenioId: body.convenioId.id,
-        statusId: body.statusId.id,
-        tipoSessaoId: body.tipoSessaoId.id,
-        especialidades: body.especialidades.map((item: OptionProps) => item.id),
-        statusPacienteId: statusPacienteId
-      } : 
-      {
-        ...body,
-        periodoId: body?.periodoId ? body?.periodoId.id : 3, // padrao 3 de integral
-        convenioId: body.convenioId.id,
-        statusId: body?.statusId ? body?.statusId.id : 1, // padrao 1 de padrao
-        tipoSessaoId: 2,
-        especialidades: body.especialidades.map((item: OptionProps) => item.id),
-        statusPacienteId: statusPacienteId
-      }
+      const formatValues =
+        statusPacienteId === 1
+          ? {
+              ...body,
+              periodoId: body.periodoId.id,
+              convenioId: body.convenioId.id,
+              statusId: body.statusId.id,
+              tipoSessaoId: body.tipoSessaoId.id,
+              especialidades: body.especialidades.map(
+                (item: OptionProps) => item.id
+              ),
+              statusPacienteId: statusPacienteId,
+            }
+          : {
+              ...body,
+              periodoId: body?.periodoId ? body?.periodoId.id : 3, // padrao 3 de integral
+              convenioId: body.convenioId.id,
+              statusId: body?.statusId ? body?.statusId.id : 1, // padrao 1 de padrao
+              tipoSessaoId: 2,
+              especialidades: body.especialidades.map(
+                (item: OptionProps) => item.id
+              ),
+              statusPacienteId: statusPacienteId,
+            };
 
       if (isEdit) {
         formatValues.id = value.id;
-        data = await update("pacientes", formatValues);
+        data = await update('pacientes', formatValues);
       } else {
-        data = await create("pacientes", formatValues);
+        data = await create('pacientes', formatValues);
       }
 
       reset();
       setLoaging(false);
       renderToast({
-        type: "success",
-        title: "",
+        type: 'success',
+        title: '',
         message: data?.data.message,
         open: true,
       });
@@ -99,44 +103,44 @@ export const PatientForm = ({
     } catch (error) {
       setLoaging(false);
       renderToast({
-        type: "failure",
-        title: "401",
-        message: "Não cadastrado!",
+        type: 'failure',
+        title: '401',
+        message: 'Não cadastrado!',
         open: true,
       });
     }
   };
-  
-  const handleChange=(value: any, fieldId: string) => {
+
+  const handleChange = (value: any, fieldId: string) => {
     switch (fieldId) {
       case 'especialidades':
-        const list =  value.map((item: any) => {
+        const list = value.map((item: any) => {
           return {
             especialidade: item.nome,
             especialidadeId: item.id,
             valor: '80',
-            km: 0
-          }
-        })
+            km: 0,
+          };
+        });
 
-        setSessoes(list)
+        setSessoes(list);
         break;
-    
+
       default:
         break;
     }
-  }
+  };
 
   useEffect(() => {
-    value?.nome &&  setColorChips()
-  }, [value])
+    value?.nome && setColorChips();
+  }, [value]);
 
   useEffect(() => {
     const fieldsFormat = fieldsCostant;
     const fieldsState: any = {};
-    fieldsFormat.forEach((field: any) => (fieldsState[field.id] = ""));
-    setFields(fieldsFormat)
-  }, [])
+    fieldsFormat.forEach((field: any) => (fieldsState[field.id] = ''));
+    setFields(fieldsFormat);
+  }, []);
 
   return (
     <form
@@ -153,12 +157,12 @@ export const PatientForm = ({
             type={field.type}
             customCol={field.customCol}
             errors={errors}
-            validate={field.validate }
-            value={field.id === 'sessao'? sessoes : null}
+            validate={field.validate}
+            value={field.id === 'sessao' ? sessoes : null}
             control={control}
-            onChange={(values: any)=> handleChange(values, field.id)}
+            onChange={(values: any) => handleChange(values, field.id)}
             options={
-              field.type === "select" || field.type === "multiselect"
+              field.type === 'select' || field.type === 'multiselect'
                 ? dropdown[field.name]
                 : undefined
             }
@@ -167,12 +171,12 @@ export const PatientForm = ({
       </div>
 
       <ButtonHeron
-        text={isEdit ? "Atualizar" : "Cadastrar"}
-        type={isEdit ? "second" : "primary"}
+        text={isEdit ? 'Atualizar' : 'Cadastrar'}
+        type={isEdit ? 'second' : 'primary'}
         size="full"
         onClick={handleSubmit(onSubmit)}
         loading={loading}
-      /> 
+      />
     </form>
   );
-}
+};

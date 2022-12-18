@@ -1,6 +1,5 @@
-
-import logoLg from "../assets/logo-lg.jpg";
-import { Title } from "./index";
+import logoLg from '../assets/logo-lg.jpg';
+import { Title } from './index';
 
 interface Props {
   heading: string;
@@ -9,9 +8,7 @@ interface Props {
   linkUrl: string;
 }
 
-export default function Header({
-  heading,
-}: any) {
+export default function Header({ heading }: any) {
   return (
     <div className="mb-10 text-center">
       <div className="flex justify-center">

@@ -1,16 +1,14 @@
-import { Meta, StoryObj } from "@storybook/react"
-import { Confirm, ConfirmProps  } from "./index";
+import { Meta, StoryObj } from '@storybook/react';
+import { Confirm, ConfirmProps } from './index';
 
 export default {
-  title: "Components/Confirm",
+  title: 'Components/Confirm',
   component: Confirm,
   args: {
-    text: "Confirm",
+    text: 'Confirm',
     title: 'Cadastrar Usuário',
-    icon: 'pi pi-alert'
-  }
+    icon: 'pi pi-alert',
+  },
 } as Meta<ConfirmProps>;
 
-export const Default: StoryObj = {
-
-};
+export const Default: StoryObj = {};

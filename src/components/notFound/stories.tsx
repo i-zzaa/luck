@@ -1,12 +1,10 @@
-import { Meta, StoryObj } from "@storybook/react"
-import { NotFound  } from "./index";
+import { Meta, StoryObj } from '@storybook/react';
+import { NotFound } from './index';
 
 export default {
-  title: "Components/NotFound",
+  title: 'Components/NotFound',
   component: NotFound,
-  args: { }
+  args: {},
 } as Meta;
 
-export const Default: StoryObj = {
-
-};
+export const Default: StoryObj = {};

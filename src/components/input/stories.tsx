@@ -1,21 +1,23 @@
-import { Meta, StoryObj } from "@storybook/react"
-import { Input, InputProps, OptionsProps  } from "./index";
+import { Meta, StoryObj } from '@storybook/react';
+import { Input, InputProps, OptionsProps } from './index';
 
 const arrOptions: OptionsProps[] = [
-  { value: "foo", nome: "foo" },
-  { value: "bar", nome: "bar" },
-  { value: "baz", nome: "baz" },
-]
+  { value: 'foo', nome: 'foo' },
+  { value: 'bar', nome: 'bar' },
+  { value: 'baz', nome: 'baz' },
+];
 
 export default {
-  title: "Components/Input",
+  title: 'Components/Input',
   component: Input,
   args: {
     id: 'input-simples',
     type: 'text',
     labelText: 'Simples',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 } as Meta<InputProps>;
 
 export const Simples: StoryObj<InputProps> = {};
@@ -25,8 +27,10 @@ export const Date: StoryObj<InputProps> = {
     id: 'input-date',
     type: 'date',
     labelText: 'Date',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const Number: StoryObj<InputProps> = {
@@ -34,8 +38,10 @@ export const Number: StoryObj<InputProps> = {
     id: 'input-number',
     type: 'number',
     labelText: 'number',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const Telefone: StoryObj<InputProps> = {
@@ -43,8 +49,10 @@ export const Telefone: StoryObj<InputProps> = {
     id: 'input-tel',
     type: 'tel',
     labelText: 'telefone',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const Textarea: StoryObj<InputProps> = {
@@ -52,9 +60,11 @@ export const Textarea: StoryObj<InputProps> = {
     id: 'input-textarea',
     type: 'textarea',
     labelText: 'textarea',
-    customClass: "col-span-6 sm:col-span-6",
-    onChange: () => {console.log('Input date changed')},
-  }
+    customClass: 'col-span-6 sm:col-span-6',
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const select: StoryObj<InputProps> = {
@@ -62,8 +72,10 @@ export const select: StoryObj<InputProps> = {
     id: 'input-select',
     type: 'select',
     labelText: 'select',
-    onChange: () => {console.log('Input date changed')}
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const multiselect: StoryObj<InputProps> = {
@@ -71,8 +83,10 @@ export const multiselect: StoryObj<InputProps> = {
     id: 'input-multiselect',
     type: 'multiselect',
     labelText: 'multiselect',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };
 
 export const inputSwitch: StoryObj<InputProps> = {
@@ -80,6 +94,8 @@ export const inputSwitch: StoryObj<InputProps> = {
     id: 'input-switch',
     type: 'switch',
     labelText: 'switch',
-    onChange: () => {console.log('Input date changed')},
-  }
+    onChange: () => {
+      console.log('Input date changed');
+    },
+  },
 };

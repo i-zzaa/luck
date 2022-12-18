@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {  getList } from "../server";
-import {  Card, Filter, Modal } from "../components";
-import { CalendarComponent } from "../components/calendar";
-import { ViewEvento } from "../components/view-evento";
-import { CalendarForm } from "../foms/CalendarForm";
-import { useDropdown } from "../contexts/dropDown";
-import { filterCalendarFields } from "../constants/formFields";
-import {  formatdateeua, getDateFormat } from "../util/util";
-import { statusPacienteId } from "../constants/patient";
-import {  permissionAuth } from "../contexts/permission";
-import { NotFound } from "../components/notFound";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getList } from '../server';
+import { Card, Filter, Modal } from '../components';
+import { CalendarComponent } from '../components/calendar';
+import { ViewEvento } from '../components/view-evento';
+import { CalendarForm } from '../foms/CalendarForm';
+import { useDropdown } from '../contexts/dropDown';
+import { filterCalendarFields } from '../constants/formFields';
+import { formatdateeua, getDateFormat } from '../util/util';
+import { statusPacienteId } from '../constants/patient';
+import { permissionAuth } from '../contexts/permission';
+import { NotFound } from '../components/notFound';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};
-fieldsConst.forEach((field: any) => (fieldsState[field.id] = ""));
+fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export default function Schedule() {
   const { hasPermition } = permissionAuth();
@@ -21,7 +21,7 @@ export default function Schedule() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [dropDownList, setDropDownList] = useState<any>([]);
-  const {  renderDropdownCalendar, renderPacientes } = useDropdown()
+  const { renderDropdownCalendar, renderPacientes } = useDropdown();
 
   const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
@@ -31,47 +31,51 @@ export default function Schedule() {
 
   const renderEvents = useCallback(async () => {
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
-      const auth: any = await sessionStorage.getItem('auth')
-      const user = JSON.parse(auth)
+      const auth: any = await sessionStorage.getItem('auth');
+      const user = JSON.parse(auth);
       handleSubmitFilter({
         terapeutaId: {
-          id: user.id
-        }
-      })
-
-    }else {
+          id: user.id,
+        },
+      });
+    } else {
       const current = new Date();
-      const response: any = await getList(`/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`);
+      const response: any = await getList(
+        `/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`
+      );
       setEventsList(response);
     }
-
   }, []);
 
   const handleSubmitFilter = useCallback(async (formvalue: any) => {
     try {
-      setLoading(true)
+      setLoading(true);
 
-      const filter: string[] = []
+      const filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
         if (formvalue[key]?.id) {
-          filter.push(`${key}=${formvalue[key].id}`)
+          filter.push(`${key}=${formvalue[key].id}`);
         }
-      })
-      
+      });
+
       const current = new Date();
-      const response: any = await getList(`/evento/filter/${current.getMonth() + 1}/${current.getFullYear()}?${filter.join('&')}`);
-  
+      const response: any = await getList(
+        `/evento/filter/${
+          current.getMonth() + 1
+        }/${current.getFullYear()}?${filter.join('&')}`
+      );
+
       setEventsList(response);
-      setLoading(false)
+      setLoading(false);
     } catch (error) {
-      setLoading(false)
+      setLoading(false);
     }
   }, []);
 
-  const rendeFiltro = useMemo(async() => {
-    const list = await renderDropdownCalendar(statusPacienteId.therapy)
-    setDropDownList(list)
-  }, [])
+  const rendeFiltro = useMemo(async () => {
+    const list = await renderDropdownCalendar(statusPacienteId.therapy);
+    setDropDownList(list);
+  }, []);
 
   const renderModalView = ({ event }: any) => {
     const evento = {
@@ -80,8 +84,8 @@ export default function Schedule() {
       ...event._def.extendedProps.data,
       dataAtual: formatdateeua(event._instance.range.start),
       // dataInicio: formatdateeua(event._instance.range.start),
-      date: getDateFormat(event._instance.range.start)
-    }
+      date: getDateFormat(event._instance.range.start),
+    };
     setEvent(evento);
     setOpenView(true);
   };
@@ -90,13 +94,13 @@ export default function Schedule() {
     setOpenView(false);
     setOpen(true);
   };
-  
+
   useEffect(() => {
-    rendeFiltro
+    rendeFiltro;
   }, []);
 
   useEffect(() => {
-    renderEvents()
+    renderEvents();
   }, []);
 
   return (
@@ -111,12 +115,12 @@ export default function Schedule() {
         screen="AGENDA"
         loading={loading}
         dropdown={dropDownList}
-        onInclude={()=> {
+        onInclude={() => {
           setEvent(null);
-          setOpen(true)
+          setOpen(true);
         }}
       />
-      <Card >
+      <Card>
         {evenetsList.length ? (
           <div className="flex-1">
             <CalendarComponent
@@ -124,31 +128,40 @@ export default function Schedule() {
               events={evenetsList}
             />
           </div>
-        ): <NotFound />}
+        ) : (
+          <NotFound />
+        )}
       </Card>
 
-      {openView && (<ViewEvento 
-        evento={event}
-        open={openView}
-        onEdit={renderModalEdit}
-        onClose={()=> setOpenView(false)}
-      />)}
+      {openView && (
+        <ViewEvento
+          evento={event}
+          open={openView}
+          onEdit={renderModalEdit}
+          onClose={() => setOpenView(false)}
+        />
+      )}
 
-      {open &&  hasPermition('AGENDA_FILTRO_BOTAO_CADASTRAR') ? (
-        <Modal title="Agendamento" open={open} onClose={() => setOpen(false)} width="80vw">
+      {open && hasPermition('AGENDA_FILTRO_BOTAO_CADASTRAR') ? (
+        <Modal
+          title="Agendamento"
+          open={open}
+          onClose={() => setOpen(false)}
+          width="80vw"
+        >
           <CalendarForm
             value={event}
             isEdit={!!event}
             screen="calendar"
             statusPacienteId={statusPacienteId.therapy}
             onClose={() => {
-              setEvent(null)
+              setEvent(null);
               renderEvents();
               setOpen(false);
             }}
           />
         </Modal>
-      ): null}
+      ) : null}
     </div>
   );
 }

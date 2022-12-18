@@ -1,12 +1,12 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { api, intercepttRoute } from "../server";
-import { permissionAuth } from "./permission";
-import { useToast } from "./toast";
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { api, intercepttRoute } from '../server';
+import { permissionAuth } from './permission';
+import { useToast } from './toast';
 
 interface AuthContextData {
   signed: boolean;
   user: object | null;
-  perfil: string | null; 
+  perfil: string | null;
   Login(user: object): Promise<void>;
   Logout(): void;
 }
@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }: Props) => {
   const { renderToast } = useToast();
 
   useEffect(() => {
-    const storagedToken = sessionStorage.getItem("token");
-    const storagedUser = sessionStorage.getItem("auth");
-    const storagedPerfil = sessionStorage.getItem("perfil");
+    const storagedToken = sessionStorage.getItem('token');
+    const storagedUser = sessionStorage.getItem('auth');
+    const storagedPerfil = sessionStorage.getItem('perfil');
 
     if (storagedToken && storagedUser) {
       const _user = JSON.parse(storagedUser);
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const Login = async (loginState: object) => {
     try {
-      const response = await api.post("/login", loginState);
+      const response = await api.post('/login', loginState);
       const auth = response.data;
 
       const user = auth?.user || auth.data;
@@ -48,18 +48,18 @@ export const AuthProvider = ({ children }: Props) => {
         ? user.perfil.nome.toLowerCase()
         : user.perfil.toLowerCase();
 
-      sessionStorage.setItem("token", accessToken);
-      sessionStorage.setItem("auth", JSON.stringify(user));
-      sessionStorage.setItem("perfil", perfilName);
+      sessionStorage.setItem('token', accessToken);
+      sessionStorage.setItem('auth', JSON.stringify(user));
+      sessionStorage.setItem('perfil', perfilName);
 
-      if(user.permissoes.length) setPermissionsLogin(user.permissoes)
+      if (user.permissoes.length) setPermissionsLogin(user.permissoes);
 
       setPerfil(perfilName);
       setUser(user);
       await intercepttRoute(accessToken, user.login);
       renderToast({
-        type: "success",
-        title: " ",
+        type: 'success',
+        title: ' ',
         message: auth.message,
         open: true,
       });
@@ -69,10 +69,10 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const msgError = (data: any) => {
-    const message = data ? data?.message : "Usuário não encontrado!";
+    const message = data ? data?.message : 'Usuário não encontrado!';
     renderToast({
-      type: "failure",
-      title: "401",
+      type: 'failure',
+      title: '401',
       message: message,
       open: true,
     });
