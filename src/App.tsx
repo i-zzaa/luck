@@ -1,17 +1,17 @@
-import { AuthProvider } from "./contexts/auth";
-import { ToastProvider } from "./contexts/toast";
-import Routes from "./routes";
+import { AuthProvider } from './contexts/auth';
+import { ToastProvider } from './contexts/toast';
+import Routes from './routes';
 
-import "primeicons/primeicons.css";
-import "primereact/resources/primereact.css";
+import 'primeicons/primeicons.css';
+import 'primereact/resources/primereact.css';
 
-import "./styles/primereact.css";
-import "./styles/label.css";
-import "./styles/global.css";
+import './styles/primereact.css';
+import './styles/label.css';
+import './styles/global.css';
 
-import "@fullcalendar/common/main.css";
-import "@fullcalendar/daygrid/main.css";
-import "@fullcalendar/timegrid/main.css";
+import '@fullcalendar/common/main.css';
+import '@fullcalendar/daygrid/main.css';
+import '@fullcalendar/timegrid/main.css';
 
 // import "primereact/resources/themes/lara-light-indigo/theme.css";
 

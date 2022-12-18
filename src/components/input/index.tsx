@@ -1,19 +1,19 @@
-import { Controller } from "react-hook-form";
+import { Controller } from 'react-hook-form';
 
-import { MultiSelect } from "primereact/multiselect";
-import { InputMask } from "primereact/inputmask";
-import { Dropdown } from "primereact/dropdown";
-import { InputSwitch } from "primereact/inputswitch";
+import { MultiSelect } from 'primereact/multiselect';
+import { InputMask } from 'primereact/inputmask';
+import { Dropdown } from 'primereact/dropdown';
+import { InputSwitch } from 'primereact/inputswitch';
 import { Checkbox } from 'primereact/checkbox';
-import { ListBox } from "primereact/listbox";
+import { ListBox } from 'primereact/listbox';
 
-import { colorsData, colorsTextData, setColorChips } from "../../util/util";
+import { colorsData, colorsTextData, setColorChips } from '../../util/util';
 import { clsx } from 'clsx';
-import moment from "moment";
-import { PickListHeron } from "../pickListHeron";
-import { DataTableHeron } from "../dataTable";
-import { InputNumber } from "primereact/inputnumber";
-import { DataTableSessaoHeron } from "../dataTableSessao";
+import moment from 'moment';
+import { PickListHeron } from '../pickListHeron';
+import { DataTableHeron } from '../dataTable';
+import { InputNumber } from 'primereact/inputnumber';
+import { DataTableSessaoHeron } from '../dataTableSessao';
 
 export interface InputProps {
   id: string;
@@ -31,12 +31,12 @@ export interface InputProps {
   control?: any;
 }
 
-export interface OptionsProps  {
+export interface OptionsProps {
   nome: string;
   value: string | number;
 }
 
-export function Input({ 
+export function Input({
   onChange,
   value,
   labelText,
@@ -49,37 +49,35 @@ export function Input({
   errors,
   control,
   disabled,
-  hidden
+  hidden,
 }: InputProps) {
-
   const renderType = () => {
     switch (type) {
-      case "select":
+      case 'select':
         return (
           <Controller
             name={id}
             control={control}
             rules={validate}
-
             render={({ field }: any) => (
               <Dropdown
-              value={value || field.value}
-              virtualScrollerOptions={{ itemSize: 38 }}
-              options={options}
-              onChange={(e: any) => {
-                onChange && onChange(e.value)
-                return field.onChange(e.value)
-              }}
-              optionLabel="nome"
-              filter
-              showClear
-              filterBy="nome"
-              disabled={disabled}
+                value={value || field.value}
+                virtualScrollerOptions={{ itemSize: 38 }}
+                options={options}
+                onChange={(e: any) => {
+                  onChange && onChange(e.value);
+                  return field.onChange(e.value);
+                }}
+                optionLabel="nome"
+                filter
+                showClear
+                filterBy="nome"
+                disabled={disabled}
               />
             )}
           />
         );
-      case "multiselect":
+      case 'multiselect':
         return (
           <Controller
             name={id}
@@ -95,7 +93,7 @@ export function Input({
                 value={value || field.value}
                 onChange={(e: any) => {
                   setColorChips();
-                  onChange && onChange(e.value)
+                  onChange && onChange(e.value);
                   field.onChange(e.value);
                 }}
                 options={options}
@@ -103,7 +101,7 @@ export function Input({
             )}
           />
         );
-      case "list":
+      case 'list':
         return (
           <Controller
             name={id}
@@ -117,12 +115,12 @@ export function Input({
                 multiple
                 filter
                 optionLabel="nome"
-                listStyle={{ maxHeight: "300px" }}
+                listStyle={{ maxHeight: '300px' }}
               />
             )}
           />
         );
-      case "textarea":
+      case 'textarea':
         return (
           <Controller
             name={id}
@@ -140,7 +138,7 @@ export function Input({
             )}
           />
         );
-      case "switch":
+      case 'switch':
         return (
           <Controller
             name={id}
@@ -150,8 +148,8 @@ export function Input({
               return (
                 <div className="grid grid-cols-6 justify-start items-center h-8">
                   <span className="col-span-4 text-violet-800">
-                    {" "}
-                    {labelText}{" "}
+                    {' '}
+                    {labelText}{' '}
                   </span>
                   <div className="col-span-2">
                     <InputSwitch
@@ -167,7 +165,7 @@ export function Input({
             }}
           />
         );
-      case "tel":
+      case 'tel':
         return (
           <Controller
             name={id}
@@ -179,7 +177,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={"inputAnimado font-sans-serif" + customClass}
+                className={'inputAnimado font-sans-serif' + customClass}
                 mask="(99) 9999-9999"
                 onChange={(e: any) => {
                   return field.onChange(e.value);
@@ -188,7 +186,7 @@ export function Input({
             )}
           />
         );
-      case "checkbox":
+      case 'checkbox':
         return (
           <Controller
             name={id}
@@ -199,140 +197,147 @@ export function Input({
                 <Checkbox
                   checked={value}
                   type={type}
-                  className={"inputAnimado " + customClass}
-                  onChange={ (e: any) =>{
-                    field.onChange(e.target.checked)
-                    onChange && onChange(e.target.checked)
+                  className={'inputAnimado ' + customClass}
+                  onChange={(e: any) => {
+                    field.onChange(e.target.checked);
+                    onChange && onChange(e.target.checked);
                   }}
                 />
                 <span className="col-span-4 text-violet-800">
-                {" "}
-                {labelText}{" "}
-              </span>
-            </>
+                  {' '}
+                  {labelText}{' '}
+                </span>
+              </>
             )}
           />
         );
-      case "time":
+      case 'time':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <input
-            id={field.id}
-            {...field}
-            value={value || field.value}
-            key={field.id}
-            type={type}
-            className={"inputAnimado font-sans-serif "  + customClass}
-            disabled={disabled} 
-              onInput={(e: any)=> {
-                field.onChange(e)
-                onChange && onChange(e)
-              }}
-            />
-          )}
-        />
-      );
-      case "price":
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <input
+                id={field.id}
+                {...field}
+                value={value || field.value}
+                key={field.id}
+                type={type}
+                className={'inputAnimado font-sans-serif ' + customClass}
+                disabled={disabled}
+                onInput={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+        );
+      case 'price':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <div className={"inputAnimado font-sans-serif " + customClass }id={field.id}>
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <div
+                className={'inputAnimado font-sans-serif ' + customClass}
+                id={field.id}
+              >
                 <div className="p-inputgroup">
-                    <InputNumber  value={value || field.value}  disabled={disabled} onInput={(e: any)=> {
-                field.onChange(e)
-                onChange && onChange(e)
-              }}/>
-                    <span className="p-inputgroup-addon">R$</span>
-
+                  <InputNumber
+                    value={value || field.value}
+                    disabled={disabled}
+                    onInput={(e: any) => {
+                      field.onChange(e);
+                      onChange && onChange(e);
+                    }}
+                  />
+                  <span className="p-inputgroup-addon">R$</span>
                 </div>
-            </div>
-          )}
-        />
-      );
-      case "date":
+              </div>
+            )}
+          />
+        );
+      case 'date':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <input
-              disabled={disabled}
-              id={field.id}
-              {...field}
-              value={value || field.value}
-              key={field.id}
-              type={type}
-              className={"inputAnimado "  + customClass}
-              autoComplete="off"
-              min={validate.min}
-              onInput={(e: any)=> {
-                field.onChange(e)
-                onChange && onChange(e)
-              }}
-            />
-          )}
-        />
-      );
-      case "picker":
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <input
+                disabled={disabled}
+                id={field.id}
+                {...field}
+                value={value || field.value}
+                key={field.id}
+                type={type}
+                className={'inputAnimado ' + customClass}
+                autoComplete="off"
+                min={validate.min}
+                onInput={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+        );
+      case 'picker':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <PickListHeron 
-              list={options} 
-              selected={value}
-              onChange={(e: any)=>  {
-                field.onChange(e)
-                onChange && onChange(e)
-              }}
-            />
-          )}
-        />
-      );
-      case "dataTable":
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <PickListHeron
+                list={options}
+                selected={value}
+                onChange={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+        );
+      case 'dataTable':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <DataTableHeron 
-            value={value} 
-            onChange={(e: any)=>  {
-              field.onChange(e)
-              onChange && onChange(e)
-            }}
-            />
-          )}
-        />
-      );
-      case "sessao":
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <DataTableHeron
+                value={value}
+                onChange={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+        );
+      case 'dataTableSessaoHeron':
         return (
           <Controller
-          name={id}
-          control={control}
-          rules={validate}
-          render={({ field }: any) => (
-            <DataTableSessaoHeron 
-            value={value} 
-            onChange={(e: any)=>  {
-              field.onChange(e)
-              onChange && onChange(e)
-            }}
-            />
-          )}
-        />
-      );
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <DataTableSessaoHeron
+                value={value}
+                type={id}
+                onChange={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+        );
       default:
         return (
           <Controller
@@ -347,11 +352,11 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={"inputAnimado "  + customClass}
+                className={'inputAnimado ' + customClass}
                 autoComplete="off"
-                onInput={(e: any)=> {
-                  field.onChange(e)
-                  onChange && onChange(e)
+                onInput={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
                 }}
               />
             )}
@@ -361,9 +366,15 @@ export function Input({
   };
 
   return (
-    <div className={clsx('label-float', {'my-5': !customCol, "hidden": hidden && hidden}, customCol)} >
+    <div
+      className={clsx(
+        'label-float',
+        { 'my-5': !customCol, hidden: hidden && hidden },
+        customCol
+      )}
+    >
       {renderType()}
-      {type !== "switch" && type !== "checkbox" && <label> {labelText} </label>}
+      {type !== 'switch' && type !== 'checkbox' && <label> {labelText} </label>}
       {errors && errors[id] && (
         <p className="text-xs text-red-400 text-end">{errors[id].message}</p>
       )}

@@ -246,12 +246,23 @@ const usuariosFields: any = [
     customCol: 'col-span-6 sm:col-span-3',
     hidden: true,
   },
+  // {
+  //   labelText: 'Comissão',
+  //   id: 'comissao',
+  //   name: 'comissao',
+  //   type: 'price',
+  //   customCol: 'col-span-3 sm:col-span-3  mr-6',
+  //   hidden: true,
+  // },
   {
-    labelText: 'Comissão',
+    labelText: '',
     id: 'comissao',
     name: 'comissao',
-    type: 'price',
-    customCol: 'col-span-3 sm:col-span-3  mr-6',
+    type: 'dataTableSessaoHeron',
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+    customCol: 'col-span-6 sm:col-span-6 mb-8',
     hidden: true,
   },
   {

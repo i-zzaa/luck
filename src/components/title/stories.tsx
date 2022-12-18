@@ -1,16 +1,14 @@
-import { Meta, StoryObj } from "@storybook/react"
-import { Title, TitleProps  } from "./index";
+import { Meta, StoryObj } from '@storybook/react';
+import { Title, TitleProps } from './index';
 
 export default {
-  title: "Components/Title",
+  title: 'Components/Title',
   component: Title,
   args: {
-    children: "Title",
+    children: 'Title',
     size: 'xs',
-    color: 'violet'
-  }
+    color: 'violet',
+  },
 } as Meta<TitleProps>;
 
-export const Default: StoryObj = {
-
-};
+export const Default: StoryObj = {};

@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-
-import {  useForm } from "react-hook-form";
-import { ButtonHeron, Input } from "../components/index";
-import { loginFields } from "../constants/formFields";
-import { useAuth } from "../contexts/auth";
+import { useForm } from 'react-hook-form';
+import { ButtonHeron, Input } from '../components/index';
+import { loginFields } from '../constants/formFields';
+import { useAuth } from '../contexts/auth';
 
 const fields = loginFields;
 const fieldsState: any = {};
-fields.forEach((field: any) => (fieldsState[field.id] = ""));
+fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 interface FormProps {
   login: string;
@@ -17,8 +16,8 @@ interface FormProps {
 
 export default function Login() {
   const defaultValues = {
-    login: "",
-    senha: "",
+    login: '',
+    senha: '',
   };
 
   const [checkState, setCheck] = useState<boolean>(false);
@@ -32,41 +31,41 @@ export default function Login() {
   } = useForm<FormProps>({ defaultValues });
   const { Login } = useAuth();
 
-  const onSubmit = async ({login, senha}: FormProps) => {
-    setLoading(true)
-    await Login({login, senha});
-    setLoading(false)
+  const onSubmit = async ({ login, senha }: FormProps) => {
+    setLoading(true);
+    await Login({ login, senha });
+    setLoading(false);
   };
 
   const handleRememberPassword = async (checked: boolean) => {
     setCheck(checked);
 
-    localStorage.setItem("rememberCheck", JSON.stringify(checked));
+    localStorage.setItem('rememberCheck', JSON.stringify(checked));
     if (checked) {
-      localStorage.setItem("rememberCheck", 'true');
+      localStorage.setItem('rememberCheck', 'true');
       localStorage.setItem(
-        "rememberLogin",
-        JSON.stringify({ login: watch("login"), senha: watch("senha") })
+        'rememberLogin',
+        JSON.stringify({ login: watch('login'), senha: watch('senha') })
       );
     } else {
-      localStorage.removeItem("rememberLogin");
-      localStorage.setItem("rememberCheck", 'false');
+      localStorage.removeItem('rememberLogin');
+      localStorage.setItem('rememberCheck', 'false');
     }
   };
 
   useEffect(() => {
-    const rememberLogin = localStorage.getItem("rememberLogin");
+    const rememberLogin = localStorage.getItem('rememberLogin');
     if (rememberLogin) {
       const { login, senha } = JSON.parse(rememberLogin);
       setCheck(true);
-      setValue("login", login);
-      setValue("senha", senha);
+      setValue('login', login);
+      setValue('senha', senha);
     }
   }, []);
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-      <div >
+      <div>
         {fields.map((item: any) => (
           <Input
             key={item.id}
@@ -95,8 +94,7 @@ export default function Login() {
         size="full"
         onClick={handleSubmit(onSubmit)}
         loading={loading}
-      /> 
-
+      />
     </form>
   );
 }

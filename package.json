@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "sb": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
-    "format": "prettier --write \"src/**/*.{ts,js}\"",
+    "format": "prettier --write \"src/**/*.{ts,js,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --quiet",
     "build": "tsc && vite build"
   },

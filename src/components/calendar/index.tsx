@@ -1,13 +1,13 @@
-import  {  useRef } from "react";
+import { useRef } from 'react';
 import '@fullcalendar/react/dist/vdom';
 
-import FullCalendar from "@fullcalendar/react";
+import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 
-import "@fullcalendar/common/main.min.css";
-import "@fullcalendar/daygrid/main.min.css";
-import "@fullcalendar/timegrid/main.min.css";
-import rrulePlugin from '@fullcalendar/rrule'
+import '@fullcalendar/common/main.min.css';
+import '@fullcalendar/daygrid/main.min.css';
+import '@fullcalendar/timegrid/main.min.css';
+import rrulePlugin from '@fullcalendar/rrule';
 
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
 // import { FullCalendar } from 'primereact/fullcalendar';
@@ -23,28 +23,31 @@ import rrulePlugin from '@fullcalendar/rrule'
 import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from "@fullcalendar/list";
+import listPlugin from '@fullcalendar/list';
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
-export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: any) => {
+export const CalendarComponent = ({
+  events,
+  openModalEdit,
+  eventMouseEnter,
+}: any) => {
   const calendarRef = useRef(null);
 
   return (
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[rrulePlugin, dayGridPlugin, listPlugin,  timeGridPlugin  ]}
+          plugins={[rrulePlugin, dayGridPlugin, listPlugin, timeGridPlugin]}
           locale="pt"
           navLinks
-
-          timeZone='America/Sao_Paulo'
+          timeZone="America/Sao_Paulo"
           // locales={[ptLocale]}
           initialView="dayGridMonth"
           events={events}
           headerToolbar={{
-            left: "prev,next",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+            left: 'prev,next',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
           }}
           ref={calendarRef}
           eventClick={openModalEdit}
@@ -56,27 +59,25 @@ export const CalendarComponent = ({ events, openModalEdit, eventMouseEnter }: an
             },
           }}
           buttonText={{
-            month:    'Mês',
-            week:     'Semana',
-            day:      'Dia',
-            list:     'Lista'
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia',
+            list: 'Lista',
           }}
           eventMouseEnter={eventMouseEnter}
           eventContent={(arg: any) => {
-            let italicEl = document.createElement('i')
+            let italicEl = document.createElement('i');
 
             if (arg.event.extendedProps.isUrgent) {
-              italicEl.innerHTML = 'urgent event'
+              italicEl.innerHTML = 'urgent event';
             } else {
-              italicEl.innerHTML = 'normal event'
+              italicEl.innerHTML = 'normal event';
             }
-          
-            let arrayOfDomNodes = [ italicEl ]
+
+            let arrayOfDomNodes = [italicEl];
             // return { domNodes: arrayOfDomNodes }
           }}
         />
-
-
       </div>
     </div>
   );

@@ -5,9 +5,10 @@ export interface TagProps {
 }
 import { clsx } from 'clsx';
 
-const CLASSFIX = "text-sm items-center flex text-white py-2 px-6 rounded-full cursor-not-allowed cursor-pointer opacity-25 disabled:opacity-100 ";
+const CLASSFIX =
+  'text-sm items-center flex text-white py-2 px-6 rounded-full cursor-not-allowed cursor-pointer opacity-25 disabled:opacity-100 ';
 
-export function Tag({ onClick, type, disabled}: TagProps) {
+export function Tag({ onClick, type, disabled }: TagProps) {
   return (
     <button
       onClick={onClick}

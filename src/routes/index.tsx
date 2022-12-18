@@ -1,9 +1,9 @@
-import { useAuth } from "../contexts/auth";
-import PublicRoutes from "./PublicRoutes";
-import OtherRoutes from "./OtherRoutes";
-import { BrowserRouter } from "react-router-dom";
-import { PermissionProvider } from "../contexts/permission";
-import { DropdownProvider } from "../contexts/dropDown";
+import { useAuth } from '../contexts/auth';
+import PublicRoutes from './PublicRoutes';
+import OtherRoutes from './OtherRoutes';
+import { BrowserRouter } from 'react-router-dom';
+import { PermissionProvider } from '../contexts/permission';
+import { DropdownProvider } from '../contexts/dropDown';
 
 function Routes() {
   const { signed } = useAuth();

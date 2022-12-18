@@ -1,19 +1,19 @@
-import { Routes, Route } from "react-router-dom";
-import { permissionAuth } from "../contexts/permission";
-import { Layout } from "../foms/Layout";
-import { Nav } from "../components/Nav";
-import { Crud } from "../pages/Crud";
-import Dashboard from "../pages/Dashboard";
-import Home from "../pages/Home";
-import Queue from "../pages/Queue";
-import Schedule from "../pages/Schedule";
+import { Routes, Route } from 'react-router-dom';
+import { permissionAuth } from '../contexts/permission';
+import { Layout } from '../foms/Layout';
+import { Nav } from '../components/Nav';
+import { Crud } from '../pages/Crud';
+import Dashboard from '../pages/Dashboard';
+import Home from '../pages/Home';
+import Queue from '../pages/Queue';
+import Schedule from '../pages/Schedule';
 
 export enum CONSTANTES_ROUTERS {
-  HOME = "home",
-  DASHBOARD = "dashboard",
-  QUEUE = "fila",
-  CRUD = "cadastro",
-  CALENDAR = "agenda",
+  HOME = 'home',
+  DASHBOARD = 'dashboard',
+  QUEUE = 'fila',
+  CRUD = 'cadastro',
+  CALENDAR = 'agenda',
 }
 interface Props {
   path: string;
@@ -37,14 +37,21 @@ const OtherRoutes = () => {
       <Nav />
       <Routes>
         {routes.map((route: Props, index: number) => (
-          <Route key={index} path={route.path} element={
-            hasPermition(route.path) ? <Layout><route.componentRoute /></Layout> : null
-          } />
+          <Route
+            key={index}
+            path={route.path}
+            element={
+              hasPermition(route.path) ? (
+                <Layout>
+                  <route.componentRoute />
+                </Layout>
+              ) : null
+            }
+          />
         ))}
       </Routes>
     </div>
-  )
-
+  );
 };
 
 export default OtherRoutes;

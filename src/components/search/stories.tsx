@@ -1,11 +1,10 @@
-import { Meta, StoryObj } from "@storybook/react"
-import { Search, SearchProps  } from "./index";
+import { Meta, StoryObj } from '@storybook/react';
+import { Search, SearchProps } from './index';
 
 export default {
-  title: "Components/Search",
+  title: 'Components/Search',
   component: Search,
-  args: {
-  }
+  args: {},
 } as Meta<SearchProps>;
 
 export const Default: StoryObj<SearchProps> = {};

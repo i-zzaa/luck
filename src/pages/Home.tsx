@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { ButtonHeron, Card, Input, TextSubtext } from "../components/index";
-import { useToast } from "../contexts/toast";
-import { update } from "../server";
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { ButtonHeron, Card, Input, TextSubtext } from '../components/index';
+import { useToast } from '../contexts/toast';
+import { update } from '../server';
 
 export default function Home() {
   const [user, setUser] = useState() as any;
@@ -17,7 +17,7 @@ export default function Home() {
   } = useForm();
 
   const renderUser = () => {
-    const auth: any = sessionStorage.getItem("auth");
+    const auth: any = sessionStorage.getItem('auth');
     const parse = JSON.parse(auth);
     setUser(parse);
   };
@@ -30,15 +30,15 @@ export default function Home() {
       setDisabled(false);
       reset();
       renderToast({
-        type: "success",
-        title: "",
+        type: 'success',
+        title: '',
         message: data.message,
         open: true,
       });
     } catch ({ message }: any) {
       renderToast({
-        type: "failure",
-        title: "401",
+        type: 'failure',
+        title: '401',
         message: `${message}`,
         open: true,
       });
@@ -51,12 +51,11 @@ export default function Home() {
     renderUser();
   }, []);
 
-
   return (
     <>
       <Card>
         <TextSubtext
-          text= {user?.nome}
+          text={user?.nome}
           subtext={user?.login}
           color="violet"
           size="md"
@@ -81,7 +80,7 @@ export default function Home() {
               icon="pi pi-sync"
               size="icon"
               onClick={handleSubmit(handleResetSenha)}
-            /> 
+            />
           </div>
         </div>
       </Card>

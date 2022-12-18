@@ -17,29 +17,28 @@ export const SelectButtonComponent = ({
   control,
   id,
   rules,
-  disabled
+  disabled,
 }: SelectButtonProps) => {
   return (
     <div>
       <div className="card">
-        <Text size='sm' color="violet" text={title} />
+        <Text size="sm" color="violet" text={title} />
         <Controller
-            name={id}
-            control={control}
-            rules={rules}
-            render={({ field }: any) => (
-              <SelectButton 
-              value={field.value} 
-              options={options} 
-              onChange={field.onChange} 
-              optionLabel="nome" 
-              multiple 
+          name={id}
+          control={control}
+          rules={rules}
+          render={({ field }: any) => (
+            <SelectButton
+              value={field.value}
+              options={options}
+              onChange={field.onChange}
+              optionLabel="nome"
+              multiple
               disabled={disabled}
-              />
-            )}
-          />
+            />
+          )}
+        />
       </div>
     </div>
   );
-}
-            
+};

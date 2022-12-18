@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
-import { Routes, Route, BrowserRouter } from "react-router-dom";
-import LoginPage from "../pages/Login";
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import LoginPage from '../pages/Login';
 
 const PublicRoutes: React.FC = () => {
   return (
