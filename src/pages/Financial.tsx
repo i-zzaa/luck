@@ -9,6 +9,7 @@ import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { useDropdown } from '../contexts/dropDown';
 import { statusPacienteId } from '../constants/patient';
+import { NotFound } from '../components/notFound';
 
 const fieldsConst = filterFinancialFields;
 const fieldsState: any = {};
@@ -21,26 +22,8 @@ export default function Financial() {
   const { hasPermition } = permissionAuth();
   const { renderDropdownFinancial } = useDropdown();
 
-  const [list, setList] = useState([
-    {
-      id: 1000,
-      name: 'James Butt',
-      country: {
-        name: 'Algeria',
-        code: 'dz',
-      },
-      company: 'Benton, John B Jr',
-      date: '2015-09-13',
-      status: 'unqualified',
-      verified: true,
-      activity: 17,
-      representative: {
-        name: 'Ioni Bowcher',
-        image: 'ionibowcher.png',
-      },
-      balance: 70663,
-    },
-  ]);
+  const [list, setList] = useState<any>([]);
+
   const [expandedRows, setExpandedRows] = useState([]);
 
   const handleSubmitFilter = async (formState: any) => {
@@ -55,8 +38,8 @@ export default function Financial() {
       }
     });
 
-    const response = await filter('financial', format);
-    const lista: any[] = response.status === 200 && response?.data? response.data : [];
+    const response = await filter('financeiro/terapeuta', format);
+    const lista: any[] = response.status === 200 && response?.data ? response.data.data : [];
     setList(lista);
     setLoading(false);
   };
@@ -70,38 +53,19 @@ export default function Financial() {
 
   const onRowGroupCollapse = (event: any) => {};
 
+  const reducerValorTotal = (paciente: string) => {
+    return list.filter((items: any) => items.paciente === paciente)
+    .map((item: any) => item.valorTotal)
+    .reduce((total: number, current: any) => total += current)
+  }
+
   const headerTemplate = (data: any) => {
     return (
-      <>
-        <span className="image-text">{data.representative.name}</span>
-      </>
-    );
-  };
-
-  const footerTemplate = (data: any) => {
-    return (
-      <>
-        <td style={{ textAlign: 'right' }}>Total Customers</td>
-        <td>{data.representative.name}</td>
-      </>
-    );
-  };
-
-  const countryBodyTemplate = (rowData: any) => {
-    return (
-      <>
-        <img
-          alt={rowData.country.name}
-          src="/images/flag/flag_placeholder.png"
-          onError={(e: any) =>
-            (e.target.src =
-              'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png')
-          }
-          className={`flag flag-${rowData.country.code}`}
-          width="30"
-        />
-        <span className="image-text">{rowData.country.name}</span>
-      </>
+        <span  className=''>
+        <span className="image-text mr-8">{data.paciente}   </span>
+        <span className="image-text">valor total: R$ {reducerValorTotal(data.paciente)}</span>
+       
+        </span>
     );
   };
 
@@ -164,13 +128,13 @@ export default function Financial() {
       />
 
       <Card>
-        <div className="w-full">
-          <DataTable
+       
+          {list.length ?  <div className="w-full "> <DataTable
             value={list}
             rowGroupMode="subheader"
-            groupRowsBy="representative.name"
+            groupRowsBy="paciente"
             sortMode="single"
-            sortField="representative.name"
+            sortField="paciente"
             sortOrder={1}
             responsiveLayout="scroll"
             expandableRowGroups
@@ -179,21 +143,23 @@ export default function Financial() {
             onRowExpand={onRowGroupExpand}
             onRowCollapse={onRowGroupCollapse}
             rowGroupHeaderTemplate={headerTemplate}
-            rowGroupFooterTemplate={footerTemplate}
-            paginator={!!list.length}
-            paginatorTemplate={paginationTemplate}
           >
-            <Column field="name" header="Name" sortable></Column>
+            <Column field="paciente" header="Paciente" sortable></Column>
             <Column
-              field="country"
-              header="Country"
-              body={countryBodyTemplate}
+              field="data"
+              header="Data"
+              // body={countryBodyTemplate}
               sortable
             ></Column>
-            <Column field="company" header="Company" sortable></Column>
-            <Column field="date" header="Date" sortable></Column>
-          </DataTable>
-        </div>
+            <Column field="status" header="Status" sortable></Column>
+            <Column field="km" header="km" sortable></Column>
+            <Column field="valorKm" header="ValorKm km" sortable></Column>
+            <Column field="sessao" header="Valor da Sessão" sortable></Column>
+            <Column field="valorSessao" header="Comissão" sortable></Column>
+            <Column field="devolutiva" header="Devolutiva" sortable></Column>
+            <Column field="valorTotal" header="Valor Total" sortable></Column>
+          </DataTable> </div> : <div className='w-full flex items-center  justify-center'><NotFound /></div>}
+        
       </Card>
     </div>
   );

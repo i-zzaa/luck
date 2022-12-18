@@ -15,8 +15,8 @@ export const filterFinancialFields = [
   },
   {
     labelText: 'Data Inicial',
-    id: 'datatInicio',
-    name: 'datatInicio',
+    id: 'dataInicio',
+    name: 'dataInicio',
     customCol: 'col-span-6 sm:col-span-3',
     type: 'date',
   },
