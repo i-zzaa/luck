@@ -14,7 +14,7 @@ export interface FilterProps {
   screen: string;
   loading: boolean;
   onSubmit: (formState: any) => any;
-  onInclude: () => any;
+  onInclude?: () => any;
   onReset: () => any;
 }
 
@@ -82,7 +82,7 @@ export function Filter({
 
         <div className="flex items-center mt-10 gap-2 justify-between">
           <>
-            {hasPermition(`${screen}_FILTRO_BOTAO_CADASTRAR`) && (
+            {onInclude && hasPermition(`${screen}_FILTRO_BOTAO_CADASTRAR`) && (
               <div className="sm:text-end">
                 <ButtonHeron
                   text={nameButton || 'Cadastrar'}

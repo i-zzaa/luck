@@ -393,6 +393,16 @@ const statusEventosFields = [
       required: true,
     },
   },
+  {
+    labelText: 'Cobrar',
+    id: 'cobrar',
+    name: 'cobrar',
+    customCol: 'col-span-1',
+    type: 'switch',
+    validate: {
+      required: true,
+    },
+  },
 ];
 
 const filterCalendarFields = [

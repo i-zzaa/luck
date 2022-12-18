@@ -30,12 +30,12 @@ export const options = {
   scales: {
     x: {
       grid: {
-        display: false
+        display: false,
       },
     },
     y: {
       grid: {
-        display: false
+        display: false,
       },
     },
   },
@@ -115,9 +115,9 @@ export default function Dashboard() {
 
   const renderInfo = () => {
     return (
-        <div className="grid sm:gap-2 md:flex md:h-48 sm:grid-cols-3 overflow-hidden">
-          {hasPermition('DASHBOARD_TEMPO_FILA') ? (
-            <div className='w-full'>
+      <div className="grid sm:gap-2 md:flex md:h-48 sm:grid-cols-3 overflow-hidden">
+        {hasPermition('DASHBOARD_TEMPO_FILA') ? (
+          <div className="w-full">
             <Card>
               <TextSubtext
                 text="Tempo de espera: "
@@ -128,10 +128,10 @@ export default function Dashboard() {
                 display="grid"
               />
             </Card>
-            </div>
-          ) : null}
-          {hasPermition('DASHBOARD_RETORNO_FILA') ? (
-            <div className='w-full'>
+          </div>
+        ) : null}
+        {hasPermition('DASHBOARD_RETORNO_FILA') ? (
+          <div className="w-full">
             <Card>
               <TextSubtext
                 text="Retornos para fila:  "
@@ -142,18 +142,23 @@ export default function Dashboard() {
                 display="grid"
               />
             </Card>
-            </div>
-          ) : null}
-          { chatStatus.length && hasPermition('DASHBOARD_GRAFICO_FILA') ? (
-            <div className=''>
+          </div>
+        ) : null}
+        {chatStatus.length && hasPermition('DASHBOARD_GRAFICO_FILA') ? (
+          <div className="">
             <Card>
-              <div className='md:h-12'>
-              <Bar options={options} data={chatStatus} height={98}  style={{marginTop: '-1rem'}} />
+              <div className="md:h-12">
+                <Bar
+                  options={options}
+                  data={chatStatus}
+                  height={98}
+                  style={{ marginTop: '-1rem' }}
+                />
               </div>
             </Card>
-            </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+      </div>
     );
   };
 
@@ -185,13 +190,13 @@ export default function Dashboard() {
 
   return (
     <div className="">
-          {renderInfo()}
-        {hasPermition('DASHBOARD_GRAFICO_FILA') ? (
-          <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
-            {renderChart('Especialidades por Demanda', chatEspecialidades)}
-            {renderChart('Tipo de sessão por Demanda', chatTipoSessao)}
-          </div>
-        ): null}
+      {renderInfo()}
+      {hasPermition('DASHBOARD_GRAFICO_FILA') ? (
+        <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
+          {renderChart('Especialidades por Demanda', chatEspecialidades)}
+          {renderChart('Tipo de sessão por Demanda', chatTipoSessao)}
+        </div>
+      ) : null}
     </div>
   );
 }
