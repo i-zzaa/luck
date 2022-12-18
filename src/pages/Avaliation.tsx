@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { filter, getList, update } from '../server';
 
 import { useToast } from '../contexts/toast';
-import {
-  COORDENADOR,
-  COORDENADOR_TERAPEUTA,
-  permissionAuth,
-} from '../contexts/permission';
+import { permissionAuth } from '../contexts/permission';
 import { Card, Confirm, Filter, Modal, List } from '../components/index';
 import { filterAvaliationFields } from '../constants/formFields';
 import { ScheduleForm } from '../foms/ScheduleForm';

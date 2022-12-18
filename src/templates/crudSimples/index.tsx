@@ -336,7 +336,11 @@ export default function CrudSimples({
         }}
       >
         {
-          <form onSubmit={handleSubmit(onSubmit)} action="#">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            action="#"
+            className="grid gap-6"
+          >
             <div className="grid grid-cols-6 items-center gap-2">
               {fields.map((field: any) => (
                 <Input

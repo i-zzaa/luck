@@ -276,7 +276,7 @@ export function Input({
                 type={type}
                 className={'inputAnimado ' + customClass}
                 autoComplete="off"
-                min={validate.min}
+                min={validate?.min && validate.min}
                 onInput={(e: any) => {
                   field.onChange(e);
                   onChange && onChange(e);

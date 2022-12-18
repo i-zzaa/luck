@@ -7,6 +7,7 @@ import Dashboard from '../pages/Dashboard';
 import Home from '../pages/Home';
 import Queue from '../pages/Queue';
 import Schedule from '../pages/Schedule';
+import Financial from '../pages/Financial';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -14,6 +15,7 @@ export enum CONSTANTES_ROUTERS {
   QUEUE = 'fila',
   CRUD = 'cadastro',
   CALENDAR = 'agenda',
+  FINANCEIRO = 'financeiro',
 }
 interface Props {
   path: string;
@@ -30,6 +32,7 @@ const OtherRoutes = () => {
     { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud },
     { path: CONSTANTES_ROUTERS.QUEUE, componentRoute: Queue },
     { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule },
+    { path: CONSTANTES_ROUTERS.FINANCEIRO, componentRoute: Financial },
   ];
 
   return (
