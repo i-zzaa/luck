@@ -76,10 +76,14 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
         <p className="font-sans-serif font-bold">
           {evento.date} &bull; {`${evento.start} até ${evento.end}`}
         </p>
-        <p>
-          {evento.intervalo.nome} &bull;{' '}
-          {evento.diasFrequencia.map((dia: number) => weekDay[dia]).join('-')}
-        </p>
+        {evento.frequencia.id !== 1 && (
+          <p>
+            {evento.intervalo.nome} &bull;{' '}
+            {evento?.diasFrequencia
+              .map((dia: number) => weekDay[dia])
+              .join('-')}
+          </p>
+        )}
         <br />
         <p className="flex gap-4 items-center">
           <i className="pi pi-map-marker"></i>

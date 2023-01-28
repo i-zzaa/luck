@@ -6,7 +6,7 @@ import { ViewEvento } from '../components/view-evento';
 import { CalendarForm } from '../foms/CalendarForm';
 import { useDropdown } from '../contexts/dropDown';
 import { filterCalendarFields } from '../constants/formFields';
-import { formatdateeua, getDateFormat } from '../util/util';
+import { formatdateeua, getDateFormat, getPrimeiroDoMes, getUltimoDoMes } from '../util/util';
 import { statusPacienteId } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 import { NotFound } from '../components/notFound';
@@ -16,6 +16,8 @@ const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export default function Schedule() {
+  const current = new Date();
+
   const { hasPermition } = permissionAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -28,8 +30,13 @@ export default function Schedule() {
   const [openView, setOpenView] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
+  const currentDate = {
+    start: getPrimeiroDoMes(current.getFullYear(), current.getMonth() + 1),
+    end:getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
+  };
 
-  const renderEvents = useCallback(async () => {
+  const renderEvents = useCallback(async (moment: any = currentDate) => {
+    // debugger
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
@@ -39,9 +46,8 @@ export default function Schedule() {
         },
       });
     } else {
-      const current = new Date();
       const response: any = await getList(
-        `/evento/mes/${current.getMonth() + 1}/${current.getFullYear()}`
+        `/evento/${moment.start}/${moment.end}`
       );
       setEventsList(response);
     }
@@ -60,9 +66,9 @@ export default function Schedule() {
 
       const current = new Date();
       const response: any = await getList(
-        `/evento/filter/${
-          current.getMonth() + 1
-        }/${current.getFullYear()}?${filter.join('&')}`
+        `/evento/filter/${currentDate.start}/${currentDate.end}?${filter.join(
+          '&'
+        )}`
       );
 
       setEventsList(response);
@@ -126,6 +132,8 @@ export default function Schedule() {
             <CalendarComponent
               openModalEdit={renderModalView}
               events={evenetsList}
+              onNext={(moment: any)=> renderEvents(moment)}
+              onPrev={(moment: any)=> renderEvents(moment)}
             />
           </div>
         ) : (

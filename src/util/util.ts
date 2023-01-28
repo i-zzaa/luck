@@ -108,3 +108,11 @@ export const formtDatePatient = (value: PacientsProps) => {
     observacao: value.vaga.observacao,
   };
 };
+
+export const getPrimeiroDoMes = (ano: number, mes: number) => {
+  return moment(new Date(ano, mes - 1, 1)).format('YYYY-MM-DD');
+};
+
+export const getUltimoDoMes = (ano: number, mes: number) => {
+  return moment(new Date(ano, mes, 0)).format('YYYY-MM-DD');
+};

@@ -3,17 +3,26 @@ import { useCallback, useEffect, useState } from 'react';
 import { filter, getList } from '../server';
 import { Card, Filter, TextSubtext, Title } from '../components/index';
 import { permissionAuth } from '../contexts/permission';
-import { filterFinancialFields } from '../constants/financial';
+import {
+  filterFinancialFields,
+  filterFinancialPacienteFields,
+} from '../constants/financial';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { useDropdown } from '../contexts/dropDown';
 import { statusPacienteId } from '../constants/patient';
 import { NotFound } from '../components/notFound';
+import { TabPanel, TabView } from 'primereact/tabview';
+import moment from 'moment';
 
-const fieldsConst = filterFinancialFields;
-const fieldsState: any = {};
-fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
+const fieldsConstTerapeuta = filterFinancialFields;
+const fieldsState1: any = {};
+fieldsConstTerapeuta.forEach((field: any) => (fieldsState1[field.id] = ''));
+
+const fieldsConstPaciente = filterFinancialPacienteFields;
+const fieldsState2: any = {};
+fieldsConstPaciente.forEach((field: any) => (fieldsState2[field.id] = ''));
 
 export default function Financial() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -23,10 +32,11 @@ export default function Financial() {
   const { renderDropdownFinancial } = useDropdown();
 
   const [list, setList] = useState<any>([]);
+  const [geral, setGeral] = useState<any>({});
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  const handleSubmitFilter = async (formState: any) => {
+  const handleSubmitFilter = async (formState: any, modulo: string) => {
     setLoading(true);
     const format: any = {};
 
@@ -38,9 +48,11 @@ export default function Financial() {
       }
     });
 
-    const response = await filter('financeiro/terapeuta', format);
-    const lista: any[] = response.status === 200 && response?.data ? response.data.data : [];
-    setList(lista);
+    const response = await filter(`financeiro/${modulo}`, format);
+    const lista: any =
+      response.status === 200 && response?.data ? response.data : [];
+    setGeral(lista.geral);
+    setList(lista.data);
     setLoading(false);
   };
 
@@ -53,19 +65,33 @@ export default function Financial() {
 
   const onRowGroupCollapse = (event: any) => {};
 
-  const reducerValorTotal = (paciente: string) => {
-    return list.filter((items: any) => items.paciente === paciente)
-    .map((item: any) => item.valorTotal)
-    .reduce((total: number, current: any) => total += current)
-  }
+  const reducerValorTotal = (nome: string, modulo: string) => {
+    return list
+      .filter((items: any) => items[modulo] === nome)
+      .map((item: any) => item.valorTotal)
+      .reduce((total: number, current: any) => (total += current));
+  };
 
-  const headerTemplate = (data: any) => {
+  const reducerHorasTotal = (nome: string, modulo: string) => {
+    const reduce = list
+      .filter((items: any) => items[modulo] === nome)
+      .map((item: any) => item.horas)
+      .reduce((total: number, current: any) => (total += current));
+
+    return moment.duration(reduce).asHours();
+  };
+
+  const headerTemplate = (data: any, modulo: string) => {
     return (
-        <span  className=''>
-        <span className="image-text mr-8">{data.paciente}   </span>
-        <span className="image-text">valor total: R$ {reducerValorTotal(data.paciente)}</span>
-       
+      <span className="">
+        <span className="image-text mr-8">{data[modulo]} </span>
+        <span className="image-text mr-8">
+          Valor total: R$ <span className='font-sans-serif'>{reducerValorTotal(data[modulo], modulo)}</span>
         </span>
+        <span className="image-text">
+          Total de Horas:  <span className='font-sans-serif'>{reducerHorasTotal(data[modulo], modulo)}</span>
+        </span>
+      </span>
     );
   };
 
@@ -110,57 +136,199 @@ export default function Financial() {
     },
   };
 
+  const pacienteBodyTemplate = (rowData: any) => {
+    return  !rowData.devolutiva ? (
+      <div className='flex gap-2'>
+       <i className="pi pi-tag text-violet-600" />
+       {rowData.paciente }
+      </div>
+    ) :  rowData.paciente
+  }
+
+  const renderScreenTerapeuta = () => {
+    return (
+      <>
+        <Filter
+          id="form-filter-patient"
+          legend="Filtro"
+          fields={fieldsConstTerapeuta}
+          screen="FINANCEIRO"
+          onSubmit={(e: any) => handleSubmitFilter(e, 'terapeuta')}
+          onReset={() => {}}
+          loading={loading}
+          dropdown={dropDownList}
+        />
+
+        {list.length && (
+          <div className="grid sm:grid-cols-3 sm:gap-2">
+            <Card>
+              <div className="flex gap-4 items-center">
+                <i className="pi pi-users" />
+                <div className="grid">
+                  <span className="text-gray-600 text-sm">{geral.especialidade}</span>
+                  <span className="font-sans-serif">
+                    {geral.nome}
+                  </span>
+                </div>
+              </div>
+            </Card>
+            <Card>
+              <div className="flex gap-2 justify-around">
+                <div className="flex gap-4 items-center">
+                <i className="pi pi-stopwatch" />
+                <div className="grid">
+                  <span className="text-gray-600 text-sm">Horas</span>
+                  <span className="font-sans-serif">
+                    {moment.duration(geral.horas).asHours()}
+                  </span>
+                </div>
+                </div>
+
+                <div className="flex gap-4 items-center">
+                <i className="pi pi-car" />
+                <div className="grid">
+                  <span className="text-gray-600 text-sm">km</span>
+                  <span className="font-sans-serif">
+                    {geral.valorKm}
+                  </span>
+                </div>
+                </div>
+              </div>
+            </Card>
+            <Card>
+              <div className="flex gap-4 items-center">
+                <i className="pi pi-money-bill" />
+                <div className="grid">
+                  <span className="text-gray-600 text-sm">Total total</span>
+                  <span className="font-sans-serif">
+                    {geral.valorTotal}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+        <Card>
+          <div className="flex">
+            {list.length ? (
+              <div className="w-full text-md ">
+                <DataTable
+                  value={list}
+                  rowGroupMode="subheader"
+                  groupRowsBy="paciente"
+                  sortMode="single"
+                  responsiveLayout="scroll"
+                  expandableRowGroups
+                  expandedRows={expandedRows}
+                  onRowToggle={(e: any) => setExpandedRows(e.data)}
+                  onRowExpand={onRowGroupExpand}
+                  onRowCollapse={onRowGroupCollapse}
+                  rowGroupHeaderTemplate={(e: any) =>
+                    headerTemplate(e, 'paciente')
+                  }
+                >
+                  <Column field="paciente" header="Paciente" body={pacienteBodyTemplate}></Column>
+                  <Column
+                    field="data"
+                    header="Data"
+                    // body={countryBodyTemplate}
+                  ></Column>
+                  <Column field="status" header="Status"></Column>
+                  <Column field="km" header="km" body={(rowData: any)=> rowData.km == 0 ? '-':  rowData.km}></Column>
+                  <Column field="valorKm" header="ValorKm km" body={(rowData: any)=> rowData.valorKm == 0 ? '-':  rowData.valorKm}></Column>
+                  <Column field="sessao" header="Valor da Sessão"body={({sessao}: any)=> <span className="font-sans-serif">{sessao}</span>}></Column>
+                  <Column field="valorSessao" header="Comissão" body={({valorSessao}: any)=> <span className="font-sans-serif">{valorSessao}</span>}></Column>
+                  <Column field="valorTotal" header="Valor Total"body={({valorTotal}: any)=> <span className="font-sans-serif">{valorTotal}</span>}></Column>
+                </DataTable>{' '}
+              </div>
+            ) : (
+              <div className="w-full flex items-center  justify-center">
+                <NotFound />
+              </div>
+            )}
+          </div>
+        </Card>
+      </>
+    );
+  };
+
+  const renderScreenPaciente = () => {
+    return (
+      <>
+        <Filter
+          id="form-filter-patient"
+          legend="Filtro"
+          fields={fieldsConstPaciente}
+          screen="FINANCEIRO"
+          onSubmit={(e: any) => handleSubmitFilter(e, 'paciente')}
+          onReset={() => {}}
+          loading={loading}
+          dropdown={dropDownList}
+        />
+
+        <Card>
+          {list.length ? (
+            <div className="w-full ">
+              {' '}
+              <DataTable
+                value={list}
+                rowGroupMode="subheader"
+                groupRowsBy="terapeuta"
+                sortMode="single"
+                sortField="terapeuta"
+                sortOrder={1}
+                responsiveLayout="scroll"
+                expandableRowGroups
+                expandedRows={expandedRows}
+                onRowToggle={(e: any) => setExpandedRows(e.data)}
+                onRowExpand={onRowGroupExpand}
+                onRowCollapse={onRowGroupCollapse}
+                rowGroupHeaderTemplate={(e: any) =>
+                  headerTemplate(e, 'terapeuta')
+                }
+              >
+                <Column field="terapeuta" header="Terapeuta" sortable></Column>
+                <Column
+                  field="data"
+                  header="Data"
+                  // body={countryBodyTemplate}
+                  sortable
+                ></Column>
+                <Column field="status" header="Status" sortable></Column>
+                <Column field="km" header="km" sortable></Column>
+                <Column
+                  field="sessao"
+                  header="Valor da Sessão"
+                  sortable
+                ></Column>
+              </DataTable>{' '}
+            </div>
+          ) : (
+            <div className="w-full flex items-center  justify-center">
+              <NotFound />
+            </div>
+          )}
+        </Card>
+      </>
+    );
+  };
+
   useEffect(() => {
     renderDropdown();
   }, []);
 
   return (
     <div className="grid gap-8">
-      <Filter
-        id="form-filter-patient"
-        legend="Filtro"
-        fields={fieldsConst}
-        screen="FINANCEIRO"
-        onSubmit={handleSubmitFilter}
-        onReset={() => {}}
-        loading={loading}
-        dropdown={dropDownList}
-      />
-
-      <Card>
-       
-          {list.length ?  <div className="w-full "> <DataTable
-            value={list}
-            rowGroupMode="subheader"
-            groupRowsBy="paciente"
-            sortMode="single"
-            sortField="paciente"
-            sortOrder={1}
-            responsiveLayout="scroll"
-            expandableRowGroups
-            expandedRows={expandedRows}
-            onRowToggle={(e: any) => setExpandedRows(e.data)}
-            onRowExpand={onRowGroupExpand}
-            onRowCollapse={onRowGroupCollapse}
-            rowGroupHeaderTemplate={headerTemplate}
-          >
-            <Column field="paciente" header="Paciente" sortable></Column>
-            <Column
-              field="data"
-              header="Data"
-              // body={countryBodyTemplate}
-              sortable
-            ></Column>
-            <Column field="status" header="Status" sortable></Column>
-            <Column field="km" header="km" sortable></Column>
-            <Column field="valorKm" header="ValorKm km" sortable></Column>
-            <Column field="sessao" header="Valor da Sessão" sortable></Column>
-            <Column field="valorSessao" header="Comissão" sortable></Column>
-            <Column field="devolutiva" header="Devolutiva" sortable></Column>
-            <Column field="valorTotal" header="Valor Total" sortable></Column>
-          </DataTable> </div> : <div className='w-full flex items-center  justify-center'><NotFound /></div>}
-        
-      </Card>
+      <TabView className="tabview-custom">
+        <TabPanel header="Terapeuta" leftIcon="pi pi-user">
+          {' '}
+          {renderScreenTerapeuta()}
+        </TabPanel>
+        <TabPanel header="Paciente" leftIcon="pi pi-user">
+          {' '}
+          {renderScreenPaciente()}
+        </TabPanel>
+      </TabView>
     </div>
   );
 }

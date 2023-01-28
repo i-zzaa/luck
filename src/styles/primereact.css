@@ -2686,13 +2686,15 @@ textarea {
 }
 .p-datatable .p-datatable-thead > tr > th {
   text-align: left;
-  padding: 1rem 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   border: 1px solid #dee2e6;
   border-width: 0 0 1px 0;
   font-weight: 700;
   color: #343a40;
   background: #f8f9fa;
   transition: box-shadow 0.2s;
+  font-size:small;
 }
 .p-datatable .p-datatable-tfoot > tr > td {
   text-align: left;
