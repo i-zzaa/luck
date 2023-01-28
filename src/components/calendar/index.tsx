@@ -9,6 +9,7 @@ import '@fullcalendar/daygrid/main.min.css';
 import '@fullcalendar/timegrid/main.min.css';
 import rrulePlugin from '@fullcalendar/rrule';
 
+
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
 // import { FullCalendar } from 'primereact/fullcalendar';
 // import { EventService } from '../service/EventService';
@@ -91,7 +92,8 @@ export const CalendarComponent = ({
       document
         .getElementsByClassName('fc-prev-button')[0]
         .addEventListener('click', (e) => {
-          const calendar = calendarRef.current.getApi();
+          // @ts-ignore
+          const calendar = calendarRef.current && calendarRef.current.getApi();
           let moment = getInfo(calendar);
           onPrev(moment);
         });
@@ -99,7 +101,8 @@ export const CalendarComponent = ({
       document
         .getElementsByClassName('fc-next-button')[0]
         .addEventListener('click', (e) => {
-          const calendar = calendarRef.current.getApi();
+          // @ts-ignore 
+          const calendar = calendarRef.current && calendarRef.current.getApi();
           let moment = getInfo(calendar);
           onNext(moment);
         });
@@ -110,12 +113,12 @@ export const CalendarComponent = ({
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[rrulePlugin, dayGridPlugin, listPlugin, timeGridPlugin]}
+          plugins={[ dayGridPlugin, listPlugin, timeGridPlugin]}
           locale="pt"
           navLinks
           timeZone="America/Sao_Paulo"
           // locales={[ptLocale]}
-          startView="dayGridMonth"
+          // startView="dayGridMonth"
           events={events}
           headerToolbar={{
             left: 'prev,next',
