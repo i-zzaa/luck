@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import '@fullcalendar/react/dist/vdom';
 
 import FullCalendar from '@fullcalendar/react';
@@ -24,14 +24,73 @@ import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
+import { getPrimeiroDoMes, getUltimoDoMes } from '../../util/util';
+import moment from 'moment';
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
 export const CalendarComponent = ({
   events,
   openModalEdit,
   eventMouseEnter,
+  onNext,
+  onPrev,
 }: any) => {
   const calendarRef = useRef(null);
+
+  const getInfo = (calendar: any)=> {
+    // let currentDate = calendar.getCurrentData().currentDate;
+    let type = calendar.getCurrentData().currentViewType;
+    let month, year,  start, end, startDate, endDate
+
+    let activeDate = calendar.getCurrentData().dateProfile.activeRange.end
+
+    switch (type) {
+      case "dayGridMonth":
+        month = activeDate.getMonth() + 1
+        year = activeDate.getFullYear()
+        start = getPrimeiroDoMes(year, month)
+        end = getUltimoDoMes(year, month)
+
+        return { type: "dayGridMonth",start, end}
+    
+      case "timeGridWeek":
+      case "listWeek":
+
+        startDate =  calendar.getCurrentData().dateProfile.activeRange.start
+        endDate =  calendar.getCurrentData().dateProfile.activeRange.end
+
+        start =  moment(calendar.getCurrentData().dateProfile.activeRange.start).add(7, 'days')
+        end =  moment( calendar.getCurrentData().dateProfile.activeRange.end).add(7, 'days')
+
+        return { type: "timeGridWeek",start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD')	}
+    
+      case "timeGridDay" :
+        startDate = moment(activeDate)
+        endDate =   moment(activeDate).add(1, 'days')
+        return { type: "timeGridDay",start: startDate.format('YYYY-MM-DD') , end: endDate.format('YYYY-MM-DD')	}
+    
+      default:
+        break;
+    }
+
+  }
+
+  useEffect(() => {
+    if (calendarRef.current) {
+      document.getElementsByClassName('fc-prev-button')[0].addEventListener('click', (e)=>  {
+        const calendar = calendarRef.current.getApi()
+        let moment = getInfo(calendar);
+        onPrev(moment)
+      })
+
+      document.getElementsByClassName('fc-next-button')[0].addEventListener('click', (e)=>  {
+        const calendar = calendarRef.current.getApi()
+        let moment = getInfo(calendar);
+        onNext(moment)
+      })
+    }
+  }, [])
+
 
   return (
     <div>
@@ -42,7 +101,7 @@ export const CalendarComponent = ({
           navLinks
           timeZone="America/Sao_Paulo"
           // locales={[ptLocale]}
-          initialView="dayGridMonth"
+          startView="dayGridMonth"
           events={events}
           headerToolbar={{
             left: 'prev,next',
@@ -58,6 +117,13 @@ export const CalendarComponent = ({
               dayMaxEventRows: 8,
             },
           }}
+          businessHours={{
+            // days of week. an array of zero-based day of week integers (0=Sunday)
+            daysOfWeek: [1, 2, 3, 4, 5, 6], // Monday - Thursday
+
+            startTime: '08:00', // a start time (10am in this example)
+            endTime: '20:00', // an end time (6pm in this example)
+          }}
           buttonText={{
             month: 'Mês',
             week: 'Semana',
@@ -66,17 +132,26 @@ export const CalendarComponent = ({
           }}
           eventMouseEnter={eventMouseEnter}
           eventContent={(arg: any) => {
-            let italicEl = document.createElement('i');
-
-            if (arg.event.extendedProps.isUrgent) {
-              italicEl.innerHTML = 'urgent event';
-            } else {
-              italicEl.innerHTML = 'normal event';
-            }
-
-            let arrayOfDomNodes = [italicEl];
-            // return { domNodes: arrayOfDomNodes }
+            // let italicEl = document.createElement('i');
+            // if (arg.event.extendedProps.isUrgent) {
+            //   italicEl.innerHTML = 'urgent event';
+            // } else {
+            //   italicEl.innerHTML = 'normal event';
+            // }
+            // let arrayOfDomNodes = [italicEl];
+            // // return { domNodes: arrayOfDomNodes }
           }}
+
+          // customButtons={{
+          //   prev: {
+          //     text: 'prev',
+          //     click:(e: any)=> onPrev(e)
+          //   },
+          //   next: {
+          //     text: 'next',
+          //     click: (e: any)=> onNext(e)
+          //   }
+          // }}
         />
       </div>
     </div>
