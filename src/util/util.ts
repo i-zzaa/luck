@@ -9,6 +9,13 @@ export const colorsData: any = {
   PSICOPEDAG: '#000000',
 };
 
+export const bgData: any = {
+  TO: 'bg-to',
+  FONO: 'bg-fono',
+  PSICO: 'bg-psico',
+  PSICOPEDAG: 'bg-psico-pdeg',
+};
+
 export const colorsTextData: any = {
   TO: '#ffffff',
   FONO: '#ffffff',
@@ -16,7 +23,7 @@ export const colorsTextData: any = {
   PSICOPEDAG: '#ffffff',
 };
 
-export const corEspecialidade = (type: string) => {
+export const corEspecialidade = (type: string): string => {
   let tipo = '';
   switch (type.toUpperCase()) {
     case 'TO':
@@ -116,3 +123,15 @@ export const getPrimeiroDoMes = (ano: number, mes: number) => {
 export const getUltimoDoMes = (ano: number, mes: number) => {
   return moment(new Date(ano, mes, 0)).format('YYYY-MM-DD');
 };
+
+export const formaTime = (duration: any) => {
+  return `${duration.hours().toString().padStart(2, '0')}:${duration
+    .minutes()
+    .toString()
+    .padStart(2, '0')}:${duration.seconds().toString().padStart(2, '0')}`;
+};
+
+export const moneyFormat = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});

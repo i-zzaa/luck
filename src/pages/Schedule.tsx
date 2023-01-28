@@ -6,7 +6,12 @@ import { ViewEvento } from '../components/view-evento';
 import { CalendarForm } from '../foms/CalendarForm';
 import { useDropdown } from '../contexts/dropDown';
 import { filterCalendarFields } from '../constants/formFields';
-import { formatdateeua, getDateFormat, getPrimeiroDoMes, getUltimoDoMes } from '../util/util';
+import {
+  formatdateeua,
+  getDateFormat,
+  getPrimeiroDoMes,
+  getUltimoDoMes,
+} from '../util/util';
 import { statusPacienteId } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 import { NotFound } from '../components/notFound';
@@ -32,7 +37,7 @@ export default function Schedule() {
   const [evenetsList, setEventsList] = useState<any>([]);
   const currentDate = {
     start: getPrimeiroDoMes(current.getFullYear(), current.getMonth() + 1),
-    end:getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
+    end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
   };
 
   const renderEvents = useCallback(async (moment: any = currentDate) => {
@@ -132,8 +137,8 @@ export default function Schedule() {
             <CalendarComponent
               openModalEdit={renderModalView}
               events={evenetsList}
-              onNext={(moment: any)=> renderEvents(moment)}
-              onPrev={(moment: any)=> renderEvents(moment)}
+              onNext={(moment: any) => renderEvents(moment)}
+              onPrev={(moment: any) => renderEvents(moment)}
             />
           </div>
         ) : (
