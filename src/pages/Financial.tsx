@@ -15,6 +15,8 @@ import { statusPacienteId } from '../constants/patient';
 import { NotFound } from '../components/notFound';
 import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
+import { Doughnut } from 'react-chartjs-2';
+import { bgData, colorsData, corEspecialidade, formaTime, moneyFormat } from '../util/util';
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};
@@ -35,6 +37,13 @@ export default function Financial() {
   const [geral, setGeral] = useState<any>({});
 
   const [expandedRows, setExpandedRows] = useState([]);
+
+  const resetList = (e: any) => {
+    setList([]);
+    setGeral({});
+
+    return e;
+  };
 
   const handleSubmitFilter = async (formState: any, modulo: string) => {
     setLoading(true);
@@ -66,19 +75,25 @@ export default function Financial() {
   const onRowGroupCollapse = (event: any) => {};
 
   const reducerValorTotal = (nome: string, modulo: string) => {
-    return list
+    const result =  list
       .filter((items: any) => items[modulo] === nome)
       .map((item: any) => item.valorTotal)
       .reduce((total: number, current: any) => (total += current));
+
+      return moneyFormat.format(result)
   };
 
   const reducerHorasTotal = (nome: string, modulo: string) => {
     const reduce = list
       .filter((items: any) => items[modulo] === nome)
       .map((item: any) => item.horas)
-      .reduce((total: number, current: any) => (total += current));
+      .reduce((total: number, current: any) => {
+        const tt = moment.duration(total)
+        tt.add(moment.duration(current))
+         return tt
+      });
 
-    return moment.duration(reduce).asHours();
+    return formaTime(reduce);
   };
 
   const headerTemplate = (data: any, modulo: string) => {
@@ -86,10 +101,16 @@ export default function Financial() {
       <span className="">
         <span className="image-text mr-8">{data[modulo]} </span>
         <span className="image-text mr-8">
-          Valor total: R$ <span className='font-sans-serif'>{reducerValorTotal(data[modulo], modulo)}</span>
+          Valor total: 
+          <span className="font-sans-serif">
+            {reducerValorTotal(data[modulo], modulo)}
+          </span>
         </span>
         <span className="image-text">
-          Total de Horas:  <span className='font-sans-serif'>{reducerHorasTotal(data[modulo], modulo)}</span>
+          Total de Horas:{' '}
+          <span className="font-sans-serif">
+            {reducerHorasTotal(data[modulo], modulo)}
+          </span>
         </span>
       </span>
     );
@@ -137,13 +158,15 @@ export default function Financial() {
   };
 
   const pacienteBodyTemplate = (rowData: any) => {
-    return  !rowData.devolutiva ? (
-      <div className='flex gap-2'>
-       <i className="pi pi-tag text-violet-600" />
-       {rowData.paciente }
+    return !rowData.devolutiva ? (
+      <div className="flex gap-2">
+        <i className="pi pi-tag text-violet-600" />
+        {rowData.paciente}
       </div>
-    ) :  rowData.paciente
-  }
+    ) : (
+      rowData.paciente
+    );
+  };
 
   const renderScreenTerapeuta = () => {
     return (
@@ -159,39 +182,37 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {list.length && (
+        {list.length ? (
           <div className="grid sm:grid-cols-3 sm:gap-2">
             <Card>
               <div className="flex gap-4 items-center">
                 <i className="pi pi-users" />
                 <div className="grid">
-                  <span className="text-gray-600 text-sm">{geral.especialidade}</span>
-                  <span className="font-sans-serif">
-                    {geral.nome}
+                  <span className="text-gray-600 text-sm">
+                    {geral.especialidade}
                   </span>
+                  <span className="font-sans-serif">{geral.nome}</span>
                 </div>
               </div>
             </Card>
             <Card>
               <div className="flex gap-2 justify-around">
                 <div className="flex gap-4 items-center">
-                <i className="pi pi-stopwatch" />
-                <div className="grid">
-                  <span className="text-gray-600 text-sm">Horas</span>
-                  <span className="font-sans-serif">
-                    {moment.duration(geral.horas).asHours()}
-                  </span>
-                </div>
+                  <i className="pi pi-stopwatch" />
+                  <div className="grid">
+                    <span className="text-gray-600 text-sm">Horas</span>
+                    <span className="font-sans-serif">
+                      {geral.horas}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 items-center">
-                <i className="pi pi-car" />
-                <div className="grid">
-                  <span className="text-gray-600 text-sm">km</span>
-                  <span className="font-sans-serif">
-                    {geral.valorKm}
-                  </span>
-                </div>
+                  <i className="pi pi-car" />
+                  <div className="grid">
+                    <span className="text-gray-600 text-sm">km</span>
+                    <span className="font-sans-serif">{geral.valorKm}</span>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -200,14 +221,12 @@ export default function Financial() {
                 <i className="pi pi-money-bill" />
                 <div className="grid">
                   <span className="text-gray-600 text-sm">Total total</span>
-                  <span className="font-sans-serif">
-                    {geral.valorTotal}
-                  </span>
+                  <span className="font-sans-serif">{moneyFormat.format(geral.valorTotal) }</span>
                 </div>
               </div>
             </Card>
           </div>
-        )}
+        ) : null}
         <Card>
           <div className="flex">
             {list.length ? (
@@ -227,18 +246,52 @@ export default function Financial() {
                     headerTemplate(e, 'paciente')
                   }
                 >
-                  <Column field="paciente" header="Paciente" body={pacienteBodyTemplate}></Column>
+                  <Column
+                    field="paciente"
+                    header="Paciente"
+                    body={pacienteBodyTemplate}
+                  ></Column>
                   <Column
                     field="data"
                     header="Data"
                     // body={countryBodyTemplate}
                   ></Column>
                   <Column field="status" header="Status"></Column>
-                  <Column field="km" header="km" body={(rowData: any)=> rowData.km == 0 ? '-':  rowData.km}></Column>
-                  <Column field="valorKm" header="ValorKm km" body={(rowData: any)=> rowData.valorKm == 0 ? '-':  rowData.valorKm}></Column>
-                  <Column field="sessao" header="Valor da Sessão"body={({sessao}: any)=> <span className="font-sans-serif">{sessao}</span>}></Column>
-                  <Column field="valorSessao" header="Comissão" body={({valorSessao}: any)=> <span className="font-sans-serif">{valorSessao}</span>}></Column>
-                  <Column field="valorTotal" header="Valor Total"body={({valorTotal}: any)=> <span className="font-sans-serif">{valorTotal}</span>}></Column>
+                  <Column
+                    field="km"
+                    header="km"
+                    body={(rowData: any) =>
+                      rowData.km == 0 ? '-' : rowData.km
+                    }
+                  ></Column>
+                  <Column
+                    field="valorKm"
+                    header="ValorKm km"
+                    body={(rowData: any) =>
+                      rowData.valorKm == 0 ? '-' :moneyFormat.format( rowData.valorKm)
+                    }
+                  ></Column>
+                  <Column
+                    field="sessao"
+                    header="Valor da Sessão"
+                    body={({ sessao }: any) => (
+                      <span className="font-sans-serif">{moneyFormat.format(sessao) }</span>
+                    )}
+                  ></Column>
+                  <Column
+                    field="valorSessao"
+                    header="Comissão"
+                    body={({ valorSessao }: any) => (
+                      <span className="font-sans-serif">{moneyFormat.format(valorSessao) }</span>
+                    )}
+                  ></Column>
+                  <Column
+                    field="valorTotal"
+                    header="Valor Total"
+                    body={({ valorTotal }: any) => (
+                      <span className="font-sans-serif">{moneyFormat.format(valorTotal) }</span>
+                    )}
+                  ></Column>
                 </DataTable>{' '}
               </div>
             ) : (
@@ -266,6 +319,62 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
+        {list.length ? (
+          <>
+            <div className="grid sm:grid-cols-2 sm:gap-2">
+              <Card>
+                <div className="flex gap-2 justify-around">
+                  <div className="flex gap-4 items-center">
+                    <i className="pi pi-stopwatch" />
+                    <div className="grid">
+                      <span className="text-gray-600 text-sm">Horas</span>
+                      <span className="font-sans-serif">
+                      {geral.horas}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-center">
+                    <i className="pi pi-car" />
+                    <div className="grid">
+                      <span className="text-gray-600 text-sm">km</span>
+                      <span className="font-sans-serif">{geral.valorKm}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                  <i className="pi pi-money-bill" />
+                    <div className="grid">
+                    <span className="text-gray-600 text-sm">Total total</span>
+                      <span className="font-sans-serif">{moneyFormat.format(geral.valorTotal) }</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <Card>
+                <div className="flex flex-wrap gap-2 items-left">
+                  {geral.especialidadeSessoes && Object.keys(geral.especialidadeSessoes).map(
+                    (item: string) => (
+                      <>
+                        <div className="flex gap-2 items-center">
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              bgData[item.toUpperCase()]
+                            }`}
+                          ></div>
+                         <div className='grid'>
+                         <span> {item} </span>
+                         <span className='font-sans-serif'> {geral.especialidadeSessoes[item]} </span>
+                         </div>
+                        </div>
+                      </>
+                    )
+                  )}
+                </div>
+              </Card>
+            </div>
+          </>
+        ) : null}
+
         <Card>
           {list.length ? (
             <div className="w-full ">
@@ -291,15 +400,35 @@ export default function Financial() {
                 <Column
                   field="data"
                   header="Data"
-                  // body={countryBodyTemplate}
+                  body={({ data }: any) => (
+                    <span className="font-sans-serif">{data}</span>
+                  )}
                   sortable
                 ></Column>
                 <Column field="status" header="Status" sortable></Column>
                 <Column field="km" header="km" sortable></Column>
                 <Column
+                  field="especialidade"
+                  header="especialidade"
+                  sortable
+                  body={({ especialidade }: any) => (
+                    <div className="flex gap-2 items-center">
+                    <div
+                      className={`h-2 w-2 rounded-full ${
+                        bgData[especialidade.toUpperCase()]
+                      }`}
+                    ></div>
+                   <span> {especialidade} </span>
+                  </div>
+                  )}
+                ></Column>
+                <Column
                   field="sessao"
                   header="Valor da Sessão"
                   sortable
+                  body={({ sessao }: any) => (
+                    <span className="font-sans-serif">{ moneyFormat.format(sessao) }</span>
+                  )}
                 ></Column>
               </DataTable>{' '}
             </div>
@@ -319,13 +448,14 @@ export default function Financial() {
 
   return (
     <div className="grid gap-8">
-      <TabView className="tabview-custom">
+      <TabView
+        className="tabview-custom"
+        onBeforeTabChange={(e) => resetList(e)}
+      >
         <TabPanel header="Terapeuta" leftIcon="pi pi-user">
-          {' '}
           {renderScreenTerapeuta()}
         </TabPanel>
         <TabPanel header="Paciente" leftIcon="pi pi-user">
-          {' '}
           {renderScreenPaciente()}
         </TabPanel>
       </TabView>

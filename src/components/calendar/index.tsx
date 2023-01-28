@@ -37,60 +37,74 @@ export const CalendarComponent = ({
 }: any) => {
   const calendarRef = useRef(null);
 
-  const getInfo = (calendar: any)=> {
+  const getInfo = (calendar: any) => {
     // let currentDate = calendar.getCurrentData().currentDate;
     let type = calendar.getCurrentData().currentViewType;
-    let month, year,  start, end, startDate, endDate
+    let month, year, start, end, startDate, endDate;
 
-    let activeDate = calendar.getCurrentData().dateProfile.activeRange.end
+    let activeDate = calendar.getCurrentData().dateProfile.activeRange.end;
 
     switch (type) {
-      case "dayGridMonth":
-        month = activeDate.getMonth() + 1
-        year = activeDate.getFullYear()
-        start = getPrimeiroDoMes(year, month)
-        end = getUltimoDoMes(year, month)
+      case 'dayGridMonth':
+        month = activeDate.getMonth() + 1;
+        year = activeDate.getFullYear();
+        start = getPrimeiroDoMes(year, month);
+        end = getUltimoDoMes(year, month);
 
-        return { type: "dayGridMonth",start, end}
-    
-      case "timeGridWeek":
-      case "listWeek":
+        return { type: 'dayGridMonth', start, end };
 
-        startDate =  calendar.getCurrentData().dateProfile.activeRange.start
-        endDate =  calendar.getCurrentData().dateProfile.activeRange.end
+      case 'timeGridWeek':
+      case 'listWeek':
+        startDate = calendar.getCurrentData().dateProfile.activeRange.start;
+        endDate = calendar.getCurrentData().dateProfile.activeRange.end;
 
-        start =  moment(calendar.getCurrentData().dateProfile.activeRange.start).add(7, 'days')
-        end =  moment( calendar.getCurrentData().dateProfile.activeRange.end).add(7, 'days')
+        start = moment(
+          calendar.getCurrentData().dateProfile.activeRange.start
+        ).add(7, 'days');
+        end = moment(calendar.getCurrentData().dateProfile.activeRange.end).add(
+          7,
+          'days'
+        );
 
-        return { type: "timeGridWeek",start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD')	}
-    
-      case "timeGridDay" :
-        startDate = moment(activeDate)
-        endDate =   moment(activeDate).add(1, 'days')
-        return { type: "timeGridDay",start: startDate.format('YYYY-MM-DD') , end: endDate.format('YYYY-MM-DD')	}
-    
+        return {
+          type: 'timeGridWeek',
+          start: start.format('YYYY-MM-DD'),
+          end: end.format('YYYY-MM-DD'),
+        };
+
+      case 'timeGridDay':
+        startDate = moment(activeDate);
+        endDate = moment(activeDate).add(1, 'days');
+        return {
+          type: 'timeGridDay',
+          start: startDate.format('YYYY-MM-DD'),
+          end: endDate.format('YYYY-MM-DD'),
+        };
+
       default:
         break;
     }
-
-  }
+  };
 
   useEffect(() => {
     if (calendarRef.current) {
-      document.getElementsByClassName('fc-prev-button')[0].addEventListener('click', (e)=>  {
-        const calendar = calendarRef.current.getApi()
-        let moment = getInfo(calendar);
-        onPrev(moment)
-      })
+      document
+        .getElementsByClassName('fc-prev-button')[0]
+        .addEventListener('click', (e) => {
+          const calendar = calendarRef.current.getApi();
+          let moment = getInfo(calendar);
+          onPrev(moment);
+        });
 
-      document.getElementsByClassName('fc-next-button')[0].addEventListener('click', (e)=>  {
-        const calendar = calendarRef.current.getApi()
-        let moment = getInfo(calendar);
-        onNext(moment)
-      })
+      document
+        .getElementsByClassName('fc-next-button')[0]
+        .addEventListener('click', (e) => {
+          const calendar = calendarRef.current.getApi();
+          let moment = getInfo(calendar);
+          onNext(moment);
+        });
     }
-  }, [])
-
+  }, []);
 
   return (
     <div>
