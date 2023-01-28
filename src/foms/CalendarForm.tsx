@@ -375,7 +375,6 @@ export const CalendarForm = ({
           <div className="col-span-6"></div>
           <div className="col-span-6">
             <Title size="md" color="violet">
-              {' '}
               Informações Para Consulta
             </Title>
           </div>
