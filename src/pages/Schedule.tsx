@@ -127,10 +127,10 @@ export default function Schedule() {
   }, []);
 
   useEffect(() => {
-    setLoading(true)
+    setLoading(true);
     renderEvents();
     setTimeout(() => {
-      setLoading(false)
+      setLoading(false);
     }, 500);
   }, []);
 
