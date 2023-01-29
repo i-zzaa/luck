@@ -9,7 +9,6 @@ import '@fullcalendar/daygrid/main.min.css';
 import '@fullcalendar/timegrid/main.min.css';
 import rrulePlugin from '@fullcalendar/rrule';
 
-
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
 // import { FullCalendar } from 'primereact/fullcalendar';
 // import { EventService } from '../service/EventService';
@@ -88,32 +87,31 @@ export const CalendarComponent = ({
   };
 
   useEffect(() => {
-    if (calendarRef.current) {
-      document
-        .getElementsByClassName('fc-prev-button')[0]
-        .addEventListener('click', (e) => {
-          // @ts-ignore
-          const calendar = calendarRef.current && calendarRef.current.getApi();
-          let moment = getInfo(calendar);
-          onPrev(moment);
-        });
-
-      document
-        .getElementsByClassName('fc-next-button')[0]
-        .addEventListener('click', (e) => {
-          // @ts-ignore 
-          const calendar = calendarRef.current && calendarRef.current.getApi();
-          let moment = getInfo(calendar);
-          onNext(moment);
-        });
-    }
+    // if (calendarRef.current) {
+    //   document
+    //     .getElementsByClassName('fc-prev-button')[0]
+    //     .addEventListener('click', (e) => {
+    //       // @ts-ignore
+    //       const calendar = calendarRef.current && calendarRef.current.getApi();
+    //       let moment = getInfo(calendar);
+    //       onPrev(moment);
+    //     });
+    //   document
+    //     .getElementsByClassName('fc-next-button')[0]
+    //     .addEventListener('click', (e) => {
+    //       // @ts-ignore
+    //       const calendar = calendarRef.current && calendarRef.current.getApi();
+    //       let moment = getInfo(calendar);
+    //       onNext(moment);
+    //     });
+    // }
   }, []);
 
   return (
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[ dayGridPlugin, listPlugin, timeGridPlugin]}
+          plugins={[dayGridPlugin, listPlugin, timeGridPlugin]}
           locale="pt"
           navLinks
           timeZone="America/Sao_Paulo"
@@ -158,17 +156,32 @@ export const CalendarComponent = ({
             // let arrayOfDomNodes = [italicEl];
             // // return { domNodes: arrayOfDomNodes }
           }}
-
-          // customButtons={{
-          //   prev: {
-          //     text: 'prev',
-          //     click:(e: any)=> onPrev(e)
-          //   },
-          //   next: {
-          //     text: 'next',
-          //     click: (e: any)=> onNext(e)
-          //   }
-          // }}
+          customButtons={{
+            prev: {
+              text: 'prev',
+              click: (e: any) => {
+                const calendar =
+                 // @ts-ignore
+                  calendarRef.current && calendarRef.current.getApi();
+                let moment = getInfo(calendar);
+                onPrev(moment);
+                 // @ts-ignore
+                calendar && calendar.prev()
+              },
+            },
+            next: {
+              text: 'next',
+              click: (e: any) => {
+                const calendar =
+                // @ts-ignore
+                  calendarRef.current && calendarRef.current.getApi();
+                let moment = getInfo(calendar);
+                onNext(moment);
+                 // @ts-ignore
+                calendar && calendar.next()
+              },
+            },
+          }}
         />
       </div>
     </div>

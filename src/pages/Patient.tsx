@@ -41,14 +41,13 @@ export default function Patient() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     setPatients([]);
     const response = await getList(
       `pacientes?statusPacienteId=${statusPacienteId.crud_therapy}`
     );
     setPatients(response);
-    setLoading(false)
-
+    setLoading(false);
   }, []);
 
   const handleDisabled = async () => {
@@ -214,7 +213,7 @@ export default function Patient() {
 
       <Card>
         <List
-        loading={loading}
+          loading={loading}
           type="complete"
           items={patients}
           screen={SCREEN}

@@ -33,7 +33,7 @@ export function List({
   onClickReturn,
   items,
   screen,
-  loading = false
+  loading = false,
 }: ListProps) {
   const { hasPermition } = permissionAuth();
 
@@ -263,21 +263,19 @@ export function List({
     });
   };
 
-  const renderList = ()=> {
+  const renderList = () => {
     if (!loading) {
       return items.length ? (
         <ul className="-my-6 divide-y divide-gray-200 grid gap-4 items-center">
-        {type === 'simples'
-          ? renderlistSimples()
-          : renderlistComplete()}
-      </ul>
-      ) : <NotFound />
-      
+          {type === 'simples' ? renderlistSimples() : renderlistComplete()}
+        </ul>
+      ) : (
+        <NotFound />
+      );
     } else {
-      return  <LoadingHeron /> 
+      return <LoadingHeron />;
     }
-  
-  }
+  };
 
   return (
     <div className="pointer-events-auto flex-1">
@@ -288,9 +286,7 @@ export function List({
           })}
         >
           <div className="">
-            <div className="flow-root">
-            { renderList()}
-            </div>
+            <div className="flow-root">{renderList()}</div>
           </div>
         </div>
       </div>
