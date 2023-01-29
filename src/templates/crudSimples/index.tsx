@@ -65,9 +65,15 @@ export default function CrudSimples({
 
   const renderList = useCallback(async () => {
     setLoading(true);
-    const response = await getList(namelist);
-    setList(response);
-    setLoading(false);
+
+    try {
+      
+      const response = await getList(namelist);
+      setList(response);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
     if (open) {
       setOpen(false);
     }
