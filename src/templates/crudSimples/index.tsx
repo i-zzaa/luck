@@ -64,8 +64,10 @@ export default function CrudSimples({
   } = useForm<any>();
 
   const renderList = useCallback(async () => {
+    setLoading(true);
     const response = await getList(namelist);
     setList(response);
+    setLoading(false);
     if (open) {
       setOpen(false);
     }
@@ -130,7 +132,8 @@ export default function CrudSimples({
         message: data.data.message,
         open: true,
       });
-      setLoading(false);
+      
+
     } catch ({ message }: any) {
       renderToast({
         type: 'failure',
@@ -274,6 +277,7 @@ export default function CrudSimples({
 
       <Card>
         <List
+          loading={loading}
           screen={screen}
           type="simples"
           onClickTrash={(item_: any) => {

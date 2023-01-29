@@ -5,9 +5,11 @@ import { TextSubtext } from '../../components/textSubtext';
 import { permissionAuth } from '../../contexts/permission';
 import { formatdate } from '../../util/util';
 import { statusPacienteId } from '../../constants/patient';
+import { LoadingHeron } from '../../components/loading';
 
 export interface ListProps {
   onSubmit?: (e: any) => any;
+  loading: boolean;
   textButtonFooter?: string;
   iconButtonFooter?: string;
   screen: string;
@@ -31,6 +33,7 @@ export function List({
   onClickReturn,
   items,
   screen,
+  loading = false
 }: ListProps) {
   const { hasPermition } = permissionAuth();
 
@@ -260,6 +263,22 @@ export function List({
     });
   };
 
+  const renderList = ()=> {
+    if (!loading) {
+      return items.length ? (
+        <ul className="-my-6 divide-y divide-gray-200 grid gap-4 items-center">
+        {type === 'simples'
+          ? renderlistSimples()
+          : renderlistComplete()}
+      </ul>
+      ) : <NotFound />
+      
+    } else {
+      return  <LoadingHeron /> 
+    }
+  
+  }
+
   return (
     <div className="pointer-events-auto flex-1">
       <div className="flex flex-col  bg-white ">
@@ -270,15 +289,7 @@ export function List({
         >
           <div className="">
             <div className="flow-root">
-              {items.length ? (
-                <ul className="-my-6 divide-y divide-gray-200 grid gap-4 items-center">
-                  {type === 'simples'
-                    ? renderlistSimples()
-                    : renderlistComplete()}
-                </ul>
-              ) : (
-                <NotFound />
-              )}
+            { renderList()}
             </div>
           </div>
         </div>

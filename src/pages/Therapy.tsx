@@ -40,11 +40,13 @@ export default function Therapy() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
+    setLoading(true)
     setPatients([]);
     const response = await getList(
       `pacientes?statusPacienteId=${statusPacienteId.queue_therapy}`
     );
     setPatients(response);
+    setLoading(false)
   }, []);
 
   const handleDisabledUser = async () => {
@@ -207,6 +209,7 @@ export default function Therapy() {
 
       <Card>
         <List
+         loading={loading}
           type="complete"
           items={patients}
           screen="FILA_TERAPIA"
