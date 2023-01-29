@@ -41,9 +41,7 @@ export default function Schedule() {
     end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
   };
 
-  const renderEvents
-   = useCallback(async (moment: any = currentDate) => {
-    setLoading(true);
+  const renderEvents = useCallback(async (moment: any = currentDate) => {
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
@@ -58,13 +56,10 @@ export default function Schedule() {
       );
       setEventsList(response);
     }
-    setLoading(false);
-
   }, []);
 
   const handleSubmitFilter = useCallback(async (formvalue: any) => {
     try {
-
       const filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
         if (formvalue[key]?.id) {
@@ -110,7 +105,7 @@ export default function Schedule() {
 
   const renderCalendar = () => {
     if (!loading) {
-     return evenetsList.length ? (
+      return evenetsList.length ? (
         <div className="flex-1">
           <CalendarComponent
             openModalEdit={renderModalView}
@@ -119,18 +114,24 @@ export default function Schedule() {
             onPrev={(moment: any) => renderEvents(moment)}
           />
         </div>
-      ) : <NotFound />
+      ) : (
+        <NotFound />
+      );
     } else {
-      return <LoadingHeron />
+      return <LoadingHeron />;
     }
-  }
+  };
 
   useEffect(() => {
     rendeFiltro;
   }, []);
 
   useEffect(() => {
+    setLoading(true)
     renderEvents();
+    setTimeout(() => {
+      setLoading(false)
+    }, 500);
   }, []);
 
   return (
@@ -151,9 +152,7 @@ export default function Schedule() {
         }}
       />
       <Card>
-      <div className='flex justify-center'>
-      { renderCalendar()}
-      </div>
+        <div className="flex justify-center">{renderCalendar()}</div>
       </Card>
 
       {openView && (

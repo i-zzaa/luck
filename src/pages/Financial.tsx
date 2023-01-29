@@ -15,7 +15,7 @@ import { statusPacienteId } from '../constants/patient';
 import { NotFound } from '../components/notFound';
 import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
-import { bgData,  formaTime, moneyFormat } from '../util/util';
+import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
 
 const fieldsConstTerapeuta = filterFinancialFields;
@@ -75,12 +75,12 @@ export default function Financial() {
   const onRowGroupCollapse = (event: any) => {};
 
   const reducerValorTotal = (nome: string, modulo: string) => {
-    const result =  list
+    const result = list
       .filter((items: any) => items[modulo] === nome)
       .map((item: any) => item.valorTotal)
       .reduce((total: number, current: any) => (total += current));
 
-      return moneyFormat.format(result)
+    return moneyFormat.format(result);
   };
 
   const reducerHorasTotal = (nome: string, modulo: string) => {
@@ -88,9 +88,9 @@ export default function Financial() {
       .filter((items: any) => items[modulo] === nome)
       .map((item: any) => item.horas)
       .reduce((total: number, current: any) => {
-        const tt = moment.duration(total)
-        tt.add(moment.duration(current))
-         return tt
+        const tt = moment.duration(total);
+        tt.add(moment.duration(current));
+        return tt;
       });
 
     return formaTime(reduce);
@@ -101,7 +101,7 @@ export default function Financial() {
       <span className="">
         <span className="image-text mr-8">{data[modulo]} </span>
         <span className="image-text mr-8">
-          Valor total: 
+          Valor total:
           <span className="font-sans-serif">
             {reducerValorTotal(data[modulo], modulo)}
           </span>
@@ -169,10 +169,8 @@ export default function Financial() {
   };
 
   const renderScreenTerapeuta = () => {
-      
     return (
       <>
-
         <Filter
           id="form-filter-patient"
           legend="Filtro"
@@ -203,9 +201,7 @@ export default function Financial() {
                   <i className="pi pi-stopwatch" />
                   <div className="grid">
                     <span className="text-gray-600 text-sm">Horas</span>
-                    <span className="font-sans-serif">
-                      {geral.horas}
-                    </span>
+                    <span className="font-sans-serif">{geral.horas}</span>
                   </div>
                 </div>
 
@@ -223,7 +219,9 @@ export default function Financial() {
                 <i className="pi pi-money-bill" />
                 <div className="grid">
                   <span className="text-gray-600 text-sm">Total total</span>
-                  <span className="font-sans-serif">{moneyFormat.format(geral.valorTotal) }</span>
+                  <span className="font-sans-serif">
+                    {moneyFormat.format(geral.valorTotal)}
+                  </span>
                 </div>
               </div>
             </Card>
@@ -231,7 +229,9 @@ export default function Financial() {
         ) : null}
         <Card>
           <div className="flex justify-center">
-            { loading ? <LoadingHeron /> :  list.length ? (
+            {loading ? (
+              <LoadingHeron />
+            ) : list.length ? (
               <div className="w-full text-md ">
                 <DataTable
                   value={list}
@@ -270,28 +270,36 @@ export default function Financial() {
                     field="valorKm"
                     header="ValorKm km"
                     body={(rowData: any) =>
-                      rowData.valorKm == 0 ? '-' :moneyFormat.format( rowData.valorKm)
+                      rowData.valorKm == 0
+                        ? '-'
+                        : moneyFormat.format(rowData.valorKm)
                     }
                   ></Column>
                   <Column
                     field="sessao"
                     header="Valor da Sessão"
                     body={({ sessao }: any) => (
-                      <span className="font-sans-serif">{moneyFormat.format(sessao) }</span>
+                      <span className="font-sans-serif">
+                        {moneyFormat.format(sessao)}
+                      </span>
                     )}
                   ></Column>
                   <Column
                     field="valorSessao"
                     header="Comissão"
                     body={({ valorSessao }: any) => (
-                      <span className="font-sans-serif">{moneyFormat.format(valorSessao) }</span>
+                      <span className="font-sans-serif">
+                        {moneyFormat.format(valorSessao)}
+                      </span>
                     )}
                   ></Column>
                   <Column
                     field="valorTotal"
                     header="Valor Total"
                     body={({ valorTotal }: any) => (
-                      <span className="font-sans-serif">{moneyFormat.format(valorTotal) }</span>
+                      <span className="font-sans-serif">
+                        {moneyFormat.format(valorTotal)}
+                      </span>
                     )}
                   ></Column>
                 </DataTable>{' '}
@@ -321,8 +329,7 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {
-          !loading  &&  list.length ? (
+        {!loading && list.length ? (
           <>
             <div className="grid sm:grid-cols-2 sm:gap-2">
               <Card>
@@ -331,9 +338,7 @@ export default function Financial() {
                     <i className="pi pi-stopwatch" />
                     <div className="grid">
                       <span className="text-gray-600 text-sm">Horas</span>
-                      <span className="font-sans-serif">
-                      {geral.horas}
-                      </span>
+                      <span className="font-sans-serif">{geral.horas}</span>
                     </div>
                   </div>
 
@@ -345,43 +350,49 @@ export default function Financial() {
                     </div>
                   </div>
                   <div className="flex gap-4 items-center">
-                  <i className="pi pi-money-bill" />
+                    <i className="pi pi-money-bill" />
                     <div className="grid">
-                    <span className="text-gray-600 text-sm">Total total</span>
-                      <span className="font-sans-serif">{moneyFormat.format(geral.valorTotal) }</span>
+                      <span className="text-gray-600 text-sm">Total total</span>
+                      <span className="font-sans-serif">
+                        {moneyFormat.format(geral.valorTotal)}
+                      </span>
                     </div>
                   </div>
                 </div>
               </Card>
               <Card>
                 <div className="flex flex-wrap gap-2 items-left">
-                  {geral.especialidadeSessoes && Object.keys(geral.especialidadeSessoes).map(
-                    (item: string) => (
-                      <>
-                        <div className="flex gap-2 items-center">
-                          <div
-                            className={`h-2 w-2 rounded-full ${
-                              bgData[item.toUpperCase()]
-                            }`}
-                          ></div>
-                         <div className='grid'>
-                         <span> {item} </span>
-                         <span className='font-sans-serif'> {geral.especialidadeSessoes[item]} </span>
-                         </div>
-                        </div>
-                      </>
-                    )
-                  )}
+                  {geral.especialidadeSessoes &&
+                    Object.keys(geral.especialidadeSessoes).map(
+                      (item: string) => (
+                        <>
+                          <div className="flex gap-2 items-center">
+                            <div
+                              className={`h-2 w-2 rounded-full ${
+                                bgData[item.toUpperCase()]
+                              }`}
+                            ></div>
+                            <div className="grid">
+                              <span> {item} </span>
+                              <span className="font-sans-serif">
+                                {' '}
+                                {geral.especialidadeSessoes[item]}{' '}
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      )
+                    )}
                 </div>
               </Card>
             </div>
           </>
         ) : null}
 
-         <Card>
-
-          
-          { loading ? <LoadingHeron /> : list.length ? (
+        <Card>
+          {loading ? (
+            <LoadingHeron />
+          ) : list.length ? (
             <div className="w-full ">
               {' '}
               <DataTable
@@ -418,13 +429,13 @@ export default function Financial() {
                   sortable
                   body={({ especialidade }: any) => (
                     <div className="flex gap-2 items-center">
-                    <div
-                      className={`h-2 w-2 rounded-full ${
-                        bgData[especialidade.toUpperCase()]
-                      }`}
-                    ></div>
-                   <span> {especialidade} </span>
-                  </div>
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          bgData[especialidade.toUpperCase()]
+                        }`}
+                      ></div>
+                      <span> {especialidade} </span>
+                    </div>
                   )}
                 ></Column>
                 <Column
@@ -432,7 +443,9 @@ export default function Financial() {
                   header="Valor da Sessão"
                   sortable
                   body={({ sessao }: any) => (
-                    <span className="font-sans-serif">{ moneyFormat.format(sessao) }</span>
+                    <span className="font-sans-serif">
+                      {moneyFormat.format(sessao)}
+                    </span>
                   )}
                 ></Column>
               </DataTable>{' '}

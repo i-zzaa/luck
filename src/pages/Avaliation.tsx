@@ -37,13 +37,13 @@ export default function Avaliation() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     setPatients([]);
     const response = await getList(
       `pacientes?statusPacienteId=${statusPacienteId.queue_avaliation}`
     );
     setPatients(response);
-    setLoading(false)
+    setLoading(false);
   }, []);
 
   const handleDisabled = async () => {
@@ -214,7 +214,7 @@ export default function Avaliation() {
 
       <Card>
         <List
-         loading={loading}
+          loading={loading}
           type="complete"
           items={patients}
           screen="FILA_AVALIACAO"

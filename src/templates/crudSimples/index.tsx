@@ -132,8 +132,6 @@ export default function CrudSimples({
         message: data.data.message,
         open: true,
       });
-      
-
     } catch ({ message }: any) {
       renderToast({
         type: 'failure',
