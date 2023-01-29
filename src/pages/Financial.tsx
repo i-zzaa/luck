@@ -15,8 +15,8 @@ import { statusPacienteId } from '../constants/patient';
 import { NotFound } from '../components/notFound';
 import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
-import { Doughnut } from 'react-chartjs-2';
-import { bgData, colorsData, corEspecialidade, formaTime, moneyFormat } from '../util/util';
+import { bgData,  formaTime, moneyFormat } from '../util/util';
+import { LoadingHeron } from '../components/loading';
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};
@@ -169,8 +169,10 @@ export default function Financial() {
   };
 
   const renderScreenTerapeuta = () => {
+      
     return (
       <>
+
         <Filter
           id="form-filter-patient"
           legend="Filtro"
@@ -182,7 +184,7 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {list.length ? (
+        {!loading && list.length ? (
           <div className="grid sm:grid-cols-3 sm:gap-2">
             <Card>
               <div className="flex gap-4 items-center">
@@ -228,8 +230,8 @@ export default function Financial() {
           </div>
         ) : null}
         <Card>
-          <div className="flex">
-            {list.length ? (
+          <div className="flex justify-center">
+            { loading ? <LoadingHeron /> :  list.length ? (
               <div className="w-full text-md ">
                 <DataTable
                   value={list}
@@ -319,7 +321,8 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {list.length ? (
+        {
+          !loading  &&  list.length ? (
           <>
             <div className="grid sm:grid-cols-2 sm:gap-2">
               <Card>
@@ -375,8 +378,10 @@ export default function Financial() {
           </>
         ) : null}
 
-        <Card>
-          {list.length ? (
+         <Card>
+
+          
+          { loading ? <LoadingHeron /> : list.length ? (
             <div className="w-full ">
               {' '}
               <DataTable

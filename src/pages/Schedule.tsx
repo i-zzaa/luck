@@ -15,6 +15,7 @@ import {
 import { statusPacienteId } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 import { NotFound } from '../components/notFound';
+import { LoadingHeron } from '../components/loading';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};
@@ -40,8 +41,9 @@ export default function Schedule() {
     end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
   };
 
-  const renderEvents = useCallback(async (moment: any = currentDate) => {
-    // debugger
+  const renderEvents
+   = useCallback(async (moment: any = currentDate) => {
+    setLoading(true);
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
@@ -56,11 +58,12 @@ export default function Schedule() {
       );
       setEventsList(response);
     }
+    setLoading(false);
+
   }, []);
 
   const handleSubmitFilter = useCallback(async (formvalue: any) => {
     try {
-      setLoading(true);
 
       const filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
@@ -77,7 +80,6 @@ export default function Schedule() {
       );
 
       setEventsList(response);
-      setLoading(false);
     } catch (error) {
       setLoading(false);
     }
@@ -106,6 +108,23 @@ export default function Schedule() {
     setOpen(true);
   };
 
+  const renderCalendar = () => {
+    if (!loading) {
+     return evenetsList.length ? (
+        <div className="flex-1">
+          <CalendarComponent
+            openModalEdit={renderModalView}
+            events={evenetsList}
+            onNext={(moment: any) => renderEvents(moment)}
+            onPrev={(moment: any) => renderEvents(moment)}
+          />
+        </div>
+      ) : <NotFound />
+    } else {
+      return <LoadingHeron />
+    }
+  }
+
   useEffect(() => {
     rendeFiltro;
   }, []);
@@ -132,18 +151,9 @@ export default function Schedule() {
         }}
       />
       <Card>
-        {evenetsList.length ? (
-          <div className="flex-1">
-            <CalendarComponent
-              openModalEdit={renderModalView}
-              events={evenetsList}
-              onNext={(moment: any) => renderEvents(moment)}
-              onPrev={(moment: any) => renderEvents(moment)}
-            />
-          </div>
-        ) : (
-          <NotFound />
-        )}
+      <div className='flex justify-center'>
+      { renderCalendar()}
+      </div>
       </Card>
 
       {openView && (
