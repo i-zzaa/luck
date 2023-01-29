@@ -161,24 +161,24 @@ export const CalendarComponent = ({
               text: 'prev',
               click: (e: any) => {
                 const calendar =
-                 // @ts-ignore
+                  // @ts-ignore
                   calendarRef.current && calendarRef.current.getApi();
                 let moment = getInfo(calendar);
                 onPrev(moment);
-                 // @ts-ignore
-                calendar && calendar.prev()
+                // @ts-ignore
+                calendar && calendar.prev();
               },
             },
             next: {
               text: 'next',
               click: (e: any) => {
                 const calendar =
-                // @ts-ignore
+                  // @ts-ignore
                   calendarRef.current && calendarRef.current.getApi();
                 let moment = getInfo(calendar);
                 onNext(moment);
-                 // @ts-ignore
-                calendar && calendar.next()
+                // @ts-ignore
+                calendar && calendar.next();
               },
             },
           }}
