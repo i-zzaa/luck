@@ -17,6 +17,8 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
 import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
+import React from 'react';
+
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};

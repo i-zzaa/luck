@@ -1,7 +1,10 @@
 import { TabPanel, TabView } from 'primereact';
+import React from 'react';
 import { permissionAuth } from '../contexts/permission';
-import Avaliation from './Avaliation';
-import Therapy from './Therapy';
+
+const Therapy = React.lazy(() => import('./Therapy'));
+const Avaliation = React.lazy(() => import('./Avaliation'));
+
 
 export default function Queue() {
   const { hasPermition } = permissionAuth();
