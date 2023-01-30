@@ -154,10 +154,13 @@ export function Input({
                   <div className="col-span-2">
                     <InputSwitch
                       checked={field.value}
-                      onChange={field.onChange}
                       color="#685ec5"
                       value={value}
                       disabled={disabled}
+                      onChange={(e: any) => {
+                        field.onChange(e.target.value);
+                        onChange && onChange(e.target.value);
+                      }}
                     />
                   </div>
                 </div>

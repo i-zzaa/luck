@@ -23,6 +23,7 @@ export const CalendarForm = ({
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
   const [isDevolutiva, setIsDevolutiva] = useState<boolean>(false);
+  const [isExterno, setIsExterno] = useState<boolean>(false);
   const { renderToast } = useToast();
 
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -440,22 +441,40 @@ export const CalendarForm = ({
           />
           <Input
             labelText="Local"
-            id="localidade"
-            type="select"
-            customCol="col-span-6 sm:col-span-3"
+            id="isExterno"
+            type="switch"
+            customCol="col-span-6 sm:col-span-1"
             errors={errors}
             control={control}
             options={dropDownList?.localidades}
-            validate={{
-              required: true,
-            }}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            onChange={(e: any) => {
+              setIsExterno(e);
+              if (e) {
+                unregister('localidade', { keepDirtyValues: true });
+              }
+            }}
           />
+          {!isExterno && (
+            <Input
+              labelText="Local"
+              id="localidade"
+              type="select"
+              customCol="col-span-6 sm:col-span-3"
+              errors={errors}
+              control={control}
+              options={dropDownList?.localidades}
+              validate={{
+                required: true,
+              }}
+              disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            />
+          )}
           <Input
             labelText="Status Eventos"
             id="statusEventos"
             type="select"
-            customCol="col-span-6 sm:col-span-3"
+            customCol="col-span-6 sm:col-span-2"
             errors={errors}
             control={control}
             options={dropDownList?.statusEventos}

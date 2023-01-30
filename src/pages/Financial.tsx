@@ -102,7 +102,7 @@ export default function Financial() {
       <span className="">
         <span className="image-text mr-24">{data[modulo]} </span>
         <span className="image-text mr-24">
-          Valor total: {" "}
+          Valor total:{' '}
           <span className="font-sans-serif">
             {reducerValorTotal(data[modulo], modulo)}
           </span>
@@ -258,18 +258,14 @@ export default function Financial() {
                     field="data"
                     header="Data"
                     body={({ data }: any) => (
-                      <span className="font-sans-serif">
-                        {data}
-                      </span>
+                      <span className="font-sans-serif">{data}</span>
                     )}
                   ></Column>
                   <Column
                     field="horas"
                     header="Tempo"
                     body={({ horas }: any) => (
-                      <span className="font-sans-serif">
-                        {horas}
-                      </span>
+                      <span className="font-sans-serif">{horas}</span>
                     )}
                   ></Column>
                   <Column field="status" header="Status"></Column>
