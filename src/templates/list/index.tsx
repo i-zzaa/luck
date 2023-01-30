@@ -111,6 +111,7 @@ export function List({
           actionEdit={ATIVO}
           actionTrash={ATIVO}
           actionReturn={!ATIVO}
+          screen={screen}
         />
       );
     });
@@ -201,6 +202,7 @@ export function List({
           actionEdit={!DISABLED}
           actionTrash={!DISABLED}
           actionReturn={DISABLED}
+          screen={screen}
         >
           {!item.emAtendimento && (
             <div className="flex justify-between">

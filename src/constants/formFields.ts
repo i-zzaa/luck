@@ -259,9 +259,6 @@ const usuariosFields: any = [
     id: 'comissao',
     name: 'comissao',
     type: 'dataTableSessaoHeron',
-    validate: {
-      required: 'Campo obrigatório!',
-    },
     customCol: 'col-span-6 sm:col-span-6 mb-8',
     hidden: true,
   },

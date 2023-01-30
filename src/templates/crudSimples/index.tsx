@@ -272,6 +272,10 @@ export default function CrudSimples({
     renderList();
   }, [renderList]);
 
+  useEffect(() => {
+    unregister(isTerapeuta, { keepDirtyValues: true });
+  }, []);
+
   return (
     <>
       <SearchAdd
