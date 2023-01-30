@@ -199,7 +199,6 @@ export default function CrudSimples({
         break;
       case 'cargaHoraria':
         setCargaHoraria(valueForm);
-        setValue('cargaHoraria', valueForm);
         break;
       case 'funcoesId':
         const list = valueForm.map((item: any) => {
