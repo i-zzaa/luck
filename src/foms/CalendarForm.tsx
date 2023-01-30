@@ -440,7 +440,7 @@ export const CalendarForm = ({
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FUNCAO')}
           />
           <Input
-            labelText="Local"
+            labelText="Local Externo?"
             id="isExterno"
             type="switch"
             customCol="col-span-6 sm:col-span-1"
@@ -448,14 +448,7 @@ export const CalendarForm = ({
             control={control}
             options={dropDownList?.localidades}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
-            onChange={(e: any) => {
-              setIsExterno(e);
-              if (e) {
-                unregister('localidade', { keepDirtyValues: true });
-              }
-            }}
           />
-          {!isExterno && (
             <Input
               labelText="Local"
               id="localidade"
@@ -469,7 +462,6 @@ export const CalendarForm = ({
               }}
               disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
             />
-          )}
           <Input
             labelText="Status Eventos"
             id="statusEventos"
