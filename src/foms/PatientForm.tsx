@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '../contexts/toast';
 import { create, update } from '../server';
 import { ButtonHeron, Input } from '../components/index';
-import { setColorChips } from '../util/util';
+import { moneyFormat, setColorChips } from '../util/util';
 
 export interface OptionProps {
   id: string;
@@ -118,7 +118,7 @@ export const PatientForm = ({
           return {
             especialidade: item.nome,
             especialidadeId: item.id,
-            valor: '80',
+            valor: moneyFormat.format(80),
             km: 0,
           };
         });
