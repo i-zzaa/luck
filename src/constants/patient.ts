@@ -569,17 +569,17 @@ export const patientCrudFields = [
     },
   },
 
-  {
-    labelText: 'Data do Contato',
-    id: 'dataVoltouAba',
-    name: 'dataVoltouAba',
-    type: 'date',
-    customCol: 'col-span-6 sm:col-span-3',
-    singleSelect: false,
-    validate: {
-      required: 'Campo obrigatório!',
-    },
-  },
+  // {
+  //   labelText: 'Data do Contato',
+  //   id: 'dataVoltouAba',
+  //   name: 'dataVoltouAba',
+  //   type: 'date',
+  //   customCol: 'col-span-6 sm:col-span-3',
+  //   singleSelect: false,
+  //   validate: {
+  //     required: 'Campo obrigatório!',
+  //   },
+  // },
   {
     labelText: 'Convênio',
     id: 'convenioId',
@@ -600,7 +600,7 @@ export const patientCrudFields = [
     validate: {
       required: 'Campo obrigatório!',
     },
-    customCol: 'col-span-6 sm:col-span-6',
+    customCol: 'col-span-6 sm:col-span-3',
   },
   {
     labelText: '',

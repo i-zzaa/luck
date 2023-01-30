@@ -33,7 +33,7 @@ export const DataTableSessaoHeron = ({
   const cellEditor = (options: any) => {
     switch (options.field) {
       case 'valor':
-        if (options.rowData.tipo === 'Fixo') {
+        if (options.rowData.tipo === 'Fixo' ||  type === 'sessao') {
           return (
             <InputNumber
               onValueChange={(e: any) => {
