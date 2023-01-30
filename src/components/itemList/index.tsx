@@ -14,7 +14,7 @@ export interface ActionProps {
   actionEdit?: boolean;
   actionTrash?: boolean;
   actionReturn?: boolean;
-  screen?: boolean;
+  screen?: string;
 }
 
 export interface FooterButtonProps {
@@ -40,6 +40,11 @@ export interface itemListCompleteProps extends ActionProps, FooterButtonProps {
   actionTrash?: boolean;
   actionReturn?: boolean;
   children?: ReactNode;
+  onClickEdit?: () => void;
+  onClickTrash?: () => void;
+  onClickReturn?: () => void;
+  positionActions?: 'left' | 'right';
+  screen?: string;
 }
 
 export interface RootProps extends FooterButtonProps {

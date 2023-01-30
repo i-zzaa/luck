@@ -19,7 +19,7 @@ export const DESENVOLVEDOR = 'developer';
 export const COORDENADOR = 'coordenador';
 export const COORDENADOR_TERAPEUTA = 'coordenador-terapeuta';
 export const TERAPEUTA = 'terapeuta';
-export const FINANCIAL = 'financeiro';
+export const FINANCEIRO = 'financeiro';
 
 const PermissionContext = createContext<PermissionContextData>(
   {} as PermissionContextData

@@ -48,22 +48,26 @@ export default function Financial() {
 
   const handleSubmitFilter = async (formState: any, modulo: string) => {
     setLoading(true);
-    const format: any = {};
+    try {
+      const format: any = {};
 
-    await Object.keys(formState).map((key: any) => {
-      if (key.indexOf('Id') !== -1) {
-        format[key] = formState[key]?.id || undefined;
-      } else {
-        format[key] = formState[key];
-      }
-    });
+      await Object.keys(formState).map((key: any) => {
+        if (key.indexOf('Id') !== -1) {
+          format[key] = formState[key]?.id || undefined;
+        } else {
+          format[key] = formState[key];
+        }
+      });
 
-    const response = await filter(`financeiro/${modulo}`, format);
-    const lista: any =
-      response.status === 200 && response?.data ? response.data : [];
-    setGeral(lista.geral);
-    setList(lista.data);
-    setLoading(false);
+      const response = await filter(`financeiro/${modulo}`, format);
+      const lista: any =
+        response.status === 200 && response?.data ? response.data : [];
+      setGeral(lista.geral);
+      setList(lista.data);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
 
   const renderDropdown = useCallback(async () => {

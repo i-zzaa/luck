@@ -1,5 +1,6 @@
 export const filterFinancialFields = [
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_TERAPEUTA',
     labelText: 'Terapeuta',
     id: 'terapeutaId',
     name: 'terapeutas',
@@ -7,6 +8,7 @@ export const filterFinancialFields = [
     type: 'select',
   },
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_INICIAL',
     labelText: 'Data Inicial',
     id: 'dataInicio',
     name: 'dataInicio',
@@ -14,6 +16,7 @@ export const filterFinancialFields = [
     type: 'date',
   },
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_FINAL',
     labelText: 'Data Final',
     id: 'datatFim',
     name: 'datatFim',
@@ -23,6 +26,7 @@ export const filterFinancialFields = [
 ];
 export const filterFinancialPacienteFields = [
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_PACIENTE',
     labelText: 'Paciente',
     id: 'pacienteId',
     name: 'pacientes',
@@ -30,6 +34,7 @@ export const filterFinancialPacienteFields = [
     type: 'select',
   },
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_INICIAL',
     labelText: 'Data Inicial',
     id: 'dataInicio',
     name: 'dataInicio',
@@ -37,6 +42,7 @@ export const filterFinancialPacienteFields = [
     type: 'date',
   },
   {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_FINAL',
     labelText: 'Data Final',
     id: 'datatFim',
     name: 'datatFim',
