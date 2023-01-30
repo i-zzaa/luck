@@ -446,7 +446,6 @@ export const CalendarForm = ({
             customCol="col-span-6 sm:col-span-1"
             errors={errors}
             control={control}
-            options={dropDownList?.localidades}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
           />
             <Input

@@ -37,8 +37,10 @@ export const CalendarComponent = ({
 }: any) => {
   const calendarRef = useRef(null);
 
-  const getInfo = (calendar: any) => {
+  const getInfo = (calendar: any, eventType: string) => {
     // let currentDate = calendar.getCurrentData().currentDate;
+
+    const prev = eventType === 'prev'
     let type = calendar.getCurrentData().currentViewType;
     let month, year, start, end, startDate, endDate;
 
@@ -46,7 +48,7 @@ export const CalendarComponent = ({
 
     switch (type) {
       case 'dayGridMonth':
-        month = activeDate.getMonth() + 1;
+        month = prev ?  activeDate.getMonth() -1 :  activeDate.getMonth() + 1;
         year = activeDate.getFullYear();
         start = getPrimeiroDoMes(year, month);
         end = getUltimoDoMes(year, month);
@@ -58,13 +60,12 @@ export const CalendarComponent = ({
         startDate = calendar.getCurrentData().dateProfile.activeRange.start;
         endDate = calendar.getCurrentData().dateProfile.activeRange.end;
 
-        start = moment(
+        const momentStart =  moment(
           calendar.getCurrentData().dateProfile.activeRange.start
-        ).add(7, 'days');
-        end = moment(calendar.getCurrentData().dateProfile.activeRange.end).add(
-          7,
-          'days'
-        );
+        )
+        const momentEnd = moment(calendar.getCurrentData().dateProfile.activeRange.end)
+        start = prev ?  momentStart.subtract(7, 'days') : momentStart.add(7, 'days');
+        end = prev ?  momentEnd.subtract(7, 'days') : momentEnd.add(7, 'days');
 
         return {
           type: 'timeGridWeek',
@@ -73,8 +74,8 @@ export const CalendarComponent = ({
         };
 
       case 'timeGridDay':
-        startDate = moment(activeDate);
-        endDate = moment(activeDate).add(1, 'days');
+        startDate =  prev ? moment(activeDate).subtract(1, 'days') :  moment(activeDate).add(1, 'days');
+        endDate = prev ?  moment(activeDate) :  moment(activeDate).add(2, 'days');
         return {
           type: 'timeGridDay',
           start: startDate.format('YYYY-MM-DD'),
@@ -163,7 +164,7 @@ export const CalendarComponent = ({
                 const calendar =
                   // @ts-ignore
                   calendarRef.current && calendarRef.current.getApi();
-                let moment = getInfo(calendar);
+                let moment = getInfo(calendar, 'prev');
                 onPrev(moment);
                 // @ts-ignore
                 calendar && calendar.prev();
@@ -175,7 +176,7 @@ export const CalendarComponent = ({
                 const calendar =
                   // @ts-ignore
                   calendarRef.current && calendarRef.current.getApi();
-                let moment = getInfo(calendar);
+                let moment = getInfo(calendar, 'next');
                 onNext(moment);
                 // @ts-ignore
                 calendar && calendar.next();
