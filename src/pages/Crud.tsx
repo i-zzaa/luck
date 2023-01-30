@@ -1,13 +1,10 @@
 import { TabView, TabPanel } from 'primereact/tabview';
 
+import CrudSimples from '../templates/crudSimples';
 import { getList } from '../server';
 import { useToast } from '../contexts/toast';
+import Patient from './Patient';
 import { permissionAuth } from '../contexts/permission';
-import React from 'react';
-
-
-const Patient = React.lazy(() => import('./Patient'));
-const CrudSimples = React.lazy(() => import('../templates/crudSimples'));
 
 export const Crud = () => {
   const { renderToast } = useToast();

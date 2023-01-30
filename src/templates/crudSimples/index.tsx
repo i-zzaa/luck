@@ -14,6 +14,8 @@ import { create, getList, search, update } from '../../server';
 
 import { Fields } from '../../constants/formFields';
 import { useDropdown } from '../../contexts/dropDown';
+import { moneyFormat } from '../../util/util';
+import { register } from '../../serviceWorkerRegistration';
 
 interface Props {
   namelist: string;
@@ -43,10 +45,12 @@ export default function CrudSimples({
     'especialidadeId',
     'funcoesId',
     'comissao',
-    'fazDevolutiva',
+    // 'fazDevolutiva',
     'cargaHoraria',
   ];
+
   const [comissao, setComissao] = useState([]);
+  const [cargaHoraria, setCargaHoraria] = useState([]);
 
   const [fields, setFields] = useState([]);
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -67,7 +71,6 @@ export default function CrudSimples({
     setLoading(true);
 
     try {
-      
       const response = await getList(namelist);
       setList(response);
       setLoading(false);
@@ -176,11 +179,11 @@ export default function CrudSimples({
     });
   };
 
-  const actionFieldId = async (value: any, fieldId: string) => {
+  const actionFieldId = async (valueForm: any, fieldId: string) => {
     switch (fieldId) {
       case 'perfilId':
         const valid =
-          value.nome !== 'Terapeuta' && value.nome !== 'Coordenador-terapeuta';
+          valueForm.nome !== 'Terapeuta' && valueForm.nome !== 'Coordenador-terapeuta';
         setHidden(valid);
         if (!valid) {
           unregister(isTerapeuta, { keepDirtyValues: true });
@@ -188,18 +191,21 @@ export default function CrudSimples({
         break;
       case 'especialidadeId':
         setValue('funcoesId', []);
-        const especialidadeFuncao = await renderEspecialidadeFuncao(value.nome);
+        const especialidadeFuncao = await renderEspecialidadeFuncao(
+          valueForm?.nome
+        );
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao });
         break;
       case 'cargaHoraria':
+        setCargaHoraria(valueForm)
         break;
       case 'funcoesId':
-        const list = value.map((item: any) => {
+        const list = valueForm.map((item: any) => {
           return {
             funcao: item.nome,
             funcaoId: item.id,
-            valor: 80,
-            tipo: 'fixo',
+            valor: moneyFormat.format(80),
+            tipo: 'Fixo',
           };
         });
 
@@ -209,10 +215,10 @@ export default function CrudSimples({
     }
   };
 
-  const handleChange = (value: any, fieldId: string) => {
+  const handleChange = (valueForm: any, fieldId: string) => {
     switch (namelist) {
       case 'usuarios':
-        actionFieldId(value, fieldId);
+        actionFieldId(valueForm, fieldId);
         break;
 
       default:
@@ -242,6 +248,8 @@ export default function CrudSimples({
         return value;
       case 'dataTableSessaoHeron':
         return comissao;
+      case 'dataTable':
+        return cargaHoraria;
       default:
         break;
     }
@@ -290,32 +298,43 @@ export default function CrudSimples({
             setOpenConfirm(true);
           }}
           onClickEdit={(item_: any) => {
-            Object.keys(item_).forEach((index: any) => {
+            const elemento = {...item_}
+            Object.keys(elemento).forEach((index: any) => {
               if (
-                typeof item_[index] === 'object' &&
-                !Array.isArray(item_[index]) &&
+                typeof elemento[index] === 'object' &&
+                !Array.isArray(elemento[index]) &&
                 index !== 'terapeuta' &&
                 index.indexOf('Id') === -1
               ) {
-                item_[`${index}Id`] = item_[index];
+                elemento[`${index}Id`] = elemento[index];
                 index = `${index}Id`;
               }
-              setValue(index, item_[index]);
+
+              if (index === "cargaHoraria") {
+                setCargaHoraria(elemento.cargaHoraria)
+              }
+
+              if (index === "comissao") {
+                setComissao(elemento.comissao);
+              }
+
+              setValue(index, elemento[index]);
             });
 
             setIsEdit(true);
-            setItem(item_);
+            setItem(elemento);
             setOpen(true);
 
             if (namelist === 'usuarios') {
-              setValues(item_.permissoesId);
+              setValues(elemento.permissoesId);
             }
 
             if (
-              item_.hasOwnProperty('terapeuta') &&
-              item_?.terapeuta !== null
+              elemento.hasOwnProperty('terapeuta') &&
+              elemento?.terapeuta !== null
             ) {
               setHidden(false);
+
             } else {
               setHidden(true);
               unregister(isTerapeuta, { keepDirtyValues: true });
@@ -334,54 +353,55 @@ export default function CrudSimples({
         />
       </Card>
 
-      <Modal
-        title="Cadastro"
-        open={open}
-        width={namelist === 'usuarios' ? '75vw' : '50vw'}
-        onClose={() => {
-          setOpen(false);
-          reset();
-        }}
-      >
-        {
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            action="#"
-            className="grid gap-6"
-          >
-            <div className="grid grid-cols-6 items-center gap-2">
-              {fields.map((field: any) => (
-                <Input
-                  key={field.id}
-                  labelText={field.labelText}
-                  id={field.id}
-                  type={field.type}
-                  options={setOptions(field)}
-                  validate={
-                    !!field.validate
-                      ? field.validate
-                      : !hidden && { required: 'Campo obrigatório!' }
-                  }
-                  errors={errors}
-                  control={control}
-                  onChange={(values: any) => handleChange(values, field.id)}
-                  hidden={namelist === 'usuarios' && field.hidden && hidden}
-                  value={seValue(field)}
-                  customCol={field.customCol}
-                />
-              ))}
-            </div>
+       
+        <Modal
+          title="Cadastro"
+          open={open}
+          width={namelist === 'usuarios' ? '75vw' : '50vw'}
+          onClose={() => {
+            setOpen(false);
+            reset();
+          }}
+        >
+          {
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              action="#"
+              className="grid gap-6"
+            >
+              <div className="grid grid-cols-6 items-center gap-2">
+                {fields.map((field: any) => (
+                  <Input
+                    key={field.id}
+                    labelText={field.labelText}
+                    id={field.id}
+                    type={field.type}
+                    options={setOptions(field)}
+                    validate={
+                      !!field.validate
+                        ? field.validate
+                        : !hidden && { required: 'Campo obrigatório!' }
+                    }
+                    errors={errors}
+                    control={control}
+                    onChange={(values: any) => handleChange(values, field.id)}
+                    hidden={namelist === 'usuarios' && field.hidden && hidden}
+                    value={seValue(field)}
+                    customCol={field.customCol}
+                  />
+                ))}
+              </div>
 
-            <ButtonHeron
-              text={isEdit ? 'Atualizar' : 'Cadastrar'}
-              type={isEdit ? 'second' : 'primary'}
-              size="full"
-              onClick={handleSubmit(onSubmit)}
-              loading={loading}
-            />
-          </form>
-        }
-      </Modal>
+              <ButtonHeron
+                text={isEdit ? 'Atualizar' : 'Cadastrar'}
+                type={isEdit ? 'second' : 'primary'}
+                size="full"
+                onClick={handleSubmit(onSubmit)}
+                loading={loading}
+              />
+            </form>
+          }
+        </Modal>
 
       <Confirm
         onAccept={handleTrashItem}

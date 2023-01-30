@@ -19,7 +19,6 @@ import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
 import React from 'react';
 
-
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};
 fieldsConstTerapeuta.forEach((field: any) => (fieldsState1[field.id] = ''));

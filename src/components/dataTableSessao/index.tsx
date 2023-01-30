@@ -2,9 +2,8 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { useEffect, useState } from 'react';
 import { InputNumber } from 'primereact/inputnumber';
-import { Input } from '../input';
-import { useForm } from 'react-hook-form';
 import { Dropdown } from 'primereact/dropdown';
+import { moneyFormat } from '../../util/util';
 
 interface DataTableHeronProps {
   value: any[];
@@ -18,7 +17,6 @@ export const DataTableSessaoHeron = ({
   type,
 }: DataTableHeronProps) => {
   const [sessoes, setSessoes] = useState(value);
-  const [sessao, setSessao] = useState('');
   const columns =
     type === 'sessao'
       ? [
@@ -32,24 +30,48 @@ export const DataTableSessaoHeron = ({
           { field: 'tipo', header: 'Tipo Comissão' },
         ];
 
-  const { control } = useForm();
-
   const cellEditor = (options: any) => {
     switch (options.field) {
       case 'valor':
-        return (
-          <InputNumber
-            onValueChange={(e: any) => setSessao(e.target.value)}
-            mode="currency"
-            currency="USD"
-            locale="en-US"
-          />
-        );
+        if (options.rowData.tipo === 'Fixo') {
+          return (
+            <InputNumber
+              onValueChange={(e: any) => {
+                const changeList = [...sessoes];
+                changeList[options.rowIndex].valor = moneyFormat.format(
+                  e.target.value
+                );
+                setSessoes(changeList);
+              }}
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              className="font-sans-serif"
+            />
+          );
+        } else {
+          return (
+            <InputNumber
+              onValueChange={(e: any) => {
+                const changeList = [...sessoes];
+                changeList[options.rowIndex].valor = e.target.value;
+                setSessoes(changeList);
+              }}
+              suffix="%"
+              className="font-sans-serif"
+            />
+          );
+        }
+
       case 'km':
         return (
           <input
             type="number"
-            onInput={(e: any) => setSessao(e.target.value)}
+            onInput={(e: any) => {
+              const changeList = [...sessoes];
+              changeList[options.rowIndex].km = e.target.value;
+              setSessoes(changeList);
+            }}
           />
         );
       case 'tipo':
@@ -60,7 +82,11 @@ export const DataTableSessaoHeron = ({
               { id: 'fixo', nome: 'Fixo' },
               { id: 'porcentagem', nome: '%' },
             ]}
-            onChange={(e: any) => setSessao(e.value.nome)}
+            onChange={(e: any) => {
+              const changeList = [...sessoes];
+              changeList[options.rowIndex].tipo = e.target.value.nome;
+              setSessoes(changeList);
+            }}
             optionLabel="nome"
           />
         );
@@ -73,12 +99,12 @@ export const DataTableSessaoHeron = ({
     if (valueForm.field === 'especialidade' || valueForm.field === 'funcao')
       return;
 
-    let { rowIndex, field } = valueForm;
+    // let { rowIndex, field } = valueForm;
 
-    const list = [...sessoes];
-    list[rowIndex][field] = sessao;
+    // const list = [...sessoes];
+    // list[rowIndex][field] = sessao;
 
-    setSessoes(list);
+    // setSessoes(list);
     onChange(sessoes);
   };
 
