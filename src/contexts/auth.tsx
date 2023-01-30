@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: Props) => {
       sessionStorage.setItem('auth', JSON.stringify(user));
       sessionStorage.setItem('perfil', perfilName);
 
-      if (user.permissoes.length) setPermissionsLogin(user.permissoes);
+      if (user.permissoes.length && setPermissionsLogin) setPermissionsLogin(user.permissoes);
 
       setPerfil(perfilName);
       setUser(user);
