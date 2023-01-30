@@ -15,7 +15,6 @@ import { create, getList, search, update } from '../../server';
 import { Fields } from '../../constants/formFields';
 import { useDropdown } from '../../contexts/dropDown';
 import { moneyFormat } from '../../util/util';
-import { register } from '../../serviceWorkerRegistration';
 
 interface Props {
   namelist: string;
@@ -199,6 +198,7 @@ export default function CrudSimples({
         break;
       case 'cargaHoraria':
         setCargaHoraria(valueForm);
+        setValue('cargaHoraria', valueForm);
         break;
       case 'funcoesId':
         const list = valueForm.map((item: any) => {
