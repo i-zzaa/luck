@@ -103,24 +103,24 @@ export default function Schedule() {
     setOpen(true);
   };
 
-  const renderCalendar = () => {
-    if (!loading) {
-      return evenetsList.length ? (
-        <div className="flex-1">
-          <CalendarComponent
-            openModalEdit={renderModalView}
-            events={evenetsList}
-            onNext={(moment: any) => renderEvents(moment)}
-            onPrev={(moment: any) => renderEvents(moment)}
-          />
-        </div>
-      ) : (
-        <NotFound />
-      );
-    } else {
-      return <LoadingHeron />;
-    }
-  };
+  // const renderCalendar = () => {
+  //   if (!loading) {
+  //     return evenetsList.length ? (
+  //       <div className="flex-1">
+  //         <CalendarComponent
+  //           openModalEdit={renderModalView}
+  //           events={evenetsList}
+  //           onNext={(moment: any) => renderEvents(moment)}
+  //           onPrev={(moment: any) => renderEvents(moment)}
+  //         />
+  //       </div>
+  //     ) : (
+  //       <NotFound />
+  //     );
+  //   } else {
+  //     return <LoadingHeron />;
+  //   }
+  // };
 
   useEffect(() => {
     rendeFiltro;
@@ -152,7 +152,14 @@ export default function Schedule() {
         }}
       />
       <Card>
-        <div className="flex justify-center">{renderCalendar()}</div>
+      <div className="flex-1">
+          <CalendarComponent
+            openModalEdit={renderModalView}
+            events={evenetsList}
+            onNext={(moment: any) => renderEvents(moment)}
+            onPrev={(moment: any) => renderEvents(moment)}
+          />
+        </div>
       </Card>
 
       {openView && (

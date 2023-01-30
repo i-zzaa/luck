@@ -191,7 +191,7 @@ export default function Therapy() {
   }, [renderPatient]);
 
   return (
-    <div className="grid gap-8">
+    <div className="grid">
       <Filter
         id="form-filter-patient"
         legend="Filtro"

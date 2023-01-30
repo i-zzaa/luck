@@ -4,6 +4,7 @@ import { ButtonHeron } from '../../components/button';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { permissionAuth } from '../../contexts/permission';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 
 export interface FilterProps {
   id: string;
@@ -53,8 +54,9 @@ export function Filter({
   });
 
   return (
-    <Card legend={legend}>
-      <form
+    <Accordion >
+          <AccordionTab header={legend}>
+          <form
         id={id}
         action="#"
         onSubmit={handleSubmit(handleSubmit2)}
@@ -150,6 +152,10 @@ export function Filter({
           </>
         </div>
       </form>
-    </Card>
+    </AccordionTab>
+    </Accordion>
+    // <Card legend={legend}>
+
+    // </Card>
   );
 }
