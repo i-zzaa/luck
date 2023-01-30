@@ -70,6 +70,8 @@ export const DataTableHeron = ({ value, onChange }: DataTableHeronProps) => {
   useEffect(() => {
     if (value.length) {
       setCargaHoraria(value);
+    }else {
+      onChange(list);
     }
   }, []);
 
