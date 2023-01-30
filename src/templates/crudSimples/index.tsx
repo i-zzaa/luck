@@ -183,7 +183,8 @@ export default function CrudSimples({
     switch (fieldId) {
       case 'perfilId':
         const valid =
-          valueForm.nome !== 'Terapeuta' && valueForm.nome !== 'Coordenador-terapeuta';
+          valueForm.nome !== 'Terapeuta' &&
+          valueForm.nome !== 'Coordenador-terapeuta';
         setHidden(valid);
         if (!valid) {
           unregister(isTerapeuta, { keepDirtyValues: true });
@@ -197,7 +198,7 @@ export default function CrudSimples({
         setDropDownList({ ...dropDownList, funcoes: especialidadeFuncao });
         break;
       case 'cargaHoraria':
-        setCargaHoraria(valueForm)
+        setCargaHoraria(valueForm);
         break;
       case 'funcoesId':
         const list = valueForm.map((item: any) => {
@@ -298,7 +299,7 @@ export default function CrudSimples({
             setOpenConfirm(true);
           }}
           onClickEdit={(item_: any) => {
-            const elemento = {...item_}
+            const elemento = { ...item_ };
             Object.keys(elemento).forEach((index: any) => {
               if (
                 typeof elemento[index] === 'object' &&
@@ -310,11 +311,11 @@ export default function CrudSimples({
                 index = `${index}Id`;
               }
 
-              if (index === "cargaHoraria") {
-                setCargaHoraria(elemento.cargaHoraria)
+              if (index === 'cargaHoraria') {
+                setCargaHoraria(elemento.cargaHoraria);
               }
 
-              if (index === "comissao") {
+              if (index === 'comissao') {
                 setComissao(elemento.comissao);
               }
 
@@ -334,7 +335,6 @@ export default function CrudSimples({
               elemento?.terapeuta !== null
             ) {
               setHidden(false);
-
             } else {
               setHidden(true);
               unregister(isTerapeuta, { keepDirtyValues: true });
@@ -353,55 +353,54 @@ export default function CrudSimples({
         />
       </Card>
 
-       
-        <Modal
-          title="Cadastro"
-          open={open}
-          width={namelist === 'usuarios' ? '75vw' : '50vw'}
-          onClose={() => {
-            setOpen(false);
-            reset();
-          }}
-        >
-          {
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              action="#"
-              className="grid gap-6"
-            >
-              <div className="grid grid-cols-6 items-center gap-2">
-                {fields.map((field: any) => (
-                  <Input
-                    key={field.id}
-                    labelText={field.labelText}
-                    id={field.id}
-                    type={field.type}
-                    options={setOptions(field)}
-                    validate={
-                      !!field.validate
-                        ? field.validate
-                        : !hidden && { required: 'Campo obrigatório!' }
-                    }
-                    errors={errors}
-                    control={control}
-                    onChange={(values: any) => handleChange(values, field.id)}
-                    hidden={namelist === 'usuarios' && field.hidden && hidden}
-                    value={seValue(field)}
-                    customCol={field.customCol}
-                  />
-                ))}
-              </div>
+      <Modal
+        title="Cadastro"
+        open={open}
+        width={namelist === 'usuarios' ? '75vw' : '50vw'}
+        onClose={() => {
+          setOpen(false);
+          reset();
+        }}
+      >
+        {
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            action="#"
+            className="grid gap-6"
+          >
+            <div className="grid grid-cols-6 items-center gap-2">
+              {fields.map((field: any) => (
+                <Input
+                  key={field.id}
+                  labelText={field.labelText}
+                  id={field.id}
+                  type={field.type}
+                  options={setOptions(field)}
+                  validate={
+                    !!field.validate
+                      ? field.validate
+                      : !hidden && { required: 'Campo obrigatório!' }
+                  }
+                  errors={errors}
+                  control={control}
+                  onChange={(values: any) => handleChange(values, field.id)}
+                  hidden={namelist === 'usuarios' && field.hidden && hidden}
+                  value={seValue(field)}
+                  customCol={field.customCol}
+                />
+              ))}
+            </div>
 
-              <ButtonHeron
-                text={isEdit ? 'Atualizar' : 'Cadastrar'}
-                type={isEdit ? 'second' : 'primary'}
-                size="full"
-                onClick={handleSubmit(onSubmit)}
-                loading={loading}
-              />
-            </form>
-          }
-        </Modal>
+            <ButtonHeron
+              text={isEdit ? 'Atualizar' : 'Cadastrar'}
+              type={isEdit ? 'second' : 'primary'}
+              size="full"
+              onClick={handleSubmit(onSubmit)}
+              loading={loading}
+            />
+          </form>
+        }
+      </Modal>
 
       <Confirm
         onAccept={handleTrashItem}
