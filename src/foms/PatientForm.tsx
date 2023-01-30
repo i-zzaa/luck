@@ -51,6 +51,7 @@ export const PatientForm = ({
     handleSubmit,
     formState: { errors },
     control,
+    setValue
   } = useForm({ defaultValues });
 
   const onSubmit = async (body: any) => {
@@ -118,12 +119,13 @@ export const PatientForm = ({
           return {
             especialidade: item.nome,
             especialidadeId: item.id,
-            valor: moneyFormat.format(80),
+            valor: moneyFormat.format(200),
             km: 0,
           };
         });
 
         setSessoes(list);
+        setValue('sessao', list);
         break;
 
       default:
