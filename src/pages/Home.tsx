@@ -54,33 +54,35 @@ export default function Home() {
   return (
     <>
       <Card>
-        <TextSubtext
-          text={user?.nome}
-          subtext={user?.login}
-          color="violet"
-          size="md"
-          icon="pi pi-id-card"
-          display="grid"
-        />
-        <div className="flex gap-2 col-spam-1 sm:col-spam-2 my-6 sm:my-0  items-center">
-          <Input
-            labelText="Alterar senha"
-            id="senha"
-            type="password"
-            customCol=" w-full"
-            errors={errors}
-            validate={{ required: true }}
-            control={control}
+        <div className="grid sm:grid-cols-2">
+          <TextSubtext
+            text={user?.nome}
+            subtext={user?.login}
+            color="violet"
+            size="md"
+            icon="pi pi-id-card"
+            display="grid"
           />
-
-          <div className=" mt-4 ">
-            <ButtonHeron
-              text="Alterar senha"
-              type="second"
-              icon="pi pi-sync"
-              size="icon"
-              onClick={handleSubmit(handleResetSenha)}
+          <div className="flex gap-2  my-6 sm:my-0  items-center">
+            <Input
+              labelText="Alterar senha"
+              id="senha"
+              type="password"
+              customCol=" w-full"
+              errors={errors}
+              validate={{ required: true }}
+              control={control}
             />
+
+            <div className=" mt-4 ">
+              <ButtonHeron
+                text="Alterar senha"
+                type="second"
+                icon="pi pi-sync"
+                size="icon"
+                onClick={handleSubmit(handleResetSenha)}
+              />
+            </div>
           </div>
         </div>
       </Card>

@@ -1,6 +1,6 @@
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface DataTableHeronProps {
   value: any[];
@@ -8,7 +8,7 @@ interface DataTableHeronProps {
 }
 
 export const DataTableHeron = ({ value, onChange }: DataTableHeronProps) => {
-  const list = value || [
+  const list = [
     {
       dias: 'Segunda',
       entrada: '08:00',
@@ -46,7 +46,7 @@ export const DataTableHeron = ({ value, onChange }: DataTableHeronProps) => {
     },
   ];
 
-  const [cargaHoraria, setCargaHoraria] = useState(list);
+  const [cargaHoraria, setCargaHoraria] = useState<any[]>(list);
   const [hours, sethours] = useState('');
 
   const columns = [
@@ -66,6 +66,12 @@ export const DataTableHeron = ({ value, onChange }: DataTableHeronProps) => {
     setCargaHoraria(horarios);
     onChange(horarios);
   };
+
+  useEffect(() => {
+    if (value.length) {
+      setCargaHoraria(value)
+    }
+  }, [])
 
   return (
     <div className="card p-fluid">
