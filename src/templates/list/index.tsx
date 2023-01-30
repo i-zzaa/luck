@@ -248,7 +248,7 @@ export function List({
                     />
                   )}
               </div>
-              <div className="text-end">
+              {item?.vaga?.dataContato && <div className="text-end">
                 <TextSubtext
                   className="font-sans-serif"
                   text="Inclusão: "
@@ -257,7 +257,7 @@ export function List({
                   color="gray-dark"
                   display="flex"
                 />
-              </div>
+              </div>}
             </div>
           )}
         </ItemList.Complete>
