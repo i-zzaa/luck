@@ -100,9 +100,9 @@ export default function Financial() {
   const headerTemplate = (data: any, modulo: string) => {
     return (
       <span className="">
-        <span className="image-text mr-8">{data[modulo]} </span>
-        <span className="image-text mr-8">
-          Valor total:
+        <span className="image-text mr-24">{data[modulo]} </span>
+        <span className="image-text mr-24">
+          Valor total: {" "}
           <span className="font-sans-serif">
             {reducerValorTotal(data[modulo], modulo)}
           </span>
@@ -159,7 +159,7 @@ export default function Financial() {
   };
 
   const pacienteBodyTemplate = (rowData: any) => {
-    return !rowData.devolutiva ? (
+    return rowData.devolutiva ? (
       <div className="flex gap-2">
         <i className="pi pi-tag text-violet-600" />
         {rowData.paciente}
@@ -257,7 +257,20 @@ export default function Financial() {
                   <Column
                     field="data"
                     header="Data"
-                    // body={countryBodyTemplate}
+                    body={({ data }: any) => (
+                      <span className="font-sans-serif">
+                        {data}
+                      </span>
+                    )}
+                  ></Column>
+                  <Column
+                    field="horas"
+                    header="Tempo"
+                    body={({ horas }: any) => (
+                      <span className="font-sans-serif">
+                        {horas}
+                      </span>
+                    )}
                   ></Column>
                   <Column field="status" header="Status"></Column>
                   <Column
