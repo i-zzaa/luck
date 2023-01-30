@@ -300,7 +300,7 @@ const funcaoFields = [
     labelText: 'Especialidade',
     labelFor: 'especialidades',
     id: 'especialidadeId',
-    name: 'especialidade',
+    name: 'especialidades',
     autoComplete: 'especialidades',
     isRequired: false,
     placeholder: 'Especialidades',
