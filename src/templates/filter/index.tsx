@@ -55,7 +55,7 @@ export function Filter({
 
   return (
     <Accordion >
-          <AccordionTab header={legend}>
+          <AccordionTab header={legend} tabIndex={0}>
           <form
         id={id}
         action="#"

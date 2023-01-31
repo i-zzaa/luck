@@ -87,26 +87,13 @@ export const CalendarComponent = ({
     }
   };
 
-  useEffect(() => {
-    // if (calendarRef.current) {
-    //   document
-    //     .getElementsByClassName('fc-prev-button')[0]
-    //     .addEventListener('click', (e) => {
-    //       // @ts-ignore
-    //       const calendar = calendarRef.current && calendarRef.current.getApi();
-    //       let moment = getInfo(calendar);
-    //       onPrev(moment);
-    //     });
-    //   document
-    //     .getElementsByClassName('fc-next-button')[0]
-    //     .addEventListener('click', (e) => {
-    //       // @ts-ignore
-    //       const calendar = calendarRef.current && calendarRef.current.getApi();
-    //       let moment = getInfo(calendar);
-    //       onNext(moment);
-    //     });
-    // }
-  }, []);
+  // useEffect(() => {
+  //   if (calendarRef.current) {
+  //     const calendar: any = document.querySelector('#root > div > div.min-h-full.overflow-hidden > main > div > div > div > fieldset > div > div > div > div > div')
+  //     calendar.style.height = 'calc(100vh - 400px)'
+  //     calendar.style.overflow = 'hidden'
+  //   }
+  // }, []);
 
   return (
     <div>
