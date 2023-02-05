@@ -49,7 +49,7 @@ export default function CrudSimples({
   ];
 
   const [comissao, setComissao] = useState([]);
-  const [cargaHoraria, setCargaHoraria] = useState([]);
+  const [cargaHoraria, setCargaHoraria] = useState({});
 
   const [fields, setFields] = useState([]);
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -305,6 +305,9 @@ export default function CrudSimples({
           }}
           onClickEdit={(item_: any) => {
             const elemento = { ...item_ };
+
+            setCargaHoraria({});
+            setComissao([]);
             Object.keys(elemento).forEach((index: any) => {
               if (
                 typeof elemento[index] === 'object' &&
