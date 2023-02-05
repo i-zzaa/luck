@@ -38,9 +38,9 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    if (!item.vaga.status) return null;
+    if (!item.status || item.statusPacienteId === 5) return null;
 
-    const status = `${item.vaga.status?.nome}`;
+    const status = `${item.status?.nome}`;
     switch (status) {
       case 'Urgente':
         return (
