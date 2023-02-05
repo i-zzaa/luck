@@ -397,7 +397,7 @@ const statusEventosFields = [
     customCol: 'col-span-1',
     type: 'switch',
     validate: {
-      required: true,
+      required: false,
     },
   },
 ];
