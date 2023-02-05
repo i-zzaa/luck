@@ -29,7 +29,7 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
       <>
         <span>
           {text}
-          <span className="font-sans-serif ml-2">{`${current}/${diffTotal}`}</span>{' '}
+          <span className="font-inter ml-2">{`${current}/${diffTotal}`}</span>{' '}
         </span>
       </>
     );
@@ -73,7 +73,7 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
         </p>
         <br />
 
-        <p className="font-sans-serif font-bold">
+        <p className="font-inter font-bold">
           {evento.date} &bull; {`${evento.start} até ${evento.end}`}
         </p>
         {evento.frequencia.id !== 1 && (

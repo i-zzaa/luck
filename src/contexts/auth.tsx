@@ -52,7 +52,8 @@ export const AuthProvider = ({ children }: Props) => {
       sessionStorage.setItem('auth', JSON.stringify(user));
       sessionStorage.setItem('perfil', perfilName);
 
-      if (user.permissoes.length && setPermissionsLogin) setPermissionsLogin(user.permissoes);
+      if (user.permissoes.length && setPermissionsLogin)
+        setPermissionsLogin(user.permissoes);
 
       setPerfil(perfilName);
       setUser(user);
@@ -69,7 +70,9 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const msgError = (data: any) => {
-    const message = data?.data ? data?.data?.message : 'Usuário não encontrado!';
+    const message = data?.data
+      ? data?.data?.message
+      : 'Usuário não encontrado!';
     renderToast({
       type: 'failure',
       title: data.status,

@@ -311,7 +311,7 @@ function itemListComplete({
                   text={textSecondCenter}
                   size="md"
                   color="gray-dark"
-                  className="font-sans-serif"
+                  className="font-inter"
                 />
               </div>
             ) : (

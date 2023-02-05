@@ -51,7 +51,7 @@ export const PatientForm = ({
     handleSubmit,
     formState: { errors },
     control,
-    setValue
+    setValue,
   } = useForm({ defaultValues });
 
   const onSubmit = async (body: any) => {
