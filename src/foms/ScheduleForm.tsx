@@ -57,7 +57,7 @@ export const ScheduleForm = ({ especialidades, onSubmit }: Props) => {
                 type="switch"
                 errors={errors}
                 control={control}
-                value={field.agendado}
+                // value={field.agendado}
                 customCol="teste "
               />
             );

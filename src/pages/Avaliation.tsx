@@ -135,6 +135,7 @@ export default function Avaliation() {
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
+            statusPacienteId: statusPacienteId.queue_avaliation,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -171,6 +172,7 @@ export default function Avaliation() {
       id: patient.vaga.id,
       agendar: agendar,
       desagendar: desagendar,
+      statusPacienteId: statusPacienteId.queue_avaliation,
     };
 
     setOpenSchedule(false);
@@ -273,6 +275,7 @@ export default function Avaliation() {
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
+                  statusPacienteId: statusPacienteId.queue_avaliation
                 },
                 { naFila: !patient.vaga.naFila }
               );
