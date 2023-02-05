@@ -4,6 +4,15 @@ on:
       - main
 name: 🚀 Deploy website on push
 jobs:
+  check-bats-version:
+    name: 🎉 Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
+      - name: Install and build
+      - run: npm i
+      - run: npm run build   
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
