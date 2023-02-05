@@ -134,6 +134,7 @@ export default function Patient() {
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
+            statusPacienteId: statusPacienteId.crud_therapy,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -170,6 +171,7 @@ export default function Patient() {
       id: patient.vaga.id,
       agendar: agendar,
       desagendar: desagendar,
+      statusPacienteId: statusPacienteId.crud_therapy,
     };
 
     setOpenSchedule(false);
@@ -272,6 +274,7 @@ export default function Patient() {
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
+                  statusPacienteId: statusPacienteId.crud_therapy,
                 },
                 { naFila: !patient.vaga.naFila }
               );

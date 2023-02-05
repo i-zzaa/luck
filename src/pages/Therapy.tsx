@@ -130,6 +130,7 @@ export default function Therapy() {
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
+            statusPacienteId: statusPacienteId.queue_therapy,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -161,6 +162,7 @@ export default function Therapy() {
 
   const handleScheduleResponse = (agendar: number[], desagendar: number[]) => {
     const body: any = {
+      statusPacienteId: statusPacienteId.queue_therapy,
       pacienteId: patient.id,
       vagaId: patient.vaga.id,
       id: patient.vaga.id,
@@ -268,6 +270,7 @@ export default function Therapy() {
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
+                  statusPacienteId: statusPacienteId.queue_therapy
                 },
                 { naFila: !patient.vaga.naFila }
               );

@@ -225,7 +225,7 @@ export const CalendarForm = ({
             control={control}
             onChange={() => {
               const frequencia = getValues('frequencia');
-              if (frequencia.nome === 'Recorrente') {
+              if (frequencia && frequencia?.nome === 'Recorrente') {
                 const dataInicio = getValues('dataInicio');
                 const date = moment(dataInicio); // Thursday Feb 2015
                 const dow = Number(date.day());
