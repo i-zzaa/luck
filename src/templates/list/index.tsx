@@ -236,7 +236,7 @@ export function List({
                     display="flex"
                   />
                 )}
-                {item.vaga?.dataVoltouAba &&
+                {/* {item.vaga?.dataVoltouAba &&
                   item.statusPacienteId < statusPacienteId.crud_therapy && (
                     <TextSubtext
                       className="font-sans-serif"
@@ -246,7 +246,7 @@ export function List({
                       color="gray-dark"
                       display="flex"
                     />
-                  )}
+                  )} */}
               </div>
               {item?.vaga?.dataContato && <div className="text-end">
                 <TextSubtext
