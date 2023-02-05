@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - main
+name: 🚀 Deploy website on push
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
+
+      - name: Install and build
+      - run: npm i
+      - run: npm run build
+
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.ftp_host }}
+          username: ${{ secrets.ftp_user }}
+          password: ${{ secrets.ftp_password }}
+          server-dir: app/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/src/**
+            **/.storybook/**
+            **/public/**
+            **/.gitignore
+            **/.prettierrc.json
+            **/index.html
+            **/package.json
+            **/postcss.config.cjs
+            **/primereact.d.ts
+            **/serve.js
+            **/tailwind.config.cjs
+            **/tsconfig.json
+            **/vite.config.ts
+            **/yarn.lock
