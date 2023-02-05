@@ -38,7 +38,7 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    if (!item.status || item.statusPacienteId === 5) return null;
+    if (!item.status || item.statusPacienteId === statusPacienteId.crud_therapy) return null;
 
     const status = `${item.status?.nome}`;
     switch (status) {
