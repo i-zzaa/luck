@@ -1,4 +1,4 @@
-import {  useState } from 'react';
+import {  useEffect, useState } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Input } from '../input';
 import { InputSwitch } from 'primereact';
@@ -30,7 +30,7 @@ export const DataTableHeron = ({
     '20:00': false,
   };
 
- const WORKINGHOURS = value ||{
+ const WORKINGHOURS =Object.keys(value).length ? value :   {
     'Segunda-feira': HOURS,
     'Terca-feira': HOURS,
     'Quarta-feira': HOURS,
@@ -40,6 +40,10 @@ export const DataTableHeron = ({
  }
   
   const [cargaHoraria, setCargaHoraria] = useState<any>(WORKINGHOURS);
+
+  // useEffect(()=> {
+  //   if (Object.keys(value).length ) setCargaHoraria(value)
+  // }, [])
 
   const renderHours = (day: string) => {
     return Object.keys(cargaHoraria[day]).map((hour: any) => (
@@ -59,28 +63,6 @@ export const DataTableHeron = ({
         }}
         customCol="w-24 font-inter"
       />
-
-    //   <div className="grid grid-cols-6 justify-start items-center  w-24 ">
-    //   <span className="col-span-4 text-violet-800 font-inter">
-    //     { hour }
-    //   </span>
-    //   <div className="col-span-2">
-    //   <InputSwitch
-    //   checked={cargaHoraria[day][hour]}
-    //   color="#685ec5"
-    //   onChange={(valueItem: any) => {
-    //       const cargaHorariaTmp = {...cargaHoraria}
-    //       cargaHorariaTmp[day][hour] = valueItem
-    //       setCargaHoraria(cargaHorariaTmp);
-
-    //       onChange(cargaHorariaTmp)
-    //   }}
-    // />
-    //   </div>
-    // </div>
-
-
-
     ));
   };
 
