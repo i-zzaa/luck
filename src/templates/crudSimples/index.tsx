@@ -310,6 +310,7 @@ export default function CrudSimples({
                 typeof elemento[index] === 'object' &&
                 !Array.isArray(elemento[index]) &&
                 index !== 'terapeuta' &&
+                index !== 'cargaHoraria' && 
                 index.indexOf('Id') === -1
               ) {
                 elemento[`${index}Id`] = elemento[index];

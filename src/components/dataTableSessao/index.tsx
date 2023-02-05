@@ -33,7 +33,7 @@ export const DataTableSessaoHeron = ({
   const cellEditor = (options: any) => {
     switch (options.field) {
       case 'valor':
-        if (options.rowData.tipo === 'Fixo' ||  type === 'sessao') {
+        if (options.rowData.tipo === 'Fixo' || type === 'sessao') {
           return (
             <InputNumber
               onValueChange={(e: any) => {
@@ -46,7 +46,7 @@ export const DataTableSessaoHeron = ({
               mode="currency"
               currency="BRL"
               locale="pt-BR"
-              className="font-sans-serif"
+              className="font-inter"
             />
           );
         } else {
@@ -58,7 +58,7 @@ export const DataTableSessaoHeron = ({
                 setSessoes(changeList);
               }}
               suffix="%"
-              className="font-sans-serif"
+              className="font-inter"
             />
           );
         }
@@ -120,7 +120,7 @@ export const DataTableSessaoHeron = ({
       <DataTable
         value={sessoes}
         editMode="cell"
-        className="editable-cells-table font-sans-serif"
+        className="editable-cells-table font-inter"
         responsiveLayout="scroll"
       >
         {columns.map(({ field, header }) => {

@@ -448,19 +448,19 @@ export const CalendarForm = ({
             control={control}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
           />
-            <Input
-              labelText="Local"
-              id="localidade"
-              type="select"
-              customCol="col-span-6 sm:col-span-3"
-              errors={errors}
-              control={control}
-              options={dropDownList?.localidades}
-              validate={{
-                required: true,
-              }}
-              disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
-            />
+          <Input
+            labelText="Local"
+            id="localidade"
+            type="select"
+            customCol="col-span-6 sm:col-span-3"
+            errors={errors}
+            control={control}
+            options={dropDownList?.localidades}
+            validate={{
+              required: true,
+            }}
+            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+          />
           <Input
             labelText="Status Eventos"
             id="statusEventos"

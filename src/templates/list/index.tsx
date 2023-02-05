@@ -38,7 +38,8 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    if (!item.status || item.statusPacienteId === statusPacienteId.crud_therapy) return null;
+    if (!item.status || item.statusPacienteId === statusPacienteId.crud_therapy)
+      return null;
 
     const status = `${item.status?.nome}`;
     switch (status) {
@@ -228,7 +229,7 @@ export function List({
                 {renderStatus(item)}
                 {item.vaga?.dataDevolutiva && (
                   <TextSubtext
-                    className="font-sans-serif"
+                    className="font-inter"
                     text="Devolutiva:"
                     subtext={formatdate(item.vaga?.dataDevolutiva)}
                     size="sm"
@@ -239,7 +240,7 @@ export function List({
                 {/* {item.vaga?.dataVoltouAba &&
                   item.statusPacienteId < statusPacienteId.crud_therapy && (
                     <TextSubtext
-                      className="font-sans-serif"
+                      className="font-inter"
                       text="Voltou Aba:"
                       subtext={formatdate(item.vaga?.dataVoltouAba)}
                       size="sm"
@@ -248,16 +249,18 @@ export function List({
                     />
                   )} */}
               </div>
-              {item?.vaga?.dataContato && <div className="text-end">
-                <TextSubtext
-                  className="font-sans-serif"
-                  text="Inclusão: "
-                  subtext={formatdate(item?.vaga?.dataContato)}
-                  size="sm"
-                  color="gray-dark"
-                  display="flex"
-                />
-              </div>}
+              {item?.vaga?.dataContato && (
+                <div className="text-end">
+                  <TextSubtext
+                    className="font-inter"
+                    text="Inclusão: "
+                    subtext={formatdate(item?.vaga?.dataContato)}
+                    size="sm"
+                    color="gray-dark"
+                    display="flex"
+                  />
+                </div>
+              )}
             </div>
           )}
         </ItemList.Complete>

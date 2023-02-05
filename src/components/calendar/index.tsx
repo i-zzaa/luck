@@ -7,7 +7,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import '@fullcalendar/common/main.min.css';
 import '@fullcalendar/daygrid/main.min.css';
 import '@fullcalendar/timegrid/main.min.css';
-import rrulePlugin from '@fullcalendar/rrule'
+import rrulePlugin from '@fullcalendar/rrule';
 import interactionPlugin from '@fullcalendar/interaction';
 
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
@@ -25,7 +25,12 @@ import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
-import { formatdateeua, formatdateEuaAddDay, getPrimeiroDoMes, getUltimoDoMes } from '../../util/util';
+import {
+  formatdateeua,
+  formatdateEuaAddDay,
+  getPrimeiroDoMes,
+  getUltimoDoMes,
+} from '../../util/util';
 import moment from 'moment';
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
@@ -35,14 +40,14 @@ export const CalendarComponent = ({
   eventMouseEnter,
   onNext,
   onPrev,
-  dateClick
+  dateClick,
 }: any) => {
   const calendarRef = useRef(null);
 
   const getInfo = (calendar: any, eventType: string) => {
     // let currentDate = calendar.getCurrentData().currentDate;
 
-    const prev = eventType === 'prev'
+    const prev = eventType === 'prev';
     let type = calendar.getCurrentData().currentViewType;
     let month, year, start, end, startDate, endDate;
 
@@ -50,7 +55,7 @@ export const CalendarComponent = ({
 
     switch (type) {
       case 'dayGridMonth':
-        month = prev ?  activeDate.getMonth() -1 :  activeDate.getMonth() + 1;
+        month = prev ? activeDate.getMonth() - 1 : activeDate.getMonth() + 1;
         year = activeDate.getFullYear();
         start = getPrimeiroDoMes(year, month);
         end = getUltimoDoMes(year, month);
@@ -62,12 +67,16 @@ export const CalendarComponent = ({
         startDate = calendar.getCurrentData().dateProfile.activeRange.start;
         endDate = calendar.getCurrentData().dateProfile.activeRange.end;
 
-        const momentStart =  moment(
+        const momentStart = moment(
           calendar.getCurrentData().dateProfile.activeRange.start
-        )
-        const momentEnd = moment(calendar.getCurrentData().dateProfile.activeRange.end)
-        start = prev ?  momentStart.subtract(7, 'days') : momentStart.add(7, 'days');
-        end = prev ?  momentEnd.subtract(7, 'days') : momentEnd.add(7, 'days');
+        );
+        const momentEnd = moment(
+          calendar.getCurrentData().dateProfile.activeRange.end
+        );
+        start = prev
+          ? momentStart.subtract(7, 'days')
+          : momentStart.add(7, 'days');
+        end = prev ? momentEnd.subtract(7, 'days') : momentEnd.add(7, 'days');
 
         return {
           type: 'timeGridWeek',
@@ -76,8 +85,10 @@ export const CalendarComponent = ({
         };
 
       case 'timeGridDay':
-        startDate =  prev ? moment(activeDate).subtract(1, 'days') :  moment(activeDate).add(1, 'days');
-        endDate = prev ?  moment(activeDate) :  moment(activeDate).add(2, 'days');
+        startDate = prev
+          ? moment(activeDate).subtract(1, 'days')
+          : moment(activeDate).add(1, 'days');
+        endDate = prev ? moment(activeDate) : moment(activeDate).add(2, 'days');
         return {
           type: 'timeGridDay',
           start: startDate.format('YYYY-MM-DD'),
@@ -91,17 +102,25 @@ export const CalendarComponent = ({
 
   useEffect(() => {
     if (calendarRef.current) {
-      const calendar: any = document.querySelector('#root > div > div.min-h-full.overflow-hidden > main > div > div > div > fieldset > div > div > div > div > div')
-      calendar.style.height = 'calc(100vh - 200px)'
-      calendar.style.overflow = 'hidden'
+      const calendar: any = document.querySelector(
+        '#root > div > div.min-h-full.overflow-hidden > main > div > div > div > fieldset > div > div > div > div > div'
+      );
+      calendar.style.height = 'calc(100vh - 200px)';
+      calendar.style.overflow = 'hidden';
     }
   }, []);
 
   return (
     <div>
-      <div className="card text-sm font-sans-serif">
+      <div className="card text-sm font-inter">
         <FullCalendar
-          plugins={[interactionPlugin , rrulePlugin, dayGridPlugin, listPlugin, timeGridPlugin]}
+          plugins={[
+            interactionPlugin,
+            rrulePlugin,
+            dayGridPlugin,
+            listPlugin,
+            timeGridPlugin,
+          ]}
           locale="pt"
           navLinks
           timeZone="America/Sao_Paulo"
@@ -135,7 +154,7 @@ export const CalendarComponent = ({
             day: 'Dia',
             list: 'Lista',
           }}
-          dateClick={({ date })=> dateClick(formatdateEuaAddDay(date))}
+          dateClick={({ date }) => dateClick(formatdateEuaAddDay(date))}
           eventMouseEnter={eventMouseEnter}
           eventContent={(arg: any) => {
             // let italicEl = document.createElement('i');

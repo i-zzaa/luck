@@ -102,7 +102,7 @@ export default function Schedule() {
   const renderModalEdit = () => {
     setOpenView(false);
     setOpen(true);
-    setIsEdit(true)
+    setIsEdit(true);
   };
 
   // const renderCalendar = () => {
@@ -151,20 +151,20 @@ export default function Schedule() {
         onInclude={() => {
           setEvent(null);
           setOpen(true);
-          setIsEdit(false)
+          setIsEdit(false);
         }}
       />
       <Card>
-      <div className="flex-1">
+        <div className="flex-1">
           <CalendarComponent
             openModalEdit={renderModalView}
             events={evenetsList}
             onNext={(moment: any) => renderEvents(moment)}
             onPrev={(moment: any) => renderEvents(moment)}
             dateClick={(moment: any) => {
-              setEvent({dataInicio: moment})
-              setOpen(true)
-              setIsEdit(false)
+              setEvent({ dataInicio: moment });
+              setOpen(true);
+              setIsEdit(false);
             }}
           />
         </div>

@@ -107,13 +107,13 @@ export default function Financial() {
         <span className="image-text mr-24">{data[modulo]} </span>
         <span className="image-text mr-24">
           Valor total:{' '}
-          <span className="font-sans-serif">
+          <span className="font-inter">
             {reducerValorTotal(data[modulo], modulo)}
           </span>
         </span>
         <span className="image-text">
           Total de Horas:{' '}
-          <span className="font-sans-serif">
+          <span className="font-inter">
             {reducerHorasTotal(data[modulo], modulo)}
           </span>
         </span>
@@ -196,7 +196,7 @@ export default function Financial() {
                   <span className="text-gray-600 text-sm">
                     {geral.especialidade}
                   </span>
-                  <span className="font-sans-serif">{geral.nome}</span>
+                  <span className="font-inter">{geral.nome}</span>
                 </div>
               </div>
             </Card>
@@ -206,7 +206,7 @@ export default function Financial() {
                   <i className="pi pi-stopwatch" />
                   <div className="grid">
                     <span className="text-gray-600 text-sm">Horas</span>
-                    <span className="font-sans-serif">{geral.horas}</span>
+                    <span className="font-inter">{geral.horas}</span>
                   </div>
                 </div>
 
@@ -214,7 +214,7 @@ export default function Financial() {
                   <i className="pi pi-car" />
                   <div className="grid">
                     <span className="text-gray-600 text-sm">km</span>
-                    <span className="font-sans-serif">{geral.valorKm}</span>
+                    <span className="font-inter">{geral.valorKm}</span>
                   </div>
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function Financial() {
                 <i className="pi pi-money-bill" />
                 <div className="grid">
                   <span className="text-gray-600 text-sm">Total total</span>
-                  <span className="font-sans-serif">
+                  <span className="font-inter">
                     {moneyFormat.format(geral.valorTotal)}
                   </span>
                 </div>
@@ -262,14 +262,14 @@ export default function Financial() {
                     field="data"
                     header="Data"
                     body={({ data }: any) => (
-                      <span className="font-sans-serif">{data}</span>
+                      <span className="font-inter">{data}</span>
                     )}
                   ></Column>
                   <Column
                     field="horas"
                     header="Tempo"
                     body={({ horas }: any) => (
-                      <span className="font-sans-serif">{horas}</span>
+                      <span className="font-inter">{horas}</span>
                     )}
                   ></Column>
                   <Column field="status" header="Status"></Column>
@@ -293,7 +293,7 @@ export default function Financial() {
                     field="sessao"
                     header="Valor da Sessão"
                     body={({ sessao }: any) => (
-                      <span className="font-sans-serif">
+                      <span className="font-inter">
                         {moneyFormat.format(sessao)}
                       </span>
                     )}
@@ -302,7 +302,7 @@ export default function Financial() {
                     field="valorSessao"
                     header="Comissão"
                     body={({ valorSessao }: any) => (
-                      <span className="font-sans-serif">
+                      <span className="font-inter">
                         {moneyFormat.format(valorSessao)}
                       </span>
                     )}
@@ -311,7 +311,7 @@ export default function Financial() {
                     field="valorTotal"
                     header="Valor Total"
                     body={({ valorTotal }: any) => (
-                      <span className="font-sans-serif">
+                      <span className="font-inter">
                         {moneyFormat.format(valorTotal)}
                       </span>
                     )}
@@ -352,7 +352,7 @@ export default function Financial() {
                     <i className="pi pi-stopwatch" />
                     <div className="grid">
                       <span className="text-gray-600 text-sm">Horas</span>
-                      <span className="font-sans-serif">{geral.horas}</span>
+                      <span className="font-inter">{geral.horas}</span>
                     </div>
                   </div>
 
@@ -360,14 +360,14 @@ export default function Financial() {
                     <i className="pi pi-car" />
                     <div className="grid">
                       <span className="text-gray-600 text-sm">km</span>
-                      <span className="font-sans-serif">{geral.valorKm}</span>
+                      <span className="font-inter">{geral.valorKm}</span>
                     </div>
                   </div>
                   <div className="flex gap-4 items-center">
                     <i className="pi pi-money-bill" />
                     <div className="grid">
                       <span className="text-gray-600 text-sm">Total total</span>
-                      <span className="font-sans-serif">
+                      <span className="font-inter">
                         {moneyFormat.format(geral.valorTotal)}
                       </span>
                     </div>
@@ -388,7 +388,7 @@ export default function Financial() {
                             ></div>
                             <div className="grid">
                               <span> {item} </span>
-                              <span className="font-sans-serif">
+                              <span className="font-inter">
                                 {' '}
                                 {geral.especialidadeSessoes[item]}{' '}
                               </span>
@@ -431,7 +431,7 @@ export default function Financial() {
                   field="data"
                   header="Data"
                   body={({ data }: any) => (
-                    <span className="font-sans-serif">{data}</span>
+                    <span className="font-inter">{data}</span>
                   )}
                   sortable
                 ></Column>
@@ -457,7 +457,7 @@ export default function Financial() {
                   header="Valor da Sessão"
                   sortable
                   body={({ sessao }: any) => (
-                    <span className="font-sans-serif">
+                    <span className="font-inter">
                       {moneyFormat.format(sessao)}
                     </span>
                   )}

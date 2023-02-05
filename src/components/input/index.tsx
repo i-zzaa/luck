@@ -153,7 +153,7 @@ export function Input({
                   </span>
                   <div className="col-span-2">
                     <InputSwitch
-                      checked={field.value}
+                      checked={value || field.value}
                       color="#685ec5"
                       value={value}
                       disabled={disabled}
@@ -180,7 +180,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={'inputAnimado font-sans-serif' + customClass}
+                className={'inputAnimado font-inter' + customClass}
                 mask="(99) 9999-9999"
                 onChange={(e: any) => {
                   return field.onChange(e.value);
@@ -227,7 +227,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={'inputAnimado font-sans-serif ' + customClass}
+                className={'inputAnimado font-inter ' + customClass}
                 disabled={disabled}
                 onInput={(e: any) => {
                   field.onChange(e);
@@ -245,7 +245,7 @@ export function Input({
             rules={validate}
             render={({ field }: any) => (
               <div
-                className={'inputAnimado font-sans-serif ' + customClass}
+                className={'inputAnimado font-inter ' + customClass}
                 id={field.id}
               >
                 <div className="p-inputgroup">
@@ -315,6 +315,7 @@ export function Input({
             render={({ field }: any) => (
               <DataTableHeron
                 value={value}
+                control={control}
                 onChange={(e: any) => {
                   field.onChange(e);
                   onChange && onChange(e);
