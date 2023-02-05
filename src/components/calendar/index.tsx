@@ -7,7 +7,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import '@fullcalendar/common/main.min.css';
 import '@fullcalendar/daygrid/main.min.css';
 import '@fullcalendar/timegrid/main.min.css';
-import rrulePlugin from '@fullcalendar/rrule';
+import rrulePlugin from '@fullcalendar/rrule'
+import interactionPlugin from '@fullcalendar/interaction';
 
 // import FullCalendar from "@fullcalendar/react"; // must go before plugins
 // import { FullCalendar } from 'primereact/fullcalendar';
@@ -24,7 +25,7 @@ import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 // import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
-import { getPrimeiroDoMes, getUltimoDoMes } from '../../util/util';
+import { formatdateeua, formatdateEuaAddDay, getPrimeiroDoMes, getUltimoDoMes } from '../../util/util';
 import moment from 'moment';
 // import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
@@ -34,6 +35,7 @@ export const CalendarComponent = ({
   eventMouseEnter,
   onNext,
   onPrev,
+  dateClick
 }: any) => {
   const calendarRef = useRef(null);
 
@@ -99,7 +101,7 @@ export const CalendarComponent = ({
     <div>
       <div className="card text-sm font-sans-serif">
         <FullCalendar
-          plugins={[dayGridPlugin, listPlugin, timeGridPlugin]}
+          plugins={[interactionPlugin , rrulePlugin, dayGridPlugin, listPlugin, timeGridPlugin]}
           locale="pt"
           navLinks
           timeZone="America/Sao_Paulo"
@@ -133,6 +135,7 @@ export const CalendarComponent = ({
             day: 'Dia',
             list: 'Lista',
           }}
+          dateClick={({ date })=> dateClick(formatdateEuaAddDay(date))}
           eventMouseEnter={eventMouseEnter}
           eventContent={(arg: any) => {
             // let italicEl = document.createElement('i');

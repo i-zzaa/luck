@@ -68,7 +68,12 @@ export const formatdate = (date: any) => {
 };
 
 export const formatdateeua = (date: any) => {
+  moment.locale('pt-br');
   return moment(date).format('YYYY-MM-DD');
+};
+
+export const formatdateEuaAddDay = (date: any) => {
+  return moment(date).add(1, 'days').format('YYYY-MM-DD');
 };
 
 export const diffWeek = (dataInicio: any, dataAtual: any) => {

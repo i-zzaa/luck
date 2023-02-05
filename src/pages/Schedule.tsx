@@ -33,6 +33,7 @@ export default function Schedule() {
 
   const [event, setEvent] = useState<any>();
   const [open, setOpen] = useState<boolean>(false);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
   const [openView, setOpenView] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
@@ -101,6 +102,7 @@ export default function Schedule() {
   const renderModalEdit = () => {
     setOpenView(false);
     setOpen(true);
+    setIsEdit(true)
   };
 
   // const renderCalendar = () => {
@@ -149,6 +151,7 @@ export default function Schedule() {
         onInclude={() => {
           setEvent(null);
           setOpen(true);
+          setIsEdit(false)
         }}
       />
       <Card>
@@ -158,6 +161,11 @@ export default function Schedule() {
             events={evenetsList}
             onNext={(moment: any) => renderEvents(moment)}
             onPrev={(moment: any) => renderEvents(moment)}
+            dateClick={(moment: any) => {
+              setEvent({dataInicio: moment})
+              setOpen(true)
+              setIsEdit(false)
+            }}
           />
         </div>
       </Card>
@@ -180,7 +188,7 @@ export default function Schedule() {
         >
           <CalendarForm
             value={event}
-            isEdit={!!event}
+            isEdit={isEdit}
             screen="calendar"
             statusPacienteId={statusPacienteId.therapy}
             onClose={() => {
