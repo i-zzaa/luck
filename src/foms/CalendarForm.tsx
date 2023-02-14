@@ -490,7 +490,7 @@ export const CalendarForm = ({
 
         {hasPermition('AGENDA_EVENTO_BOTAO_ATUALIZAR_SALVAR') ? (
           <ButtonHeron
-            text={isEdit ? 'Atualizar' : 'Cadastrar'}
+            text={isEdit ? 'Atualizar' : 'Agendar'}
             type={isEdit ? 'second' : 'primary'}
             size="full"
             onClick={handleSubmit(handleConfirm)}
