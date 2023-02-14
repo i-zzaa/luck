@@ -129,7 +129,7 @@ export function List({
       const textSecondRight = item?.convenio ? item?.convenio.nome : '';
       const textFooter = item?.vaga?.observacao;
       const DISABLED = !!item?.disabled;
-      let typeButtonFooter: 'agendado' | 'devolutiva' | 'retornar';
+      let typeButtonFooter: 'agendar' | 'devolutiva' | 'retornar';
 
       const buttonFooter = { text: '', icon: '', type: 'second', size: 'md' };
       switch (true) {
@@ -137,11 +137,11 @@ export function List({
           item.vaga.naFila &&
           !item.vaga.devolutiva &&
           hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
-          buttonFooter.text = 'Agendado';
+          buttonFooter.text = 'Agendar';
           buttonFooter.icon = 'pi pi-calendar-minus';
           buttonFooter.type = 'primary';
           buttonFooter.size = 'md';
-          typeButtonFooter = 'agendado';
+          typeButtonFooter = 'agendar';
           break;
         case item.statusPacienteId < statusPacienteId.therapy &&
           !item.vaga.naFila &&
