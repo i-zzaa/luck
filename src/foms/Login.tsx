@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { ButtonHeron, Input } from '../components/index';
 import { loginFields } from '../constants/formFields';
 import { useAuth } from '../contexts/auth';
+import { useToast } from '../contexts/toast';
 
 const fields = loginFields;
 const fieldsState: any = {};
@@ -22,6 +23,8 @@ export default function Login() {
 
   const [checkState, setCheck] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const { renderToast } = useToast();
+  
   const {
     handleSubmit,
     formState: { errors },
@@ -33,8 +36,18 @@ export default function Login() {
 
   const onSubmit = async ({ login, senha }: FormProps) => {
     setLoading(true);
-    await Login({ login, senha });
-    setLoading(false);
+try {
+  await Login({ login, senha });
+  setLoading(false);
+} catch(error) {
+  setLoading(false);
+  renderToast({
+    type: 'failure',
+    title: 'Erro!',
+    message: 'Falha na conexão' ,
+    open: true,
+  });
+}
   };
 
   const handleRememberPassword = async (checked: boolean) => {

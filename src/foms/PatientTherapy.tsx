@@ -15,7 +15,7 @@ interface Props {
   onClose: () => void;
   dropdown: any;
   value: any;
-  statusPacienteId: number;
+  statusPacienteCod: number;
   fieldsCostant: any;
 }
 
@@ -23,7 +23,7 @@ export const PatientTherapy = ({
   onClose,
   dropdown,
   value,
-  statusPacienteId,
+  statusPacienteCod,
   fieldsCostant,
 }: Props) => {
   const [loading, setLoaging] = useState<boolean>(false);
@@ -47,7 +47,7 @@ export const PatientTherapy = ({
     try {
       let data;
       const formatValues =
-        statusPacienteId === 1
+        statusPacienteCod === 1
           ? {
               ...body,
               periodoId: body.periodoId.id,
@@ -57,7 +57,7 @@ export const PatientTherapy = ({
               especialidades: body.especialidades.map(
                 (item: OptionProps) => item.id
               ),
-              statusPacienteId: statusPacienteId,
+              statusPacienteCod: statusPacienteCod,
             }
           : {
               ...body,
@@ -68,7 +68,7 @@ export const PatientTherapy = ({
               especialidades: body.especialidades.map(
                 (item: OptionProps) => item.id
               ),
-              statusPacienteId: statusPacienteId,
+              statusPacienteCod: statusPacienteCod,
             };
 
       if (isEdit) {

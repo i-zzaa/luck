@@ -11,7 +11,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { useDropdown } from '../contexts/dropDown';
-import { statusPacienteId } from '../constants/patient';
+import { statusPacienteCod } from '../constants/patient';
 import { NotFound } from '../components/notFound';
 import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
@@ -71,7 +71,7 @@ export default function Financial() {
   };
 
   const renderDropdown = useCallback(async () => {
-    const list = await renderDropdownFinancial(statusPacienteId.crud_therapy);
+    const list = await renderDropdownFinancial(STATUS_PACIENT_COD.crud_therapy);
     setDropDownList(list);
   }, []);
 

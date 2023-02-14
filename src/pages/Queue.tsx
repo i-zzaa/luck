@@ -1,6 +1,7 @@
 import { TabPanel, TabView } from 'primereact';
 import { permissionAuth } from '../contexts/permission';
 import Avaliation from './Avaliation';
+import Devolutiva from './Devolutiva';
 import Therapy from './Therapy';
 
 export default function Queue() {
@@ -14,6 +15,9 @@ export default function Queue() {
         <TabView className="tabview-custom">
           <TabPanel header="Avaliacão" leftIcon="pi pi-user">
             <Avaliation />
+          </TabPanel>
+          <TabPanel header="Devolutiva" leftIcon="pi pi-user">
+            <Devolutiva />
           </TabPanel>
           <TabPanel header="Terapia" leftIcon="pi pi-user">
             <Therapy />
