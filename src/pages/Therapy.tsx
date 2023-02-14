@@ -13,7 +13,7 @@ import { ScheduleForm } from '../foms/ScheduleForm';
 import { CalendarForm } from '../foms/CalendarForm';
 import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
-import { patientTherapyFields, statusPacienteId } from '../constants/patient';
+import { patientTherapyFields, statusPacienteCod } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
 
 const fieldsConst = filterTerapyFields;
@@ -43,7 +43,7 @@ export default function Therapy() {
     setLoading(true);
     setPatients([]);
     const response = await getList(
-      `pacientes?statusPacienteId=${statusPacienteId.queue_therapy}`
+      `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
     );
     setPatients(response);
     setLoading(false);
@@ -78,7 +78,7 @@ export default function Therapy() {
     const format: any = {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled: formState.disabled === undefined ? false : formState.disabled,
-      statusPacienteId: statusPacienteId.queue_therapy,
+      statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
     };
     delete formState.naFila;
     delete formState.disabled;
@@ -110,7 +110,7 @@ export default function Therapy() {
 
   const handleSchedule = async ({ item, typeButtonFooter }: any) => {
     switch (typeButtonFooter) {
-      case 'agendado':
+      case 'agendar':
         setPatient(item);
         formatCalendar(item);
         setOpenCalendarForm(true);
@@ -130,7 +130,7 @@ export default function Therapy() {
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
-            statusPacienteId: statusPacienteId.queue_therapy,
+            statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -162,7 +162,7 @@ export default function Therapy() {
 
   const handleScheduleResponse = (agendar: number[], desagendar: number[]) => {
     const body: any = {
-      statusPacienteId: statusPacienteId.queue_therapy,
+      statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
       pacienteId: patient.id,
       vagaId: patient.vaga.id,
       id: patient.vaga.id,
@@ -181,7 +181,7 @@ export default function Therapy() {
   };
 
   const renderDropdown = useCallback(async () => {
-    const list = await renderDropdownQueue(statusPacienteId.queue_therapy);
+    const list = await renderDropdownQueue(STATUS_PACIENT_COD.queue_therapy);
     setDropDownList(list);
   }, []);
 
@@ -240,7 +240,7 @@ export default function Therapy() {
         <PatientForm
           onClose={async () => {
             const pacientes = await renderPacientes(
-              statusPacienteId.queue_therapy
+              STATUS_PACIENT_COD.queue_therapy
             );
             setDropDownList({ ...dropDownList, pacientes });
             renderPatient();
@@ -248,7 +248,7 @@ export default function Therapy() {
           }}
           dropdown={dropDownList}
           value={patient}
-          statusPacienteId={statusPacienteId.queue_therapy}
+          statusPacienteCod={STATUS_PACIENT_COD.queue_therapy}
           fieldsCostant={patientTherapyFields}
         />
       </Modal>
@@ -263,14 +263,14 @@ export default function Therapy() {
           <CalendarForm
             value={patientFormatCalendar}
             isEdit={false}
-            statusPacienteId={statusPacienteId.queue_therapy}
+            statusPacienteCod={STATUS_PACIENT_COD.queue_therapy}
             onClose={async (formValueState: any) => {
               sendUpdate(
                 'vagas/agendar/especialidade',
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
-                  statusPacienteId: statusPacienteId.queue_therapy
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_therapy
                 },
                 { naFila: !patient.vaga.naFila }
               );

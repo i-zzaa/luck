@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ButtonHeron, Confirm, Input, Title } from '../components';
 import { SelectButtonComponent } from '../components/selectButton';
+import { STATUS_PACIENT_COD } from '../constants/patient';
 import { useDropdown } from '../contexts/dropDown';
 import { permissionAuth } from '../contexts/permission';
 import { useToast } from '../contexts/toast';
@@ -13,7 +14,7 @@ export const CalendarForm = ({
   value,
   onClose,
   isEdit,
-  statusPacienteId,
+  statusPacienteCod,
 }: any) => {
   const { hasPermition } = permissionAuth();
 
@@ -123,7 +124,7 @@ export const CalendarForm = ({
     let list: any = [];
     switch (type) {
       case 'paciente-especialidade':
-        list = await renderPacienteEspecialidade(_value, statusPacienteId);
+        list = await renderPacienteEspecialidade(_value, statusPacienteCod);
         setDropDownList({ ...dropDownList, especialidades: list });
         setValue('funcao', []);
         break;
@@ -144,19 +145,36 @@ export const CalendarForm = ({
 
   const rendeFiltro = useCallback(async () => {
     let list = [];
-    switch (statusPacienteId) {
-      case 3:
-        list = await renderDropdownCalendario(statusPacienteId);
+    switch (statusPacienteCod) {
+      case  STATUS_PACIENT_COD.therapy:
+        list = await renderDropdownCalendario(statusPacienteCod);
+        break;
+      case STATUS_PACIENT_COD.queue_avaliation:
+        list = await renderDropdownQueueCalendar(
+          statusPacienteCod,
+          value.paciente.id
+        );
+
+        renderAvalation()
+
         break;
       default:
         list = await renderDropdownQueueCalendar(
-          statusPacienteId,
+          statusPacienteCod,
           value.paciente.id
         );
         break;
     }
     setDropDownList(list);
   }, []);
+
+  const renderAvalation = ()=> {
+    setIsAvalicao(true);
+    setValue('modalidade', { id: 1, nome: 'Avaliação' });
+    setValue('frequencia', { id: 2, nome: 'Recorrente' });
+    setValue('intervalo', { id: 1, nome: 'Todas Semanas' });
+    setHasFrequencia(true);
+  }
 
   useEffect(() => {
     rendeFiltro();
@@ -193,13 +211,10 @@ export const CalendarForm = ({
             options={dropDownList?.modalidades}
             onChange={(e: any) => {
               trigger('dataFim', { shouldFocus: true });
-              setIsAvalicao(e.nome === 'Avaliação');
               setIsDevolutiva(e.nome === 'Devolutiva');
 
               if (e.nome === 'Avaliação') {
-                setValue('frequencia', { id: 2, nome: 'Recorrente' });
-                setValue('intervalo', { id: 1, nome: 'Todas Semanas' });
-                setHasFrequencia(true);
+                renderAvalation()
               }
 
               if (e.nome === 'Devolutiva') {

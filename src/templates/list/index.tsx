@@ -4,8 +4,8 @@ import { clsx } from 'clsx';
 import { TextSubtext } from '../../components/textSubtext';
 import { permissionAuth } from '../../contexts/permission';
 import { formatdate } from '../../util/util';
-import { statusPacienteId } from '../../constants/patient';
 import { LoadingHeron } from '../../components/loading';
+import { STATUS_PACIENT_COD } from '../../constants/patient';
 
 export interface ListProps {
   onSubmit?: (e: any) => any;
@@ -38,7 +38,7 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    if (!item.status || item.statusPacienteId === statusPacienteId.crud_therapy)
+    if (!item.status || item.statusPacienteCod === STATUS_PACIENT_COD.crud_therapy)
       return null;
 
     const status = `${item.status?.nome}`;
@@ -132,10 +132,10 @@ export function List({
       let typeButtonFooter: 'agendar' | 'devolutiva' | 'retornar';
 
       const buttonFooter = { text: '', icon: '', type: 'second', size: 'md' };
+      let isDevolutiva = false
+
       switch (true) {
-        case item.statusPacienteId < statusPacienteId.therapy &&
-          item.vaga.naFila &&
-          !item.vaga.devolutiva &&
+        case item.vaga.naFila && item.statusPacienteCod !== STATUS_PACIENT_COD.queue_devolutiva && 
           hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
           buttonFooter.text = 'Agendar';
           buttonFooter.icon = 'pi pi-calendar-minus';
@@ -143,27 +143,24 @@ export function List({
           buttonFooter.size = 'md';
           typeButtonFooter = 'agendar';
           break;
-        case item.statusPacienteId < statusPacienteId.therapy &&
-          !item.vaga.naFila &&
-          !item.vaga.devolutiva &&
-          hasPermition(`${screen}_LISTA_BOTAO_RETORNAR_AGENDAR`):
+        case screen !== 'FILA_DEVOLUTIVA' && !item.vaga.naFila && hasPermition(`${screen}_LISTA_BOTAO_RETORNAR_AGENDAR`):
           buttonFooter.text = 'Retornar';
           buttonFooter.icon = 'pi pi-sync';
           buttonFooter.type = 'second';
           buttonFooter.size = 'md';
           typeButtonFooter = 'retornar';
           break;
-        case item.statusPacienteId < statusPacienteId.therapy &&
-          !item.vaga.naFila &&
-          !item.vaga.devolutiva &&
-          hasPermition(`${screen}_LISTA_BOTAO_DEVOLUTIVA`):
+        case screen === 'FILA_DEVOLUTIVA' :
           buttonFooter.text = 'Devolutiva';
           buttonFooter.icon = 'pi pi-check-circle';
           buttonFooter.type = 'primary';
           buttonFooter.size = 'md';
           typeButtonFooter = 'devolutiva';
+
+          isDevolutiva  = true
+
           break;
-        // case item.statusPacienteId < statusPacienteId.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+        // case item.statusPacienteCod < STATUS_PACIENT_COD.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
         //   buttonFooter.text = 'Retornar Devolutiva'
         //   buttonFooter.icon = 'pi pi-check-circle'
         //   buttonFooter.type = 'second'
@@ -194,12 +191,13 @@ export function List({
           textButtonFooter={buttonFooter.text}
           iconButtonFooter={buttonFooter.icon}
           typeButtonFooter={buttonFooter.type}
+          isDevolutiva={isDevolutiva}
           tags={tags}
           onClickLink={() => onClickLink(item)}
           sizeButtonFooter="sm"
           onClickEdit={() => onClickEdit(item)}
           onClickTrash={() => onClickTrash(item)}
-          onClickReturn={() => onClickReturn(item)}
+          onClickReturn={() => onClickReturn({ item, typeButtonFooter })}
           actionEdit={!DISABLED}
           actionTrash={!DISABLED}
           actionReturn={DISABLED}
@@ -208,7 +206,7 @@ export function List({
           {!item.emAtendimento && (
             <div className="flex justify-between">
               <div className="sm:flex items-center sm:gap-4">
-                {statusPacienteId.crud_therapy !== item?.statusPacienteId && (
+                {STATUS_PACIENT_COD.crud_therapy !== item?.statusPacienteCod && (
                   <>
                     <TextSubtext
                       text="Período: "
@@ -238,7 +236,7 @@ export function List({
                   />
                 )}
                 {/* {item.vaga?.dataVoltouAba &&
-                  item.statusPacienteId < statusPacienteId.crud_therapy && (
+                  item.statusPacienteCod < STATUS_PACIENT_COD.crud_therapy && (
                     <TextSubtext
                       className="font-inter"
                       text="Voltou Aba:"

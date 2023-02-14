@@ -23,6 +23,7 @@ export interface FooterButtonProps {
   typeButtonFooter?: any;
   sizeButtonFooter?: 'sm' | 'full' | 'md';
   onClick: () => void;
+
 }
 
 export interface itemListCompleteProps extends ActionProps, FooterButtonProps {
@@ -45,10 +46,15 @@ export interface itemListCompleteProps extends ActionProps, FooterButtonProps {
   onClickReturn?: () => void;
   positionActions?: 'left' | 'right';
   screen?: string;
+
+  isDevolutiva?: boolean;
+
 }
 
 export interface RootProps extends FooterButtonProps {
   children: ReactNode;
+  isDevolutiva?: boolean;
+  onClickLink?: () => void;
 }
 
 function actionButtons({
@@ -121,7 +127,7 @@ function footerButton({
 
   return (
     <>
-      <div className="hidden sm:block flex-1 text-end">
+      <div className="hidden sm:block">
         <ButtonHeron
           text={textButtonFooter}
           icon={iconButtonFooter}
@@ -130,7 +136,7 @@ function footerButton({
           onClick={onClick}
         />
       </div>
-      <div className="sm:hidden flex-1">
+      <div className="sm:hidden  flex-1">
         <ButtonHeron
           text={textButtonFooter}
           icon={iconButtonFooter}
@@ -148,20 +154,32 @@ function itemListRoot({
   textButtonFooter,
   iconButtonFooter,
   typeButtonFooter,
+  isDevolutiva,
   sizeButtonFooter,
   onClick,
+  onClickLink
 }: RootProps) {
   return (
     <div className="w-full text-center bg-white overflow-hidden">
       {children}
-      <div className="flex text-sm items-end justify-end text-gray-400 mt-4 sm:m-0">
-        {footerButton({
+      <div className="flex text-sm  text-gray-400 mt-4 sm:m-0 justify-end gap-2">
+
+      {isDevolutiva && footerButton({
+          textButtonFooter: 'Retornar',
+          iconButtonFooter: 'pi pi-sync',
+          typeButtonFooter: 'second',
+          sizeButtonFooter,
+          onClick: onClickLink ? onClickLink  :  () => {},
+        })}
+
+{footerButton({
           textButtonFooter,
           iconButtonFooter,
           typeButtonFooter,
           sizeButtonFooter,
           onClick,
         })}
+
       </div>
     </div>
   );
@@ -243,6 +261,7 @@ function itemListComplete({
   iconButtonFooter,
   typeButtonFooter,
   sizeButtonFooter,
+  isDevolutiva,
   actionEdit,
   actionTrash,
   actionReturn,
@@ -276,8 +295,10 @@ function itemListComplete({
       textButtonFooter={textButtonFooter}
       iconButtonFooter={iconButtonFooter}
       typeButtonFooter={typeButtonFooter}
+      isDevolutiva={isDevolutiva}
       sizeButtonFooter={sizeButtonFooter}
       onClick={onClick}
+      onClickLink={onClickLink}
     >
       <>
         <div className="grid grid-rows-2 sm:grid-cols-2 mb-4 sm:mb-0 h-12 mt-6">

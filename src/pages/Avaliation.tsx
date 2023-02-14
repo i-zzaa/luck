@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { filter, getList, update } from '../server';
 
 import { useToast } from '../contexts/toast';
@@ -11,7 +11,7 @@ import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
 import {
   patientAvaliationFields,
-  statusPacienteId,
+  STATUS_PACIENT_COD,
 } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
 
@@ -38,12 +38,20 @@ export default function Avaliation() {
 
   const renderPatient = useCallback(async () => {
     setLoading(true);
-    setPatients([]);
-    const response = await getList(
-      `pacientes?statusPacienteId=${statusPacienteId.queue_avaliation}`
-    );
-    setPatients(response);
-    setLoading(false);
+    try {
+      setPatients([]);
+      const response = await getList(`pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}`);
+      setPatients(response);
+      setLoading(false);
+    } catch ({ message }: any) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão' ,
+        open: true,
+      });
+    }
   }, []);
 
   const handleDisabled = async () => {
@@ -72,30 +80,33 @@ export default function Avaliation() {
 
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true);
+try {
 
-    const devolutiva =
-      formState.devolutiva === undefined ? false : formState.devolutiva;
-    const format: any = {
-      naFila: formState.naFila === undefined ? true : !formState.naFila,
-      disabled: formState.disabled === undefined ? false : formState.disabled,
-      devolutiva:
-        formState.devolutiva === undefined ? false : formState.devolutiva,
-      statusPacienteId: devolutiva
-        ? statusPacienteId.queue_therapy
-        : statusPacienteId.queue_avaliation,
-    };
-    delete formState.naFila;
-    delete formState.disabled;
-    delete formState.devolutiva;
+  const format: any = {
+    naFila: formState.naFila === undefined ? true : !formState.naFila,
+    disabled: formState.disabled === undefined ? false : formState.disabled,
+    statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation
+  };
+  delete formState.naFila;
+  delete formState.disabled;
 
-    await Object.keys(formState).map((key: any) => {
-      format[key] = formState[key]?.id || undefined;
-    });
+  await Object.keys(formState).map((key: any) => {
+    format[key] = formState[key]?.id || undefined;
+  });
 
-    const response = await filter('pacientes', format);
-    const lista: PacientsProps[] = response.status === 200 ? response.data : [];
-    setPatients(lista);
-    setLoading(false);
+  const response = await filter('pacientes', format);
+  const lista: PacientsProps[] = response.status === 200 ? response.data : [];
+  setPatients(lista);
+  setLoading(false);
+} catch(err) {
+  setLoading(false);
+  renderToast({
+    type: 'failure',
+    title: '401',
+    message: 'Erro na conexão!',
+    open: true,
+  });
+}
   };
 
   const sendUpdate = async (url: string, body: any, filter: any) => {
@@ -104,6 +115,7 @@ export default function Avaliation() {
       setOpenSchedule(false);
       handleSubmitFilter(filter);
     } catch ({ response }: any) {
+      setLoading(false);
       renderToast({
         type: 'failure',
         title: '401',
@@ -115,27 +127,17 @@ export default function Avaliation() {
 
   const handleSchedule = async ({ item, typeButtonFooter }: any) => {
     switch (typeButtonFooter) {
-      case 'agendado':
+      case 'agendar':
         setPatient(item);
         formatCalendar(item);
         setOpenCalendarForm(true);
-        break;
-      case 'devolutiva':
-        const body: any = {
-          id: item.vaga.id,
-          devolutiva: !item.vaga.devolutiva,
-        };
-        sendUpdate('vagas/devolutiva', body, {
-          naFila: false,
-          devolutiva: item.vaga.devolutiva,
-        });
         break;
 
       default:
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
-            statusPacienteId: statusPacienteId.queue_avaliation,
+            statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -172,7 +174,7 @@ export default function Avaliation() {
       id: patient.vaga.id,
       agendar: agendar,
       desagendar: desagendar,
-      statusPacienteId: statusPacienteId.queue_avaliation,
+      statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation,
     };
 
     setOpenSchedule(false);
@@ -186,7 +188,7 @@ export default function Avaliation() {
   };
 
   const renderDropdown = useCallback(async () => {
-    const list = await renderDropdownQueue(statusPacienteId.queue_avaliation);
+    const list = await renderDropdownQueue(STATUS_PACIENT_COD.queue_avaliation);
     setDropDownList(list);
   }, []);
 
@@ -245,7 +247,7 @@ export default function Avaliation() {
         <PatientForm
           onClose={async () => {
             const pacientes = await renderPacientes(
-              statusPacienteId.queue_avaliation
+              STATUS_PACIENT_COD.queue_avaliation
             );
             setDropDownList({ ...dropDownList, pacientes });
             renderPatient();
@@ -253,7 +255,7 @@ export default function Avaliation() {
           }}
           dropdown={dropDownList}
           value={patient}
-          statusPacienteId={statusPacienteId.queue_avaliation}
+          statusPacienteCod={STATUS_PACIENT_COD.queue_avaliation}
           fieldsCostant={patientAvaliationFields}
         />
       </Modal>
@@ -268,14 +270,14 @@ export default function Avaliation() {
           <CalendarForm
             value={patientFormatCalendar}
             isEdit={false}
-            statusPacienteId={statusPacienteId.queue_avaliation}
+            statusPacienteCod={STATUS_PACIENT_COD.queue_avaliation}
             onClose={async (formValueState: any) => {
               sendUpdate(
                 'vagas/agendar/especialidade',
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
-                  statusPacienteId: statusPacienteId.queue_avaliation
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation
                 },
                 { naFila: !patient.vaga.naFila }
               );

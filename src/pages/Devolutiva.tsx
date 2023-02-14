@@ -9,22 +9,18 @@ import { CalendarForm } from '../foms/CalendarForm';
 import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
 import {
-  filterCurdPatientFields,
-  patientCrudFields,
+  patientAvaliationFields,
   STATUS_PACIENT_COD,
 } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
+import { filterDevolutivaFields } from '../constants/formFields';
 
-const fieldsConst = filterCurdPatientFields;
+const fieldsConst = filterDevolutivaFields;
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
-export default function Patient() {
-  const SCREEN = 'CADASTRO_PACIENTES';
+export default function Devolutiva() {
   const { hasPermition } = permissionAuth();
-
-  const [fields, setFields] = useState(fieldsConst);
-
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
@@ -44,7 +40,7 @@ export default function Patient() {
     setLoading(true);
     setPatients([]);
     const response = await getList(
-      `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.crud_therapy}`
+      `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_devolutiva}`
     );
     setPatients(response);
     setLoading(false);
@@ -76,16 +72,14 @@ export default function Patient() {
 
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true);
+
     const format: any = {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
       disabled: formState.disabled === undefined ? false : formState.disabled,
-      devolutiva:
-        formState.devolutiva === undefined ? false : formState.devolutiva,
-      statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
+      statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
     };
     delete formState.naFila;
     delete formState.disabled;
-    delete formState.devolutiva;
 
     await Object.keys(formState).map((key: any) => {
       format[key] = formState[key]?.id || undefined;
@@ -114,11 +108,6 @@ export default function Patient() {
 
   const handleSchedule = async ({ item, typeButtonFooter }: any) => {
     switch (typeButtonFooter) {
-      case 'agendar':
-        setPatient(item);
-        formatCalendar(item);
-        setOpenCalendarForm(true);
-        break;
       case 'devolutiva':
         const body: any = {
           id: item.vaga.id,
@@ -134,7 +123,7 @@ export default function Patient() {
         if (item.vaga.especialidades.length === 1) {
           const especialidade = item.vaga.especialidades[0];
           const body: any = {
-            statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
+            statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
             pacienteId: item.id,
             vagaId: item.vaga.id,
             id: item.vaga.id,
@@ -171,7 +160,7 @@ export default function Patient() {
       id: patient.vaga.id,
       agendar: agendar,
       desagendar: desagendar,
-      statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
+      statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
     };
 
     setOpenSchedule(false);
@@ -185,12 +174,12 @@ export default function Patient() {
   };
 
   const renderDropdown = useCallback(async () => {
-    const list = await renderDropdownQueue(STATUS_PACIENT_COD.crud_therapy);
+    const list = await renderDropdownQueue(STATUS_PACIENT_COD.queue_devolutiva);
     setDropDownList(list);
   }, []);
 
   useEffect(() => {
-    !hasPermition('CADASTRO_PACIENTES_FILTRO_SELECT_AGENDADOS')
+    !hasPermition('FILA_AVALIACAO_FILTRO_SELECT_AGENDADOS')
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
     renderDropdown();
@@ -201,16 +190,13 @@ export default function Patient() {
       <Filter
         id="form-filter-patient"
         legend="Filtro"
-        fields={fields}
-        screen={SCREEN}
+        fields={fieldsConst}
+        screen="FILA_DEVOLUTIVA"
         onSubmit={handleSubmitFilter}
         onReset={renderPatient}
         loading={loading}
         dropdown={dropDownList}
-        onInclude={() => {
-          setPatient(null);
-          setOpen(true);
-        }}
+
       />
 
       <Card>
@@ -218,7 +204,7 @@ export default function Patient() {
           loading={loading}
           type="complete"
           items={patients}
-          screen={SCREEN}
+          screen="FILA_DEVOLUTIVA"
           onClick={handleSchedule}
           onClickLink={(pacient_: any) => {
             setPatient(pacient_);
@@ -244,7 +230,7 @@ export default function Patient() {
         <PatientForm
           onClose={async () => {
             const pacientes = await renderPacientes(
-              STATUS_PACIENT_COD.crud_therapy
+              STATUS_PACIENT_COD.queue_devolutiva
             );
             setDropDownList({ ...dropDownList, pacientes });
             renderPatient();
@@ -252,8 +238,8 @@ export default function Patient() {
           }}
           dropdown={dropDownList}
           value={patient}
-          statusPacienteCod={STATUS_PACIENT_COD.crud_therapy}
-          fieldsCostant={patientCrudFields}
+          statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
+          fieldsCostant={patientAvaliationFields}
         />
       </Modal>
 
@@ -267,14 +253,14 @@ export default function Patient() {
           <CalendarForm
             value={patientFormatCalendar}
             isEdit={false}
-            statusPacienteCod={STATUS_PACIENT_COD.crud_therapy}
+            statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
             onClose={async (formValueState: any) => {
               sendUpdate(
                 'vagas/agendar/especialidade',
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
-                  statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva
                 },
                 { naFila: !patient.vaga.naFila }
               );

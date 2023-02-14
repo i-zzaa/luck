@@ -12,7 +12,7 @@ import {
   getPrimeiroDoMes,
   getUltimoDoMes,
 } from '../util/util';
-import { statusPacienteId } from '../constants/patient';
+import { statusPacienteCod } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 import { NotFound } from '../components/notFound';
 import { LoadingHeron } from '../components/loading';
@@ -82,7 +82,7 @@ export default function Schedule() {
   }, []);
 
   const rendeFiltro = useMemo(async () => {
-    const list = await renderDropdownCalendar(statusPacienteId.therapy);
+    const list = await renderDropdownCalendar(STATUS_PACIENT_COD.therapy);
     setDropDownList(list);
   }, []);
 
@@ -190,7 +190,7 @@ export default function Schedule() {
             value={event}
             isEdit={isEdit}
             screen="calendar"
-            statusPacienteId={statusPacienteId.therapy}
+            statusPacienteCod={STATUS_PACIENT_COD.therapy}
             onClose={() => {
               setEvent(null);
               renderEvents();
