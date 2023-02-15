@@ -30,6 +30,7 @@ export interface PacientsProps {
   vaga: any;
   status: OptionProps;
   tipoSessao: OptionProps;
+  sessao: any []
 }
 
 export const PatientForm = ({
@@ -136,6 +137,10 @@ export const PatientForm = ({
 
   useEffect(() => {
     value?.nome && setColorChips();
+
+    if (statusPacienteCod === STATUS_PACIENT_COD.crud_therapy && value?.sessao) {
+      setSessoes(value.sessao )
+    }
   }, [value]);
 
   useEffect(() => {
@@ -144,6 +149,8 @@ export const PatientForm = ({
     fieldsFormat.forEach((field: any) => (fieldsState[field.id] = ''));
     setFields(fieldsFormat);
   }, []);
+
+
 
   return (
     <form

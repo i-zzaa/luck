@@ -142,6 +142,8 @@ export const formtDatePatient = (value: PacientsProps) => {
     statusId: value.status,
     dataContato: value.vaga.dataContato,
     dataVoltouAba: value?.vaga?.dataVoltouAba,
+    sessao: value?.sessao,
+    vagaId: value.vaga.id,
     especialidades: value.vaga.especialidades.map((item: any) => {
       return {
         nome: item.especialidade.nome,
