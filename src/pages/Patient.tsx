@@ -180,6 +180,7 @@ export default function Patient() {
 
   const formtDate = (value: PacientsProps) => {
     const data = formtDatePatient(value);
+
     setPatient(data);
     setOpen(true);
   };
