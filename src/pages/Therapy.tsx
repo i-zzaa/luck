@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { filter, getList, update } from '../server';
 
 import { useToast } from '../contexts/toast';
 import {
-  COORDENADOR,
-  COORDENADOR_TERAPEUTA,
   permissionAuth,
 } from '../contexts/permission';
 import { Card, Confirm, Filter, Modal, List } from '../components/index';
@@ -13,7 +11,7 @@ import { ScheduleForm } from '../foms/ScheduleForm';
 import { CalendarForm } from '../foms/CalendarForm';
 import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
-import { patientTherapyFields, statusPacienteCod } from '../constants/patient';
+import { patientTherapyFields, STATUS_PACIENT_COD } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
 
 const fieldsConst = filterTerapyFields;
@@ -40,13 +38,23 @@ export default function Therapy() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
-    setLoading(true);
-    setPatients([]);
-    const response = await getList(
-      `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
-    );
-    setPatients(response);
-    setLoading(false);
+try {
+  setLoading(true);
+  setPatients([]);
+  const response = await getList(
+    `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
+  );
+  setPatients(response);
+  setLoading(false);
+} catch(error) {
+  setLoading(false);
+  renderToast({
+    type: 'failure',
+    title: 'Erro!',
+    message: 'Falha na conexão' ,
+    open: true,
+  });
+}
   }, []);
 
   const handleDisabledUser = async () => {

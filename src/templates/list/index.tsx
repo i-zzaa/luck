@@ -134,6 +134,8 @@ export function List({
       const buttonFooter = { text: '', icon: '', type: 'second', size: 'md' };
       let isDevolutiva = false
 
+      if (screen !== 'CADASTRO_PACIENTES') {
+
       switch (true) {
         case item.vaga.naFila && item.statusPacienteCod !== STATUS_PACIENT_COD.queue_devolutiva && 
           hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
@@ -170,6 +172,7 @@ export function List({
         default:
           break;
       }
+    } 
 
       const tags = item?.vaga.especialidades.map((especialidade: any) => {
         return {
