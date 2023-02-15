@@ -283,7 +283,7 @@ function itemListComplete({
                 : undefined
             }
             type={item.type}
-            disabled={item?.disabled}
+            disabled={ screen === 'FILA_DEVOLUTIVA' ? !item?.disabled : item?.disabled }
           />
         ))}
       </div>

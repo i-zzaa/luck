@@ -11,13 +11,12 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { useDropdown } from '../contexts/dropDown';
-import { statusPacienteCod } from '../constants/patient';
+import { STATUS_PACIENT_COD } from '../constants/patient';
 import { NotFound } from '../components/notFound';
 import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
 import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
-import React from 'react';
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};

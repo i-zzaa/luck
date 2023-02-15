@@ -12,10 +12,8 @@ import {
   getPrimeiroDoMes,
   getUltimoDoMes,
 } from '../util/util';
-import { statusPacienteCod } from '../constants/patient';
+import { STATUS_PACIENT_COD  } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
-import { NotFound } from '../components/notFound';
-import { LoadingHeron } from '../components/loading';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};

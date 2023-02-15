@@ -37,6 +37,7 @@ export default function Devolutiva() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
+    try {
     setLoading(true);
     setPatients([]);
     const response = await getList(
@@ -44,6 +45,16 @@ export default function Devolutiva() {
     );
     setPatients(response);
     setLoading(false);
+    
+    } catch(error) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão' ,
+        open: true,
+      });
+    }
   }, []);
 
   const handleDisabled = async () => {
@@ -109,14 +120,19 @@ export default function Devolutiva() {
   const handleSchedule = async ({ item, typeButtonFooter }: any) => {
     switch (typeButtonFooter) {
       case 'devolutiva':
-        const body: any = {
-          id: item.vaga.id,
-          devolutiva: !item.vaga.devolutiva,
-        };
-        sendUpdate('vagas/devolutiva', body, {
-          naFila: false,
-          devolutiva: item.vaga.devolutiva,
-        });
+        // const body: any = {
+        //   id: item.vaga.id,
+        //   devolutiva: !item.vaga.devolutiva,
+        // };
+        // sendUpdate('vagas/devolutiva', body, {
+        //   naFila: false,
+        //   devolutiva: item.vaga.devolutiva,
+        // });4
+
+
+        setPatient(item);
+        formatCalendar(item);
+        setOpenCalendarForm(true);
         break;
 
       default:

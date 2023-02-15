@@ -158,6 +158,25 @@ export const CalendarForm = ({
         renderAvalation()
 
         break;
+      case STATUS_PACIENT_COD.queue_devolutiva:
+        list = await renderDropdownQueueCalendar(
+          statusPacienteCod,
+          value.paciente.id
+        );
+
+        renderDevolutiva()
+
+        break;
+      case STATUS_PACIENT_COD.queue_therapy:
+
+        list = await renderDropdownQueueCalendar(
+          statusPacienteCod,
+          value.paciente.id
+        );
+        setValue('modalidade', { id: 3, nome: 'Terapia' });
+
+        
+        break;
       default:
         list = await renderDropdownQueueCalendar(
           statusPacienteCod,
@@ -174,6 +193,16 @@ export const CalendarForm = ({
     setValue('frequencia', { id: 2, nome: 'Recorrente' });
     setValue('intervalo', { id: 1, nome: 'Todas Semanas' });
     setHasFrequencia(true);
+  }
+
+
+  const renderDevolutiva = ()=> {
+    setValue('modalidade', { id: 2, nome: 'Devolutiva' });
+    setHasFrequencia(false);
+    setIsDevolutiva(true);
+    unregister(['frequencia', 'intervalo', 'especialidade'], {
+      keepDirtyValues: true,
+    });
   }
 
   useEffect(() => {
@@ -218,10 +247,7 @@ export const CalendarForm = ({
               }
 
               if (e.nome === 'Devolutiva') {
-                setHasFrequencia(false);
-                unregister(['frequencia', 'intervalo'], {
-                  keepDirtyValues: true,
-                });
+                renderDevolutiva()
               }
             }}
             validate={{
