@@ -53,7 +53,7 @@ export const Crud = () => {
         ) : (
           <></>
         )}
-        {hasPermition('CADASTRO_MODALIDADE') ? (
+        {/* {hasPermition('CADASTRO_MODALIDADE') ? (
           <TabPanel header="Modalidade" leftIcon="pi pi-sitemap">
             <CrudSimples
               screen="CADASTRO_MODALIDADE"
@@ -63,7 +63,7 @@ export const Crud = () => {
           </TabPanel>
         ) : (
           <></>
-        )}
+        )} */}
         {hasPermition('CADASTRO_STATUS_EVENTOS') ? (
           <TabPanel header="Status eventos" leftIcon="pi pi-calendar-plus">
             <CrudSimples
@@ -75,7 +75,7 @@ export const Crud = () => {
         ) : (
           <></>
         )}
-        {hasPermition('CADASTRO_FREQUENCIA') ? (
+        {/* {hasPermition('CADASTRO_FREQUENCIA') ? (
           <TabPanel header="Frequência" leftIcon="pi pi-table">
             <CrudSimples
               screen="CADASTRO_FREQUENCIA"
@@ -85,7 +85,7 @@ export const Crud = () => {
           </TabPanel>
         ) : (
           <></>
-        )}
+        )} */}
         {hasPermition('CADASTRO_FUNCAO') ? (
           <TabPanel header="Função" leftIcon="pi pi-slack">
             <CrudSimples
