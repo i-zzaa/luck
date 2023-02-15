@@ -5,6 +5,7 @@ import { useToast } from '../contexts/toast';
 import { create, update } from '../server';
 import { ButtonHeron, Input } from '../components/index';
 import { moneyFormat, setColorChips } from '../util/util';
+import { STATUS_PACIENT_COD } from '../constants/patient';
 
 export interface OptionProps {
   id: string;
@@ -60,7 +61,7 @@ export const PatientForm = ({
     try {
       let data;
       const formatValues =
-        statusPacienteCod === 1
+        statusPacienteCod === STATUS_PACIENT_COD.queue_avaliation
           ? {
               ...body,
               periodoId: body.periodoId.id,
