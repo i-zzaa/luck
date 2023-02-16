@@ -276,6 +276,7 @@ export default function Patient() {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
                   statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
+                  pacienteId: formValueState.paciente.id
                 },
                 { naFila: !patient.vaga.naFila }
               );

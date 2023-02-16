@@ -40,7 +40,9 @@ export default function Avaliation() {
     setLoading(true);
     try {
       setPatients([]);
-      const response = await getList(`pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}`);
+      const response = await getList(
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}`
+      );
       setPatients(response);
       setLoading(false);
     } catch ({ message }: any) {
@@ -48,7 +50,7 @@ export default function Avaliation() {
       renderToast({
         type: 'failure',
         title: 'Erro!',
-        message: 'Falha na conexão' ,
+        message: 'Falha na conexão',
         open: true,
       });
     }
@@ -80,33 +82,33 @@ export default function Avaliation() {
 
   const handleSubmitFilter = async (formState: any) => {
     setLoading(true);
-try {
+    try {
+      const format: any = {
+        naFila: formState.naFila === undefined ? true : !formState.naFila,
+        disabled: formState.disabled === undefined ? false : formState.disabled,
+        statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation,
+      };
+      delete formState.naFila;
+      delete formState.disabled;
 
-  const format: any = {
-    naFila: formState.naFila === undefined ? true : !formState.naFila,
-    disabled: formState.disabled === undefined ? false : formState.disabled,
-    statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation
-  };
-  delete formState.naFila;
-  delete formState.disabled;
+      await Object.keys(formState).map((key: any) => {
+        format[key] = formState[key]?.id || undefined;
+      });
 
-  await Object.keys(formState).map((key: any) => {
-    format[key] = formState[key]?.id || undefined;
-  });
-
-  const response = await filter('pacientes', format);
-  const lista: PacientsProps[] = response.status === 200 ? response.data : [];
-  setPatients(lista);
-  setLoading(false);
-} catch(err) {
-  setLoading(false);
-  renderToast({
-    type: 'failure',
-    title: '401',
-    message: 'Erro na conexão!',
-    open: true,
-  });
-}
+      const response = await filter('pacientes', format);
+      const lista: PacientsProps[] =
+        response.status === 200 ? response.data : [];
+      setPatients(lista);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Erro na conexão!',
+        open: true,
+      });
+    }
   };
 
   const sendUpdate = async (url: string, body: any, filter: any) => {
@@ -277,7 +279,8 @@ try {
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
-                  statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_avaliation,
+                  pacienteId: formValueState.paciente.id
                 },
                 { naFila: !patient.vaga.naFila }
               );

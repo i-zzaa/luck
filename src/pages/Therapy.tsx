@@ -2,9 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { filter, getList, update } from '../server';
 
 import { useToast } from '../contexts/toast';
-import {
-  permissionAuth,
-} from '../contexts/permission';
+import { permissionAuth } from '../contexts/permission';
 import { Card, Confirm, Filter, Modal, List } from '../components/index';
 import { filterTerapyFields } from '../constants/formFields';
 import { ScheduleForm } from '../foms/ScheduleForm';
@@ -38,23 +36,23 @@ export default function Therapy() {
   const { renderToast } = useToast();
 
   const renderPatient = useCallback(async () => {
-try {
-  setLoading(true);
-  setPatients([]);
-  const response = await getList(
-    `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
-  );
-  setPatients(response);
-  setLoading(false);
-} catch(error) {
-  setLoading(false);
-  renderToast({
-    type: 'failure',
-    title: 'Erro!',
-    message: 'Falha na conexão' ,
-    open: true,
-  });
-}
+    try {
+      setLoading(true);
+      setPatients([]);
+      const response = await getList(
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
+      );
+      setPatients(response);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão',
+        open: true,
+      });
+    }
   }, []);
 
   const handleDisabledUser = async () => {
@@ -278,7 +276,8 @@ try {
                 {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
-                  statusPacienteCod: STATUS_PACIENT_COD.queue_therapy
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
+                  pacienteId: formValueState.paciente.id
                 },
                 { naFila: !patient.vaga.naFila }
               );

@@ -8,7 +8,7 @@ import { STATUS_PACIENT_COD } from '../constants/patient';
 import { useDropdown } from '../contexts/dropDown';
 import { permissionAuth } from '../contexts/permission';
 import { useToast } from '../contexts/toast';
-import { create, update } from '../server';
+import { create, dropDown, getList, update } from '../server';
 
 export const CalendarForm = ({
   value,
@@ -24,7 +24,8 @@ export const CalendarForm = ({
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
   const [isDevolutiva, setIsDevolutiva] = useState<boolean>(false);
-  const [isExterno, setIsExterno] = useState<boolean>(false);
+  const [loop, setLoop] = useState<boolean>(false);
+  const [infoDevolutiva, setInfoDevolutiva] = useState<any[]>([]);
   const { renderToast } = useToast();
 
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -61,6 +62,7 @@ export const CalendarForm = ({
     setValue,
     unregister,
     handleSubmit,
+    watch,
     formState: { errors },
     control,
     trigger,
@@ -120,22 +122,26 @@ export const CalendarForm = ({
     }
   };
 
-  const filtrarDropDown = async (_value: any, type: string) => {
+  const filtrarDropDown = async (
+    _value: any,
+    type: string,
+    index: string | undefined = ''
+  ) => {
     let list: any = [];
     switch (type) {
       case 'paciente-especialidade':
         list = await renderPacienteEspecialidade(_value, statusPacienteCod);
         setDropDownList({ ...dropDownList, especialidades: list });
-        setValue('funcao', []);
+        setValue(`funcao${index}`, []);
         break;
       case 'especialidade-terapeuta':
         list = await renderEspecialidadeTerapeuta(_value);
-        setDropDownList({ ...dropDownList, terapeutas: list });
-        setValue('funcao', []);
+        setDropDownList({ ...dropDownList, [`terapeutas${index}`]: list });
+        setValue(`funcao${index}`, []);
         break;
       case 'terapeuta-funcao':
         list = await renderTerapeutaFuncao(_value);
-        setDropDownList({ ...dropDownList, funcoes: list });
+        setDropDownList({ ...dropDownList, [`funcao${index}`]: list });
         break;
 
       default:
@@ -143,10 +149,73 @@ export const CalendarForm = ({
     }
   };
 
+  const renderEspecialidade = (
+    index: string | undefined = '',
+    info: any = null
+  ) => {
+    if (info) {
+      setValue(`especialidade${index}`, {
+        id: info.especialidade.id,
+        nome: info.especialidade.nome,
+      });
+    }
+
+    return (
+      <>
+        <Input
+          labelText="Especialidade"
+          id={`especialidade${index}`}
+          type="select"
+          customCol="col-span-6 sm:col-span-2"
+          errors={errors}
+          control={control}
+          options={dropDownList?.especialidades}
+          onChange={(e: any) =>
+            filtrarDropDown(e.nome, 'especialidade-terapeuta', index)
+          }
+          validate={{
+            required: true,
+          }}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_ESPECIALIDADE')}
+        />
+
+        <Input
+          labelText="Terapeuta"
+          id={`terapeuta${index}`}
+          type="select"
+          customCol="col-span-6 sm:col-span-2"
+          errors={errors}
+          control={control}
+          options={info? info.terapeutas : dropDownList.terapeutas}
+          onChange={(e: any) =>
+            filtrarDropDown(e.id, 'terapeuta-funcao', index)
+          }
+          validate={{
+            required: true,
+          }}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_TERAPEUTA')}
+        />
+        <Input
+          labelText="Função"
+          id={`funcao${index}`}
+          type="select"
+          customCol="col-span-6 sm:col-span-2"
+          errors={errors}
+          control={control}
+          options={dropDownList[`funcao${index}`]}
+          validate={{
+            required: true,
+          }}
+          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FUNCAO')}
+        />
+      </>
+    );
+  };
+
   const rendeFiltro = useCallback(async () => {
     let list = [];
     switch (statusPacienteCod) {
-      case  STATUS_PACIENT_COD.therapy:
+      case STATUS_PACIENT_COD.therapy:
         list = await renderDropdownCalendario(statusPacienteCod);
         break;
       case STATUS_PACIENT_COD.queue_avaliation:
@@ -155,7 +224,7 @@ export const CalendarForm = ({
           value.paciente.id
         );
 
-        renderAvalation()
+        renderAvalation();
 
         break;
       case STATUS_PACIENT_COD.queue_devolutiva:
@@ -164,18 +233,16 @@ export const CalendarForm = ({
           value.paciente.id
         );
 
-        renderDevolutiva()
+        renderDevolutiva();
 
         break;
       case STATUS_PACIENT_COD.queue_therapy:
-
         list = await renderDropdownQueueCalendar(
           statusPacienteCod,
           value.paciente.id
         );
         setValue('modalidade', { id: 3, nome: 'Terapia' });
 
-        
         break;
       default:
         list = await renderDropdownQueueCalendar(
@@ -187,27 +254,40 @@ export const CalendarForm = ({
     setDropDownList(list);
   }, []);
 
-  const renderAvalation = ()=> {
+  const renderAvalation = () => {
     setIsAvalicao(true);
     setValue('modalidade', { id: 1, nome: 'Avaliação' });
     setValue('frequencia', { id: 2, nome: 'Recorrente' });
     setValue('intervalo', { id: 1, nome: 'Todas Semanas' });
     setHasFrequencia(true);
-  }
+  };
 
+  const renderInfoDevolutiva = async (
+    idPaciente: number,
+    statusPacienteCod: string
+  ) => {
+    const info = await getList(`/pacientes/especialidades?statusPacienteCod=${statusPacienteCod}&pacienteId=${idPaciente}`)
+    setInfoDevolutiva(info);
+    setLoop(true)
+  };
 
-  const renderDevolutiva = ()=> {
+  const renderDevolutiva = () => {
     setValue('modalidade', { id: 2, nome: 'Devolutiva' });
     setHasFrequencia(false);
     setIsDevolutiva(true);
     unregister(['frequencia', 'intervalo', 'especialidade'], {
       keepDirtyValues: true,
     });
-  }
+  };
 
   useEffect(() => {
     rendeFiltro();
   }, []);
+
+  useEffect(()=> {
+    renderInfoDevolutiva(value.paciente.id, statusPacienteCod);
+
+  }, [isDevolutiva])
 
   useEffect(() => {
     if (isEdit && value?.frequencia?.nome === 'Recorrente') {
@@ -243,11 +323,11 @@ export const CalendarForm = ({
               setIsDevolutiva(e.nome === 'Devolutiva');
 
               if (e.nome === 'Avaliação') {
-                renderAvalation()
+                renderAvalation();
               }
 
               if (e.nome === 'Devolutiva') {
-                renderDevolutiva()
+                renderDevolutiva();
               }
             }}
             validate={{
@@ -429,57 +509,27 @@ export const CalendarForm = ({
             errors={errors}
             control={control}
             options={dropDownList?.pacientes}
-            onChange={(e: any) =>
-              filtrarDropDown(e.id, 'paciente-especialidade')
-            }
+            onChange={(e: any) => {
+              if (isDevolutiva) {
+                renderInfoDevolutiva(e.id, statusPacienteCod);
+              } else {
+                filtrarDropDown(e.id, 'paciente-especialidade');
+                setLoop(false)
+              }
+            }}
             validate={{
               required: true,
             }}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_PACIENTE')}
           />
-          <Input
-            labelText="Especialidade"
-            id="especialidade"
-            type="select"
-            customCol="col-span-6 sm:col-span-2"
-            errors={errors}
-            control={control}
-            options={dropDownList?.especialidades}
-            onChange={(e: any) =>
-              filtrarDropDown(e.nome, 'especialidade-terapeuta')
-            }
-            validate={{
-              required: true,
-            }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_ESPECIALIDADE')}
-          />
-          <Input
-            labelText="Terapeuta"
-            id="terapeuta"
-            type="select"
-            customCol="col-span-6 sm:col-span-2"
-            errors={errors}
-            control={control}
-            options={dropDownList?.terapeutas}
-            onChange={(e: any) => filtrarDropDown(e.id, 'terapeuta-funcao')}
-            validate={{
-              required: true,
-            }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_TERAPEUTA')}
-          />
-          <Input
-            labelText="Função"
-            id="funcao"
-            type="select"
-            customCol="col-span-6 sm:col-span-2"
-            errors={errors}
-            control={control}
-            options={dropDownList?.funcoes}
-            validate={{
-              required: true,
-            }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FUNCAO')}
-          />
+          {isDevolutiva && loop 
+            ? infoDevolutiva.map(
+                (info: any, key: number) => {
+                  return renderEspecialidade(`${key}`, info);
+                }
+              )
+            : renderEspecialidade()}
+
           <Input
             labelText="Local Externo?"
             id="isExterno"

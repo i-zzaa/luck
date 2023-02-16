@@ -38,20 +38,19 @@ export default function Devolutiva() {
 
   const renderPatient = useCallback(async () => {
     try {
-    setLoading(true);
-    setPatients([]);
-    const response = await getList(
-      `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_devolutiva}`
-    );
-    setPatients(response);
-    setLoading(false);
-    
-    } catch(error) {
+      setLoading(true);
+      setPatients([]);
+      const response = await getList(
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_devolutiva}`
+      );
+      setPatients(response);
+      setLoading(false);
+    } catch (error) {
       setLoading(false);
       renderToast({
         type: 'failure',
         title: 'Erro!',
-        message: 'Falha na conexão' ,
+        message: 'Falha na conexão',
         open: true,
       });
     }
@@ -106,7 +105,7 @@ export default function Devolutiva() {
     try {
       await update(url, body);
       setOpenSchedule(false);
-      handleSubmitFilter(filter);
+      handleSubmitFilter({});
     } catch ({ response }: any) {
       renderToast({
         type: 'failure',
@@ -128,7 +127,6 @@ export default function Devolutiva() {
         //   naFila: false,
         //   devolutiva: item.vaga.devolutiva,
         // });4
-
 
         setPatient(item);
         formatCalendar(item);
@@ -212,7 +210,6 @@ export default function Devolutiva() {
         onReset={renderPatient}
         loading={loading}
         dropdown={dropDownList}
-
       />
 
       <Card>
@@ -271,12 +268,20 @@ export default function Devolutiva() {
             isEdit={false}
             statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
             onClose={async (formValueState: any) => {
+              const especialidades = Object.keys(formValueState).map((key: string) =>{
+                if (key.includes('especialidade')) {
+                  return formValueState[key].id
+                }
+              })
+
+              const format = especialidades.filter((value: any) => value !== undefined)
               sendUpdate(
                 'vagas/agendar/especialidade',
                 {
                   vagaId: patient.vaga.id,
-                  especialidadeId: formValueState.especialidade.id,
-                  statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva
+                  especialidades: format,
+                  statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
+                  pacienteId: formValueState.paciente.id
                 },
                 { naFila: !patient.vaga.naFila }
               );

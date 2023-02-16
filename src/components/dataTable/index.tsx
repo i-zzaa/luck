@@ -1,4 +1,4 @@
-import {  useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Input } from '../input';
 import { InputSwitch } from 'primereact';
@@ -30,15 +30,17 @@ export const DataTableHeron = ({
     '20:00': false,
   };
 
- const WORKINGHOURS =Object.keys(value).length ? value :   {
-    'Segunda-feira': HOURS,
-    'Terca-feira': HOURS,
-    'Quarta-feira': HOURS,
-    'Quinta-feira': HOURS,
-    'Sexta-feira': HOURS,
-    'Sábado': HOURS,
- }
-  
+  const WORKINGHOURS = Object.keys(value).length
+    ? value
+    : {
+        'Segunda-feira': HOURS,
+        'Terca-feira': HOURS,
+        'Quarta-feira': HOURS,
+        'Quinta-feira': HOURS,
+        'Sexta-feira': HOURS,
+        Sábado: HOURS,
+      };
+
   const [cargaHoraria, setCargaHoraria] = useState<any>(WORKINGHOURS);
 
   // useEffect(()=> {
@@ -48,18 +50,18 @@ export const DataTableHeron = ({
   const renderHours = (day: string) => {
     return Object.keys(cargaHoraria[day]).map((hour: any) => (
       <Input
-        key={day+hour}
+        key={day + hour}
         labelText={hour}
-        id={day+hour}
+        id={day + hour}
         type="switch"
         control={control}
         value={cargaHoraria[day][hour]}
         onChange={(valueItem: any) => {
-          const cargaHorariaTmp = {...cargaHoraria}
-          cargaHorariaTmp[day][hour] = valueItem
+          const cargaHorariaTmp = { ...cargaHoraria };
+          cargaHorariaTmp[day][hour] = valueItem;
           setCargaHoraria(cargaHorariaTmp);
 
-          onChange(cargaHorariaTmp)
+          onChange(cargaHorariaTmp);
         }}
         customCol="w-24 font-inter"
       />

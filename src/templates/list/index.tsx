@@ -38,7 +38,10 @@ export function List({
   const { hasPermition } = permissionAuth();
 
   const renderStatus = (item: any) => {
-    if (!item.status || item.statusPacienteCod === STATUS_PACIENT_COD.crud_therapy)
+    if (
+      !item.status ||
+      item.statusPacienteCod === STATUS_PACIENT_COD.crud_therapy
+    )
       return null;
 
     const status = `${item.status?.nome}`;
@@ -132,47 +135,49 @@ export function List({
       let typeButtonFooter: 'agendar' | 'devolutiva' | 'retornar';
 
       const buttonFooter = { text: '', icon: '', type: 'second', size: 'md' };
-      let isDevolutiva = false
+      let isDevolutiva = false;
 
       if (screen !== 'CADASTRO_PACIENTES') {
+        switch (true) {
+          case item.vaga.naFila &&
+            item.statusPacienteCod !== STATUS_PACIENT_COD.queue_devolutiva &&
+            hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
+            buttonFooter.text = 'Agendar';
+            buttonFooter.icon = 'pi pi-calendar-minus';
+            buttonFooter.type = 'primary';
+            buttonFooter.size = 'md';
+            typeButtonFooter = 'agendar';
+            break;
+          case screen !== 'FILA_DEVOLUTIVA' &&
+            !item.vaga.naFila &&
+            hasPermition(`${screen}_LISTA_BOTAO_RETORNAR_AGENDAR`):
+            buttonFooter.text = 'Retornar';
+            buttonFooter.icon = 'pi pi-sync';
+            buttonFooter.type = 'second';
+            buttonFooter.size = 'md';
+            typeButtonFooter = 'retornar';
+            break;
+          case screen === 'FILA_DEVOLUTIVA':
+            buttonFooter.text = 'Devolutiva';
+            buttonFooter.icon = 'pi pi-check-circle';
+            buttonFooter.type = 'primary';
+            buttonFooter.size = 'md';
+            typeButtonFooter = 'devolutiva';
 
-      switch (true) {
-        case item.vaga.naFila && item.statusPacienteCod !== STATUS_PACIENT_COD.queue_devolutiva && 
-          hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
-          buttonFooter.text = 'Agendar';
-          buttonFooter.icon = 'pi pi-calendar-minus';
-          buttonFooter.type = 'primary';
-          buttonFooter.size = 'md';
-          typeButtonFooter = 'agendar';
-          break;
-        case screen !== 'FILA_DEVOLUTIVA' && !item.vaga.naFila && hasPermition(`${screen}_LISTA_BOTAO_RETORNAR_AGENDAR`):
-          buttonFooter.text = 'Retornar';
-          buttonFooter.icon = 'pi pi-sync';
-          buttonFooter.type = 'second';
-          buttonFooter.size = 'md';
-          typeButtonFooter = 'retornar';
-          break;
-        case screen === 'FILA_DEVOLUTIVA' :
-          buttonFooter.text = 'Devolutiva';
-          buttonFooter.icon = 'pi pi-check-circle';
-          buttonFooter.type = 'primary';
-          buttonFooter.size = 'md';
-          typeButtonFooter = 'devolutiva';
+            isDevolutiva = true;
 
-          isDevolutiva  = true
-
-          break;
-        // case item.statusPacienteCod < STATUS_PACIENT_COD.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
-        //   buttonFooter.text = 'Retornar Devolutiva'
-        //   buttonFooter.icon = 'pi pi-check-circle'
-        //   buttonFooter.type = 'second'
-        //   buttonFooter.size = 'md'
-        //   typeButtonFooter  =  'devolutiva'
-        //   break;
-        default:
-          break;
+            break;
+          // case item.statusPacienteCod < STATUS_PACIENT_COD.therapy &&  !item.vaga.naFila && item.vaga.devolutiva && hasPermition("btnDevolutiva"):
+          //   buttonFooter.text = 'Retornar Devolutiva'
+          //   buttonFooter.icon = 'pi pi-check-circle'
+          //   buttonFooter.type = 'second'
+          //   buttonFooter.size = 'md'
+          //   typeButtonFooter  =  'devolutiva'
+          //   break;
+          default:
+            break;
+        }
       }
-    } 
 
       const tags = item?.vaga.especialidades.map((especialidade: any) => {
         return {
@@ -209,7 +214,8 @@ export function List({
           {!item.emAtendimento && (
             <div className="flex justify-between">
               <div className="sm:flex items-center sm:gap-4">
-                {STATUS_PACIENT_COD.crud_therapy !== item?.statusPacienteCod && (
+                {STATUS_PACIENT_COD.crud_therapy !==
+                  item?.statusPacienteCod && (
                   <>
                     <TextSubtext
                       text="Período: "
