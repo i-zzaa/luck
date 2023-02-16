@@ -24,7 +24,7 @@ export default function Login() {
   const [checkState, setCheck] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { renderToast } = useToast();
-  
+
   const {
     handleSubmit,
     formState: { errors },
@@ -36,18 +36,18 @@ export default function Login() {
 
   const onSubmit = async ({ login, senha }: FormProps) => {
     setLoading(true);
-try {
-  await Login({ login, senha });
-  setLoading(false);
-} catch(error) {
-  setLoading(false);
-  renderToast({
-    type: 'failure',
-    title: 'Erro!',
-    message: 'Falha na conexão' ,
-    open: true,
-  });
-}
+    try {
+      await Login({ login, senha });
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão',
+        open: true,
+      });
+    }
   };
 
   const handleRememberPassword = async (checked: boolean) => {

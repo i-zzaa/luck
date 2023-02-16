@@ -12,7 +12,7 @@ import {
   getPrimeiroDoMes,
   getUltimoDoMes,
 } from '../util/util';
-import { STATUS_PACIENT_COD  } from '../constants/patient';
+import { STATUS_PACIENT_COD } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 
 const fieldsConst = filterCalendarFields;

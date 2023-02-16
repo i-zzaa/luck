@@ -23,7 +23,6 @@ export interface FooterButtonProps {
   typeButtonFooter?: any;
   sizeButtonFooter?: 'sm' | 'full' | 'md';
   onClick: () => void;
-
 }
 
 export interface itemListCompleteProps extends ActionProps, FooterButtonProps {
@@ -48,7 +47,6 @@ export interface itemListCompleteProps extends ActionProps, FooterButtonProps {
   screen?: string;
 
   isDevolutiva?: boolean;
-
 }
 
 export interface RootProps extends FooterButtonProps {
@@ -157,29 +155,28 @@ function itemListRoot({
   isDevolutiva,
   sizeButtonFooter,
   onClick,
-  onClickLink
+  onClickLink,
 }: RootProps) {
   return (
     <div className="w-full text-center bg-white overflow-hidden">
       {children}
       <div className="flex text-sm  text-gray-400 mt-4 sm:m-0 justify-end gap-2">
+        {isDevolutiva &&
+          footerButton({
+            textButtonFooter: 'Retornar',
+            iconButtonFooter: 'pi pi-sync',
+            typeButtonFooter: 'second',
+            sizeButtonFooter,
+            onClick: onClickLink ? onClickLink : () => {},
+          })}
 
-      {isDevolutiva && footerButton({
-          textButtonFooter: 'Retornar',
-          iconButtonFooter: 'pi pi-sync',
-          typeButtonFooter: 'second',
-          sizeButtonFooter,
-          onClick: onClickLink ? onClickLink  :  () => {},
-        })}
-
-{footerButton({
+        {footerButton({
           textButtonFooter,
           iconButtonFooter,
           typeButtonFooter,
           sizeButtonFooter,
           onClick,
         })}
-
       </div>
     </div>
   );
@@ -220,7 +217,7 @@ function itemListSimples({
             <span></span>
           </div>
 
-          {actionButtons({
+          { actionButtons({
             onClickEdit,
             onClickTrash,
             onClickReturn,
@@ -283,7 +280,9 @@ function itemListComplete({
                 : undefined
             }
             type={item.type}
-            disabled={ screen === 'FILA_DEVOLUTIVA' ? !item?.disabled : item?.disabled }
+            disabled={
+              screen === 'FILA_DEVOLUTIVA' ? !item?.disabled : item?.disabled
+            }
           />
         ))}
       </div>
@@ -302,7 +301,7 @@ function itemListComplete({
     >
       <>
         <div className="grid grid-rows-2 sm:grid-cols-2 mb-4 sm:mb-0 h-12 mt-6">
-          {actionButtons({
+          {screen !== "FILA_DEVOLUTIVA" ? actionButtons({
             onClickEdit,
             onClickTrash,
             onClickReturn,
@@ -311,7 +310,7 @@ function itemListComplete({
             actionTrash,
             actionReturn,
             screen,
-          })}
+          }): <div></div>}
           {renderTags()}
         </div>
         <div>

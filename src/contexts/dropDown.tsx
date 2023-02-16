@@ -78,7 +78,9 @@ export const DropdownProvider = ({ children }: Props) => {
   }, []);
 
   const renderModalidade = useCallback(async (statusPacienteCod: string) => {
-    const response: any = await dropDown(`modalidade?statusPacienteCod=${statusPacienteCod}` );
+    const response: any = await dropDown(
+      `modalidade?statusPacienteCod=${statusPacienteCod}`
+    );
     return response;
   }, []);
 
