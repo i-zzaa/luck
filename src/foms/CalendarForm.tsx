@@ -186,7 +186,7 @@ export const CalendarForm = ({
           customCol="col-span-6 sm:col-span-2"
           errors={errors}
           control={control}
-          options={info? info.terapeutas : dropDownList.terapeutas}
+          options={info ? info.terapeutas : dropDownList.terapeutas}
           onChange={(e: any) =>
             filtrarDropDown(e.id, 'terapeuta-funcao', index)
           }
@@ -266,9 +266,11 @@ export const CalendarForm = ({
     idPaciente: number,
     statusPacienteCod: string
   ) => {
-    const info = await getList(`/pacientes/especialidades?statusPacienteCod=${statusPacienteCod}&pacienteId=${idPaciente}`)
+    const info = await getList(
+      `/pacientes/especialidades?statusPacienteCod=${statusPacienteCod}&pacienteId=${idPaciente}`
+    );
     setInfoDevolutiva(info);
-    setLoop(true)
+    setLoop(true);
   };
 
   const renderDevolutiva = () => {
@@ -284,10 +286,11 @@ export const CalendarForm = ({
     rendeFiltro();
   }, []);
 
-  useEffect(()=> {
-    renderInfoDevolutiva(value.paciente.id, statusPacienteCod);
-
-  }, [isDevolutiva])
+  useEffect(() => {
+    if (statusPacienteCod === STATUS_PACIENT_COD.queue_devolutiva) {
+      renderInfoDevolutiva(value.paciente.id, statusPacienteCod);
+    }
+  }, [isDevolutiva]);
 
   useEffect(() => {
     if (isEdit && value?.frequencia?.nome === 'Recorrente') {
@@ -514,7 +517,7 @@ export const CalendarForm = ({
                 renderInfoDevolutiva(e.id, statusPacienteCod);
               } else {
                 filtrarDropDown(e.id, 'paciente-especialidade');
-                setLoop(false)
+                setLoop(false);
               }
             }}
             validate={{
@@ -522,12 +525,10 @@ export const CalendarForm = ({
             }}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_PACIENTE')}
           />
-          {isDevolutiva && loop 
-            ? infoDevolutiva.map(
-                (info: any, key: number) => {
-                  return renderEspecialidade(`${key}`, info);
-                }
-              )
+          {isDevolutiva && loop
+            ? infoDevolutiva.map((info: any, key: number) => {
+                return renderEspecialidade(`${key}`, info);
+              })
             : renderEspecialidade()}
 
           <Input
