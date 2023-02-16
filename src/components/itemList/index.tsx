@@ -217,7 +217,7 @@ function itemListSimples({
             <span></span>
           </div>
 
-          { actionButtons({
+          {actionButtons({
             onClickEdit,
             onClickTrash,
             onClickReturn,
@@ -301,16 +301,20 @@ function itemListComplete({
     >
       <>
         <div className="grid grid-rows-2 sm:grid-cols-2 mb-4 sm:mb-0 h-12 mt-6">
-          {screen !== "FILA_DEVOLUTIVA" ? actionButtons({
-            onClickEdit,
-            onClickTrash,
-            onClickReturn,
-            positionActions,
-            actionEdit,
-            actionTrash,
-            actionReturn,
-            screen,
-          }): <div></div>}
+          {screen !== 'FILA_DEVOLUTIVA' ? (
+            actionButtons({
+              onClickEdit,
+              onClickTrash,
+              onClickReturn,
+              positionActions,
+              actionEdit,
+              actionTrash,
+              actionReturn,
+              screen,
+            })
+          ) : (
+            <div></div>
+          )}
           {renderTags()}
         </div>
         <div>

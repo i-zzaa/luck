@@ -277,7 +277,7 @@ export default function Therapy() {
                   vagaId: patient.vaga.id,
                   especialidadeId: formValueState.especialidade.id,
                   statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
-                  pacienteId: formValueState.paciente.id
+                  pacienteId: formValueState.paciente.id,
                 },
                 { naFila: !patient.vaga.naFila }
               );

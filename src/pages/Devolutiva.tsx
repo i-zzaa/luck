@@ -268,20 +268,24 @@ export default function Devolutiva() {
             isEdit={false}
             statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
             onClose={async (formValueState: any) => {
-              const especialidades = Object.keys(formValueState).map((key: string) =>{
-                if (key.includes('especialidade')) {
-                  return formValueState[key].id
+              const especialidades = Object.keys(formValueState).map(
+                (key: string) => {
+                  if (key.includes('especialidade')) {
+                    return formValueState[key].id;
+                  }
                 }
-              })
+              );
 
-              const format = especialidades.filter((value: any) => value !== undefined)
+              const format = especialidades.filter(
+                (value: any) => value !== undefined
+              );
               sendUpdate(
                 'vagas/agendar/especialidade',
                 {
                   vagaId: patient.vaga.id,
                   especialidades: format,
                   statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
-                  pacienteId: formValueState.paciente.id
+                  pacienteId: formValueState.paciente.id,
                 },
                 { naFila: !patient.vaga.naFila }
               );
