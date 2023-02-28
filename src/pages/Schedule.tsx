@@ -22,6 +22,8 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 export default function Schedule() {
   const current = new Date();
 
+  const [ filter, setFilter] = useState<string[]>([])
+
   const { hasPermition } = permissionAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -50,25 +52,33 @@ export default function Schedule() {
         },
       });
     } else {
+      // const response: any = await getList(
+      //   `/evento/${moment.start}/${moment.end}`
+      // );
+
       const response: any = await getList(
-        `/evento/${moment.start}/${moment.end}`
+        `/evento/filter/${moment.start}/${moment.end}?${filter.join(
+          '&'
+        )}`
       );
+
+
       setEventsList(response);
     }
   }, []);
 
   const handleSubmitFilter = useCallback(async (formvalue: any) => {
     try {
-      const filter: string[] = [];
+      const _filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
         if (formvalue[key]?.id) {
-          filter.push(`${key}=${formvalue[key].id}`);
+          _filter.push(`${key}=${formvalue[key].id}`);
         }
       });
 
-      const current = new Date();
+      setFilter(_filter)
       const response: any = await getList(
-        `/evento/filter/${currentDate.start}/${currentDate.end}?${filter.join(
+        `/evento/filter/${currentDate.start}/${currentDate.end}?${_filter.join(
           '&'
         )}`
       );

@@ -38,6 +38,8 @@ export const AuthProvider = ({ children }: Props) => {
 
   const Login = async (loginState: object) => {
     try {
+      api.defaults.headers.device = 'web';
+
       const response = await api.post('/login', loginState);
       const auth = response.data;
 

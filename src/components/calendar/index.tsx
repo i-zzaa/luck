@@ -125,7 +125,7 @@ export const CalendarComponent = ({
           navLinks
           timeZone="America/Sao_Paulo"
           // locales={[ptLocale]}
-          // startView="dayGridMonth"
+          initialView="timeGridWeek"
           events={events}
           headerToolbar={{
             left: 'prev,next',
