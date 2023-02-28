@@ -37,12 +37,13 @@ export default function Schedule() {
   const [openView, setOpenView] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
-  const currentDate = {
+  const [currentDate, setCurrentDate] =  useState<any>({
     start: getPrimeiroDoMes(current.getFullYear(), current.getMonth() + 1),
     end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
-  };
+  });
 
-  const renderEvents = useCallback(async (moment: any = currentDate) => {
+  // const renderEvents = useCallback(async (moment: any = currentDate) => {
+    async function renderEvents   (moment: any = currentDate) {
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
@@ -56,6 +57,11 @@ export default function Schedule() {
       //   `/evento/${moment.start}/${moment.end}`
       // );
 
+      setCurrentDate({
+        start:moment.start,
+        end: moment.end,
+      })
+
       const response: any = await getList(
         `/evento/filter/${moment.start}/${moment.end}?${filter.join(
           '&'
@@ -65,9 +71,10 @@ export default function Schedule() {
 
       setEventsList(response);
     }
-  }, []);
+  }
 
-  const handleSubmitFilter = useCallback(async (formvalue: any) => {
+  // const handleSubmitFilter = useCallback(async (formvalue: any) => {
+  async function  handleSubmitFilter (formvalue: any)  {
     try {
       const _filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
@@ -87,7 +94,7 @@ export default function Schedule() {
     } catch (error) {
       setLoading(false);
     }
-  }, []);
+  };
 
   const rendeFiltro = useMemo(async () => {
     const list = await renderDropdownCalendar(STATUS_PACIENT_COD.therapy);
