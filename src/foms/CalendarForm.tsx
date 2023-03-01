@@ -202,7 +202,7 @@ export const CalendarForm = ({
           customCol="col-span-6 sm:col-span-2"
           errors={errors}
           control={control}
-          options={dropDownList[`funcao${index}`]}
+          options={dropDownList[`funcoes${index}`]}
           validate={{
             required: true,
           }}
@@ -252,6 +252,13 @@ export const CalendarForm = ({
         break;
     }
     setDropDownList(list);
+
+    if (isEdit) {
+      const date = moment(value.dataAtual); // Thursday Feb 2015
+      const dow = Number(date.day());
+
+      setValue('diasFrequencia', [dow])
+    }
   }, []);
 
   const renderAvalation = () => {
