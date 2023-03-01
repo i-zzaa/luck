@@ -80,23 +80,33 @@ export default function Therapy() {
   };
 
   const handleSubmitFilter = async (formState: any) => {
-    setLoading(true);
-    const format: any = {
-      naFila: formState.naFila === undefined ? true : !formState.naFila,
-      disabled: formState.disabled === undefined ? false : formState.disabled,
-      statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
-    };
-    delete formState.naFila;
-    delete formState.disabled;
+    try {
+      setLoading(true);
+      const format: any = {
+        naFila: formState.naFila === undefined ? true : !formState.naFila,
+        disabled: formState.disabled === undefined ? false : formState.disabled,
+        statusPacienteCod: STATUS_PACIENT_COD.queue_therapy,
+      };
+      delete formState.naFila;
+      delete formState.disabled;
 
-    await Object.keys(formState).map((key: any) => {
-      format[key] = formState[key]?.id || undefined;
-    });
+      await Object.keys(formState).map((key: any) => {
+        format[key] = formState[key]?.id || undefined;
+      });
 
-    const response = await filter('pacientes', format);
-    const lista: PacientsProps[] = response.status === 200 ? response.data : [];
-    setPatients(lista);
-    setLoading(false);
+      const response = await filter('pacientes', format);
+      const lista: PacientsProps[] = response.status === 200 ? response.data : [];
+      setPatients(lista);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Erro na conexão!',
+        open: true,
+      });
+    }
   };
 
   const sendUpdate = async (url: string, body: any, filter: any) => {
@@ -120,16 +130,6 @@ export default function Therapy() {
         setPatient(item);
         formatCalendar(item);
         setOpenCalendarForm(true);
-        break;
-      case 'devolutiva':
-        const body: any = {
-          id: item.vaga.id,
-          devolutiva: !item.vaga.devolutiva,
-        };
-        sendUpdate('vagas/devolutiva', body, {
-          naFila: false,
-          devolutiva: item.vaga.devolutiva,
-        });
         break;
 
       default:
