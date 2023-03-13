@@ -7,10 +7,11 @@ export interface ResponseSuccessProps {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL, // 'https://api-multialcance.online', //    'https://api-multialcance.online', //      'https://api-multialcance.online', //  import.meta.env.VITE_API_URL || process.env.VITE_API_URL, //, // 'http://127.0.0.1:3333', //'https://api-multialcance.online/', //
+  baseURL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL, // 'https://api-multialcance.online', //  import.meta.env.VITE_API_URL || process.env.VITE_API_URL, //   , // 'http://127.0.0.1:3333', //'https://api-multialcance.online/', //
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
+    device: 'web',
   },
 });
 
@@ -27,7 +28,6 @@ export const intercepttRoute = (token: string, login: string) => {
         // }
         config.headers.Authorization = `Bearer ${token}`;
         config.headers.login = login;
-        config.headers.device = 'web';
       }
       return config;
     },

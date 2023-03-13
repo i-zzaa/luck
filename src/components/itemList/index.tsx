@@ -279,9 +279,9 @@ function itemListComplete({
                 ? onClickLink
                 : undefined
             }
-            type={item.type}
+            type={item.type }
             disabled={
-              screen === 'FILA_DEVOLUTIVA' ? !item?.disabled : item?.disabled
+              screen === 'FILA_DEVOLUTIVA' || screen === 'CADASTRO_PACIENTES' ? false : item?.disabled
             }
           />
         ))}
