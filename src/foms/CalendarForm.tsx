@@ -141,7 +141,7 @@ export const CalendarForm = ({
         break;
       case 'terapeuta-funcao':
         list = await renderTerapeutaFuncao(_value);
-        setDropDownList({ ...dropDownList, [`funcao${index}`]: list });
+        setDropDownList({ ...dropDownList, [`funcoes${index}`]: list });
         break;
 
       default:
