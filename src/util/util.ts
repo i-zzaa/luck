@@ -69,7 +69,7 @@ export const formatdate = (date: any) => {
 
 export const formatdateeua = (date: any) => {
   moment.locale('pt-br');
-  return moment(date).format('YYYY-MM-DD');
+  return moment(date).add(1, 'days').format('YYYY-MM-DD');
 };
 
 export const formatdateEuaAddDay = (date: any) => {
@@ -124,8 +124,8 @@ export const horariosUteisObj = {
 };
 
 export const getDateFormat = (date: any) => {
-  const dateFormat = moment(date); // Thursday Feb 2015
-  const dow = Number(dateFormat.day());
+  const dateFormat = moment(date).add(1, 'days'); // Thursday Feb 2015
+  const dow = Number(dateFormat.day() - 1);
 
   return `${weekDay[dow]}, ${dateFormat.format('ll')}`;
 };

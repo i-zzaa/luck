@@ -109,6 +109,7 @@ export default function Schedule() {
       dataAtual: formatdateeua(event._instance.range.start),
       // dataInicio: formatdateeua(event._instance.range.start),
       date: getDateFormat(event._instance.range.start),
+      groupId: event._def.groupId
     };
     setEvent(evento);
     setOpenView(true);

@@ -80,7 +80,7 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
           <p>
             {evento.intervalo.nome} &bull;{' '}
             {evento?.diasFrequencia
-              .map((dia: number) => weekDay[dia])
+              .map((dia: number) => weekDay[dia -1])
               .join('-')}
           </p>
         )}
