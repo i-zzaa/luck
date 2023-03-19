@@ -80,7 +80,7 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
           <p>
             {evento.intervalo.nome} &bull;{' '}
             {evento?.diasFrequencia
-              .map((dia: number) => weekDay[dia -1])
+              .map((dia: number) => weekDay[dia - 1])
               .join('-')}
           </p>
         )}
@@ -90,6 +90,16 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
           {evento.localidade.nome}
         </p>
         <br />
+        {evento.observacao ? (
+        <>
+        <p className="flex gap-4 items-center">
+          <i className="pi pi-bars"></i>
+          {evento.observacao}
+        </p>
+          <br />
+          </>
+
+        ) : null}
         <p className="flex gap-4 items-center">
           {evento.terapeuta.nome} <i className="pi pi-tag"> </i>{' '}
           {evento.funcao.nome}
