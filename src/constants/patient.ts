@@ -22,7 +22,7 @@ export const patientAvaliationFields = [
     id: 'nome',
     name: 'pacientes',
     type: 'text',
-    customCol: 'col-span-6 sm:col-span-4',
+    customCol: 'col-span-6 sm:col-span-6',
     singleSelect: false,
     validate: {
       pattern: {
@@ -31,6 +31,17 @@ export const patientAvaliationFields = [
       },
       required: 'Campo obrigatório!',
       minlength: 8,
+    },
+  },
+  {
+    labelText: 'Carteirinha',
+    id: 'carteirinha',
+    name: 'carteirinha',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-4',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
     },
   },
   {
@@ -157,7 +168,7 @@ export const patientTherapyFields = [
     id: 'nome',
     name: 'pacientes',
     type: 'text',
-    customCol: 'col-span-6 sm:col-span-4',
+    customCol: 'col-span-6 sm:col-span-6',
     singleSelect: false,
     validate: {
       pattern: {
@@ -166,6 +177,17 @@ export const patientTherapyFields = [
       },
       required: 'Campo obrigatório!',
       minlength: 8,
+    },
+  },
+  {
+    labelText: 'Carteirinha',
+    id: 'carteirinha',
+    name: 'carteirinha',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-4',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
     },
   },
   {
@@ -529,7 +551,7 @@ export const patientCrudFields = [
     id: 'nome',
     name: 'pacientes',
     type: 'text',
-    customCol: 'col-span-6 sm:col-span-4',
+    customCol: 'col-span-6 sm:col-span-6',
     singleSelect: false,
     validate: {
       pattern: {
@@ -538,6 +560,17 @@ export const patientCrudFields = [
       },
       required: 'Campo obrigatório!',
       minlength: 8,
+    },
+  },
+  {
+    labelText: 'Carteirinha',
+    id: 'carteirinha',
+    name: 'carteirinha',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-4',
+    singleSelect: false,
+    validate: {
+      required: 'Campo obrigatório!',
     },
   },
   {
