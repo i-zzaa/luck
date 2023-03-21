@@ -129,7 +129,12 @@ export function List({
         ? `Responsável: ${item.responsavel}`
         : '';
       const textSecondCenter = item?.telefone;
-      const textSecondRight = item?.convenio ? item?.convenio.nome : '';
+      let textSecondRight = item?.convenio ? item?.convenio.nome : '';
+      
+      if (item?.convenio.nome === 'Unimed') {
+        textSecondRight += `   ${item?.carteirinha}`
+      }
+
       const textFooter = item?.vaga?.observacao;
       const DISABLED = !!item?.disabled;
       let typeButtonFooter: 'agendar' | 'devolutiva' | 'retornar';
