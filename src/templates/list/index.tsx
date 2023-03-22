@@ -142,6 +142,7 @@ export function List({
         switch (true) {
           case item.vaga.naFila &&
             item.statusPacienteCod !== STATUS_PACIENT_COD.queue_devolutiva &&
+            item.statusPacienteCod !== STATUS_PACIENT_COD.devolutiva &&
             hasPermition(`${screen}_LISTA_BOTAO_AGENDAR`):
             buttonFooter.text = 'Agendar';
             buttonFooter.icon = 'pi pi-calendar-minus';
