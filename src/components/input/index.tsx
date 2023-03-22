@@ -180,7 +180,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={'inputAnimado font-inter' + customClass}
+                className={'inputAnimado font-inter font-light' + customClass}
                 mask="(99) 9999-9999"
                 onChange={(e: any) => {
                   return field.onChange(e.value);

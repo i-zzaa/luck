@@ -138,6 +138,7 @@ export const formtDatePatient = (value: PacientsProps) => {
     dataNascimento: value.dataNascimento,
     telefone: value.telefone,
     responsavel: value.responsavel,
+    carteirinha: value.carteirinha,
     periodoId: value.vaga.periodo,
     convenioId: value.convenio,
     statusId: value.status,
