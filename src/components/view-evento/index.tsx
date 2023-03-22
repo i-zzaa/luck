@@ -11,9 +11,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
+export const ViewEvento = ({ evento, open, onClose, onEdit, onDelete }: Props) => {
   const [buttonEdit, setButtonEdit] = useState(true);
   const { hasPermition } = permissionAuth();
 
@@ -39,20 +40,38 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
     <div className="flex justify-between items-center gap-8">
       <Tag type={evento.especialidade.nome} disabled={false} />
       <span>{evento.paciente.nome}</span>
-      {hasPermition('AGENDA_LISTA_EDITAR') ? (
-        <div className="mt-[-0.5rem]">
-          {buttonEdit && (
-            <ButtonHeron
-              text="Edit"
-              icon="pi pi-pencil"
-              type="transparent"
-              color="violet"
-              size="icon"
-              onClick={onEdit}
-            />
-          )}
-        </div>
-      ) : null}
+
+      <div className="flex mt-[-0.5rem]">
+        {hasPermition('AGENDA_LISTA_EDITAR') ? (
+          <div>
+            {buttonEdit && (
+              <ButtonHeron
+                text="Edit"
+                icon="pi pi-pencil"
+                type="transparent"
+                color="violet"
+                size="icon"
+                onClick={onEdit}
+              />
+            )}
+          </div>
+        ) : null}
+
+        {hasPermition('AGENDA_LISTA_EXCLUIR') && evento?.canDelete ? (
+          <div>
+            {buttonEdit && (
+              <ButtonHeron
+                text="Edit"
+                icon="pi pi-trash"
+                type="transparent"
+                color="red"
+                size="icon"
+                onClick={onDelete}
+              />
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 
@@ -91,14 +110,13 @@ export const ViewEvento = ({ evento, open, onClose, onEdit }: Props) => {
         </p>
         <br />
         {evento.observacao ? (
-        <>
-        <p className="flex gap-4 items-center">
-          <i className="pi pi-bars"></i>
-          {evento.observacao}
-        </p>
-          <br />
+          <>
+            <p className="flex gap-4 items-center">
+              <i className="pi pi-bars"></i>
+              {evento.observacao}
+            </p>
+            <br />
           </>
-
         ) : null}
         <p className="flex gap-4 items-center">
           {evento.terapeuta.nome} <i className="pi pi-tag"> </i>{' '}

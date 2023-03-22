@@ -257,7 +257,7 @@ export const CalendarForm = ({
       const date = moment(value.dataAtual); // Thursday Feb 2015
       const dow = Number(date.day());
 
-      setValue('diasFrequencia', [dow])
+      setValue('diasFrequencia', [dow]);
     }
   }, []);
 

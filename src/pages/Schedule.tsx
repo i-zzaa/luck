@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getList } from '../server';
-import { Card, Filter, Modal } from '../components';
+import { deleteItem, getList } from '../server';
+import { Card, Confirm, Filter, Modal } from '../components';
 import { CalendarComponent } from '../components/calendar';
 import { ViewEvento } from '../components/view-evento';
 import { CalendarForm } from '../foms/CalendarForm';
@@ -14,6 +14,7 @@ import {
 } from '../util/util';
 import { STATUS_PACIENT_COD } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
+import { useToast } from '../contexts/toast';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};
@@ -22,11 +23,12 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 export default function Schedule() {
   const current = new Date();
 
-  const [ filter, setFilter] = useState<string[]>([])
+  const [filter, setFilter] = useState<string[]>([]);
 
   const { hasPermition } = permissionAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
+  const { renderToast } = useToast();
 
   const [dropDownList, setDropDownList] = useState<any>([]);
   const { renderDropdownCalendar, renderPacientes } = useDropdown();
@@ -35,15 +37,16 @@ export default function Schedule() {
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [openView, setOpenView] = useState<boolean>(false);
+  const [openConfirm, setOpenConfirm] = useState<boolean>(false);
 
   const [evenetsList, setEventsList] = useState<any>([]);
-  const [currentDate, setCurrentDate] =  useState<any>({
+  const [currentDate, setCurrentDate] = useState<any>({
     start: getPrimeiroDoMes(current.getFullYear(), current.getMonth() + 1),
     end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
   });
 
   // const renderEvents = useCallback(async (moment: any = currentDate) => {
-    async function renderEvents   (moment: any = currentDate) {
+  async function renderEvents(moment: any = currentDate) {
     if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
@@ -58,23 +61,42 @@ export default function Schedule() {
       // );
 
       setCurrentDate({
-        start:moment.start,
+        start: moment.start,
         end: moment.end,
-      })
+      });
 
       const response: any = await getList(
-        `/evento/filter/${moment.start}/${moment.end}?${filter.join(
-          '&'
-        )}`
+        `/evento/filter/${moment.start}/${moment.end}?${filter.join('&')}`
       );
-
 
       setEventsList(response);
     }
   }
 
+  async function deleteEvent() {
+    try {
+      await deleteItem(`/evento/${event.groupId}`)
+      renderEvents()
+      renderToast({
+        type: 'success',
+        title: '',
+        message: 'Evento excluído com sucesso!',
+        open: true,
+      });
+    } catch (error) {
+      console.error(error);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Não cadastrado!',
+        open: true,
+      });
+    }
+
+  }
+
   // const handleSubmitFilter = useCallback(async (formvalue: any) => {
-  async function  handleSubmitFilter (formvalue: any)  {
+  async function handleSubmitFilter(formvalue: any) {
     try {
       const _filter: string[] = [];
       Object.keys(formvalue).map((key: string) => {
@@ -83,7 +105,7 @@ export default function Schedule() {
         }
       });
 
-      setFilter(_filter)
+      setFilter(_filter);
       const response: any = await getList(
         `/evento/filter/${currentDate.start}/${currentDate.end}?${_filter.join(
           '&'
@@ -94,7 +116,7 @@ export default function Schedule() {
     } catch (error) {
       setLoading(false);
     }
-  };
+  }
 
   const rendeFiltro = useMemo(async () => {
     const list = await renderDropdownCalendar(STATUS_PACIENT_COD.therapy);
@@ -109,7 +131,7 @@ export default function Schedule() {
       dataAtual: formatdateeua(event._instance.range.start),
       // dataInicio: formatdateeua(event._instance.range.start),
       date: getDateFormat(event._instance.range.start),
-      groupId: event._def.groupId
+      groupId: event._def.groupId,
     };
     setEvent(evento);
     setOpenView(true);
@@ -191,6 +213,7 @@ export default function Schedule() {
           evento={event}
           open={openView}
           onEdit={renderModalEdit}
+          onDelete={() => setOpenConfirm(true)}
           onClose={() => setOpenView(false)}
         />
       )}
@@ -215,6 +238,18 @@ export default function Schedule() {
           />
         </Modal>
       ) : null}
+
+<Confirm
+        onAccept={deleteEvent}
+        onReject={() => setOpenConfirm(false)}
+        onClose={() => setOpenConfirm(false)}
+        title="Evento(s)"
+        message="O evento excluído perderá todo historico. Deseja realmente exclui-lo?"
+        icon="pi pi-exclamation-triangle"
+        open={openConfirm}
+        acceptLabel="Eventos Futuros"
+        rejectLabel="Atual"
+      />
     </div>
   );
 }
