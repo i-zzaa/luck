@@ -322,7 +322,8 @@ function itemListComplete({
         <div>
           <div className="flex items-end gap-2 sm:gap-8 text-left ">
             <Text text={textPrimaryLeft} size="lg" color="violet" />
-            <Text text={textPrimaryCenter} size="xs" color="gray-dark" />
+            <Text className='font-inter' text={textPrimaryCenter} size="sm" color="gray-dark" />
+            <Text className='font-inter' text={textPrimaryRight} size="sm" color="gray-dark" />
           </div>
 
           <div className="mt-1 grid sm:flex items-center sm:gap-2 justify-between font-light text-left">
@@ -344,7 +345,7 @@ function itemListComplete({
               <></>
             )}
 
-            <Text text={textSecondRight} size="md" color="gray-dark" />
+            <Text text={textSecondRight} size="md" color="gray-dark" className='font-inter' />
           </div>
 
           <div className="mt-2">{children}</div>

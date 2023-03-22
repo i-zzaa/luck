@@ -184,7 +184,7 @@ export const patientTherapyFields = [
     id: 'carteirinha',
     name: 'carteirinha',
     type: 'text',
-    customCol: 'col-span-6 sm:col-span-4',
+    customCol: 'col-span-6 sm:col-span-4 font-inter font-light',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -195,7 +195,7 @@ export const patientTherapyFields = [
     id: 'dataNascimento',
     name: 'dataNascimento',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2 font-inter font-light',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -222,7 +222,7 @@ export const patientTherapyFields = [
     id: 'telefone',
     name: 'telefone',
     type: 'tel',
-    customCol: 'col-span-6 sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2 font-inter font-light',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',
@@ -234,7 +234,7 @@ export const patientTherapyFields = [
     id: 'dataVoltouAba',
     name: 'dataVoltouAba',
     type: 'date',
-    customCol: 'col-span-6 sm:col-span-2',
+    customCol: 'col-span-6 sm:col-span-2 font-inter font-light',
     singleSelect: false,
     validate: {
       required: 'Campo obrigatório!',

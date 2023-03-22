@@ -85,11 +85,13 @@ export default function Devolutiva() {
 
     const format: any = {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
+      isDevolutiva: formState.isDevolutiva === undefined ? false : formState.isDevolutiva,
       disabled: formState.disabled === undefined ? false : formState.disabled,
       statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
     };
     delete formState.naFila;
     delete formState.disabled;
+    delete formState.isDevolutiva;
 
     await Object.keys(formState).map((key: any) => {
       format[key] = formState[key]?.id || undefined;
@@ -131,6 +133,10 @@ export default function Devolutiva() {
         setPatient(item);
         formatCalendar(item);
         setOpenCalendarForm(true);
+        break;
+      case 'voltou_aba':
+        setPatient(item);
+        formtDate(item);
         break;
 
       default:
@@ -251,7 +257,7 @@ export default function Devolutiva() {
           }}
           dropdown={dropDownList}
           value={patient}
-          statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
+          statusPacienteCod={STATUS_PACIENT_COD.devolutiva}
           fieldsCostant={patientAvaliationFields}
         />
       </Modal>

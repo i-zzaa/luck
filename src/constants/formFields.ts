@@ -152,6 +152,15 @@ const filterDevolutivaFields = [
     type: 'select',
     singleSelect: false,
   },
+  {
+    permission: 'FILA_AVALIACAO_FILTRO_SELECT_TIPO_SESSAO',
+    labelText: 'Devolutiva Agendadas',
+    id: 'isDevolutiva',
+    name: 'isDevolutiva',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'switch',
+    singleSelect: false,
+  },
 ];
 
 const filterTerapyFields = [
