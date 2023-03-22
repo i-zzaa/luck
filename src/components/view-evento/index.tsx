@@ -112,7 +112,8 @@ export const ViewEvento = ({
         <br />
         <p className="flex gap-4 items-center">
           <i className="pi pi-map-marker"></i>
-          {evento.localidade.nome}
+          {evento.localidade.nome} 
+          { evento.isExterno && ( <span className='font-bold font-inter'> { `- ${ evento.km }km` } </span>)}
         </p>
         <br />
         {evento.observacao ? (
