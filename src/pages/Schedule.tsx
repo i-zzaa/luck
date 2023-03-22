@@ -75,7 +75,7 @@ export default function Schedule() {
 
   async function deleteEvent() {
     try {
-      await deleteItem(`/evento?groupId=${event.groupId}`);
+      await deleteItem(`/evento?id=${event.id}`);
       renderEvents();
       setOpenView(false)
       renderToast({
