@@ -75,8 +75,9 @@ export default function Schedule() {
 
   async function deleteEvent() {
     try {
-      await deleteItem(`/evento/${event.groupId}`)
-      renderEvents()
+      await deleteItem(`/evento?groupId=${event.groupId}`);
+      renderEvents();
+      setOpenView(false)
       renderToast({
         type: 'success',
         title: '',
@@ -88,11 +89,10 @@ export default function Schedule() {
       renderToast({
         type: 'failure',
         title: '401',
-        message: 'Não cadastrado!',
+        message: 'Evento não excluído!',
         open: true,
       });
     }
-
   }
 
   // const handleSubmitFilter = useCallback(async (formvalue: any) => {
@@ -239,16 +239,16 @@ export default function Schedule() {
         </Modal>
       ) : null}
 
-<Confirm
+      <Confirm
         onAccept={deleteEvent}
         onReject={() => setOpenConfirm(false)}
         onClose={() => setOpenConfirm(false)}
         title="Evento(s)"
-        message="O evento excluído perderá todo historico. Deseja realmente exclui-lo?"
+        message="O evento excluído perderá todo histórico. Deseja realmente exclui-lo?"
         icon="pi pi-exclamation-triangle"
         open={openConfirm}
-        acceptLabel="Eventos Futuros"
-        rejectLabel="Atual"
+        acceptLabel="Excluir"
+        rejectLabel="Cancelar"
       />
     </div>
   );
