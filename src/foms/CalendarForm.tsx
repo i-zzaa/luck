@@ -24,6 +24,7 @@ export const CalendarForm = ({
   const [hasFrequencia, setHasFrequencia] = useState<boolean>(false);
   const [isAvaliacao, setIsAvalicao] = useState<boolean>(false);
   const [isDevolutiva, setIsDevolutiva] = useState<boolean>(false);
+  const [isExterno, setIsExterno] = useState<boolean>(false);
   const [loop, setLoop] = useState<boolean>(false);
   const [infoDevolutiva, setInfoDevolutiva] = useState<any[]>([]);
   const { renderToast } = useToast();
@@ -294,6 +295,14 @@ export const CalendarForm = ({
   }, []);
 
   useEffect(() => {
+   if (value?.isExterno) {
+    setIsExterno(true)
+    
+   }
+  }, []);
+
+
+  useEffect(() => {
     if (statusPacienteCod === STATUS_PACIENT_COD.queue_devolutiva) {
       renderInfoDevolutiva(value.paciente.id, statusPacienteCod);
     }
@@ -349,7 +358,7 @@ export const CalendarForm = ({
             labelText="Data"
             id="dataInicio"
             type="date"
-            customCol={`col-span-6 ${
+            customCol={`col-span-6 font-inter font-light ${
               isAvaliacao || isEdit ? 'sm:col-span-2' : 'sm:col-span-3'
             }`}
             errors={errors}
@@ -377,7 +386,7 @@ export const CalendarForm = ({
               labelText="Data Final"
               id="dataFim"
               type="date"
-              customCol="col-span-6 sm:col-span-2"
+              customCol="col-span-6 sm:col-span-2 font-inter font-light"
               errors={errors}
               control={control}
               validate={{
@@ -546,12 +555,31 @@ export const CalendarForm = ({
             errors={errors}
             control={control}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            onChange={(e: any) => {
+              setIsExterno(e)
+            }}
           />
+
+{
+           isExterno && (
+              <Input
+              labelText="km"
+              id="km"
+              type="number"
+              customCol="col-span-6 sm:col-span-1 font-inter font-light"
+              errors={errors}
+              control={control}
+              disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            />
+            )
+          }
+
+
           <Input
             labelText="Local"
             id="localidade"
             type="select"
-            customCol="col-span-6 sm:col-span-3"
+            customCol={`col-span-6 sm:col-span-${isExterno ? '2': '3'}`}
             errors={errors}
             control={control}
             options={dropDownList?.localidades}
