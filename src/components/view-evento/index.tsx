@@ -14,7 +14,13 @@ interface Props {
   onDelete: () => void;
 }
 
-export const ViewEvento = ({ evento, open, onClose, onEdit, onDelete }: Props) => {
+export const ViewEvento = ({
+  evento,
+  open,
+  onClose,
+  onEdit,
+  onDelete,
+}: Props) => {
   const [buttonEdit, setButtonEdit] = useState(true);
   const { hasPermition } = permissionAuth();
 
