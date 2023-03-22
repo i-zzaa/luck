@@ -130,9 +130,9 @@ export function List({
         : '';
       const textSecondCenter = item?.telefone;
       let textSecondRight = item?.convenio ? item?.convenio.nome : '';
-      
+
       if (item?.convenio.nome === 'Unimed') {
-        textSecondRight += `   ${item?.carteirinha}`
+        textSecondRight += `   ${item?.carteirinha}`;
       }
 
       const textFooter = item?.vaga?.observacao;

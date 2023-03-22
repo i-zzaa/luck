@@ -95,7 +95,8 @@ export default function Therapy() {
       });
 
       const response = await filter('pacientes', format);
-      const lista: PacientsProps[] = response.status === 200 ? response.data : [];
+      const lista: PacientsProps[] =
+        response.status === 200 ? response.data : [];
       setPatients(lista);
       setLoading(false);
     } catch (error) {
