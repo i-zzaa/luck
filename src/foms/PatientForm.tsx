@@ -25,6 +25,7 @@ export interface PacientsProps {
   nome: string;
   responsavel: string;
   telefone: string;
+  carteirinha: string;
   dataNascimento: string;
   convenio: string;
   vaga: any;
