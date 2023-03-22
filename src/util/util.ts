@@ -166,10 +166,11 @@ export const getUltimoDoMes = (ano: number, mes: number) => {
 };
 
 export const formaTime = (duration: any) => {
-  return `${duration.hours().toString().padStart(2, '0')}:${duration
+  const time = moment.duration(duration);
+  return `${time.hours().toString().padStart(2, '0')}:${time
     .minutes()
     .toString()
-    .padStart(2, '0')}:${duration.seconds().toString().padStart(2, '0')}`;
+    .padStart(2, '0')}:${time.seconds().toString().padStart(2, '0')}`;
 };
 
 export const moneyFormat = new Intl.NumberFormat('pt-BR', {
