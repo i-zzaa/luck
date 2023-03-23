@@ -51,6 +51,7 @@ export const DropdownProvider = ({ children }: Props) => {
     { nome: 'Q', value: 2 },
     { nome: 'Q', value: 3 },
     { nome: 'S', value: 4 },
+    { nome: 'S', value: 5 },
   ];
 
   const renderPacientes = useCallback(async (statusPacienteCod: string) => {
