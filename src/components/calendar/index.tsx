@@ -120,7 +120,7 @@ export const CalendarComponent = ({
             dayGridPlugin,
             listPlugin,
             timeGridPlugin,
-            // momentTimezonePlugin 
+            // momentTimezonePlugin
           ]}
           locale="pt"
           navLinks

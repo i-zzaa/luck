@@ -133,7 +133,11 @@ export function List({
 
       const textFooter = item?.vaga?.observacao;
       const DISABLED = !!item?.disabled;
-      let typeButtonFooter: 'agendar' | 'devolutiva' | 'retornar' | 'voltou_aba';
+      let typeButtonFooter:
+        | 'agendar'
+        | 'devolutiva'
+        | 'retornar'
+        | 'voltou_aba';
 
       const buttonFooter = { text: '', icon: '', type: 'second', size: 'md' };
       let isDevolutiva = false;
@@ -159,7 +163,8 @@ export function List({
             buttonFooter.size = 'md';
             typeButtonFooter = 'retornar';
             break;
-          case screen === 'FILA_DEVOLUTIVA' && item.statusPacienteCod === STATUS_PACIENT_COD.queue_devolutiva :
+          case screen === 'FILA_DEVOLUTIVA' &&
+            item.statusPacienteCod === STATUS_PACIENT_COD.queue_devolutiva:
             buttonFooter.text = 'Devolutiva';
             buttonFooter.icon = 'pi pi-check-circle';
             buttonFooter.type = 'primary';
@@ -169,12 +174,13 @@ export function List({
             isDevolutiva = true;
 
             break;
-          case item.statusPacienteCod === STATUS_PACIENT_COD.devolutiva && !item.naFila :
-            buttonFooter.text = 'Voltou ABA'
-            buttonFooter.icon = 'pi pi-file-export'
-            buttonFooter.type = 'primary'
-            buttonFooter.size = 'md'
-            typeButtonFooter  =  'voltou_aba'
+          case item.statusPacienteCod === STATUS_PACIENT_COD.devolutiva &&
+            !item.naFila:
+            buttonFooter.text = 'Voltou ABA';
+            buttonFooter.icon = 'pi pi-file-export';
+            buttonFooter.type = 'primary';
+            buttonFooter.size = 'md';
+            typeButtonFooter = 'voltou_aba';
             break;
           default:
             break;
@@ -195,7 +201,15 @@ export function List({
           textPrimaryCenter={textPrimaryCenter}
           textSecondLeft={textSecondLeft}
           textSecondCenter={textSecondCenter}
-          textPrimaryRight={item?.carteirinha}
+          textPrimaryRight={
+            <TextSubtext
+              text="Carteirinha: "
+              subtext={item.carteirinha}
+              size="sm"
+              color="gray-dark"
+              display="flex"
+            />
+          }
           textSecondRight={textSecondRight}
           textFooter={textFooter}
           onClick={() => onClick({ item, typeButtonFooter })}

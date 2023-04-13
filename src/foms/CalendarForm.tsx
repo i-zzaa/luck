@@ -256,7 +256,7 @@ export const CalendarForm = ({
 
     if (isEdit) {
       const date = moment(value.dataAtual); // Thursday Feb 2015
-      const dow = Number(date.day() -1 );
+      const dow = Number(date.day() - 1);
 
       setValue('diasFrequencia', [dow]);
     }
@@ -295,12 +295,10 @@ export const CalendarForm = ({
   }, []);
 
   useEffect(() => {
-   if (value?.isExterno) {
-    setIsExterno(true)
-    
-   }
+    if (value?.isExterno) {
+      setIsExterno(true);
+    }
   }, []);
-
 
   useEffect(() => {
     if (statusPacienteCod === STATUS_PACIENT_COD.queue_devolutiva) {
@@ -368,7 +366,7 @@ export const CalendarForm = ({
               if (frequencia && frequencia?.nome === 'Recorrente') {
                 const dataInicio = getValues('dataInicio');
                 const date = moment(dataInicio); // Thursday Feb 2015
-                const dow = Number(date.day() -1);
+                const dow = Number(date.day() - 1);
 
                 setValue('diasFrequencia', [dow]);
                 setMinFinal(date.add(1, 'days'));
@@ -462,7 +460,7 @@ export const CalendarForm = ({
                 if (e.nome === 'Recorrente') {
                   const dataInicio = getValues('dataInicio');
                   const date = moment(dataInicio); // Thursday Feb 2015
-                  const dow = Number(date.day() -1);
+                  const dow = Number(date.day() - 1);
 
                   setValue('diasFrequencia', [dow]);
                 }
@@ -556,13 +554,12 @@ export const CalendarForm = ({
             control={control}
             disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
             onChange={(e: any) => {
-              setIsExterno(e)
+              setIsExterno(e);
             }}
           />
 
-{
-           isExterno && (
-              <Input
+          {isExterno && (
+            <Input
               labelText="km"
               id="km"
               type="number"
@@ -571,15 +568,13 @@ export const CalendarForm = ({
               control={control}
               disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
             />
-            )
-          }
-
+          )}
 
           <Input
             labelText="Local"
             id="localidade"
             type="select"
-            customCol={`col-span-6 sm:col-span-${isExterno ? '2': '3'}`}
+            customCol={`col-span-6 sm:col-span-${isExterno ? '2' : '3'}`}
             errors={errors}
             control={control}
             options={dropDownList?.localidades}

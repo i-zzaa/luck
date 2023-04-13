@@ -85,7 +85,8 @@ export default function Devolutiva() {
 
     const format: any = {
       naFila: formState.naFila === undefined ? true : !formState.naFila,
-      isDevolutiva: formState.isDevolutiva === undefined ? false : formState.isDevolutiva,
+      isDevolutiva:
+        formState.isDevolutiva === undefined ? false : formState.isDevolutiva,
       disabled: formState.disabled === undefined ? false : formState.disabled,
       statusPacienteCod: STATUS_PACIENT_COD.queue_devolutiva,
     };
