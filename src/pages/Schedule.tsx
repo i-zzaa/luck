@@ -77,7 +77,7 @@ export default function Schedule() {
     try {
       await deleteItem(`/evento?id=${event.id}`);
       renderEvents();
-      setOpenView(false)
+      setOpenView(false);
       renderToast({
         type: 'success',
         title: '',

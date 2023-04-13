@@ -88,7 +88,9 @@ export default function Therapy() {
         disabled: formState.disabled === undefined ? false : formState.disabled,
       };
 
-      format.statusPacienteCod =  format.naFila ? STATUS_PACIENT_COD.queue_therapy : STATUS_PACIENT_COD.therapy
+      format.statusPacienteCod = format.naFila
+        ? STATUS_PACIENT_COD.queue_therapy
+        : STATUS_PACIENT_COD.therapy;
       delete formState.naFila;
       delete formState.disabled;
 
