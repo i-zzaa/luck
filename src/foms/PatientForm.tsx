@@ -140,7 +140,7 @@ export const PatientForm = ({
     value?.nome && setColorChips();
 
     if (
-      statusPacienteCod === STATUS_PACIENT_COD.crud_therapy &&
+      // statusPacienteCod === STATUS_PACIENT_COD.crud_therapy &&
       value?.sessao
     ) {
       setSessoes(value.sessao);
