@@ -150,6 +150,16 @@ export const patientAvaliationFields = [
     },
   },
   {
+    labelText: '',
+    id: 'sessao',
+    name: 'sessao',
+    type: 'dataTableSessaoHeron',
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+    customCol: 'col-span-6 sm:col-span-6 mb-8',
+  },
+  {
     labelText: 'Observação',
     id: 'observacao',
     name: 'observacao',
@@ -283,6 +293,16 @@ export const patientTherapyFields = [
     validate: {
       required: 'Campo obrigatório!',
     },
+  },
+  {
+    labelText: '',
+    id: 'sessao',
+    name: 'sessao',
+    type: 'dataTableSessaoHeron',
+    validate: {
+      required: 'Campo obrigatório!',
+    },
+    customCol: 'col-span-6 sm:col-span-6 mb-8',
   },
   {
     labelText: 'Observação',
