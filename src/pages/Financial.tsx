@@ -191,10 +191,10 @@ export default function Financial() {
               <LoadingHeron />
             ) : Object.keys(list).length ? (
               <div className="w-full text-md ">
-                <Accordion activeIndex={0}>
-                  {Object.keys(list).map((key: string) => {
+                <Accordion >
+                  {Object.keys(list).map((key: string, index: number) => {
                     return (
-                      <AccordionTab header={headerTemplate(list[key], key)}>
+                      <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
                         <DataTable value={list[key]} responsiveLayout="scroll">
                           <Column
                             field="data"
@@ -351,9 +351,9 @@ export default function Financial() {
           ) : Object.keys(list).length ? (
             <div className="w-full ">
               <Accordion activeIndex={0}>
-                {Object.keys(list).map((key: string) => {
+                {Object.keys(list).map((key: string, index: number) => {
                   return (
-                    <AccordionTab header={headerTemplate(list[key], key)}>
+                    <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
                       <DataTable value={list[key]} responsiveLayout="scroll">
                         <Column
                           field="data"
