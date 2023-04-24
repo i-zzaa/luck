@@ -4,11 +4,11 @@ module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}', './index.ts'],
   theme: {
     fontSize: {
-      xs: 10,
-      sm: 12,
-      md: 16,
-      lg: 24,
-      xl: 32,
+      xs: 8,
+      sm: 10,
+      md: 14,
+      lg: 20,
+      xl: 30,
     },
     colors: {
       white: '#FFFFFF',
