@@ -17,6 +17,7 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import moment from 'moment';
 import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};
@@ -70,7 +71,7 @@ export default function Financial() {
   };
 
   const renderDropdown = useCallback(async () => {
-    const list = await renderDropdownFinancial(STATUS_PACIENT_COD.crud_therapy);
+    const list = await renderDropdownFinancial(STATUS_PACIENT_COD.therapy);
     setDropDownList(list);
   }, []);
 
@@ -78,18 +79,16 @@ export default function Financial() {
 
   const onRowGroupCollapse = (event: any) => {};
 
-  const reducerValorTotal = (nome: string, modulo: string) => {
-    const result = list
-      .filter((items: any) => items[modulo] === nome)
+  const reducerValorTotal = (data: any) => {
+    const result = data
       .map((item: any) => item.valorTotal)
       .reduce((total: number, current: any) => (total += current));
 
     return moneyFormat.format(result);
   };
 
-  const reducerHorasTotal = (nome: string, modulo: string) => {
-    const reduce = list
-      .filter((items: any) => items[modulo] === nome)
+  const reducerHorasTotal = (data: any) => {
+    const reduce = data
       .map((item: any) => item.horas)
       .reduce((total: number, current: any) => {
         const tt = moment.duration(total);
@@ -100,65 +99,20 @@ export default function Financial() {
     return formaTime(reduce);
   };
 
-  const headerTemplate = (data: any, modulo: string) => {
+  const headerTemplate = (data: any, nome: string) => {
     return (
       <span className="">
-        <span className="image-text mr-24">{data[modulo]} </span>
+        <span className="image-text mr-24">{nome} </span>
         <span className="image-text mr-24">
           Valor total:{' '}
-          <span className="font-inter">
-            {reducerValorTotal(data[modulo], modulo)}
-          </span>
+          <span className="font-inter">{reducerValorTotal(data)}</span>
         </span>
         <span className="image-text">
           Total de Horas:{' '}
-          <span className="font-inter">
-            {reducerHorasTotal(data[modulo], modulo)}
-          </span>
+          <span className="font-inter">{reducerHorasTotal(data)}</span>
         </span>
       </span>
     );
-  };
-
-  const paginationTemplate = {
-    layout: 'RowsPerPageDropdown CurrentPageReport PrevPageLink NextPageLink',
-    RowsPerPageDropdown: (options: any) => {
-      const dropdownOptions = [
-        { label: 10, value: 10 },
-        { label: 20, value: 20 },
-        { label: 50, value: 50 },
-      ];
-
-      return (
-        <>
-          <span
-            className="mx-1"
-            style={{ color: 'var(--text-color)', userSelect: 'none' }}
-          >
-            Items per page:{' '}
-          </span>
-          <Dropdown
-            value={options.value || 10}
-            options={dropdownOptions}
-            onChange={options.onChange}
-          />
-        </>
-      );
-    },
-    CurrentPageReport: (options: any) => {
-      return (
-        <span
-          style={{
-            color: 'var(--text-color)',
-            userSelect: 'none',
-            width: '120px',
-            textAlign: 'center',
-          }}
-        >
-          {options.first} - {options.last} of {options.totalRecords}
-        </span>
-      );
-    },
   };
 
   const pacienteBodyTemplate = (rowData: any) => {
@@ -235,87 +189,76 @@ export default function Financial() {
           <div className="flex justify-center">
             {loading ? (
               <LoadingHeron />
-            ) : list.length ? (
+            ) : Object.keys(list).length ? (
               <div className="w-full text-md ">
-                <DataTable
-                  value={list}
-                  rowGroupMode="subheader"
-                  groupRowsBy="paciente"
-                  sortMode="single"
-                  responsiveLayout="scroll"
-                  expandableRowGroups
-                  expandedRows={expandedRows}
-                  onRowToggle={(e: any) => setExpandedRows(e.data)}
-                  onRowExpand={onRowGroupExpand}
-                  onRowCollapse={onRowGroupCollapse}
-                  rowGroupHeaderTemplate={(e: any) =>
-                    headerTemplate(e, 'paciente')
-                  }
-                >
-                  <Column
-                    field="paciente"
-                    header="Paciente"
-                    body={pacienteBodyTemplate}
-                  ></Column>
-                  <Column
-                    field="data"
-                    header="Data"
-                    body={({ data }: any) => (
-                      <span className="font-inter">{data}</span>
-                    )}
-                  ></Column>
-                  <Column
-                    field="horas"
-                    header="Tempo"
-                    body={({ horas }: any) => (
-                      <span className="font-inter">{horas}</span>
-                    )}
-                  ></Column>
-                  <Column field="status" header="Status"></Column>
-                  <Column
-                    field="km"
-                    header="km"
-                    body={(rowData: any) =>
-                      rowData.km == 0 ? '-' : rowData.km
-                    }
-                  ></Column>
-                  <Column
-                    field="valorKm"
-                    header="ValorKm km"
-                    body={(rowData: any) =>
-                      rowData.valorKm == 0
-                        ? '-'
-                        : moneyFormat.format(rowData.valorKm)
-                    }
-                  ></Column>
-                  <Column
-                    field="sessao"
-                    header="Valor da Sessão"
-                    body={({ sessao }: any) => (
-                      <span className="font-inter">
-                        {moneyFormat.format(sessao)}
-                      </span>
-                    )}
-                  ></Column>
-                  <Column
-                    field="valorSessao"
-                    header="Comissão"
-                    body={({ valorSessao }: any) => (
-                      <span className="font-inter">
-                        {moneyFormat.format(valorSessao)}
-                      </span>
-                    )}
-                  ></Column>
-                  <Column
-                    field="valorTotal"
-                    header="Valor Total"
-                    body={({ valorTotal }: any) => (
-                      <span className="font-inter">
-                        {moneyFormat.format(valorTotal)}
-                      </span>
-                    )}
-                  ></Column>
-                </DataTable>{' '}
+                <Accordion activeIndex={0}>
+                  {Object.keys(list).map((key: string) => {
+                    return (
+                      <AccordionTab header={headerTemplate(list[key], key)}>
+                        <DataTable value={list[key]} responsiveLayout="scroll">
+                          <Column
+                            field="data"
+                            header="Data"
+                            body={({ data }: any) => (
+                              <span className="font-inter">{data}</span>
+                            )}
+                          ></Column>
+                          <Column
+                            field="horas"
+                            header="Tempo"
+                            body={({ horas }: any) => (
+                              <span className="font-inter">{horas}</span>
+                            )}
+                          ></Column>
+                          <Column field="status" header="Status"></Column>
+                          <Column
+                            field="km"
+                            header="km"
+                            body={(rowData: any) =>
+                              rowData.km == 0 ? '-' : rowData.km
+                            }
+                          ></Column>
+                          <Column
+                            field="valorKm"
+                            header="ValorKm km"
+                            body={(rowData: any) =>
+                              rowData.valorKm == 0
+                                ? '-'
+                                : moneyFormat.format(rowData.valorKm)
+                            }
+                          ></Column>
+                          <Column
+                            field="sessao"
+                            header="Valor da Sessão"
+                            body={({ sessao }: any) => (
+                              <span className="font-inter">
+                                {moneyFormat.format(sessao)}
+                              </span>
+                            )}
+                          ></Column>
+                          <Column
+                            field="valorSessao"
+                            header="Comissão"
+                            body={({ valorSessao }: any) => (
+                              <span className="font-inter">
+                                {moneyFormat.format(valorSessao)}
+                              </span>
+                            )}
+                          ></Column>
+                          <Column
+                            field="valorTotal"
+                            header="Valor Total"
+                            body={({ valorTotal }: any) => (
+                              <span className="font-inter">
+                                {moneyFormat.format(valorTotal)}
+                              </span>
+                            )}
+                          ></Column>
+                        </DataTable>
+                      </AccordionTab>
+                    );
+                  })}
+                </Accordion>
               </div>
             ) : (
               <div className="w-full flex items-center  justify-center">
@@ -342,7 +285,7 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {!loading && list.length ? (
+        {!loading && Object.keys(list).length ? (
           <>
             <div className="grid sm:grid-cols-2 sm:gap-2">
               <Card>
@@ -405,63 +348,50 @@ export default function Financial() {
         <Card>
           {loading ? (
             <LoadingHeron />
-          ) : list.length ? (
+          ) : Object.keys(list).length ? (
             <div className="w-full ">
-              {' '}
-              <DataTable
-                value={list}
-                rowGroupMode="subheader"
-                groupRowsBy="terapeuta"
-                sortMode="single"
-                sortField="terapeuta"
-                sortOrder={1}
-                responsiveLayout="scroll"
-                expandableRowGroups
-                expandedRows={expandedRows}
-                onRowToggle={(e: any) => setExpandedRows(e.data)}
-                onRowExpand={onRowGroupExpand}
-                onRowCollapse={onRowGroupCollapse}
-                rowGroupHeaderTemplate={(e: any) =>
-                  headerTemplate(e, 'terapeuta')
-                }
-              >
-                <Column field="terapeuta" header="Terapeuta" sortable></Column>
-                <Column
-                  field="data"
-                  header="Data"
-                  body={({ data }: any) => (
-                    <span className="font-inter">{data}</span>
-                  )}
-                  sortable
-                ></Column>
-                <Column field="status" header="Status" sortable></Column>
-                <Column field="km" header="km" sortable></Column>
-                <Column
-                  field="especialidade"
-                  header="especialidade"
-                  sortable
-                  body={({ especialidade }: any) => (
-                    <div className="flex gap-2 items-center">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          bgData[especialidade.toUpperCase()]
-                        }`}
-                      ></div>
-                      <span> {especialidade} </span>
-                    </div>
-                  )}
-                ></Column>
-                <Column
-                  field="sessao"
-                  header="Valor da Sessão"
-                  sortable
-                  body={({ sessao }: any) => (
-                    <span className="font-inter">
-                      {moneyFormat.format(sessao)}
-                    </span>
-                  )}
-                ></Column>
-              </DataTable>{' '}
+              <Accordion activeIndex={0}>
+                {Object.keys(list).map((key: string) => {
+                  return (
+                    <AccordionTab header={headerTemplate(list[key], key)}>
+                      <DataTable value={list[key]} responsiveLayout="scroll">
+                        <Column
+                          field="data"
+                          header="Data"
+                          body={({ data }: any) => (
+                            <span className="font-inter">{data}</span>
+                          )}
+                        ></Column>
+                        <Column field="status" header="Status"></Column>
+                        <Column field="km" header="km"></Column>
+                        <Column
+                          field="especialidade"
+                          header="especialidade"
+                          body={({ especialidade }: any) => (
+                            <div className="flex gap-2 items-center">
+                              <div
+                                className={`h-2 w-2 rounded-full ${
+                                  bgData[especialidade.toUpperCase()]
+                                }`}
+                              ></div>
+                              <span> {especialidade} </span>
+                            </div>
+                          )}
+                        ></Column>
+                        <Column
+                          field="sessao"
+                          header="Valor da Sessão"
+                          body={({ sessao }: any) => (
+                            <span className="font-inter">
+                              {moneyFormat.format(sessao)}
+                            </span>
+                          )}
+                        ></Column>
+                      </DataTable>
+                    </AccordionTab>
+                  );
+                })}
+              </Accordion>
             </div>
           ) : (
             <div className="w-full flex items-center  justify-center">
