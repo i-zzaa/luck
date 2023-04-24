@@ -4000,7 +4000,7 @@ textarea {
   border: 1px solid #dee2e6;
   color: #6c757d;
   background: #f8f9fa;
-  font-weight: 700;
+  font-weight: 400;
   border-radius: 6px;
   transition: box-shadow 0.2s;
 }
@@ -6102,4 +6102,10 @@ textarea {
 }
 .p-datatable .p-datatable-tbody > tr.p-datatable-dragpoint-bottom > td {
   box-shadow: inset 0 -2px 0 0var(--violet-800);
+}
+
+.p-accordion-header-text > span {
+  display: grid;
+  grid-template-columns: 20rem auto auto;
+  align-items: center;
 }
