@@ -4,7 +4,7 @@ module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}', './index.ts'],
   theme: {
     fontSize: {
-      xs: 8,
+      xs: 10,
       sm: 10,
       md: 12,
       lg: 18,
