@@ -6,9 +6,9 @@ module.exports = {
     fontSize: {
       xs: 8,
       sm: 10,
-      md: 14,
-      lg: 20,
-      xl: 30,
+      md: 12,
+      lg: 18,
+      xl: 28,
     },
     colors: {
       white: '#FFFFFF',
