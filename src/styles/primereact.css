@@ -6109,3 +6109,7 @@ textarea {
   grid-template-columns: 20rem auto auto;
   align-items: center;
 }
+
+.p-tabview-title{
+  font-size: 12px;
+}
