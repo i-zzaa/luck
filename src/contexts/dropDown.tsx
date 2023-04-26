@@ -279,6 +279,7 @@ export const DropdownProvider = ({ children }: Props) => {
     const dropDownList = {
       terapeutas: await renderTerapeutas(),
       pacientes: await renderPacientes(statusPacienteCod),
+      statusEventos: await renderStatusEventos(),
     };
 
     return dropDownList;

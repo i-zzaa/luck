@@ -128,9 +128,6 @@ textarea {
   color: #6c757d;
 }
 
-.pi {
-  font-size: 1rem;
-}
 
 .p-link {
   font-size: 1rem;
@@ -858,6 +855,12 @@ textarea {
 .p-dropdown-panel .p-dropdown-header .p-dropdown-clearable-filter .p-dropdown-filter-clear-icon {
   right: 2.5rem;
 }
+.p-dropdown-item {
+  font-size: .8rem;
+  line-height: .2rem;
+  height: 30px !important;
+}
+
 .p-dropdown-panel .p-dropdown-items {
   padding: 0.75rem 0;
 }
@@ -6108,8 +6111,13 @@ textarea {
   display: grid;
   grid-template-columns: 20rem auto auto;
   align-items: center;
+  font-size: 10px;
 }
 
-.p-tabview-title{
-  font-size: 12px;
+.p-tabview-title, .p-datatable-tbody, .p-column-header-content{
+  font-size: 10px;
+}
+
+.pi {
+  font-size: 0.9rem;
 }
