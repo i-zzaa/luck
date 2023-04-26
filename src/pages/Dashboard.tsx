@@ -11,9 +11,13 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { getList } from '../server';
-import { Card, TextSubtext, Title } from '../components/index';
+import { ButtonHeron, Card, TextSubtext, Title } from '../components/index';
 import { NotFound } from '../components/notFound';
 import { permissionAuth } from '../contexts/permission';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import * as XLSX from 'xlsx';
+import moment from 'moment';
 
 ChartJS.register(
   CategoryScale,
@@ -85,8 +89,14 @@ export default function Dashboard() {
   const [chatStatus, setChatStatus] = useState<any>(modelChart);
   const [wait, setChatWait] = useState<string>('');
   const [returnTrend, setReturnTrend] = useState<string>('');
+  const [pacientes, setPacientes] = useState([]);
 
   const { hasPermition } = permissionAuth();
+
+  const getPatientsActived = useCallback(async () => {
+    const data = await getList('/pacientes/dashboard');
+    setPacientes(data);
+  }, []);
 
   const setTipoSessao = useCallback(async () => {
     const data = await getList('/vagas/dashboard/tipoSessoes');
@@ -180,23 +190,70 @@ export default function Dashboard() {
     );
   };
 
+  const gerarExcel = () => {
+    // Cria um novo objeto Workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Cria uma nova planilha
+    const planilha = XLSX.utils.json_to_sheet(pacientes);
+
+    // Adiciona a planilha ao Workbook
+    XLSX.utils.book_append_sheet(workbook, planilha, 'Pacientes');
+
+    const page = `Pacientes_${moment().format('DD/MM')}.xlsx`;
+
+    // Salva o arquivo
+    XLSX.writeFile(workbook, page);
+  };
+
   useEffect(() => {
     setStatus();
     setWait();
     setTipoSessao();
     setInfoReturns();
     setsEspecialidades();
+    getPatientsActived();
   }, []);
 
   return (
-    <div className="">
-      {renderInfo()}
-      {hasPermition('DASHBOARD_GRAFICO_FILA') ? (
-        <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
-          {renderChart('Especialidades por Demanda', chatEspecialidades)}
-          {renderChart('Tipo de sessão por Demanda', chatTipoSessao)}
+    <div className="grid grid-cols-2">
+      <div>
+        <div className="flex gap-4 m-4 items-center">
+          <div className="sm:text-end">
+            <ButtonHeron
+              text="Download"
+              icon="pi pi-download"
+              type="primary"
+              size="sm"
+              onClick={gerarExcel}
+            />
+          </div>
+          <span> Pacientes ativos</span>
         </div>
-      ) : null}
+
+        <DataTable
+          value={pacientes}
+          showGridlines
+          tableStyle={{ minWidth: '20rem' }}
+          stripedRows
+          scrollHeight="400px"
+          virtualScrollerOptions={{ itemSize: 46 }}
+        >
+          <Column field="nome" header="Paciente"></Column>
+          <Column field="telefone" header="Telefone"></Column>
+          <Column field="statusPaciente.nome" header="Status"></Column>
+        </DataTable>
+      </div>
+
+      <div className="">
+        {renderInfo()}
+        {hasPermition('DASHBOARD_GRAFICO_FILA') ? (
+          <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
+            {renderChart('Especialidades por Demanda', chatEspecialidades)}
+            {renderChart('Tipo de sessão por Demanda', chatTipoSessao)}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
