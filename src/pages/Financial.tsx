@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { filter, getList } from '../server';
-import { Card, Filter, TextSubtext, Title } from '../components/index';
+import {
+  ButtonHeron,
+  Card,
+  Filter,
+  TextSubtext,
+  Title,
+} from '../components/index';
 import { permissionAuth } from '../contexts/permission';
 import {
   filterFinancialFields,
@@ -18,6 +24,7 @@ import moment from 'moment';
 import { bgData, formaTime, moneyFormat } from '../util/util';
 import { LoadingHeron } from '../components/loading';
 import { Accordion, AccordionTab } from 'primereact/accordion';
+import * as XLSX from 'xlsx';
 
 const fieldsConstTerapeuta = filterFinancialFields;
 const fieldsState1: any = {};
@@ -36,6 +43,8 @@ export default function Financial() {
 
   const [list, setList] = useState<any>([]);
   const [geral, setGeral] = useState<any>({});
+
+  const [info, setInfo] = useState<any>({});
 
   const resetList = (e: any) => {
     setList([]);
@@ -57,6 +66,11 @@ export default function Financial() {
         }
       });
 
+      setInfo({
+        modulo,
+        ...formState,
+      });
+
       const response = await filter(`financeiro/${modulo}`, format);
       const lista: any =
         response.status === 200 && response?.data ? response.data : [];
@@ -72,10 +86,6 @@ export default function Financial() {
     const list = await renderDropdownFinancial(STATUS_PACIENT_COD.therapy);
     setDropDownList(list);
   }, []);
-
-  const onRowGroupExpand = (event: any) => {};
-
-  const onRowGroupCollapse = (event: any) => {};
 
   const reducerValorTotal = (data: any) => {
     const result = data
@@ -122,6 +132,30 @@ export default function Financial() {
     ) : (
       rowData.paciente
     );
+  };
+
+  const gerarExcel = () => {
+    // Cria um novo objeto Workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Cria uma nova planilha
+    const geralResponse = XLSX.utils.json_to_sheet([geral]);
+
+    const listDetail: any = [];
+    Object.values(list).map((value: any) => listDetail.push(...value));
+
+    const detalhado = XLSX.utils.json_to_sheet(listDetail);
+
+    // Adiciona a planilha ao Workbook
+    XLSX.utils.book_append_sheet(workbook, geralResponse, 'Geral');
+    XLSX.utils.book_append_sheet(workbook, detalhado, 'Detalhado');
+
+    const page = `${geral.nome} ${moment(info.dataInicio).format(
+      'DD-MM-YYYY'
+    )} até ${moment(info.dataFim).format('DD-MM-YYYY')}.xlsx`;
+
+    // Salva o arquivo
+    XLSX.writeFile(workbook, page);
   };
 
   const renderScreenTerapeuta = () => {
@@ -189,35 +223,57 @@ export default function Financial() {
               <LoadingHeron />
             ) : Object.keys(list).length ? (
               <div className="w-full text-md ">
-                <Accordion >
+                <div className="sm:text-end mb-4">
+                  <ButtonHeron
+                    text="Download Excel"
+                    icon="pi pi-download"
+                    type="primary"
+                    size="sm"
+                    onClick={gerarExcel}
+                  />
+                </div>
+
+                <Accordion>
                   {Object.keys(list).map((key: string, index: number) => {
                     return (
-                      <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
+                      <AccordionTab
+                        key={index}
+                        header={headerTemplate(list[key], key)}
+                        tabIndex={index}
+                      >
                         <DataTable value={list[key]} responsiveLayout="scroll">
                           <Column
-                            sortable field="data"
+                            sortable
+                            field="data"
                             header="Data"
                             body={({ data }: any) => (
                               <span className="font-inter">{data}</span>
                             )}
                           ></Column>
                           <Column
-                            sortable field="horas"
+                            sortable
+                            field="horas"
                             header="Tempo"
                             body={({ horas }: any) => (
                               <span className="font-inter">{horas}</span>
                             )}
                           ></Column>
-                          <Column sortable field="status" header="Status"></Column>
                           <Column
-                            sortable field="km"
+                            sortable
+                            field="status"
+                            header="Status"
+                          ></Column>
+                          <Column
+                            sortable
+                            field="km"
                             header="km"
                             body={(rowData: any) =>
                               rowData.km == 0 ? '-' : rowData.km
                             }
                           ></Column>
                           <Column
-                            sortable field="valorKm"
+                            sortable
+                            field="valorKm"
                             header="ValorKm km"
                             body={(rowData: any) =>
                               rowData.valorKm == 0
@@ -226,7 +282,8 @@ export default function Financial() {
                             }
                           ></Column>
                           <Column
-                            sortable field="sessao"
+                            sortable
+                            field="sessao"
                             header="Valor da Sessão"
                             body={({ sessao }: any) => (
                               <span className="font-inter">
@@ -235,7 +292,8 @@ export default function Financial() {
                             )}
                           ></Column>
                           <Column
-                            sortable field="valorSessao"
+                            sortable
+                            field="valorSessao"
                             header="Comissão"
                             body={({ valorSessao }: any) => (
                               <span className="font-inter">
@@ -244,7 +302,8 @@ export default function Financial() {
                             )}
                           ></Column>
                           <Column
-                            sortable field="valorTotal"
+                            sortable
+                            field="valorTotal"
                             header="Valor Total"
                             body={({ valorTotal }: any) => (
                               <span className="font-inter">
@@ -351,19 +410,37 @@ export default function Financial() {
               <Accordion activeIndex={0}>
                 {Object.keys(list).map((key: string, index: number) => {
                   return (
-                    <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
+                    <AccordionTab
+                      header={headerTemplate(list[key], key)}
+                      tabIndex={index}
+                    >
+                      <div className="sm:text-end mb-4">
+                        <ButtonHeron
+                          text="Download Excel"
+                          icon="pi pi-download"
+                          type="primary"
+                          size="sm"
+                          onClick={gerarExcel}
+                        />
+                      </div>
                       <DataTable value={list[key]} responsiveLayout="scroll">
                         <Column
-                          sortable field="data"
+                          sortable
+                          field="data"
                           header="Data"
                           body={({ data }: any) => (
                             <span className="font-inter">{data}</span>
                           )}
                         ></Column>
-                        <Column sortable field="status" header="Status"></Column>
+                        <Column
+                          sortable
+                          field="status"
+                          header="Status"
+                        ></Column>
                         <Column sortable field="km" header="km"></Column>
                         <Column
-                          sortable field="especialidade"
+                          sortable
+                          field="especialidade"
                           header="especialidade"
                           body={({ especialidade }: any) => (
                             <div className="flex gap-2 items-center">
@@ -377,7 +454,8 @@ export default function Financial() {
                           )}
                         ></Column>
                         <Column
-                          sortable field="sessao"
+                          sortable
+                          field="sessao"
                           header="Valor da Sessão"
                           body={({ sessao }: any) => (
                             <span className="font-inter">
