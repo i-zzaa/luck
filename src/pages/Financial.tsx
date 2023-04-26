@@ -37,8 +37,6 @@ export default function Financial() {
   const [list, setList] = useState<any>([]);
   const [geral, setGeral] = useState<any>({});
 
-  const [expandedRows, setExpandedRows] = useState([]);
-
   const resetList = (e: any) => {
     setList([]);
     setGeral({});
@@ -197,29 +195,29 @@ export default function Financial() {
                       <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
                         <DataTable value={list[key]} responsiveLayout="scroll">
                           <Column
-                            field="data"
+                            sortable field="data"
                             header="Data"
                             body={({ data }: any) => (
                               <span className="font-inter">{data}</span>
                             )}
                           ></Column>
                           <Column
-                            field="horas"
+                            sortable field="horas"
                             header="Tempo"
                             body={({ horas }: any) => (
                               <span className="font-inter">{horas}</span>
                             )}
                           ></Column>
-                          <Column field="status" header="Status"></Column>
+                          <Column sortable field="status" header="Status"></Column>
                           <Column
-                            field="km"
+                            sortable field="km"
                             header="km"
                             body={(rowData: any) =>
                               rowData.km == 0 ? '-' : rowData.km
                             }
                           ></Column>
                           <Column
-                            field="valorKm"
+                            sortable field="valorKm"
                             header="ValorKm km"
                             body={(rowData: any) =>
                               rowData.valorKm == 0
@@ -228,7 +226,7 @@ export default function Financial() {
                             }
                           ></Column>
                           <Column
-                            field="sessao"
+                            sortable field="sessao"
                             header="Valor da Sessão"
                             body={({ sessao }: any) => (
                               <span className="font-inter">
@@ -237,7 +235,7 @@ export default function Financial() {
                             )}
                           ></Column>
                           <Column
-                            field="valorSessao"
+                            sortable field="valorSessao"
                             header="Comissão"
                             body={({ valorSessao }: any) => (
                               <span className="font-inter">
@@ -246,7 +244,7 @@ export default function Financial() {
                             )}
                           ></Column>
                           <Column
-                            field="valorTotal"
+                            sortable field="valorTotal"
                             header="Valor Total"
                             body={({ valorTotal }: any) => (
                               <span className="font-inter">
@@ -356,16 +354,16 @@ export default function Financial() {
                     <AccordionTab header={headerTemplate(list[key], key)} tabIndex={index}>
                       <DataTable value={list[key]} responsiveLayout="scroll">
                         <Column
-                          field="data"
+                          sortable field="data"
                           header="Data"
                           body={({ data }: any) => (
                             <span className="font-inter">{data}</span>
                           )}
                         ></Column>
-                        <Column field="status" header="Status"></Column>
-                        <Column field="km" header="km"></Column>
+                        <Column sortable field="status" header="Status"></Column>
+                        <Column sortable field="km" header="km"></Column>
                         <Column
-                          field="especialidade"
+                          sortable field="especialidade"
                           header="especialidade"
                           body={({ especialidade }: any) => (
                             <div className="flex gap-2 items-center">
@@ -379,7 +377,7 @@ export default function Financial() {
                           )}
                         ></Column>
                         <Column
-                          field="sessao"
+                          sortable field="sessao"
                           header="Valor da Sessão"
                           body={({ sessao }: any) => (
                             <span className="font-inter">
