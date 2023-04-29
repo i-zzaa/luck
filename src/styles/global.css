@@ -65,3 +65,9 @@ body {
 tr {
   margin-bottom:  3rem !important;
 } */
+
+.fc .fc-col-header-cell-cushion {
+  display: inline-block;
+  padding: 2px 4px;
+  font-size: 16px;
+}
