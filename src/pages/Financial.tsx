@@ -407,14 +407,7 @@ export default function Financial() {
             <LoadingHeron />
           ) : Object.keys(list).length ? (
             <div className="w-full ">
-              <Accordion activeIndex={0}>
-                {Object.keys(list).map((key: string, index: number) => {
-                  return (
-                    <AccordionTab
-                      header={headerTemplate(list[key], key)}
-                      tabIndex={index}
-                    >
-                      <div className="sm:text-end mb-4">
+              <div className="sm:text-end mb-4">
                         <ButtonHeron
                           text="Download Excel"
                           icon="pi pi-download"
@@ -423,6 +416,15 @@ export default function Financial() {
                           onClick={gerarExcel}
                         />
                       </div>
+              <Accordion activeIndex={0}>
+
+                {Object.keys(list).map((key: string, index: number) => {
+                  return (
+                    <AccordionTab
+                      header={headerTemplate(list[key], key)}
+                      tabIndex={index}
+                    >
+  
                       <DataTable value={list[key]} responsiveLayout="scroll">
                         <Column
                           sortable
