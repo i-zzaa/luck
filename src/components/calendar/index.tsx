@@ -122,13 +122,12 @@ export const CalendarComponent = ({
             timeGridPlugin,
             // momentTimezonePlugin
           ]}
-
           hiddenDays={[0]}
           slotLabelInterval="5vw" // cada célula da grade ocupa 5% da largura da tela
-          slotLabelFormat={{ hour: "numeric", minute: "2-digit" }} // inclui o valor de slotLabelInterval
+          slotLabelFormat={{ hour: 'numeric', minute: '2-digit' }} // inclui o valor de slotLabelInterval
           slotDuration="00:20:00"
-          slotMinTime ="08:00:00" // hora mínima para exibição
-    	    slotMaxTime="20:00:00" // hora máxima para exibição
+          slotMinTime="08:00:00" // hora mínima para exibição
+          slotMaxTime="20:00:00" // hora máxima para exibição
           allDaySlot={false}
           locale="pt"
           navLinks

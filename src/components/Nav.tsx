@@ -5,7 +5,7 @@ import { permissionAuth } from '../contexts/permission';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { firtUpperCase } from '../util/util';
 import { Menubar } from 'primereact/menubar';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const Nav = () => {
   const { Logout } = useAuth();
@@ -19,13 +19,14 @@ export const Nav = () => {
   const desativeClass =
     'font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans hover:border-white   border-none';
 
-  const renderNav = () => {
-    const arrRouterLinks = RouterLinks.filter((route: string) =>
-      hasPermition(route)
+  const renderNav = useMemo(async () => {
+    const arrRouterLinks = await Promise.all(
+      RouterLinks.filter((route: string) => hasPermition(route))
     );
-    const arr: any = arrRouterLinks.map((route: string) => {
-      return (
-        hasPermition(route) && {
+
+    const arr: any = await Promise.all(
+      arrRouterLinks.map((route: string) => {
+        return {
           label: route,
           template: (item: any, options: any) => {
             return (
@@ -40,11 +41,12 @@ export const Nav = () => {
               </NavLink>
             );
           },
-        }
-      );
-    });
+        };
+      })
+    );
+
     setItems(arr);
-  };
+  }, []);
 
   const menuEnd = (
     <NavLink
@@ -58,7 +60,9 @@ export const Nav = () => {
   );
 
   useEffect(() => {
-    renderNav();
+    if(permissions.length ){ 
+      renderNav
+    };
   }, [permissions]);
 
   return (
