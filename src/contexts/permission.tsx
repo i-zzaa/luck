@@ -34,7 +34,10 @@ export const PermissionProvider = ({ children }: Props) => {
   };
 
   const getPermissions = useMemo(async () => {
-    const list = await getList('permissao');
+    const sessionUser = sessionStorage.getItem('auth');
+    const user = sessionUser ? JSON.parse(sessionUser) : [];
+
+    const list =  user.permissoes || await getList('permissao');
     setPermissions(list);
   }, []);
 

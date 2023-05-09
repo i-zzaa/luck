@@ -408,23 +408,21 @@ export default function Financial() {
           ) : Object.keys(list).length ? (
             <div className="w-full ">
               <div className="sm:text-end mb-4">
-                        <ButtonHeron
-                          text="Download Excel"
-                          icon="pi pi-download"
-                          type="primary"
-                          size="sm"
-                          onClick={gerarExcel}
-                        />
-                      </div>
+                <ButtonHeron
+                  text="Download Excel"
+                  icon="pi pi-download"
+                  type="primary"
+                  size="sm"
+                  onClick={gerarExcel}
+                />
+              </div>
               <Accordion activeIndex={0}>
-
                 {Object.keys(list).map((key: string, index: number) => {
                   return (
                     <AccordionTab
                       header={headerTemplate(list[key], key)}
                       tabIndex={index}
                     >
-  
                       <DataTable value={list[key]} responsiveLayout="scroll">
                         <Column
                           sortable

@@ -8,23 +8,31 @@ export default function Queue() {
   const { hasPermition } = permissionAuth();
 
   const renderTabPanel = () => {
-    if (!hasPermition('FILA_TERAPIA')) {
-      return <Avaliation />;
-    } else {
-      return (
-        <TabView className="tabview-custom">
+    return (
+      <TabView className="tabview-custom">
+        {hasPermition('FILA_AVALIACAO') ? (
           <TabPanel header="Avaliacão" leftIcon="pi pi-user">
             <Avaliation />
           </TabPanel>
+        ) : (
+          <></>
+        )}
+        {hasPermition('FILA_DEVOLUTIVA') ? (
           <TabPanel header="Devolutiva" leftIcon="pi pi-user">
             <Devolutiva />
           </TabPanel>
+        ) : (
+          <></>
+        )}
+        {hasPermition('FILA_TERAPIA') ? (
           <TabPanel header="Terapia" leftIcon="pi pi-user">
             <Therapy />
           </TabPanel>
-        </TabView>
-      );
-    }
+        ) : (
+          <></>
+        )}
+      </TabView>
+    );
   };
 
   return <div className="card">{renderTabPanel()}</div>;

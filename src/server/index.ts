@@ -7,7 +7,7 @@ export interface ResponseSuccessProps {
 }
 
 export const api = axios.create({
-  baseURL: 'https://lfzqax.hospedagemelastica.com.br', //'https://api-multialcance.online', //import.meta.env.VITE_API_URL || process.env.VITE_API_URL, //
+  baseURL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL, //'https://lfzqax.hospedagemelastica.com.br', //'https://api-multialcance.online', //
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
