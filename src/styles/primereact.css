@@ -1595,6 +1595,9 @@ textarea {
   border: 1px solid #ced4da;
   color: #495057;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+
+  width: 16% !important;
+  padding: .5rem;
 }
 .p-selectbutton .p-button .p-button-icon-left,
 .p-selectbutton .p-button .p-button-icon-right {
@@ -6120,4 +6123,8 @@ textarea {
 
 .pi {
   font-size: 0.9rem;
+}
+
+.p-selectbutton {
+  white-space: nowrap !important;
 }
