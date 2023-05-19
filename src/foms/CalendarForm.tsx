@@ -242,7 +242,7 @@ export const CalendarForm = ({
           statusPacienteCod,
           value.paciente.id
         );
-        setValue('modalidade', { id: 3, nome: 'Terapia' });
+        setValue('modalidade', list.modalidades[0]);
 
         break;
       default:

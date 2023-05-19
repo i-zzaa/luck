@@ -258,7 +258,7 @@ export default function Devolutiva() {
           }}
           dropdown={dropDownList}
           value={patient}
-          statusPacienteCod={STATUS_PACIENT_COD.devolutiva}
+          statusPacienteCod={STATUS_PACIENT_COD.queue_devolutiva}
           fieldsCostant={patientAvaliationFields}
         />
       </Modal>
