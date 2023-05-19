@@ -172,7 +172,7 @@ export default function Financial() {
           dropdown={dropDownList}
         />
 
-        {!loading && list.length ? (
+        {!loading && Object.values(list).length ? (
           <div className="grid sm:grid-cols-3 sm:gap-2">
             <Card>
               <div className="flex gap-4 items-center">
