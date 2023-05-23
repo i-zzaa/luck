@@ -46,12 +46,12 @@ export const DropdownProvider = ({ children }: Props) => {
   const { perfil } = permissionAuth();
 
   const weekOption = [
-    { nome: 'S', value: 0 },
-    { nome: 'T', value: 1 },
-    { nome: 'Q', value: 2 },
+    { nome: 'S', value: 1 },
+    { nome: 'T', value: 2 },
     { nome: 'Q', value: 3 },
-    { nome: 'S', value: 4 },
+    { nome: 'Q', value: 4 },
     { nome: 'S', value: 5 },
+    { nome: 'S', value: 6 },
   ];
 
   const renderPacientes = useCallback(async (statusPacienteCod: string) => {

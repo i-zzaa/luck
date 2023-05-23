@@ -177,3 +177,7 @@ export const moneyFormat = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
 });
+
+export const isInPast = (date: string) => {
+  return moment(date).isBefore(new Date());
+};
