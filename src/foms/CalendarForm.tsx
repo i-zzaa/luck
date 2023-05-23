@@ -256,7 +256,7 @@ export const CalendarForm = ({
 
     if (isEdit) {
       const date = moment(value.dataAtual); // Thursday Feb 2015
-      const dow = Number(date.day() - 1);
+      const dow = Number(date.day());
 
       setValue('diasFrequencia', [dow]);
     }
@@ -366,7 +366,7 @@ export const CalendarForm = ({
               if (frequencia && frequencia?.nome === 'Recorrente') {
                 const dataInicio = getValues('dataInicio');
                 const date = moment(dataInicio); // Thursday Feb 2015
-                const dow = Number(date.day() - 1);
+                const dow = Number(date.day());
 
                 setValue('diasFrequencia', [dow]);
                 setMinFinal(date.add(1, 'days'));
@@ -460,7 +460,7 @@ export const CalendarForm = ({
                 if (e.nome === 'Recorrente') {
                   const dataInicio = getValues('dataInicio');
                   const date = moment(dataInicio); // Thursday Feb 2015
-                  const dow = Number(date.day() - 1);
+                  const dow = Number(date.day());
 
                   setValue('diasFrequencia', [dow]);
                 }

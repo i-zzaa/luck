@@ -99,7 +99,6 @@ export default function Schedule() {
     try {
       await update('/evento/check', event);
 
-      renderEvents();
 
       setOpenView(false);
       renderToast({
@@ -108,6 +107,37 @@ export default function Schedule() {
         message: 'Evento atualizado!',
         open: true,
       });
+
+      setTimeout(() => {
+        renderEvents()
+      }, 1000);
+
+    } catch (error) {
+      console.error(error);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Evento não atualizado!',
+        open: true,
+      });
+    }
+  }
+  async function handleSubmitAtestadoEvent() {
+    try {
+      await update('/evento/atestado', event);
+
+      setOpenView(false);
+      renderToast({
+        type: 'success',
+        title: '',
+        message: 'Evento atualizado!',
+        open: true,
+      });
+
+      setTimeout(() => {
+        renderEvents()
+      }, 1000);
+
     } catch (error) {
       console.error(error);
       renderToast({
@@ -245,6 +275,7 @@ export default function Schedule() {
           onDelete={() => setOpenConfirm(true)}
           onClose={() => setOpenView(false)}
           onClick={handleSubmitCheckEvent}
+          onClickSecond={handleSubmitAtestadoEvent}
         />
       )}
 

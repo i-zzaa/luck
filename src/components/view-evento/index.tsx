@@ -1,8 +1,8 @@
 import moment from 'moment';
 import { Dialog } from 'primereact/dialog';
 import { useEffect, useState } from 'react';
-import { DESENVOLVEDOR, TERAPEUTA, permissionAuth } from '../../contexts/permission';
-import { diffWeek, weekDay } from '../../util/util';
+import { ATENDENTE, DESENVOLVEDOR, TERAPEUTA, permissionAuth } from '../../contexts/permission';
+import { diffWeek, isInPast, weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
 
@@ -13,6 +13,7 @@ interface Props {
   onEdit: () => void;
   onDelete: () => void;
   onClick: () => void;
+  onClickSecond: () => void;
 }
 
 export const ViewEvento = ({
@@ -21,7 +22,8 @@ export const ViewEvento = ({
   onClose,
   onEdit,
   onDelete,
-  onClick
+  onClick,
+  onClickSecond
 }: Props) => {
   const [buttonEdit, setButtonEdit] = useState(true);
   const { hasPermition, perfil } = permissionAuth();
@@ -135,9 +137,9 @@ export const ViewEvento = ({
         </p>
 
 
+<div className='flex justify-between mt-8 gap-2'>
 
-        { (perfil === DESENVOLVEDOR ||  perfil === TERAPEUTA) && evento.statusEventos.nome !== 'Atendido' &&  evento.paciente.nome !== 'Livre' ? (
-             <div className='mt-8'>
+        { (perfil === DESENVOLVEDOR ||  perfil === TERAPEUTA) && evento.statusEventos.nome !== 'Atendido' &&  !isInPast(evento.date) &&  evento.paciente.nome !== 'Livre' ? (
                <ButtonHeron
                 text="Atendido"
                 icon="pi pi-check"
@@ -146,8 +148,18 @@ export const ViewEvento = ({
                 size="full"
                 onClick={onClick}
               />
-             </div>
         ) : null}
+        { (perfil == DESENVOLVEDOR ||  perfil === ATENDENTE  ) &&  isInPast(evento.date) &&  evento.paciente.nome !== 'Livre' && evento.statusEventos.nome !== 'Atendido' && evento.statusEventos.nome !== 'Atestado'? (
+               <ButtonHeron
+                text="Atestado"
+                icon="pi pi-book"
+                type="second"
+                color="white"
+                size="full"
+                onClick={onClickSecond}
+              />
+        ) : null}
+      </div>
       </div>
     </Dialog>
   );
