@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Dialog } from 'primereact/dialog';
 import { useEffect, useState } from 'react';
-import { permissionAuth } from '../../contexts/permission';
+import { DESENVOLVEDOR, TERAPEUTA, permissionAuth } from '../../contexts/permission';
 import { diffWeek, weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
@@ -12,6 +12,7 @@ interface Props {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onClick: () => void;
 }
 
 export const ViewEvento = ({
@@ -20,9 +21,10 @@ export const ViewEvento = ({
   onClose,
   onEdit,
   onDelete,
+  onClick
 }: Props) => {
   const [buttonEdit, setButtonEdit] = useState(true);
-  const { hasPermition } = permissionAuth();
+  const { hasPermition, perfil } = permissionAuth();
 
   const avaliationCount = (evento: any) => {
     let text = evento.modalidade.nome;
@@ -44,7 +46,7 @@ export const ViewEvento = ({
 
   const header = (
     <div className="flex justify-between items-center gap-8">
-      <Tag type={evento.especialidade.nome} disabled={false} />
+   {  evento.paciente.nome !== 'Livre' ? <Tag type={evento.especialidade.nome} disabled={false} /> : <div></div>}
       <span>{evento.paciente.nome}</span>
 
       <div className="flex mt-[-0.5rem]">
@@ -127,10 +129,25 @@ export const ViewEvento = ({
             <br />
           </>
         ) : null}
-        <p className="flex gap-4 items-center">
+        <p className="flex gap-4 items-center ">
           {evento.terapeuta.nome} <i className="pi pi-tag"> </i>{' '}
           {evento.funcao.nome}
         </p>
+
+
+
+        { (perfil === DESENVOLVEDOR ||  perfil === TERAPEUTA) && evento.statusEventos.nome !== 'Atendido' &&  evento.paciente.nome !== 'Livre' ? (
+             <div className='mt-8'>
+               <ButtonHeron
+                text="Atendido"
+                icon="pi pi-check"
+                type="primary"
+                color="white"
+                size="full"
+                onClick={onClick}
+              />
+             </div>
+        ) : null}
       </div>
     </Dialog>
   );

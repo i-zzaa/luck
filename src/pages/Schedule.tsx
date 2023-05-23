@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { deleteItem, getList } from '../server';
+import { deleteItem, getList, update } from '../server';
 import { Card, Confirm, Filter, Modal } from '../components';
 import { CalendarComponent } from '../components/calendar';
 import { ViewEvento } from '../components/view-evento';
@@ -95,6 +95,30 @@ export default function Schedule() {
     }
   }
 
+  async function handleSubmitCheckEvent() {
+    try {
+      await update('/evento/check', event);
+
+      renderEvents();
+
+      setOpenView(false);
+      renderToast({
+        type: 'success',
+        title: '',
+        message: 'Evento atualizado!',
+        open: true,
+      });
+    } catch (error) {
+      console.error(error);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Evento não atualizado!',
+        open: true,
+      });
+    }
+  }
+
   // const handleSubmitFilter = useCallback(async (formvalue: any) => {
   async function handleSubmitFilter(formvalue: any) {
     try {
@@ -176,7 +200,9 @@ export default function Schedule() {
 
   return (
     <div className="h-max-screen">
-      <Filter
+      {
+        hasPermition('AGENDA_FILTRO_BOTAO_PESQUISAR') ? (
+          <Filter
         id="form-filter-patient"
         legend="Filtro"
         nameButton="Agendar"
@@ -192,6 +218,9 @@ export default function Schedule() {
           setIsEdit(false);
         }}
       />
+        ): <></>
+      }
+
       <Card>
         <div className="flex-1">
           <CalendarComponent
@@ -215,6 +244,7 @@ export default function Schedule() {
           onEdit={renderModalEdit}
           onDelete={() => setOpenConfirm(true)}
           onClose={() => setOpenView(false)}
+          onClick={handleSubmitCheckEvent}
         />
       )}
 
