@@ -91,8 +91,8 @@ export const CalendarComponent = ({
 
   useEffect(() => {
     if (calendarRef.current) {
-      const calendar: any = document.querySelector('#root > div > div.min-h-full.overflow-hidden > main > div > div > div > fieldset > div > div > div > div > div')
-      calendar.style.height = 'calc(100vh - 400px)'
+      const calendar: any = document.querySelector('#root > div > div.min-h-full.overflow-hidden.bg-background.h-screen.w-full > main > div > div > div > fieldset > div > div > div > div > div')
+      calendar.style.height = 'calc(100vh - 250px)'
       calendar.style.overflow = 'hidden'
     }
   }, []);
