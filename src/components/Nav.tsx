@@ -1,72 +1,61 @@
-import logoSm from '../assets/logo-md-write.png';
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../contexts/auth';
+import { NavLink, useLocation } from 'react-router-dom';
+import { AuthContext, useAuth } from '../contexts/auth';
 import { permissionAuth } from '../contexts/permission';
-import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { ROUTES, RoutesProps } from '../routes/OtherRoutes';
 import { firtUpperCase } from '../util/util';
-import { Menubar } from 'primereact/menubar';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { LayoutContext } from '../contexts/layout.context';
 
 export const Nav = () => {
   const { Logout } = useAuth();
   const { hasPermition, permissions } = permissionAuth();
-  const [items, setItems] = useState([]);
+  const { open, setOpen } = useContext(LayoutContext);
+  const [ menuSidebar, setMenuSidebar ] = useState<RoutesProps[]>([]);
+  const { user, perfil } = useContext(AuthContext);
 
-  const RouterLinks: string[] = Object.values(CONSTANTES_ROUTERS);
-
-  const activeClass =
-    'font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans  border-violet-800 md:border-white md:border-b-2';
-  const desativeClass =
-    'font-medium hover:cursor-pointer text-white text-xs sm:text-base px-3 sm:py-6 font-sans hover:border-white   border-none';
-
+  const location = useLocation()
+  
   const renderNav = () => {
-    const arrRouterLinks = RouterLinks.filter((route: string) =>
-      hasPermition(route)
+    console.log(user);
+    
+    const arrRouterLinks = ROUTES.filter((route: RoutesProps) =>
+      hasPermition(route.path) && route.path !== '*'
     );
-    const arr: any = arrRouterLinks.map((route: string) => {
-      return (
-        hasPermition(route) && {
-          label: route,
-          template: (item: any, options: any) => {
-            return (
-              <NavLink
-                key={item.label}
-                to={`${item.label}`}
-                className={({ isActive }) =>
-                  isActive ? activeClass : desativeClass
-                }
-              >
-                {firtUpperCase(item.label)}
-              </NavLink>
-            );
-          },
-        }
-      );
-    });
-    setItems(arr);
+    setMenuSidebar(arrRouterLinks);
   };
 
-  const menuEnd = (
-    <NavLink
-      to="/login"
-      className="rounded-full bg-violet-800 p-1 mr-8 text-yellow-400 hover:text-violet-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-      onClick={Logout}
-    >
-      <span className="sr-only">Sair</span>
-      <i className="pi pi-sign-out" />
-    </NavLink>
-  );
 
   useEffect(() => {
     renderNav();
   }, [permissions]);
 
   return (
-    <Menubar
-      className="bg-violet-800 fixed w-full mb-10 z-30 text-white h-16 rounded-none border-none p-2 text-sm font-sans"
-      model={items}
-      start={<img className="h-12 sm:h-24 py-2" src={logoSm} alt="logo" />}
-      end={menuEnd}
-    />
+    <aside onMouseEnter={()=>  setOpen(true)} onMouseLeave={()=> setOpen(false)} className={`fixed border-box shadow-3xl ${open ? 'w-36' :'w-12'} h-[98vh] mt-[1vh] ml-1 rounded-3xl  bg-primary duration-700`}>
+      {open ? <div className="bg-logo-md-write bg-no-repeat bg-cover h-20 "></div> :  <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700"></div>}
+     
+      <div className='border-y border-primary-text my-6 py-2'>
+      <h3 className="text-primary-text text-center font-light text-sm  duration-1000"> {  open ? user.nome : user?.nome?.charAt(0) }</h3>  
+      { open && <h3 className="text-gray-200 text-center font-light text-xs  duration-1000"> { firtUpperCase(perfil) } </h3>  }
+     </div>
+
+      <ul className="list-none p-0 mt-8">
+          {
+            menuSidebar.map((element: any) => {
+              const isActive = location.pathname.startsWith(element.path)
+
+              return (
+                <li  key={element.path} className={`${isActive ? 'bg-primary-hover text-primary-text-hover' :  'text-primary-text'} hover:px-0 hover:bg-primary-hover  hover:text-primary-text-hover duration-700`} >
+                  <NavLink  to={element.path} className='grid grid-cols-3 items-center text-sm px-4 py-4 '>
+                    <i className={element.icon} />
+
+                    {open &&  <span  className='duration-700'>{firtUpperCase(element.path) }</span>}
+                  </NavLink>
+                </li>
+              )
+            })
+          }
+      </ul>
+      <i onClick={Logout} className={`pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer  w-4 col-span-1 fixed bottom-8 ${open ? ' left-[4rem]' : ' left-6'}`} />
+    </aside>
   );
 };
