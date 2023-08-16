@@ -38,8 +38,8 @@ module.exports = {
     },
     backgroundImage: {
       favicon: "url('src/assets/favicon.ico')",
-      'logo-mini': "url('src/assets/logo-mini.png')",
-      'logo-md-write': "url('src/assets/logo-md-write.png')",
+      'logo-mini': "url('/logo-mini.png')",
+      'logo-md-write': "url('/logo-md-write.png')",
       'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       'gradient-conic':
         'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',

@@ -16,8 +16,6 @@ export const Nav = () => {
   const location = useLocation()
   
   const renderNav = () => {
-    console.log(user);
-    
     const arrRouterLinks = ROUTES.filter((route: RoutesProps) =>
       hasPermition(route.path) && route.path !== '*'
     );

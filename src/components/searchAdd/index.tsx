@@ -29,7 +29,7 @@ export function SearchAdd({
       </form>
 
       <div className="col-span-8 sm:col-span-1">
-        {hasPermition(`${screen}_BOTAO_CADASTAR`) ? (
+        {hasPermition(`${screen}_BOTAO_CADASTRAR`) ? (
           <div className="sm:hidden ">
             <ButtonHeron
               text={textButton}
@@ -41,7 +41,7 @@ export function SearchAdd({
           </div>
         ) : null}
 
-        {hasPermition(`${screen}_BOTAO_CADASTAR`) ? (
+        {hasPermition(`${screen}_BOTAO_CADASTRAR`) ? (
           <div className="hidden sm:block mt-5 text-end">
             <ButtonHeron
               text={textButton}
