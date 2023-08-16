@@ -27,12 +27,27 @@ module.exports = {
       psico: '#8e24aa',
       fono: '#f6bf26',
       psicopedag: '#000000',
+
+      primary: '#662977',
+      background: '#f9f9f9',
+      'primary-text': '#ffffff',
+      'primary-hover': '#ffffff',
+      'primary-text-hover': '#662977',
+
+      secondary: '#FACC15',
+    },
+    backgroundImage: {
+      favicon: "url('src/assets/favicon.ico')",
+      'logo-mini': "url('/logo-mini.png')",
+      'logo-md-write': "url('/logo-md-write.png')",
+      'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      'gradient-conic':
+        'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
     },
     extend: {
       fontFamily: {
         sans: ['Raleway', 'sans-serif'],
         'sans-serif': 'sans-serif',
-        inter: 'Inter',
       },
     },
   },
