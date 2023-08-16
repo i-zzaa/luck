@@ -2,11 +2,12 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
+import { UserProps } from '../types/user';
 
 interface AuthContextData {
   signed: boolean;
-  user: object | null;
-  perfil: string | null;
+  user: any;
+  perfil: string ;
   Login(user: object): Promise<void>;
   Logout(): void;
 }
@@ -15,18 +16,18 @@ interface Props {
   children: JSX.Element;
 }
 
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: Props) => {
-  const [user, setUser] = useState<object | null>(null);
-  const [perfil, setPerfil] = useState<string | null>(null);
+  const [user, setUser] = useState();
+  const [perfil, setPerfil] = useState<string>('');
   const { setPermissionsLogin } = permissionAuth();
   const { renderToast } = useToast();
 
   useEffect(() => {
     const storagedToken = sessionStorage.getItem('token');
     const storagedUser = sessionStorage.getItem('auth');
-    const storagedPerfil = sessionStorage.getItem('perfil');
+    const storagedPerfil = sessionStorage.getItem('perfil') ||  '';
 
     if (storagedToken && storagedUser) {
       const _user = JSON.parse(storagedUser);
@@ -66,8 +67,8 @@ export const AuthProvider = ({ children }: Props) => {
         message: auth.message,
         open: true,
       });
-    } catch ({ response }) {
-      msgError(response);
+    } catch (error) {
+      msgError(error);
     }
   };
 
@@ -84,7 +85,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const Logout = () => {
-    setUser(null);
+    setUser(undefined);
     sessionStorage.clear();
   };
 
