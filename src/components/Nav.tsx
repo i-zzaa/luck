@@ -24,9 +24,9 @@ export const Nav = () => {
 
 
   useEffect(() => {
-    if(permissions.length ){ 
-      renderNav
-    };
+    renderNav()
+    // if(permissions.length ){ 
+    // };
   }, [permissions]);
 
   return (
