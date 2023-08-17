@@ -50,7 +50,8 @@ export default function Schedule() {
 
   // const renderEvents = useCallback(async (moment: any = currentDate) => {
   async function renderEvents(moment: any = currentDate) {
-    if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS') && perfil === PERFIL.terapeuta) {
+    // if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS') && perfil === PERFIL.terapeuta) {
+    if (PERFIL.terapeuta) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
       handleSubmitFilter({
