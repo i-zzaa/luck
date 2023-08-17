@@ -56,7 +56,7 @@ export function TextSubtext({
       )}
       <span className={display}>
         {text}&nbsp;
-        <strong> {subtext}</strong>
+        <strong className='font-inter'> {subtext}</strong>
       </span>
     </div>
   );

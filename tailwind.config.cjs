@@ -48,6 +48,7 @@ module.exports = {
       fontFamily: {
         sans: ['Raleway', 'sans-serif'],
         'sans-serif': 'sans-serif',
+        'inter': 'Inter'
       },
     },
   },
