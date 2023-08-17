@@ -15,6 +15,8 @@ import {
 import { STATUS_PACIENT_COD } from '../constants/patient';
 import { permissionAuth } from '../contexts/permission';
 import { useToast } from '../contexts/toast';
+import { useAuth } from '../contexts/auth';
+import { PERFIL } from '../constants/user';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};
@@ -22,6 +24,7 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export default function Schedule() {
   const current = new Date();
+  const { perfil } = useAuth();
 
   const [filter, setFilter] = useState<string[]>([]);
 
@@ -47,7 +50,7 @@ export default function Schedule() {
 
   // const renderEvents = useCallback(async (moment: any = currentDate) => {
   async function renderEvents(moment: any = currentDate) {
-    if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS')) {
+    if (!hasPermition('AGENDA_EVENTO_TODOS_EVENTOS') && perfil === PERFIL.terapeuta) {
       const auth: any = await sessionStorage.getItem('auth');
       const user = JSON.parse(auth);
       handleSubmitFilter({
