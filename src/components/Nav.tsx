@@ -17,7 +17,7 @@ export const Nav = () => {
   
   const renderNav = () => {
     const arrRouterLinks = ROUTES.filter((route: RoutesProps) =>
-      hasPermition(route.path) && route.path !== '*'
+      hasPermition(route.rule) && route.path !== '*'
     );
     setMenuSidebar(arrRouterLinks);
   };

@@ -47,13 +47,11 @@ export const PermissionProvider = ({ children }: Props) => {
     }
   }, []);
 
-  const hasPermition = (role: string) => {
-    const rule = role || '';
-
+  const hasPermition = (rule: string = '') => {
     switch (true) {
       case !perfil:
         throw new Error('Voce não tem permissao');
-      case role === '*':
+      case rule === '*':
         return true;
       default:
         if (
