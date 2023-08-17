@@ -210,7 +210,7 @@ export default function Patient() {
 
   useEffect(() => {
     !hasPermition('CADASTRO_PACIENTES_FILTRO_SELECT_AGENDADOS')
-      ? handleSubmitFilter({ naFila: true })
+      ? handleSubmitFilter({ naFila: true, disabled: false })
       : renderPatient();
     renderDropdown();
   }, [renderPatient]);
