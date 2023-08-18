@@ -84,7 +84,7 @@ export const modelChart = {
 };
 
 export default function Dashboard() {
-  const [chatTipoSessao, setChatTipoSessao] = useState<any>(modelChart);
+  // const [chatTipoSessao, setChatTipoSessao] = useState<any>(modelChart);
   const [chatEspecialidades, setChatEspecialidades] = useState<any>(modelChart);
   const [chatStatus, setChatStatus] = useState<any>(modelChart);
   const [wait, setChatWait] = useState<string>('');
@@ -95,13 +95,13 @@ export default function Dashboard() {
 
   const getPatientsActived = useCallback(async () => {
     const data = await getList('/pacientes/dashboard');
-    setPacientes(data);
+    setPacientes([]);
   }, []);
 
-  const setTipoSessao = useCallback(async () => {
-    const data = await getList('/vagas/dashboard/tipoSessoes');
-    setChatTipoSessao(data);
-  }, []);
+  // const setTipoSessao = useCallback(async () => {
+  //   const data = await getList('/vagas/dashboard/tipoSessoes');
+  //   setChatTipoSessao(data);
+  // }, []);
 
   const setsEspecialidades = useCallback(async () => {
     const data = await getList('/vagas/dashboard/especialidades');
@@ -208,8 +208,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     setStatus();
-    setWait();
-    setTipoSessao();
+    // setWait();
+    // setTipoSessao();
     setInfoReturns();
     setsEspecialidades();
     getPatientsActived();
@@ -246,11 +246,11 @@ export default function Dashboard() {
       </div>
 
       <div className="">
-        {renderInfo()}
+        {/* {renderInfo()} */}
         {hasPermition('DASHBOARD_GRAFICO_FILA') ? (
           <div className="grid md:grid-cols-2 gap-4 justify-center sm:justify-beteween w-full">
             {renderChart('Especialidades por Demanda', chatEspecialidades)}
-            {renderChart('Tipo de sessão por Demanda', chatTipoSessao)}
+            {/* {renderChart('Tipo de sessão por Demanda', chatTipoSessao)} */}
           </div>
         ) : null}
       </div>
