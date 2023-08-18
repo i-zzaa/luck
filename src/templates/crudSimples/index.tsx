@@ -15,6 +15,7 @@ import { create, getList, search, update } from '../../server';
 import { Fields } from '../../constants/formFields';
 import { useDropdown } from '../../contexts/dropDown';
 import { moneyFormat } from '../../util/util';
+import Pagination from '../../components/Pagination';
 
 interface Props {
   namelist: string;
@@ -32,6 +33,10 @@ export default function CrudSimples({
   screen,
 }: Props) {
   const [list, setList] = useState<any>([]);
+  const [pagination, setPagination] = useState<any>({
+    pageSize: 0,
+    totalPage: 0,
+  });
   const [item, setItem] = useState<any>({});
   const [value, setValues] = useState<any>([]);
   const [open, setOpen] = useState<boolean>(false);
@@ -66,12 +71,13 @@ export default function CrudSimples({
     reset,
   } = useForm<any>();
 
-  const renderList = useCallback(async () => {
+  const renderList = useCallback(async (page: number = 1, pageSize: number= 10) => {
     setLoading(true);
 
     try {
-      const response = await getList(namelist);
-      setList(response);
+      const response = await getList(`${namelist}?page=${page}&pageSize=${pageSize}`);
+      setList(response.data);
+      setPagination(response.pagination)
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -164,8 +170,8 @@ export default function CrudSimples({
         message: 'Atualizado com sucesso!',
         open: true,
       });
-    } catch ({ response }) {
-      msgError(response);
+    } catch (message) {
+      msgError(message);
     }
   };
 
@@ -360,6 +366,9 @@ export default function CrudSimples({
             onSubmit(item_);
           }}
         />
+
+       {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={renderList}/>}
+
       </Card>
 
       <Modal

@@ -61,7 +61,7 @@ export const deleteItem = async (url: string) => {
 export const getList = async (type: string) => {
   const response = await api(type);
   if (response.status === 200) {
-    return response.data?.data || response.data;
+    return response.data
   }
   return [];
 };
