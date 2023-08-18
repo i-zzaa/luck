@@ -11,6 +11,7 @@ import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
 import { patientTherapyFields, STATUS_PACIENT_COD } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
+import Pagination from '../components/Pagination';
 
 const fieldsConst = filterTerapyFields;
 const fieldsState: any = {};
@@ -23,6 +24,11 @@ export default function Therapy() {
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
+  const [filter, setFilter] = useState<any>({});
+  const [pagination, setPagination] = useState<any>({
+    pageSize: 0,
+    totalPage: 0,
+  });
 
   const [open, setOpen] = useState<boolean>(false);
   const [openCalendarForm, setOpenCalendarForm] = useState<boolean>(false);
@@ -40,9 +46,11 @@ export default function Therapy() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}`
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}&page=1&pageSize=10`
       );
-      setPatients(response);
+      setPatients(response.data);
+      setPagination(response.pagination)
+
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -79,7 +87,15 @@ export default function Therapy() {
     }
   };
 
-  const handleSubmitFilter = async (formState: any) => {
+
+  const handlePagination = async (pag: any) => {
+    setPagination(pag)
+    handleSubmitFilter()
+  }
+
+  const handleSubmitFilter = async (formState: any = filter) => {
+    setLoading(true);
+    setFilter(formState)
     try {
       setLoading(true);
 
@@ -98,10 +114,9 @@ export default function Therapy() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response = await filter('pacientes', format);
-      const lista: PacientsProps[] =
-        response.status === 200 ? response.data : [];
-      setPatients(lista);
+      const response: any = await filter(`pacientes?page=${pagination.page}&pageSize=${pagination.pageSize}`, format);
+      setPatients(response.data);
+      setPagination(response.pagination)
       setLoading(false);
     } catch (error) {
       setLoading(false);

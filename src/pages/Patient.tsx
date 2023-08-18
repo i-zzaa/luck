@@ -14,6 +14,7 @@ import {
   STATUS_PACIENT_COD,
 } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
+import Pagination from '../components/Pagination';
 
 const fieldsConst = filterCurdPatientFields;
 const fieldsState: any = {};
@@ -28,7 +29,11 @@ export default function Patient() {
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
-
+  const [filter, setFilter] = useState<any>({});
+  const [pagination, setPagination] = useState<any>({
+    pageSize: 0,
+    totalPage: 0,
+  });
   const [open, setOpen] = useState<boolean>(false);
   const [openCalendarForm, setOpenCalendarForm] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
@@ -45,9 +50,11 @@ export default function Patient() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.crud_therapy}`
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.crud_therapy}&page=1&pageSize=10`
       );
-      setPatients(response);
+      setPatients(response.data);
+      setPagination(response.pagination)
+
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -84,8 +91,14 @@ export default function Patient() {
     }
   };
 
-  const handleSubmitFilter = async (formState: any) => {
+  const handlePagination = async (pag: any) => {
+    setPagination(pag)
+    handleSubmitFilter()
+  }
+
+  const handleSubmitFilter = async (formState: any = filter) => {
     setLoading(true);
+    setFilter(formState)
     try {
       const format: any = {
         // naFila: formState.naFila === undefined ? true : !formState.naFila,
@@ -99,10 +112,9 @@ export default function Patient() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response = await filter('pacientes', format);
-      const lista: PacientsProps[] =
-        response.status === 200 ? response.data : [];
-      setPatients(lista);
+      const response: any = await filter(`pacientes?page=${pagination.page}&pageSize=${pagination.pageSize}`, format);
+      setPatients(response.data);
+      setPagination(response.pagination)
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -253,6 +265,7 @@ export default function Patient() {
             setOpenConfirm(true);
           }}
         />
+        {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
       </Card>
 
       <Modal
