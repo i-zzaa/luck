@@ -14,7 +14,7 @@ import {
   STATUS_PACIENT_COD,
 } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
-import Pagination from '../components/Pagination';
+import PaginationComponent from '../components/Pagination';
 
 const fieldsConst = filterAvaliationFields;
 const fieldsState: any = {};
@@ -25,10 +25,11 @@ export default function Avaliation() {
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
-  const [filter, setFilter] = useState<any>({});
+  const [filterCurrent, setFilter] = useState<any>({});
   const [pagination, setPagination] = useState<any>({
-    pageSize: 0,
-    totalPage: 0,
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 0,
   });
 
   const [open, setOpen] = useState<boolean>(false);
@@ -48,7 +49,7 @@ export default function Avaliation() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}&page=1&pageSize=10`
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
       );
       setPatients(response.data);
       setPagination(response.pagination)
@@ -94,7 +95,7 @@ export default function Avaliation() {
     handleSubmitFilter()
   }
 
-  const handleSubmitFilter = async (formState: any = filter) => {
+  const handleSubmitFilter = async (formState: any = filterCurrent) => {
     setLoading(true);
     setFilter(formState)
     try {
@@ -110,9 +111,10 @@ export default function Avaliation() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response: any = await filter(`pacientes?page=${pagination.page}&pageSize=${pagination.pageSize}`, format);
-      setPatients(response.data);
-      setPagination(response.pagination)
+      const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+    
+      setPatients(response.data.data || response.data);
+      setPagination(response.pagination || response.data.pagination)
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -129,7 +131,7 @@ export default function Avaliation() {
     try {
       await update(url, body);
       setOpenSchedule(false);
-      handleSubmitFilter(filter);
+      handleSubmitFilter();
     } catch ({ response }: any) {
       setLoading(false);
       renderToast({
@@ -212,6 +214,8 @@ export default function Avaliation() {
     !hasPermition('FILA_AVALIACAO_FILTRO_SELECT_AGENDADOS')
       ? handleSubmitFilter({ naFila: true })
       : renderPatient();
+
+    // handleSubmitFilter({ naFila: true })
     renderDropdown();
   }, [renderPatient]);
 
@@ -253,7 +257,7 @@ export default function Avaliation() {
             setOpenConfirm(true);
           }}
         />
-        {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
+        {pagination.totalPages > 1 && <PaginationComponent totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
 
       </Card>
 

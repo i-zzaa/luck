@@ -14,7 +14,7 @@ import {
 } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
 import { filterDevolutivaFields } from '../constants/formFields';
-import Pagination from '../components/Pagination';
+import PaginationComponent from '../components/Pagination';
 
 const fieldsConst = filterDevolutivaFields;
 const fieldsState: any = {};
@@ -23,12 +23,13 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 export default function Devolutiva() {
   const { hasPermition } = permissionAuth();
   const [patients, setPatients] = useState<PacientsProps[]>([]);
-  const [patient, setPatient] = useState<any>();
+  const [patient, setPatient] = useState<any>([]);
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
-  const [filter, setFilter] = useState<any>({});
+  const [filterCurrent, setFilter] = useState<any>({});
   const [pagination, setPagination] = useState<any>({
-    pageSize: 0,
-    totalPage: 0,
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 0,
   });
 
   const [open, setOpen] = useState<boolean>(false);
@@ -47,7 +48,7 @@ export default function Devolutiva() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_devolutiva}&page=1&pageSize=10`
+        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_devolutiva}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
       );
       setPatients(response.data);
       setPagination(response.pagination)
@@ -93,7 +94,7 @@ export default function Devolutiva() {
     handleSubmitFilter()
   }
 
-  const handleSubmitFilter = async (formState: any = filter) => {
+  const handleSubmitFilter = async (formState: any = filterCurrent) => {
     setLoading(true);
     setFilter(formState)
 
@@ -112,9 +113,9 @@ export default function Devolutiva() {
       format[key] = formState[key]?.id || undefined;
     });
 
-    const response: any = await filter(`pacientes?page=${pagination.page}&pageSize=${pagination.pageSize}`, format);
-    setPatients(response.data);
-    setPagination(response.pagination)
+    const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+    setPatients(response.data.data || response.data);
+    setPagination(response.pagination || response.data.pagination)
     setLoading(false);
   };
 
@@ -122,7 +123,7 @@ export default function Devolutiva() {
     try {
       await update(url, body);
       setOpenSchedule(false);
-      handleSubmitFilter({});
+      handleSubmitFilter();
     } catch ({ response }: any) {
       renderToast({
         type: 'failure',
@@ -254,7 +255,7 @@ export default function Devolutiva() {
             setOpenConfirm(true);
           }}
         />
-        {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
+        {pagination.totalPages > 1 && <PaginationComponent totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
       </Card>
 
       <Modal
