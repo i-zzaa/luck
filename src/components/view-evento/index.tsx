@@ -5,6 +5,7 @@ import { ATENDENTE, DESENVOLVEDOR, TERAPEUTA, permissionAuth } from '../../conte
 import { diffWeek, isInPast, weekDay } from '../../util/util';
 import { ButtonHeron } from '../button';
 import { Tag } from '../tag';
+import { STATUS_EVENTS } from '../../constants/schedule';
 
 interface Props {
   evento: any;
@@ -48,7 +49,7 @@ export const ViewEvento = ({
 
   const header = (
     <div className="flex justify-between items-center gap-8">
-   {  evento.paciente.nome !== 'Livre' ? <Tag type={evento.especialidade.nome} disabled={false} /> : <div></div>}
+   {  evento.paciente.nome !== STATUS_EVENTS.livre ? <Tag type={evento.especialidade.nome} disabled={false} /> : <div></div>}
       <span>{evento.paciente.nome}</span>
 
       <div className="flex mt-[-0.5rem]">
@@ -139,7 +140,7 @@ export const ViewEvento = ({
 
 <div className='flex justify-between mt-8 gap-2'>
 
-        { (perfil === DESENVOLVEDOR ||  perfil === TERAPEUTA) && evento.statusEventos.nome !== 'Atendido' &&  !isInPast(evento.date) &&  evento.paciente.nome !== 'Livre' ? (
+        { (perfil === DESENVOLVEDOR ||  perfil === TERAPEUTA) && evento.statusEventos.nome !== STATUS_EVENTS.atendido &&  !isInPast(evento.date) &&  evento.paciente.nome !== STATUS_EVENTS.livre ? (
                <ButtonHeron
                 text="Atendido"
                 icon="pi pi-check"
@@ -149,7 +150,7 @@ export const ViewEvento = ({
                 onClick={onClick}
               />
         ) : null}
-        { (perfil == DESENVOLVEDOR ||  perfil === ATENDENTE  ) &&  isInPast(evento.date) &&  evento.paciente.nome !== 'Livre' && evento.statusEventos.nome !== 'Atendido' && evento.statusEventos.nome !== 'Atestado'? (
+        { (perfil == DESENVOLVEDOR ||  perfil === ATENDENTE  ) &&  isInPast(evento.date) &&  evento.paciente.nome !== STATUS_EVENTS.livre && evento.statusEventos.nome !== STATUS_EVENTS.atendido && evento.statusEventos.nome !== STATUS_EVENTS.atestado? (
                <ButtonHeron
                 text="Atestado"
                 icon="pi pi-book"
