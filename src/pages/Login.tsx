@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [version, setVersion] = useState('');
 
   const getVersion = useCallback(async () => {
-    const data = await getList('/');
+    const { data } = await getList('/');
     setVersion(`versão frontend: ${package_json.version} - ${data}`);
   }, []);
 
