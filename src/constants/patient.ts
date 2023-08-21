@@ -563,6 +563,15 @@ export const filterCurdPatientFields = [
     type: 'select',
     singleSelect: false,
   },
+  {
+    permission: 'CADASTRO_PACIENTES',
+    labelText: 'Inativos',
+    id: 'disabled',
+    name: 'disabled',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'switch',
+    singleSelect: false,
+  },
 ];
 
 export const patientCrudFields = [

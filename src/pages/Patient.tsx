@@ -103,11 +103,11 @@ export default function Patient() {
     try {
       const format: any = {
         // naFila: formState.naFila === undefined ? true : !formState.naFila,
-        // disabled: formState.disabled === undefined ? false : formState.disabled,
+        disabled: formState.disabled === undefined ? false : formState.disabled,
         statusPacienteCod: STATUS_PACIENT_COD.crud_therapy,
       };
       // delete formState.naFila;
-      // delete formState.disabled;
+      delete formState.disabled;
 
       await Object.keys(formState).map((key: any) => {
         format[key] = formState[key]?.id || undefined;
