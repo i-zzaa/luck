@@ -112,9 +112,12 @@ export default function Avaliation() {
       });
 
       const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
-    
-      setPatients(response.data.data || response.data);
-      setPagination(response.pagination || response.data.pagination)
+      if (response.data.data || response.data) {
+        setPatients(response.data.data || response.data);
+        setPagination(response.pagination || response.data.pagination)
+      } else {
+        setPatients([]);
+      }
       setLoading(false);
     } catch (err) {
       setLoading(false);
