@@ -11,7 +11,7 @@ import { formtDatePatient } from '../util/util';
 import { useDropdown } from '../contexts/dropDown';
 import { patientTherapyFields, STATUS_PACIENT_COD } from '../constants/patient';
 import { PacientsProps, PatientForm } from '../foms/PatientForm';
-import Pagination from '../components/Pagination';
+import PaginationComponent from '../components/Pagination';
 
 const fieldsConst = filterTerapyFields;
 const fieldsState: any = {};
@@ -24,10 +24,11 @@ export default function Therapy() {
   const [patients, setPatients] = useState<PacientsProps[]>([]);
   const [patient, setPatient] = useState<any>();
   const [patientFormatCalendar, setPatientFormatCalendar] = useState<any>();
-  const [filter, setFilter] = useState<any>({});
+  const [filterCurrent, setFilter] = useState<any>({});
   const [pagination, setPagination] = useState<any>({
-    pageSize: 0,
-    totalPage: 0,
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 0,
   });
 
   const [open, setOpen] = useState<boolean>(false);
@@ -93,7 +94,7 @@ export default function Therapy() {
     handleSubmitFilter()
   }
 
-  const handleSubmitFilter = async (formState: any = filter) => {
+  const handleSubmitFilter = async (formState: any = filterCurrent) => {
     setLoading(true);
     setFilter(formState)
     try {
@@ -114,9 +115,10 @@ export default function Therapy() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response: any = await filter(`pacientes?page=${pagination.page}&pageSize=${pagination.pageSize}`, format);
-      setPatients(response.data);
-      setPagination(response.pagination)
+      const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+    
+      setPatients(response.data.data || response.data);
+      setPagination(response.pagination || response.data.pagination)
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -256,6 +258,9 @@ export default function Therapy() {
             setOpenConfirm(true);
           }}
         />
+
+      {pagination.totalPages > 1 && <PaginationComponent totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
+
       </Card>
 
       <Modal
