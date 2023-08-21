@@ -629,7 +629,7 @@ export const CalendarForm = ({
         message="Alterar eventos futuros ou apenas o atual?"
         icon="pi pi-exclamation-triangle"
         open={openConfirm}
-        acceptLabel="Eventos Futuros"
+        acceptLabel="Atual e eventos futuros"
         rejectLabel="Atual"
       />
     </>
