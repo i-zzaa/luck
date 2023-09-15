@@ -1,11 +1,11 @@
 const loginFields = [
   {
     labelText: 'Login',
-    labelFor: 'login',
-    id: 'login',
-    name: 'login',
+    labelFor: 'username',
+    id: 'username',
+    name: 'username',
     type: 'text',
-    autoComplete: 'email',
+    autoComplete: 'text',
     isRequired: true,
     placeholder: 'Login',
     validate: {
@@ -19,9 +19,9 @@ const loginFields = [
   },
   {
     labelText: 'Senha',
-    labelFor: 'senha',
-    id: 'senha',
-    name: 'senha',
+    labelFor: 'password',
+    id: 'password',
+    name: 'password',
     type: 'password',
     isRequired: true,
     placeholder: 'Senha',

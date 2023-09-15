@@ -38,8 +38,8 @@ export const intercepttRoute = (token: string, login: string) => {
 };
 
 export const dropDown = async (type: string, query?: string) => {
-  const url = query ? `${type}?${query}` : type;
-  const response = await api(`/dropdrown/${url}`);
+  const params = query ? `?${query}` : '';
+  const response = await api(`${type}/dropdown${params}`);
   if (response.status === 200) {
     return response.data?.data || response.data;
   }
@@ -61,7 +61,7 @@ export const deleteItem = async (url: string) => {
 export const getList = async (type: string) => {
   const response = await api(type);
   if (response.status === 200) {
-    return response.data
+    return response.data;
   }
   return [];
 };
