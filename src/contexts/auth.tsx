@@ -37,11 +37,12 @@ export const AuthProvider = ({ children }: Props) => {
     }
   }, []);
 
-  const Login = async (loginState: object) => {
+  const Login = async (loginState: { username: string, password: string}) => {
     try {
-      api.defaults.headers.device = 'web';
-
-      const response = await api.post('/login', loginState);
+      const response = await api.post('/login', {
+        ...loginState,
+        password: parseInt(loginState.password)
+      });
       const auth = response.data;
 
       const user = auth?.user || auth.data;
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const msgError = (data: any) => {
     const message = data?.data
-      ? data?.data?.message
+      ? data?.data.message
       : 'Usuário não encontrado!';
     renderToast({
       type: 'failure',

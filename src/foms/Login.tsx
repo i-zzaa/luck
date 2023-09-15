@@ -11,14 +11,14 @@ const fieldsState: any = {};
 fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 interface FormProps {
-  login: string;
-  senha: string;
+  username: string;
+  password: string;
 }
 
 export default function Login() {
   const defaultValues = {
-    login: '',
-    senha: '',
+    username: '',
+    password: '',
   };
 
   const [checkState, setCheck] = useState<boolean>(false);
@@ -34,10 +34,10 @@ export default function Login() {
   } = useForm<FormProps>({ defaultValues });
   const { Login } = useAuth();
 
-  const onSubmit = async ({ login, senha }: FormProps) => {
+  const onSubmit = async ({ username, password }: FormProps) => {
     setLoading(true);
     try {
-      await Login({ login, senha });
+      await Login({ username, password });
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -58,7 +58,7 @@ export default function Login() {
       localStorage.setItem('rememberCheck', 'true');
       localStorage.setItem(
         'rememberLogin',
-        JSON.stringify({ login: watch('login'), senha: watch('senha') })
+        JSON.stringify({ username: watch('username'), password: watch('password') })
       );
     } else {
       localStorage.removeItem('rememberLogin');
@@ -69,10 +69,10 @@ export default function Login() {
   useEffect(() => {
     const rememberLogin = localStorage.getItem('rememberLogin');
     if (rememberLogin) {
-      const { login, senha } = JSON.parse(rememberLogin);
+      const { username, password } = JSON.parse(rememberLogin);
       setCheck(true);
-      setValue('login', login);
-      setValue('senha', senha);
+      setValue('username', username);
+      setValue('password', password);
     }
   }, []);
 
