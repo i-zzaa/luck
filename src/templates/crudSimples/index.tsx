@@ -89,7 +89,10 @@ export default function CrudSimples({
 
   const handleClick = async (word: any) => {
     try {
-      if (word.search === undefined) return;
+      if (word.search === undefined || word.search === ""){
+        renderList();  
+        return;
+      }
       setLoading(true);
       const response = await search(namelist, word.search);
       const lista = response.status === 200 ? response.data : [];
