@@ -49,7 +49,7 @@ export default function Avaliation() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
+        `paciente?statusPacienteCod=${STATUS_PACIENT_COD.queue_avaliation}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
       );
       setPatients(response.data);
       setPagination(response.pagination)
@@ -111,7 +111,7 @@ export default function Avaliation() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+      const response: any = await filter('paciente',  format, `page=${pagination.currentPage}&pageSize=${pagination.pageSize}`);
       if (response.data.data || response.data) {
         setPatients(response.data.data || response.data);
         setPagination(response.pagination || response.data.pagination)

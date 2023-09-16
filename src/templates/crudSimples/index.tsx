@@ -271,8 +271,11 @@ export default function CrudSimples({
   }, [renderAgendar]);
 
   useEffect(() => {
-    const index: string = `${namelist}Fields`;
-    const _fields = Fields[index];
+    let namelistField = `${namelist}Fields`
+
+    if (namelist === 'status-eventos') namelistField = 'statusEventosFields'
+
+    const _fields = Fields[namelistField];
     const fieldsState: any = {};
     _fields.forEach((field: any) => (fieldsState[field.id] = ''));
     setFields(_fields);
