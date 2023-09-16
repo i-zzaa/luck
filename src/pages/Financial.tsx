@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { filter, getList } from '../server';
+import { filter, getList, getPost } from '../server';
 import {
   ButtonHeron,
   Card,
@@ -71,7 +71,7 @@ export default function Financial() {
         ...formState,
       });
 
-      const response = await filter(`financeiro/${modulo}`, format);
+      const response = await getPost(`financeiro/${modulo}`, format);
       const lista: any =
         response.status === 200 && response?.data ? response.data : [];
       setGeral(lista.geral);

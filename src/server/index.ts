@@ -75,3 +75,9 @@ export const filter = async (type: string, _filter: object, query?: any) => {
 
   return await api.post(`${type}/filtro${params}`, _filter);
 };
+
+export const getPost = async (type: string, _filter: object, query?: any) => {
+  const params = query ? `?${query}` : '';
+
+  return await api.post(`${type}${params}`, _filter);
+};
