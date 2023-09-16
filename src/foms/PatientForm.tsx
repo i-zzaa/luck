@@ -104,12 +104,12 @@ export const PatientForm = ({
       });
 
       return onClose();
-    } catch ({ response } : any) {
+    } catch (response: any) {
       setLoaging(false); 
       renderToast({
         type: 'failure',
-        title: response.status,
-        message: response.data.message,
+        title: response.status || '401',
+        message: response.data.message || 'Erro de conexão',
         open: true,
       });
     }
