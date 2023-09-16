@@ -89,9 +89,9 @@ export const PatientForm = ({
 
       if (isEdit) {
         formatValues.id = value.id;
-        data = await update('pacientes', formatValues);
+        data = await update('paciente', formatValues);
       } else {
-        data = await create('pacientes', formatValues);
+        data = await create('paciente', formatValues);
       }
 
       reset();
@@ -104,12 +104,12 @@ export const PatientForm = ({
       });
 
       return onClose();
-    } catch (error) {
-      setLoaging(false);
+    } catch ({ response } : any) {
+      setLoaging(false); 
       renderToast({
         type: 'failure',
-        title: '401',
-        message: 'Não cadastrado!',
+        title: response.status,
+        message: response.data.message,
         open: true,
       });
     }
