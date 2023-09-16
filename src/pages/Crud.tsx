@@ -68,7 +68,7 @@ export const Crud = () => {
           <TabPanel header="Status eventos" leftIcon="pi pi-calendar-plus">
             <CrudSimples
               screen="CADASTRO_STATUS_EVENTOS"
-              namelist="statusEventos"
+              namelist="status-eventos"
               onClick={() => {}}
             />
           </TabPanel>

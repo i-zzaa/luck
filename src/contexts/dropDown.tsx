@@ -74,13 +74,13 @@ export const DropdownProvider = ({ children }: Props) => {
   }, []);
 
   const renderStatusEventos = useCallback(async () => {
-    const response: any = await dropDown('statusEventos');
+    const response: any = await dropDown('status-eventos');
     return response;
   }, []);
 
   const renderModalidade = useCallback(async (statusPacienteCod: string) => {
-    const response: any = await dropDown(
-      `modalidade?statusPacienteCod=${statusPacienteCod}`
+    const response: any = await dropDown('modalidade',
+      `statusPacienteCod=${statusPacienteCod}`
     );
     return response;
   }, []);
@@ -125,7 +125,7 @@ export const DropdownProvider = ({ children }: Props) => {
   const renderPacienteEspecialidade = useCallback(
     async (pacienteId: number, statusPacienteCod: string) => {
       const response: any = await dropDown(
-        'paciente-especialidade',
+        'paciente/especialidade',
         `pacienteId=${pacienteId}&statusPacienteCod=${statusPacienteCod}`
       );
       return response;
@@ -147,7 +147,7 @@ export const DropdownProvider = ({ children }: Props) => {
   const renderEspecialidadeTerapeuta = useCallback(
     async (especialidade: string) => {
       const response: any = await dropDown(
-        'especialidade-terapeuta',
+        'terapeuta/especialidade',
         `especialidade=${especialidade}`
       );
       return response;
@@ -157,7 +157,7 @@ export const DropdownProvider = ({ children }: Props) => {
 
   const renderTerapeutaFuncao = useCallback(async (terapeutaId: number) => {
     const response: any = await dropDown(
-      'terapeuta-funcao',
+      'funcao/terapeuta',
       `terapeutaId=${terapeutaId}`
     );
     return response;
