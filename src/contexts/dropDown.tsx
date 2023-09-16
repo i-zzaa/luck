@@ -55,8 +55,8 @@ export const DropdownProvider = ({ children }: Props) => {
   ];
 
   const renderPacientes = useCallback(async (statusPacienteCod: string) => {
-    const response: any = await dropDown(
-      `paciente?statusPacienteCod=${statusPacienteCod}`
+    const response: any = await dropDown('paciente',
+      `statusPacienteCod=${statusPacienteCod}`
     );
     return response;
   }, []);
