@@ -261,8 +261,8 @@ export default function Patient() {
             setOpenConfirm(true);
           }}
           onClickEdit={formtDate}
-          onClickReturn={(pacient_: any) => {
-            setPatient(pacient_);
+          onClickReturn={({ item }: any) => {
+            setPatient(item);
             setOpenConfirm(true);
           }}
         />
