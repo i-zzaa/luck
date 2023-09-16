@@ -70,6 +70,8 @@ export const search = async (type: string, work: string) => {
   return await api(`${type}/${work}`);
 };
 
-export const filter = async (type: string, _filter: object) => {
-  return await api.post(`filtro/${type}`, _filter);
+export const filter = async (type: string, _filter: object, query?: any) => {
+  const params = query ? `?${query}` : '';
+
+  return await api.post(`${type}/filtro${params}`, _filter);
 };

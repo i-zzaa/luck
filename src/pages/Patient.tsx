@@ -51,7 +51,7 @@ export default function Patient() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.crud_therapy}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
+        `paciente?statusPacienteCod=${STATUS_PACIENT_COD.crud_therapy}&page=${pagination.currentPage}&pageSize=${pagination.pageSize}`
       );
       setPatients(response.data);
       setPagination(response.pagination)
@@ -113,7 +113,7 @@ export default function Patient() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+      const response: any = await filter('paciente', format, `page=${pagination.currentPage}&pageSize=${pagination.pageSize}`);
       setPatients(response.data.data || response.data);
       setPagination(response.pagination || response.data.pagination)
       setLoading(false);
