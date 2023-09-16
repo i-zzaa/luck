@@ -28,7 +28,7 @@ export interface RoutesProps {
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home' },
-  { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard, icon: 'pi pi-chart-pie' },
+  // { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard, icon: 'pi pi-chart-pie' },
   { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
   { path: CONSTANTES_ROUTERS.QUEUE, componentRoute: Queue , icon: 'pi pi-sort-amount-down'},
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
