@@ -47,7 +47,7 @@ export default function Therapy() {
       setLoading(true);
       setPatients([]);
       const response = await getList(
-        `pacientes?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}&page=1&pageSize=10`
+        `paciente?statusPacienteCod=${STATUS_PACIENT_COD.queue_therapy}&page=1&pageSize=10`
       );
       setPatients(response.data);
       setPagination(response.pagination)
@@ -115,7 +115,7 @@ export default function Therapy() {
         format[key] = formState[key]?.id || undefined;
       });
 
-      const response: any = await filter(`pacientes?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`, format);
+      const response: any = await filter('paciente', format, `page=${pagination.currentPage}&pageSize=${pagination.pageSize}`);
     
       setPatients(response.data.data || response.data);
       setPagination(response.pagination || response.data.pagination)

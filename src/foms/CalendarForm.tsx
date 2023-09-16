@@ -275,7 +275,7 @@ export const CalendarForm = ({
     statusPacienteCod: string
   ) => {
     const info = await getList(
-      `/pacientes/especialidades?statusPacienteCod=${statusPacienteCod}&pacienteId=${idPaciente}`
+      `/paciente/especialidades?statusPacienteCod=${statusPacienteCod}&pacienteId=${idPaciente}`
     );
     setInfoDevolutiva(info);
     setLoop(true);
