@@ -146,7 +146,7 @@ export default function CrudSimples({
       renderToast({
         type: 'success',
         title: '',
-        message: data.data.message,
+        message: 'Sucesso!',
         open: true,
       });
     } catch ({ message }: any) {

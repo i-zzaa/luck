@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
-import { UserProps } from '../types/user';
 
 interface AuthContextData {
   signed: boolean;
@@ -19,6 +18,7 @@ interface Props {
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: Props) => {
+
   const [user, setUser] = useState();
   const [perfil, setPerfil] = useState<string>('');
   const { setPermissionsLogin } = permissionAuth();
@@ -61,11 +61,17 @@ export const AuthProvider = ({ children }: Props) => {
 
       setPerfil(perfilName);
       setUser(user);
+
       await intercepttRoute(accessToken, user.login);
+
+      setInterval(() => {
+        Logout()
+      }, Number(import.meta.env.EXPIRES_IN_SECONDS));
+
       renderToast({
         type: 'success',
         title: ' ',
-        message: auth.message,
+        message: 'Bem vindo!',
         open: true,
       });
     } catch (error) {
