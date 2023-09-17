@@ -43,7 +43,12 @@ export const AuthProvider = ({ children }: Props) => {
         ...loginState,
         password: parseInt(loginState.password)
       });
+      
       const auth = response.data;
+
+      setTimeout(() => {
+         Logout()
+       },  import.meta.env.VITE_API_URL_EXPIRES_IN_SECONDS);
 
       const user = auth?.user || auth.data;
       const accessToken = auth?.accessToken || auth.data.accessToken;
@@ -63,10 +68,6 @@ export const AuthProvider = ({ children }: Props) => {
       setUser(user);
 
       await intercepttRoute(accessToken, user.login);
-
-      setInterval(() => {
-        Logout()
-      }, Number(import.meta.env.EXPIRES_IN_SECONDS));
 
       renderToast({
         type: 'success',
