@@ -6149,3 +6149,7 @@ textarea {
 .p-selectbutton {
   white-space: nowrap !important;
 }
+
+#pr_id_2_content_1 > div > fieldset > div > div > div > table > thead > tr > th:nth-child(7) > div {
+  justify-content: center !important;
+}

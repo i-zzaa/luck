@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }: Props) => {
 
       setTimeout(() => {
          Logout()
-       },  import.meta.env.VITE_API_URL_EXPIRES_IN_SECONDS);
+      //  },  import.meta.env.VITE_API_URL_EXPIRES_IN_SECONDS);
+       },  8000000);
 
       const user = auth?.user || auth.data;
       const accessToken = auth?.accessToken || auth.data.accessToken;

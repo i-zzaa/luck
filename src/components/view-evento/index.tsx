@@ -53,7 +53,7 @@ export const ViewEvento = ({
       <span>{evento.paciente.nome}</span>
 
       <div className="flex mt-[-0.5rem]">
-        {hasPermition('AGENDA_LISTA_EDITAR') ? (
+        {hasPermition('AGENDA_CALENDARIO_LISTA_EDITAR') ? (
           <div>
             {buttonEdit && (
               <ButtonHeron
@@ -68,7 +68,7 @@ export const ViewEvento = ({
           </div>
         ) : null}
 
-        {hasPermition('AGENDA_LISTA_EXCLUIR') && evento?.canDelete ? (
+        {hasPermition('AGENDA_CALENDARIO_LISTA_EXCLUIR') && evento?.canDelete ? (
           <div>
             {buttonEdit && (
               <ButtonHeron
