@@ -452,7 +452,7 @@ const statusEventosFields = [
 
 const filterCalendarFields = [
   {
-    permission: 'AGENDA_FILTRO_SELECT_PACIENTE',
+    permission: 'AGENDA_CALENDARIO_FILTRO_SELECT_PACIENTE',
     labelText: 'Pacientes',
     labelFor: 'pacientes',
     id: 'pacienteId',
@@ -465,7 +465,7 @@ const filterCalendarFields = [
     singleSelect: false,
   },
   {
-    permission: 'AGENDA_FILTRO_SELECT_TERAPEUTAS',
+    permission: 'AGENDA_CALENDARIO_FILTRO_SELECT_TERAPEUTAS',
     labelText: 'Terapeutas',
     labelFor: 'terapeutas',
     id: 'terapeutaId',
@@ -479,7 +479,7 @@ const filterCalendarFields = [
     hidden: true,
   },
   {
-    permission: 'AGENDA_FILTRO_SELECT_STATUS_EVENTOS',
+    permission: 'AGENDA_CALENDARIO_FILTRO_SELECT_STATUS_EVENTOS',
     labelText: 'Status Eventos',
     labelFor: 'statusEventos',
     id: 'statusEventosId',
@@ -492,7 +492,7 @@ const filterCalendarFields = [
     singleSelect: false,
   },
   {
-    permission: 'AGENDA_FILTRO_SELECT_MODALIDADE',
+    permission: 'AGENDA_CALENDARIO_FILTRO_SELECT_MODALIDADE',
     labelText: 'Modalidade',
     labelFor: 'modalidades',
     id: 'modalidadeId',
@@ -506,12 +506,79 @@ const filterCalendarFields = [
   },
 ];
 
+const filterBaixaFields = [
+  {
+    permission: 'AGENDA_BAIXA_FILTRO_SELECT_PACIENTE',
+    labelText: 'Paciente',
+    id: 'pacienteId',
+    name: 'pacientes',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'select',
+    singleSelect: false,
+  },
+  {
+    permission: 'AGENDA_BAIXA_FILTRO_SELECT_CONVENIO',
+    labelText: 'Convênio',
+    id: 'convenioId',
+    name: 'convenios',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'select',
+    singleSelect: false,
+  },
+  {
+    permission: 'AGENDA_BAIXA_FILTRO_SELECT_TERAPEUTA',
+    labelText: 'Terapeuta',
+    id: 'terapeutaId',
+    name: 'terapeutas',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'select',
+    singleSelect: false,
+  },
+  {
+    permission: 'AGENDA_BAIXA_FILTRO_SELECT_LOCALIDADE',
+    labelText: 'Casa',
+    id: 'localidadeId',
+    name: 'localidades',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'select',
+    singleSelect: false,
+  },
+
+  {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_INICIAL',
+    labelText: 'Data Inicial',
+    id: 'dataInicio',
+    name: 'dataInicio',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'date',
+  },
+  {
+    permission: 'FINANCEIRO_FILTRO_SELECT_DATA_FINAL',
+    labelText: 'Data Final',
+    id: 'datatFim',
+    name: 'datatFim',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'date',
+  },
+
+  {
+    permission: 'AGENDA_BAIXA_FILTRO_SELECT_BAIXADO',
+    labelText: 'Baixa Efetuada',
+    id: 'baixa',
+    name: 'baixa',
+    customCol: 'col-span-6 sm:col-span-2',
+    type: 'switch',
+    singleSelect: false,
+  },
+];
+
 export {
   loginFields,
   filterAvaliationFields,
   filterDevolutivaFields,
   filterCalendarFields,
   filterTerapyFields,
+  filterBaixaFields,
 };
 
 export const Fields: any = {

@@ -373,7 +373,7 @@ export default function CrudSimples({
           }}
         />
 
-       {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={renderList}/>}
+       {pagination.totalPages > 10 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={renderList}/>}
 
       </Card>
 

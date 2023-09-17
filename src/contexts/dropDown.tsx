@@ -28,6 +28,7 @@ export interface DropdownContextData {
   renderDropdownQueue: (statusPacienteCod: string) => any;
   renderDropdownCalendar: (statusPacienteCod: string) => any;
   renderDropdownFinancial: (statusPacienteCod: string) => any;
+  renderDropdownBaixa: (statusPacienteCod: string) => any;
   renderDropdownQueueCalendar: (
     statusPacienteCod: string,
     pacienteId: number
@@ -136,7 +137,7 @@ export const DropdownProvider = ({ children }: Props) => {
   const renderEspecialidadeFuncao = useCallback(
     async (especialidade: string) => {
       const response: any = await dropDown(
-        'especialidade-funcao',
+        'funcao/especialidade',
         `especialidade=${especialidade}`
       );
       return response;
@@ -251,6 +252,17 @@ export const DropdownProvider = ({ children }: Props) => {
     return dropDownList;
   };
 
+  const renderDropdownBaixa = async (statusPacienteCod: string) => {
+    const dropDownList = {
+      pacientes: await renderPacientes(statusPacienteCod),
+      convenios: await renderConvenio,
+      terapeutas: await renderTerapeutas(),
+      localidades: await renderLocalidade(),
+    };
+
+    return dropDownList;
+  };
+
   const renderDropdownCalendar = async (statusPacienteCod: string) => {
     let pacientes;
     if (
@@ -317,6 +329,7 @@ export const DropdownProvider = ({ children }: Props) => {
         renderDropdownQueueCalendar,
         renderDropdownCalendar,
         renderDropdownFinancial,
+        renderDropdownBaixa
       }}
     >
       {children}

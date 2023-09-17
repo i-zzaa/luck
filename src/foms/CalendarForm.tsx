@@ -177,7 +177,7 @@ export const CalendarForm = ({
           validate={{
             required: true,
           }}
-          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_ESPECIALIDADE')}
+          disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_ESPECIALIDADE')}
         />
 
         <Input
@@ -194,7 +194,7 @@ export const CalendarForm = ({
           validate={{
             required: true,
           }}
-          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_TERAPEUTA')}
+          disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_TERAPEUTA')}
         />
         <Input
           labelText="Função"
@@ -207,7 +207,7 @@ export const CalendarForm = ({
           validate={{
             required: true,
           }}
-          disabled={!hasPermition('AGENDA_EVENTO_EDITAR_FUNCAO')}
+          disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_FUNCAO')}
         />
       </>
     );
@@ -350,7 +350,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_MODALIDADE')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_MODALIDADE')}
           />
           <Input
             labelText="Data"
@@ -376,7 +376,7 @@ export const CalendarForm = ({
               required: true,
               min: moment(new Date()).format('YYYY-MM-DD'),
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_INICIO')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_DATA_INICIO')}
           />
 
           {isAvaliacao && (
@@ -390,7 +390,7 @@ export const CalendarForm = ({
               validate={{
                 min: minFinal.format('YYYY-MM-DD'),
               }}
-              disabled={!hasPermition('AGENDA_EVENTO_EDITAR_DATA_FIM')}
+              disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_DATA_FIM')}
             />
           )}
 
@@ -427,7 +427,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_HORA_INICIO')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_HORA_INICIO')}
           />
           <Input
             labelText="Horario Final"
@@ -441,7 +441,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_HORA_FIM')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_HORA_FIM')}
           />
 
           {!isDevolutiva && (!value || value.id === value.groupId) && (
@@ -469,7 +469,7 @@ export const CalendarForm = ({
                 required: true,
               }}
               disabled={
-                !hasPermition('AGENDA_EVENTO_EDITAR_FREQUENCIA') || isEdit
+                !hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_FREQUENCIA') || isEdit
               }
             />
           )}
@@ -488,7 +488,7 @@ export const CalendarForm = ({
                 required: true,
               }}
               disabled={
-                !hasPermition('AGENDA_EVENTO_EDITAR_INTERVALO') || isEdit
+                !hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_INTERVALO') || isEdit
               }
             />
           )}
@@ -504,7 +504,7 @@ export const CalendarForm = ({
                   required: !!getValues('frequencias'),
                 }}
                 disabled={
-                  !hasPermition('AGENDA_EVENTO_EDITAR_DIAS_FREQUENCIA') ||
+                  !hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_DIAS_FREQUENCIA') ||
                   isEdit
                 }
               />
@@ -537,7 +537,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_PACIENTE')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_PACIENTE')}
           />
           {isDevolutiva && loop
             ? infoDevolutiva.map((info: any, key: number) => {
@@ -552,7 +552,7 @@ export const CalendarForm = ({
             customCol="col-span-6 sm:col-span-1"
             errors={errors}
             control={control}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_LOCALIDADE')}
             onChange={(e: any) => {
               setIsExterno(e);
             }}
@@ -566,7 +566,7 @@ export const CalendarForm = ({
               customCol="col-span-6 sm:col-span-1 font-inter font-light"
               errors={errors}
               control={control}
-              disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+              disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_LOCALIDADE')}
             />
           )}
 
@@ -581,7 +581,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_LOCALIDADE')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_LOCALIDADE')}
           />
           <Input
             labelText="Status Eventos"
@@ -594,7 +594,7 @@ export const CalendarForm = ({
             validate={{
               required: true,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_STATUS_EVENTOS')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_STATUS_EVENTOS')}
           />
           <Input
             labelText="Observação"
@@ -606,11 +606,11 @@ export const CalendarForm = ({
             validate={{
               required: false,
             }}
-            disabled={!hasPermition('AGENDA_EVENTO_EDITAR_OBSERVACAO')}
+            disabled={!hasPermition('AGENDA_CALENDARIO_EVENTO_EDITAR_OBSERVACAO')}
           />
         </div>
 
-        {hasPermition('AGENDA_EVENTO_BOTAO_ATUALIZAR_SALVAR')  ? (
+        {hasPermition('AGENDA_CALENDARIO_EVENTO_BOTAO_ATUALIZAR_SALVAR')  ? (
           <ButtonHeron
             text={isEdit ? 'Atualizar' : 'Agendar'}
             type={isEdit ? 'second' : 'primary'}
