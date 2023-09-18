@@ -115,20 +115,25 @@ export const PatientForm = ({
     }
   };
 
-  const handleChange = (value: any, fieldId: string) => {
+  const handleChange = async(value: any, fieldId: string) => {
     switch (fieldId) {
       case 'especialidades':
-        const list = value.map((item: any) => {
-          return {
-            especialidade: item.nome,
-            especialidadeId: item.id,
-            valor: moneyFormat.format(200),
-            km: 0,
-          };
-        });
+        const current: any = await Promise.all(value.map((itemValue: any) => {
+          const sessao = sessoes.filter((item: any) => item.especialidade === itemValue.nome)
+          if (sessao.length) {
+            return sessao[0]
+          }else {
+            return {
+              especialidade: itemValue.nome,
+              especialidadeId: itemValue.id,
+              valor: moneyFormat.format(200),
+              km: 0,
+            };
+          }
+        }))
 
-        setSessoes(list);
-        setValue('sessao', list);
+        setSessoes(current);
+        setValue('sessao', current);
         break;
 
       default:
