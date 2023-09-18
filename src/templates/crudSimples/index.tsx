@@ -190,9 +190,7 @@ export default function CrudSimples({
   const actionFieldId = async (valueForm: any, fieldId: string) => {
     switch (fieldId) {
       case 'perfilId':
-        const valid =
-          valueForm.nome !== 'Terapeuta' &&
-          valueForm.nome !== 'Coordenador-terapeuta';
+        const valid = valueForm.nome !== 'Terapeuta' 
         setHidden(valid);
         if (!valid) {
           unregister(isTerapeuta, { keepDirtyValues: true });
@@ -210,17 +208,22 @@ export default function CrudSimples({
         setValue('cargaHoraria', valueForm);
         break;
       case 'funcoesId':
-        const list = valueForm.map((item: any) => {
-          return {
-            funcao: item.nome,
-            funcaoId: item.id,
-            valor: moneyFormat.format(80),
-            tipo: 'Fixo',
-          };
-        });
+        const current: any = await Promise.all(valueForm.map((itemValue: any) => {
+          const currentComissao = comissao.filter((item: any) => item.funcao === itemValue.nome)
+          if (currentComissao.length) {
+            return currentComissao[0]
+          }else {
+              return {
+                funcao: itemValue.nome,
+                funcaoId: itemValue.id,
+                valor: moneyFormat.format(80),
+                tipo: 'Fixo',
+            };
+          }
+        }))
 
-        setValue('comissao', list);
-        setComissao(list);
+        setValue('comissao', current);
+        setComissao(current);
       default:
         break;
     }
