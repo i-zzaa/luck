@@ -33,12 +33,12 @@ export const DataTableHeron = ({
   const WORKINGHOURS = Object.keys(value).length
     ? value
     : {
-        'Segunda-feira': HOURS,
-        'Terca-feira': HOURS,
-        'Quarta-feira': HOURS,
-        'Quinta-feira': HOURS,
-        'Sexta-feira': HOURS,
-        Sábado: HOURS,
+        'Segunda-feira': {...HOURS},
+        'Terca-feira': {...HOURS},
+        'Quarta-feira': {...HOURS},
+        'Quinta-feira': {...HOURS},
+        'Sexta-feira': {...HOURS},
+        Sábado: {...HOURS},
       };
 
   const [cargaHoraria, setCargaHoraria] = useState<any>(WORKINGHOURS);
