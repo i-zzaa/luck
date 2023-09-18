@@ -12,6 +12,7 @@ import PaginationComponent from '../components/Pagination';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { STATUS_PACIENT_COD } from '../constants/patient';
+import { NotFound } from '../components/notFound';
 
 const fieldsConst = filterBaixaFields;
 const fieldsState: any = {};
@@ -100,7 +101,7 @@ export default function Baixa() {
   }, []);
 
   return (
-    <div className="grid">
+    <div className="grid ">
       <Filter
         id="form-filter-patient"
         legend="Filtro"
@@ -114,16 +115,18 @@ export default function Baixa() {
 
       <Card>
 
-      <DataTable value={baixas} showGridlines >
-          <Column field="paciente" header="Paciente"></Column>
-          <Column field="carteirinha" header="Carteirinha"></Column>
-          <Column field="convenio" header="Convenio"></Column>
-          <Column field="dataBaixa" header="Data/Hora"></Column>
-          <Column field="localidade" header="Local"></Column>
-          <Column field="usuario" header="Secretária"></Column>
-          <Column field="baixa" header="Baixa" dataType="boolean" bodyClassName="text-center" headerStyle={{ textAlign: 'center' }}  style={{ minWidth: '8rem', textAlign: 'center' }} body={verifiedBodyTemplate} />
-
-      </DataTable>
+      {
+        baixas?.length ? <DataTable value={baixas} showGridlines >
+            <Column field="paciente" header="Paciente"></Column>
+            <Column field="carteirinha" header="Carteirinha"></Column>
+            <Column field="convenio" header="Convenio"></Column>
+            <Column field="dataBaixa" header="Data/Hora"></Column>
+            <Column field="localidade" header="Local"></Column>
+            <Column field="usuario" header="Secretária"></Column>
+            <Column field="baixa" header="Baixa" dataType="boolean" bodyClassName="text-center" headerStyle={{ textAlign: 'center' }}  style={{ minWidth: '8rem', textAlign: 'center' }} body={verifiedBodyTemplate} />
+        </DataTable> : 
+        <NotFound />
+      }
       
         {pagination.totalPages > 10 && <PaginationComponent totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={handlePagination}/>}
       </Card>
