@@ -241,8 +241,8 @@ export const patientTherapyFields = [
 
   {
     labelText: 'Data Contato',
-    id: 'dataVoltouAba',
-    name: 'dataVoltouAba',
+    id: 'dataContato',
+    name: 'dataContato',
     type: 'date',
     customCol: 'col-span-6 sm:col-span-2 font-inter font-light',
     singleSelect: false,
