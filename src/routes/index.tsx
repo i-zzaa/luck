@@ -12,11 +12,9 @@ function Routes() {
   return signed ? (
     <BrowserRouter>
       <PermissionProvider>
-        <DropdownProvider>
           <LayoutProvider>
             <OtherRoutes />
           </LayoutProvider>
-        </DropdownProvider>
       </PermissionProvider>
     </BrowserRouter>
   ) : (
