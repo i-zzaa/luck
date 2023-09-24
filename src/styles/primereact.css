@@ -3988,14 +3988,14 @@ textarea {
 }
 .p-timeline.p-timeline-vertical .p-timeline-event-opposite,
 .p-timeline.p-timeline-vertical .p-timeline-event-content {
-  padding: 0 1rem;
+  /* padding: 0 1rem; */
 }
 .p-timeline.p-timeline-vertical .p-timeline-event-connector {
   width: 2px;
 }
 .p-timeline.p-timeline-horizontal .p-timeline-event-opposite,
 .p-timeline.p-timeline-horizontal .p-timeline-event-content {
-  padding: 1rem 0;
+  /* padding: 1rem 0; */
 }
 .p-timeline.p-timeline-horizontal .p-timeline-event-connector {
   height: 2px;
@@ -4060,7 +4060,7 @@ textarea {
   padding: 1.25rem;
 }
 .p-card .p-card-title {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
@@ -4068,9 +4068,10 @@ textarea {
   font-weight: 400;
   margin-bottom: 0.5rem;
   color: #6c757d;
+  font-family: Inter;
 }
 .p-card .p-card-content {
-  padding: 1.25rem 0;
+  padding: 0;
 }
 .p-card .p-card-footer {
   padding: 1.25rem 0 0 0;
@@ -6152,4 +6153,13 @@ textarea {
 
 #pr_id_2_content_1 > div > fieldset > div > div > div > table > thead > tr > th:nth-child(7) > div {
   justify-content: center !important;
+}
+
+.p-timeline-event-opposite {
+  flex: none !important;
+  padding: 0 !important;
+}
+
+.p-chart{
+  max-width: 95% !important;
 }

@@ -181,3 +181,11 @@ export const moneyFormat = new Intl.NumberFormat('pt-BR', {
 export const isInPast = (date: string) => {
   return moment(date).isBefore(new Date());
 };
+
+export const formatDateHours = (hours: any, date: any) => {
+  const arrTime = hours.split(':');
+  return moment(date)
+    .add(arrTime[0], 'hours')
+    .add(arrTime[1], 'minutes')
+    .format('DD/MM/YY HH:mm');
+};

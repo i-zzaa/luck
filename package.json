@@ -1,9 +1,8 @@
 {
-  "name": "@heron-list/web",
-  "version": "0.9.0-beta.18",
+  "name": "luck-web",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
-  "stack": "heroku-20",
   "scripts": {
     "dev": "vite --port=3000 --host",
     "start": "node serve.js",

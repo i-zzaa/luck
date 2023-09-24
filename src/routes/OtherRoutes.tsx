@@ -3,21 +3,19 @@ import { permissionAuth } from '../contexts/permission';
 import { Layout } from '../foms/Layout';
 import { Nav } from '../components/Nav';
 import { Crud } from '../pages/Crud';
-import Dashboard from '../pages/Dashboard';
 import Home from '../pages/Home';
-import Queue from '../pages/Queue';
-import Schedule from '../pages/Schedule';
-import Financial from '../pages/Financial';
 import { useContext } from 'react';
 import { LayoutContext } from '../contexts/layout.context';
+import Schedule from '../pages/Schedule';
+import { Protocolo } from '../pages/Protocolo';
+import { Sessao } from '../pages/Sessao';
+import { Prontuario } from '../pages/Prontuario';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
-  DASHBOARD = 'dashboard',
-  QUEUE = 'fila',
   CRUD = 'cadastro',
   CALENDAR = 'agenda',
-  FINANCEIRO = 'financeiro',
+  PRONTUARIO = 'prontuario',
 }
 export interface RoutesProps {
   path: string;
@@ -28,11 +26,9 @@ export interface RoutesProps {
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home' },
-  // { path: CONSTANTES_ROUTERS.DASHBOARD, componentRoute: Dashboard, icon: 'pi pi-chart-pie' },
+  { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
   { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
-  { path: CONSTANTES_ROUTERS.QUEUE, componentRoute: Queue , icon: 'pi pi-sort-amount-down'},
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
-  { path: CONSTANTES_ROUTERS.FINANCEIRO, componentRoute: Financial , icon: 'pi pi-money-bill'},
 ]
 
 const OtherRoutes = () => {
@@ -44,21 +40,23 @@ const OtherRoutes = () => {
   return (
     <div className="min-h-full overflow-hidden bg-background h-screen w-full">
       <Nav />
-      <main className={`${ open ? 'ml-36' : 'ml-14'} p-4 duration-700`}>
+      <main  className='mt-14'>
         <Routes>
           {routes.map((route: RoutesProps, index: number) => (
             <Route
               key={index}
               path={route.path}
               element={
-                hasPermition(route.path) ? (
+                // hasPermition(route.path) ? (
                   <Layout>
                     <route.componentRoute />
                   </Layout>
-                ) : null
+                // ) : null
               }
             />
           ))}
+          <Route path="/protocolo" element={<Protocolo />} />
+          <Route path="/sessao" element={<Sessao />} />
         </Routes>
       </main>
     </div>
