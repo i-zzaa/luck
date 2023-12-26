@@ -10,6 +10,7 @@ import { Sessao } from '../pages/Sessao';
 import { Prontuario } from '../pages/Prontuario';
 import { Schedule } from '../pages/Schedule';
 import { Crud } from '../pages/Crud';
+import { Patient } from '../pages/Patient';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -18,6 +19,8 @@ export enum CONSTANTES_ROUTERS {
   PRONTUARIO = 'prontuario',
   SESSION = 'sessao',
   PROGRAM = 'programa',
+  PATIENT = 'paciente',
+  PROTOCOLO = 'protocolo',
 }
 export interface RoutesProps {
   path: string;
@@ -61,6 +64,7 @@ const OtherRoutes = () => {
           ))}
           <Route path="/protocolo" element={<Protocolo />} />
           <Route path="/sessao" element={<Sessao />} />
+          <Route path="/paciente" element={<Patient />} />
         </Routes>
       </main>
     </div>

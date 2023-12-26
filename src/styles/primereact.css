@@ -4062,13 +4062,13 @@ textarea {
 .p-card .p-card-title {
   font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
 }
 .p-card .p-card-subtitle {
-  font-weight: 400;
+  font-weight: 300;
   margin-bottom: 0.5rem;
   color: #6c757d;
   font-family: Inter;
+  font-size: x-small;
 }
 .p-card .p-card-content {
   padding: 0;

@@ -320,7 +320,7 @@ function itemListComplete({
           {renderTags()}
         </div>
         <div>
-          <div className="flex items-end gap-2 sm:gap-8 text-left ">
+          <div className="grid items-end gap-2 sm:gap-8 text-left ">
             <Text text={textPrimaryLeft} size="lg" color="violet" />
             <Text
               className="font-inter"

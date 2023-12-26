@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 
 export const Schedule = () => {
-  const navigate = useNavigate()
+  const navigator = useNavigate()
   const [list, setList] = useState({}) as any;
   const { user } = useAuth();
 
@@ -20,7 +20,7 @@ export const Schedule = () => {
 
   const handleClick  = (event: any) => {
 
-    navigate(`/${CONSTANTES_ROUTERS.SESSION}`, {
+    navigator(`/${CONSTANTES_ROUTERS.SESSION}`, {
       state: {
         event
       }

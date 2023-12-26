@@ -68,7 +68,8 @@ export default function CrudSimples({
     setValue,
     unregister,
     reset,
-  } = useForm();
+  } = useForm({
+  });
 
   const renderList = useCallback(async (page: number = 1, pageSize: number= 10) => {
     setLoading(true);
@@ -294,9 +295,7 @@ export default function CrudSimples({
     renderList();
   }, [renderList]);
 
-  useEffect(() => {
-    unregister(isTerapeuta, { keepDirtyValues: true });
-  }, []);
+
 
   return (
     <>
