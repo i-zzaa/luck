@@ -135,7 +135,7 @@ export const Sessao = () => {
      <div className="h-2 mt-8 flex gap-2 justify-around">
 
         {
-          value.atividades.map((item: any, index: number) =>  <MultiStateCheckbox value={item.checked} onChange={(e) => {
+          value.atividades.map((item: any, index: number) =>  <MultiStateCheckbox key={index} value={item.checked} onChange={(e) => {
             // const val = {...item}
             // val.checked = e.value
 

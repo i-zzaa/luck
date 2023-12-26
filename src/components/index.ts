@@ -8,3 +8,4 @@ export { Modal } from './modal';
 export { Confirm } from './confirm';
 
 export { Filter } from '../templates/filter';
+export { List } from '../templates/list';
