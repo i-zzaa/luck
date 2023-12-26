@@ -39,7 +39,7 @@ export const atividadesFields = {
   type: 'input-add',
   isRequired: true,
   placeholder: 'Atividade',
-  customCol: 'col-span-6 sm:col-span-6',
+  customCol: 'col-span-5 sm:col-span-5',
   buttonAdd: true,
 
   validate: {
