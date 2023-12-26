@@ -7,10 +7,10 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { Checkbox } from 'primereact/checkbox';
 import { ListBox } from 'primereact/listbox';
 
-import { colorsData, colorsTextData, setColorChips } from '../../util/util';
+import {  setColorChips } from '../../util/util';
 import { clsx } from 'clsx';
-import moment from 'moment';
 import { InputNumber } from 'primereact/inputnumber';
+import { ButtonHeron } from '../button';
 
 export interface InputProps {
   id: string;
@@ -22,10 +22,12 @@ export interface InputProps {
   customCol?: string;
   disabled?: boolean;
   onChange?: (value: any) => void;
+  onClick?: () => void;
   validate?: any;
   errors?: any;
   hidden?: any;
   control?: any;
+  buttonAdd?: boolean;
 }
 
 export interface OptionsProps {
@@ -35,6 +37,7 @@ export interface OptionsProps {
 
 export function Input({
   onChange,
+  onClick,
   value,
   labelText,
   id,
@@ -47,6 +50,7 @@ export function Input({
   control,
   disabled,
   hidden,
+  buttonAdd
 }: InputProps) {
   const renderType = () => {
     switch (type) {
@@ -285,6 +289,45 @@ export function Input({
               />
             )}
           />
+        );
+      case 'input-add':
+        return (
+         <div className={clsx('grid  gap-2', {
+          'grid-cols-6': buttonAdd,
+         })}>
+          <Controller
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <input
+                disabled={disabled}
+                id={field.id}
+                {...field}
+                value={value || field.value}
+                key={field.id}
+                type={type}
+                className={clsx('inputAnimado ', {
+                  'col-span-5': buttonAdd,
+                })}
+                autoComplete="off"
+                onInput={(e: any) => {
+                  field.onChange(e);
+                  onChange && onChange(e);
+                }}
+              />
+            )}
+          />
+          {buttonAdd && 
+            <ButtonHeron
+            text="Add"
+            icon="pi pi-plus"
+            type="primary"
+            size="icon"
+            onClick={onClick}
+          />
+          }
+         </div>
         );
 
       default:

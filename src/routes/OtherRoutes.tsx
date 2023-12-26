@@ -9,6 +9,7 @@ import { Protocolo } from '../pages/Protocolo';
 import { Sessao } from '../pages/Sessao';
 import { Prontuario } from '../pages/Prontuario';
 import { Schedule } from '../pages/Schedule';
+import { Crud } from '../pages/Crud';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -16,6 +17,7 @@ export enum CONSTANTES_ROUTERS {
   CALENDAR = 'agenda',
   PRONTUARIO = 'prontuario',
   SESSION = 'sessao',
+  PROGRAM = 'programa',
 }
 export interface RoutesProps {
   path: string;
@@ -29,6 +31,8 @@ export const ROUTES = [
   // { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
   // { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
+  { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
+  // { path: CONSTANTES_ROUTERS.PROGRAM, componentRoute: Crud, icon: 'pi pi-palette' },
 ]
 
 const OtherRoutes = () => {
