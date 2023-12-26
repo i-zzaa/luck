@@ -13,7 +13,6 @@ import {
 import { create, deleteItem, getList, search, update } from '../../server';
 
 import { Fields, atividadesFields } from '../../constants/formFields';
-import { useDropdown } from '../../contexts/dropDown';
 import Pagination from '../../components/Pagination';
 
 interface Props {
@@ -58,11 +57,9 @@ export default function CrudSimples({
 
   const [fields, setFields] =useState<any>([]);
   const [dropDownList, setDropDownList] = useState<any>([]);
-  const { renderDropdownCrud, renderEspecialidadeFuncao } = useDropdown();
 
   const { renderToast } = useToast();
 
-  const defaultValues = item || {};
 
   const {
     handleSubmit,
@@ -71,7 +68,7 @@ export default function CrudSimples({
     setValue,
     unregister,
     reset,
-  } = useForm({ defaultValues });
+  } = useForm();
 
   const renderList = useCallback(async (page: number = 1, pageSize: number= 10) => {
     setLoading(true);
@@ -141,6 +138,7 @@ export default function CrudSimples({
       delete formatValues.search;
 
       if (isEdit) {
+        item.nome = formatValues.nome
         formatValues.id = item.id;
         data = await update(namelist, formatValues);
       } else {
@@ -199,7 +197,7 @@ export default function CrudSimples({
   const handleChange = (valueForm: any, fieldId: string) => {
     switch (namelist) {
       case 'programa':
-      
+        // handleChangeProgram(valueForm, fieldId)
       break;
 
       default:
@@ -223,23 +221,44 @@ export default function CrudSimples({
     }
   };
 
-  const handleAddClick =  () => {
-    let qtd = qtdAtividade+1
+  const handleAddClick =  (id :  string | undefined ) => {
+    if (id) {
+      // let qtd = qtdAtividade-1
 
-    const new_atividadesFields = {...atividadesFields}
+      const _fields: any = fields.filter((f: any) => f.id !== id);
 
-    new_atividadesFields.id = `atividade${qtd}`
-    const _fields: any = fields;
+      // const idAtividade: any = id.match(/\d+/g)
 
-    _fields.map((f: any) => {
-      f.buttonAdd = false
-    })
+      const elemento = {...item}
+      delete elemento[id]
+      delete elemento.atividades
 
-    new_atividadesFields.buttonAdd = true
-    _fields.push(new_atividadesFields)
-    setFields(_fields);
-    setQtdAtividade(qtd)
+      setItem(elemento);
+      setFields(_fields);
 
+
+      unregister(id, { keepDirtyValues: true });
+
+    }else  {
+      
+      let qtd = qtdAtividade+1
+
+  
+      const _fields: any = fields;
+      const new_atividadesFields = {...atividadesFields}
+      const index = Number(item.atividades.at(-1).id)
+
+      new_atividadesFields.id = `atividade${index+1}`
+
+      _fields.map((f: any) => {
+        f.buttonAdd = false
+      })
+
+      new_atividadesFields.buttonAdd = true
+      _fields.push(new_atividadesFields)
+      setFields(_fields);
+      setQtdAtividade(qtd)
+    }
   }
 
   const seValue = (field: any) => {
@@ -315,12 +334,11 @@ export default function CrudSimples({
             setValue('nome', item_.nome)
 
             elemento.atividades.map((atividade: any, index: number)=> {
-
               _fields.push({
                 ...atividadesFields,
                 id: `atividade${atividade.id}`,
                 name: `atividade${atividade.id}`,
-                buttonAdd: index ===( elemento.atividades.length - 1)
+                buttonAdd: index === ( elemento.atividades.length - 1)
               })
 
               elemento[`atividade${atividade.id}`] =  atividade.nome
@@ -341,9 +359,9 @@ export default function CrudSimples({
           onClickLink={() => {}}
           onClickReturn={(item_: any) => {
             item_.ativo = true;
-
+            setItem(item_);
             setIsEdit(true);
-            onSubmit(item_);
+            // onSubmit(item_);
           }}
         />
 
@@ -385,7 +403,7 @@ export default function CrudSimples({
                   hidden={namelist === 'usuarios' && field.hidden && hidden}
                   value={seValue(field)}
                   customCol={field.customCol}
-                  onClick={() =>  namelist === 'programa' ? handleAddClick() : null}
+                  onClick={(id: number | string | undefined) =>  namelist === 'programa' ? handleAddClick(id) : null}
                   buttonAdd={field?.buttonAdd}
                 />
               ))}
@@ -407,7 +425,7 @@ export default function CrudSimples({
         onReject={() => setOpenConfirm(false)}
         onClose={() => setOpenConfirm(false)}
         title="Desativar"
-        message="Deseja realmente desativar?"
+        message="Deseja realmente excluir?"
         icon="pi pi-exclamation-triangle"
         open={openConfirm}
       />

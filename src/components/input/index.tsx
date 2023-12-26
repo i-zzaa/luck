@@ -22,7 +22,7 @@ export interface InputProps {
   customCol?: string;
   disabled?: boolean;
   onChange?: (value: any) => void;
-  onClick?: () => void;
+  onClick?: (id: string | number | undefined) => void;
   validate?: any;
   errors?: any;
   hidden?: any;
@@ -292,9 +292,7 @@ export function Input({
         );
       case 'input-add':
         return (
-         <div className={clsx('grid  gap-2', {
-          'grid-cols-6': buttonAdd,
-         })}>
+         <div className="grid  gap-2 grid-cols-6">
           <Controller
             name={id}
             control={control}
@@ -307,9 +305,7 @@ export function Input({
                 value={value || field.value}
                 key={field.id}
                 type={type}
-                className={clsx('inputAnimado ', {
-                  'col-span-5': buttonAdd,
-                })}
+                className={"inputAnimado col-span-5"}
                 autoComplete="off"
                 onInput={(e: any) => {
                   field.onChange(e);
@@ -318,13 +314,22 @@ export function Input({
               />
             )}
           />
-          {buttonAdd && 
+          { buttonAdd ?
             <ButtonHeron
-            text="Add"
-            icon="pi pi-plus"
-            type="primary"
+              text="Add"
+              icon="pi pi-plus"
+              type="primary"
+              size="icon"
+              onClick={()=> onClick()}
+            />
+          : 
+          <ButtonHeron
+            text="remove"
+            icon="pi pi-trash"
+            type="transparent"
+            color='red'
             size="icon"
-            onClick={onClick}
+            onClick={()=> onClick(id)}
           />
           }
          </div>
