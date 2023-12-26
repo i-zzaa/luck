@@ -37,11 +37,11 @@ export const Protocolo = () => {
     // setProgramas(result)
   }
 
-  const renderAtividades = (atividades: any[], programaId: number) => atividades.map((atividade: any, atividadeId: number) => {
+  const renderAtividades = (atividades: any[], programaId: number) => atividades.map((atividade: any, atividadeId: any) => {
     return (
       <div key={atividadeId} className="flex align-items-center">
         <Checkbox inputId="ingredient1" name={atividade.value} value={atividade.value} onChange={(e: any)=> handleCheked(e.value.checked, programaId, atividadeId)} checked={atividade.checked} />
-        <label htmlFor={atividadeId} className="ml-2">{atividade.value}</label>
+        <label  className="ml-2">{atividade.value}</label>
       </div>
       )
   } )

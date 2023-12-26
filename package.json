@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host",
-    "start": "node serve.js",
-    "preview": "vite preview",
+    "start": "node serve.js --host",
+    "preview": "vite preview --host",
     "sb": "start-storybook -p 6006",
     "format": "prettier --write \"src/**/*.{ts,js,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --quiet",
@@ -43,6 +43,7 @@
     "react-router-dom": "6.4.2",
     "rrule": "2.7.1",
     "url": "0.11.0",
+    "vite-plugin-pwa": "^0.17.4",
     "web-vitals": "2.1.4",
     "workbox-background-sync": "6.5.4",
     "workbox-broadcast-update": "6.5.4",

@@ -5,7 +5,7 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   return (
     <div className="h-screen overflow-y-auto">
-      <div className=" my-4">
+      <div className="mx-2 my-4">
         {children}
       </div>
     </div>

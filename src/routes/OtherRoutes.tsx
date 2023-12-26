@@ -2,11 +2,9 @@ import { Routes, Route } from 'react-router-dom';
 import { permissionAuth } from '../contexts/permission';
 import { Layout } from '../foms/Layout';
 import { Nav } from '../components/Nav';
-import { Crud } from '../pages/Crud';
 import Home from '../pages/Home';
 import { useContext } from 'react';
 import { LayoutContext } from '../contexts/layout.context';
-import Schedule from '../pages/Schedule';
 import { Protocolo } from '../pages/Protocolo';
 import { Sessao } from '../pages/Sessao';
 import { Prontuario } from '../pages/Prontuario';
@@ -26,9 +24,9 @@ export interface RoutesProps {
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home' },
-  { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
-  { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
-  { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
+  // { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
+  // { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
+  // { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
 ]
 
 const OtherRoutes = () => {

@@ -10,10 +10,7 @@ import { ListBox } from 'primereact/listbox';
 import { colorsData, colorsTextData, setColorChips } from '../../util/util';
 import { clsx } from 'clsx';
 import moment from 'moment';
-import { PickListHeron } from '../pickListHeron';
-import { DataTableHeron } from '../dataTable';
 import { InputNumber } from 'primereact/inputnumber';
-import { DataTableSessaoHeron } from '../dataTableSessao';
 
 export interface InputProps {
   id: string;
@@ -288,60 +285,7 @@ export function Input({
             )}
           />
         );
-      case 'picker':
-        return (
-          <Controller
-            name={id}
-            control={control}
-            rules={validate}
-            render={({ field }: any) => (
-              <PickListHeron
-                list={options}
-                selected={value}
-                onChange={(e: any) => {
-                  field.onChange(e);
-                  onChange && onChange(e);
-                }}
-              />
-            )}
-          />
-        );
-      case 'dataTable':
-        return (
-          <Controller
-            name={id}
-            control={control}
-            rules={validate}
-            render={({ field }: any) => (
-              <DataTableHeron
-                value={value}
-                control={control}
-                onChange={(e: any) => {
-                  field.onChange(e);
-                  onChange && onChange(e);
-                }}
-              />
-            )}
-          />
-        );
-      case 'dataTableSessaoHeron':
-        return (
-          <Controller
-            name={id}
-            control={control}
-            rules={validate}
-            render={({ field }: any) => (
-              <DataTableSessaoHeron
-                value={value}
-                type={id}
-                onChange={(e: any) => {
-                  field.onChange(e);
-                  onChange && onChange(e);
-                }}
-              />
-            )}
-          />
-        );
+
       default:
         return (
           <Controller
