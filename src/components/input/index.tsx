@@ -131,6 +131,7 @@ export function Input({
                 className={customClass}
                 placeholder={field.placeholder}
                 disabled={disabled}
+                rows="8"
               />
             )}
           />

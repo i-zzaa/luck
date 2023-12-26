@@ -162,3 +162,8 @@ export const formatDateHours = (hours: any, date: any) => {
     .add(arrTime[1], 'minutes')
     .format('DD/MM/YY HH:mm');
 };
+
+export enum DEVICE {
+  mobile = 'mobile',
+  web = 'web',
+}
