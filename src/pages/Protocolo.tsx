@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react"
-import { ButtonHeron, Card } from "../components"
+import { ButtonHeron, Card, Input } from "../components"
 import { Checkbox } from "primereact/checkbox"
 import { useNavigate } from "react-router-dom"
+import { sessionResumoFields } from "../constants/session";
+import { useToast } from "../contexts/toast";
+import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
+import { useForm } from "react-hook-form";
+
+const fields = sessionResumoFields;
+const fieldsState: any = {};
+fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export const Protocolo = () => {
   const [programas, setProgramas ] = useState<any[]>([])
   const navigator = useNavigate()
-
+  const { renderToast } = useToast();
+  const {
+    handleSubmit,
+    formState: { errors },
+    control,
+  } = useForm<any>({ 
+   });
 
   useEffect(() => {
     setProgramas([
@@ -31,6 +45,39 @@ export const Protocolo = () => {
     ])
   }, [])
 
+
+
+  const onSubmitResumo = async ({ resumo }: any) => {
+    try {
+
+      if ( resumo){
+        renderToast({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Resumo da sessão enviado!',
+          open: true,
+        })
+
+        navigator(`/${CONSTANTES_ROUTERS.CALENDAR}`);
+
+      }  else {
+        renderToast({
+          type: 'failure',
+          title: 'Erro!',
+          message: 'Necessário preencher o resumo',
+          open: true,
+        })
+      }
+    } catch (error) {
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha ao enviar o resumo',
+        open: true,
+      });
+    }
+  };
+
   const handleCheked = (value: boolean,  programaId: number, atividadeId: number) => {
     // const result = [...programas]
     // result[programaId][atividadeId] = value
@@ -52,20 +99,40 @@ export const Protocolo = () => {
 
   const renderContent = () => {
     return (
-      programas.map((programa: any, key: number)=> {
-        return (
-          <div className="px-4 mt-4" key={key}>
-            <Card>
-            <div className="p-2">
-            <div className="mb-4 font-inter font-semibold">
-            { programa.nome}
+      <div>
+        {
+        programas.map((programa: any, key: number)=> {
+          return (
+            <div className="px-4 mt-4" key={key}>
+              <Card>
+              <div className="p-2">
+              <div className="mb-4 font-inter font-semibold">
+              { programa.nome}
+              </div>
+              {renderAtividades(programa.atividades, key)}
+              </div>
+            </Card>
             </div>
-            {renderAtividades(programa.atividades, key)}
-            </div>
-          </Card>
-          </div>
-        )
-      })
+          )
+        })
+        }
+
+        <div className="px-4 mt-4" >
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmitResumo)}>
+          {fields.map((item: any) => (
+              <Input
+                key={item.id}
+                id={item.id}
+                type={item.type}
+                labelText={item.labelText}
+                control={control}
+                validate={item.validate}
+                errors={errors}
+              />
+            ))}
+            </form>
+        </div>
+      </div>
       
     )
   }

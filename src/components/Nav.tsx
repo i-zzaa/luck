@@ -27,7 +27,7 @@ export const Nav = () => {
 
   const renderOpen = () => {
     return (
-      <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700'}>
+      <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700 ease-in-out'}>
        <div className="bg-logo-md-write bg-no-repeat bg-cover h-[13rem] "></div> 
        <div className='border-y border-primary-text duration-1000 p-4 mt-2'>
        <h3 className="text-primary-text text-center font-light text-sm "> {  user.nome  }</h3>  
@@ -56,7 +56,7 @@ export const Nav = () => {
 
   const renderClose = () => {
     return (
-      <aside onClick={()=>  setOpen(true)} className={'fixed shadow-3xl w-12 h-12 z-20 mt-[1vh] ml-1 rounded-3xl bg-primary duration-700'}>
+      <aside onClick={()=>  setOpen(true)} className={'fixed shadow-3xl w-12 h-12 z-20 mt-[1vh] right-2 rounded-3xl bg-primary duration-700 ease-in-out'}>
         <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700"></div>
       </aside>
     )

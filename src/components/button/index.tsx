@@ -5,6 +5,7 @@ export interface ButtonProps {
   icon?: string;
   text: string;
   loading?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
 }
 import { clsx } from 'clsx';
@@ -17,10 +18,12 @@ export function ButtonHeron({
   color = 'white',
   text,
   loading,
+  disabled=false,
   onClick,
 }: ButtonProps) {
   return (
     <Button
+    disabled={disabled}
       icon={icon}
       loading={loading}
       label={size === 'icon' ? '' : text}
