@@ -16,7 +16,7 @@ export const Prontuario = () => {
 
   const [chartOptionsDoughnut, setChartOptionsDoughnut] = useState({});
   const [chartOptions, setChartOptions] = useState({});
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]) as any;
 
   const [paciente, setPaciente] = useState({
     especialidades: [
@@ -145,7 +145,7 @@ export const Prontuario = () => {
     <div className="font-inter font-medium text-gray-400 text-lg">Idade: 8 anos</div>
 
     <Timeline value={paciente.especialidades} align="left" className="mt-8 sm:hidden flex" marker={customizedMarker} content={customizedContent} />
-    <Timeline value={paciente.especialidades} layout="horizontal" align="top" className="hidden sm:flex" marker={customizedMarker} content={customizedContent} />
+    <Timeline value={paciente.especialidades} layout="horizontal"  className="hidden sm:flex" marker={customizedMarker} content={customizedContent} />
 
 
     {/* <Card>

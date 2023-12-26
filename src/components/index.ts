@@ -7,5 +7,4 @@ export { SearchAdd } from './searchAdd';
 export { Modal } from './modal';
 export { Confirm } from './confirm';
 
-export { List } from '../templates/list';
 export { Filter } from '../templates/filter';

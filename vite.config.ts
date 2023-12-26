@@ -1,13 +1,55 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
+import { VitePWA } from 'vite-plugin-pwa';
+
+const manifestForPlugin = {
+  includeAssets: ['favicon.ico'],
+  registerType: 'autoUpdate',
+  manifest: {
+    name: 'Prontuário | Multialcance',
+    short_name: 'Prontuário',
+    description: 'App de prontuário multialcance',
+    icons: [
+      {
+        src: '/logo-sm.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'favicon',
+      },
+      {
+        src: '/logo-sm.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'favicon',
+      },
+      {
+        src: '/logo-sm.png',
+        sizes: '180x180',
+        type: 'image/png',
+        purpose: 'apple touch icon',
+      },
+      {
+        src: '/logo-sm.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable',
+      },
+    ],
+    theme_color: '#171717',
+    background_color: '#f0e7db',
+    display: 'standalone',
+    scope: '/',
+    start_url: '/',
+    orientation: 'portrait',
+  },
+};
 
 export default ({ mode }) => {
-  // Load app-level env vars to node-level env vars.
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
   return defineConfig({
-    plugins: [react(), reactRefresh()],
+    plugins: [react(), reactRefresh(), VitePWA(manifestForPlugin)],
     build: {
       rollupOptions: {
         output: {

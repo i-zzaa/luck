@@ -1,6 +1,5 @@
 import moment from 'moment';
 moment.locale('pt-br');
-import { PacientsProps } from '../foms/PatientForm';
 
 export const colorsData: any = {
   TO: '#ef6c00',
@@ -129,32 +128,6 @@ export const getDateFormat = (date: any) => {
   const dow = Number(dateFormat.day() - 1);
 
   return `${weekDay[dow]}, ${dateFormat.format('ll')}`;
-};
-
-export const formtDatePatient = (value: PacientsProps) => {
-  return {
-    id: value.id,
-    nome: value.nome,
-    dataNascimento: value.dataNascimento,
-    telefone: value.telefone,
-    responsavel: value.responsavel,
-    carteirinha: value.carteirinha,
-    periodoId: value.vaga.periodo,
-    convenioId: value.convenio,
-    statusId: value.status,
-    dataContato: value.vaga.dataContato,
-    dataVoltouAba: value?.vaga?.dataVoltouAba,
-    sessao: value?.sessao,
-    vagaId: value.vaga.id,
-    especialidades: value.vaga.especialidades.map((item: any) => {
-      return {
-        nome: item.especialidade.nome,
-        id: item.especialidade.id,
-      };
-    }),
-    tipoSessaoId: value.tipoSessao,
-    observacao: value.vaga.observacao,
-  };
 };
 
 export const getPrimeiroDoMes = (ano: number, mes: number) => {
