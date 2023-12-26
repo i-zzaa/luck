@@ -66,5 +66,5 @@ export const Nav = () => {
     renderNav()
   }, [permissions]);
 
-  return open ? renderOpen() : <nav className='fixed h-12 w-full bg-background mb-8'>{renderClose()}</nav>
+  return open ? renderOpen() : <nav className='fixed h-12 w-full bg-primary mb-8'>{renderClose()}</nav>
 };

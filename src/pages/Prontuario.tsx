@@ -8,9 +8,13 @@ import { useState, useEffect } from "react";
 import { Card } from "../components";
 import { Tag } from "../components/tag";
 import { clsx } from 'clsx';
+import { useLocation } from "react-router-dom";
 
 
 export const Prontuario = () => {
+  const location = useLocation();
+  const { event } = location.state;
+  
   const [chartData, setChartData] = useState({});
   const [chartDataDoughnut, setChartDataDoughnut] = useState({});
 

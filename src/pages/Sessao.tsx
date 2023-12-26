@@ -37,10 +37,6 @@ export const Sessao = () => {
   } = useForm<any>({ 
    });
   
-  const [paciente, setPaciente] = useState({
-    nome: 'João Pedro',
-    idade: 4
-  })
 
   const [loop, setLoop] = useState(5)
 
@@ -57,7 +53,6 @@ export const Sessao = () => {
         })
 
         navigator(`/${CONSTANTES_ROUTERS.CALENDAR}`);
-
         
       }  else {
         renderToast({
@@ -209,7 +204,13 @@ export const Sessao = () => {
               type="primary"
               color="white"
               size="full"
-              onClick={() => navigator('/protocolo')}
+              onClick={() => {
+                navigator(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+                  state: {
+                    event
+                  }
+                });
+              }}
             />
           </div>
         )
