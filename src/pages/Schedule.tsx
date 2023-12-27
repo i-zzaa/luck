@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { diffWeek, formatdate, getPrimeiroDoMes, getUltimoDoMes } from "../util/util";
 import { useAuth } from "../contexts/auth";
 import { getList } from "../server";
-import { Card } from "../components";
+import { ButtonHeron, Card } from "../components";
 import { clsx } from 'clsx';
 import { useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
@@ -24,7 +24,7 @@ export const Schedule = () => {
   });
 
   const handleClick  = (event: any) => {
-    navigator(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+    navigator(`/${CONSTANTES_ROUTERS.SESSION}`, {
       state: {
         event
       }
@@ -73,8 +73,9 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out',  item.borderColor)} onClick={()=>handleClick(item)}>
-        <div className="flex gap-2 w-full item-center"> 
+    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out',  item.borderColor)}>
+      <div className="flex justify-between w-full item-center"> 
+        <div className="flex gap-2 w-full item-center" onClick={()=>handleClick(item)}> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.data.start}</span> -
             <span>{item.data.end}</span>
@@ -94,6 +95,17 @@ export const Schedule = () => {
             </p>
           </div>
         </div>
+        <ButtonHeron
+          text="programa"
+          icon="pi pi-palette"
+          type="transparent"
+          color='yellow'
+          size="icon"
+          onClick={()=> navigator(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {  state: {
+            event: item
+          }})}
+        />
+      </div>
     </Card>
   }
 

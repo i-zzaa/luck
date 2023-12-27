@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ButtonHeron, Card, Input } from "../components"
 import { Checkbox } from "primereact/checkbox"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -17,25 +17,26 @@ fields.forEach((field: any) => (fieldsState[field.id] = ''));
 export const Sessao = () => {
   const navigator = useNavigate()
   const [dropDownProgram, setDropDownProgram] = useState([])
+  const [programas, setProgramas ] = useState([]) as any
 
   const { renderToast } = useToast();
   const location = useLocation();
-  const { event, session } = location.state;
+  const { event } = location.state;
 
-  const [programas, setProgramas ] = useState([]) as any
   
   const {
     handleSubmit,
     formState: { errors },
     control,
+    setValue
   } = useForm<any>({ 
    });
 
 
-   const renderProgram = async () => {
-    const data = await getList(`sessao/protocolo/${event.paciente.id}`)
-    setDropDownProgram(data)
-  }
+  const renderProgram = useMemo(async () => {
+    const data = await getList(`sessao/atividade/${event.paciente.id}`)
+    setDropDownProgram(data.atividadeSessao)
+  }, [])
 
 
   const onSubmitResumo = async ({ resumo }: any) => {
@@ -78,8 +79,7 @@ export const Sessao = () => {
     }
   };
 
-
-  const renderHeader = () => {
+  const renderHeader =  useMemo(() => {
     return  (
       <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
       <span className="font-bold"> Sessão </span>
@@ -87,13 +87,13 @@ export const Sessao = () => {
         <span className="text-gray-400 font-light text-sm font-inter"> { formatdate(event.dataInicio) }  </span>
       </div>
     )
-  }
+  }, [])
 
   const renderContent = () => {
     return (
       <>
       <Controller
-        name="programas"
+        name="atividades"
         control={control}
         render={() => (
          <Tree 
@@ -104,6 +104,7 @@ export const Sessao = () => {
           className="w-full md:w-30rem" 
           onSelectionChange={(e: any) => {
             setProgramas(e.value)
+            setValue('atividade', e.value)
             return e.value
           }}
         />
@@ -140,12 +141,12 @@ export const Sessao = () => {
   }
 
   useEffect(() => {
-    renderProgram()
+    renderProgram
   }, [])
 
   return (
     <>
-      {renderHeader()}
+      {renderHeader}
       {renderContent()}
       {renderFooter()}
     </>
