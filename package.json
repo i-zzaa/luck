@@ -43,6 +43,7 @@
     "react-router-dom": "6.4.2",
     "rrule": "2.7.1",
     "url": "0.11.0",
+    "uuid": "^9.0.1",
     "vite-plugin-pwa": "^0.17.4",
     "web-vitals": "2.1.4",
     "workbox-background-sync": "6.5.4",

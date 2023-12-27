@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '../../contexts/toast';
 import { useForm } from 'react-hook-form';
 import {
@@ -11,6 +11,7 @@ import {
   Input,
 } from '../../components/index';
 import { create, deleteItem, getList, search, update } from '../../server';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Fields, atividadesFields } from '../../constants/formFields';
 import Pagination from '../../components/Pagination';
@@ -36,28 +37,12 @@ export default function CrudSimples({
     totalPage: 0,
   });
   const [item, setItem] = useState<any>({});
-  const [value, setValues] = useState<any>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [hidden, setHidden] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [openConfirm, setOpenConfirm] = useState<boolean>(false);
 
-  const isTerapeuta = [
-    'especialidadeId',
-    'funcoesId',
-    'comissao',
-    // 'fazDevolutiva',
-    'cargaHoraria',
-  ];
-
-  const [comissao, setComissao] = useState([]);
-  const [cargaHoraria, setCargaHoraria] = useState({});
-  const [qtdAtividade, setQtdAtividade] = useState(0);
-
   const [fields, setFields] =useState<any>([]);
-  const [dropDownList, setDropDownList] = useState<any>([]);
-
   const { renderToast } = useToast();
 
 
@@ -194,90 +179,33 @@ export default function CrudSimples({
     });
   };
 
-
-  const handleChange = (valueForm: any, fieldId: string) => {
-    switch (namelist) {
-      case 'programa':
-        // handleChangeProgram(valueForm, fieldId)
-      break;
-
-      default:
-        break;
-    }
-  };
-
-  const renderAgendar = useCallback(async () => {
-    //const list = await renderDropdownCrud();
-    //setDropDownList(list);
-  }, []);
-
-  const setOptions = (field: any) => {
-    switch (field.type) {
-      case 'select':
-      case 'multiselect':
-      case 'picker':
-        return dropDownList[field.name];
-      default:
-        break;
-    }
-  };
-
   const handleAddClick =  (id :  string | undefined ) => {
     if (id) {
-      // let qtd = qtdAtividade-1
-
       const _fields: any = fields.filter((f: any) => f.id !== id);
-
-      // const idAtividade: any = id.match(/\d+/g)
-
       const elemento = {...item}
       delete elemento[id]
       delete elemento.atividades
 
       setItem(elemento);
       setFields(_fields);
-
-
       unregister(id, { keepDirtyValues: true });
-
     }else  {
-      
-      let qtd = qtdAtividade+1
-
-  
-      const _fields: any = fields;
+      const _fields: any = [...fields];
       const new_atividadesFields = {...atividadesFields}
-      const index = Number(item.atividades.at(-1).id)
+      const uuid = uuidv4();
 
-      new_atividadesFields.id = `atividade${index+1}`
+      new_atividadesFields.id = `atividade${uuid}`
 
       _fields.map((f: any) => {
         f.buttonAdd = false
       })
 
+      
       new_atividadesFields.buttonAdd = true
       _fields.push(new_atividadesFields)
       setFields(_fields);
-      setQtdAtividade(qtd)
     }
   }
-
-  const seValue = (field: any) => {
-    switch (field.type) {
-      case 'picker':
-        return value;
-      case 'dataTableSessaoHeron':
-        return comissao;
-      case 'dataTable':
-        return cargaHoraria;
-      default:
-        break;
-    }
-  };
-
-  useLayoutEffect(() => {
-    renderAgendar();
-  }, [renderAgendar]);
 
   useEffect(() => {
     let namelistField = `${namelist}Fields`
@@ -286,7 +214,6 @@ export default function CrudSimples({
 
     const fieldsState: any = {};
     _fields.forEach((field: any) => (fieldsState[field.id] = ''));
-    if (namelist === 'programa')     _fields.push(atividadesFields)
 
     setFields(_fields);
   }, [Fields]);
@@ -295,13 +222,21 @@ export default function CrudSimples({
     renderList();
   }, [renderList]);
 
-
-
   return (
     <>
       <SearchAdd
         onClick={() => {
-          reset();
+          // reset();
+
+          if (namelist === 'programa') {
+            const _fields = [...fields]
+            const uuid = uuidv4();
+            atividadesFields.id = `atividade${uuid}`
+            _fields[1] = atividadesFields
+
+            setFields(_fields);
+          }
+
           setIsEdit(false);
           setOpen(true);
         }}
@@ -345,7 +280,6 @@ export default function CrudSimples({
             })
         
             setFields(_fields);
-            setQtdAtividade(elemento.atividades.length)
 
             setIsEdit(true);
             setItem(elemento);
@@ -360,7 +294,6 @@ export default function CrudSimples({
             item_.ativo = true;
             setItem(item_);
             setIsEdit(true);
-            // onSubmit(item_);
           }}
         />
 
@@ -378,11 +311,7 @@ export default function CrudSimples({
         }}
       >
         {
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            action="#"
-            className="grid gap-6"
-          >
+          <div className="grid gap-6">
             <div className="grid sm:grid-cols-6 items-center sm:gap-2">
               {fields.map((field: any) => (
                 <Input
@@ -390,19 +319,16 @@ export default function CrudSimples({
                   labelText={field.labelText}
                   id={field.id}
                   type={field.type}
-                  options={setOptions(field)}
                   validate={
                     !!field.validate
                       ? field.validate
-                      : !hidden && { required: 'Campo obrigatório!' }
+                      : { required: 'Campo obrigatório!' }
                   }
                   errors={errors}
                   control={control}
-                  onChange={(values: any) => handleChange(values, field.id)}
-                  hidden={namelist === 'usuarios' && field.hidden && hidden}
-                  value={seValue(field)}
+                  hidden={field.hidden}
                   customCol={field.customCol}
-                  onClick={(id: number | string | undefined) =>  namelist === 'programa' ? handleAddClick(id) : null}
+                  onClick={(id: string | undefined ) =>  namelist === 'programa' ? handleAddClick(id) : null}
                   buttonAdd={field?.buttonAdd}
                 />
               ))}
@@ -415,7 +341,7 @@ export default function CrudSimples({
               onClick={handleSubmit(onSubmit)}
               loading={loading}
             />
-          </form>
+          </div>
         }
       </Modal>
 

@@ -4,7 +4,6 @@ import { getList } from "../server";
 import { useForm } from "react-hook-form";
 import { Tree } from "primereact/tree";
 import { Card } from "primereact/card";
-import { Button } from "primereact/button";
 import { Timeline } from "primereact/timeline";
 import { formatdate } from "../util/util";
 import clsx from "clsx";
@@ -15,7 +14,6 @@ export const Patient = () => {
 
   const [dropDownProgram, setDropDownProgram] = useState([])
   const [dropDownInfo, setDropDownInfo] = useState([])
-
 
   const [programas, setProgramas ] = useState<any[]>([])
   const [selectedKeys, setSelectedKeys] = useState([]);
@@ -33,14 +31,15 @@ export const Patient = () => {
     );
   };
 
-    const customizedContent = (item: any) => {
-        return (
-            <Card title={`${item.evento.especialidade.nome} - ${item.terapeuta.nome}`} subTitle={formatdate(item.evento.dataInicio)}>
-                <p>{item.resumo}</p>
-                {/* <Button label="Read more" className="p-button-text"></Button> */}
-            </Card>
-        );
-    };
+  const customizedContent = (item: any) => {
+    return (
+      <Card title={`${item.evento.especialidade.nome} - ${item.terapeuta.usuario.nome}`} subTitle={formatdate(item.evento.dataInicio)}>
+          <p>{item.resumo}</p>
+          {/* <Button label="Read more" className="p-button-text"></Button> */}
+      </Card>
+    );
+  };
+
   const renderProgram = async () => {
     const list = await getList('programa/dropdown')
     setDropDownProgram(list)
@@ -58,9 +57,8 @@ export const Patient = () => {
   
   return (
     <div>
-      <div className="text-primary font-base grid justify-center p-2 leading-4"> 
+      <div className="text-primary font-base grid justify-center p-2 leading-4 my-4"> 
         { patient?.nome } 
-
         <span className="text-gray-400 font-light text-sm"> [{ patient?.responsavel }]  </span>
       
       </div>

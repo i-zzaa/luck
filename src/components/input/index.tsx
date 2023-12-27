@@ -22,7 +22,7 @@ export interface InputProps {
   customCol?: string;
   disabled?: boolean;
   onChange?: (value: any) => void;
-  onClick?: (id: string | number | undefined) => void;
+  onClick?: (id: string | undefined) => void;
   validate?: any;
   errors?: any;
   hidden?: any;
