@@ -5,8 +5,10 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { sessionResumoFields } from "../constants/session";
 import { useToast } from "../contexts/toast";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { create, getList } from "../server";
+import { formatdate } from "../util/util";
+import { Tree } from "primereact/tree";
 
 const fields = sessionResumoFields;
 const fieldsState: any = {};
@@ -14,6 +16,8 @@ fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export const Sessao = () => {
   const navigator = useNavigate()
+  const [dropDownProgram, setDropDownProgram] = useState([])
+
   const { renderToast } = useToast();
   const location = useLocation();
   const { event, session } = location.state;
@@ -27,10 +31,11 @@ export const Sessao = () => {
   } = useForm<any>({ 
    });
 
-   const renderList = async() => {
-    const data = await getList(`sessao/programa/${event.paciente.id}`)
-    setProgramas(data)
-   }
+
+   const renderProgram = async () => {
+    const data = await getList(`sessao/protocolo/${event.paciente.id}`)
+    setDropDownProgram(data)
+  }
 
 
   const onSubmitResumo = async ({ resumo }: any) => {
@@ -73,64 +78,52 @@ export const Sessao = () => {
     }
   };
 
-  const handleCheked = (value: boolean,  programaId: number, atividadeId: number) => {
-    // const result = [...programas]
-    // result[programaId][atividadeId] = value
-    // setProgramas(result)
-  }
-
-  const renderAtividades = (atividades: any[], programaId: number) => atividades.map((atividade: any, atividadeId: any) => {
-    return (
-      <div key={atividadeId} className="flex align-items-center">
-        <Checkbox inputId="ingredient1" name={atividade.value} value={atividade.value} onChange={(e: any)=> handleCheked(e.value.checked, programaId, atividadeId)} checked={atividade.checked} />
-        <label  className="ml-2">{atividade.value}</label>
-      </div>
-      )
-  } )
 
   const renderHeader = () => {
-    return <div className=" mt-20 mx-4 font-inter font-medium">Selecione as atividades para sessão</div>
-  }
-
-  const renderContent = () => {
-    return (
-      <div>
-        {
-          programas.map((programa: any, key: number)=> {
-            return (
-              <div className="px-4 mt-4" key={key}>
-              <Card>
-                <div className="p-2">
-                <div className="mb-4 font-inter font-semibold">
-                { programa.nome}
-                </div>
-                {renderAtividades(programa.atividades, key)}
-                </div>
-              </Card>
-              </div>
-            )
-          })
-        }
-
-        <div className="px-4 mt-4" >
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmitResumo)}>
-          {fields.map((item: any) => (
-              <Input
-                key={item.id}
-                id={item.id}
-                type={item.type}
-                labelText={item.labelText}
-                control={control}
-                validate={item.validate}
-                errors={errors}
-              />
-            ))}
-            </form>
-        </div>
+    return  (
+      <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
+      <span className="font-bold"> Sessão </span>
+        { event.paciente.nome } 
+        <span className="text-gray-400 font-light text-sm font-inter"> { formatdate(event.dataInicio) }  </span>
       </div>
     )
   }
 
+  const renderContent = () => {
+    return (
+      <>
+      <Controller
+        name="programas"
+        control={control}
+        render={() => (
+         <Tree 
+          filter filterMode="strict" filterPlaceholder="Programas" 
+          value={dropDownProgram} 
+          selectionKeys={programas} 
+          selectionMode="checkbox" 
+          className="w-full md:w-30rem" 
+          onSelectionChange={(e: any) => {
+            setProgramas(e.value)
+            return e.value
+          }}
+        />
+      )} />
+
+      {fields.map((item: any) => (
+        <Input
+          key={item.id}
+          id={item.id}
+          type={item.type}
+          labelText={item.labelText}
+          control={control}
+          validate={item.validate}
+          errors={errors}
+        />
+      ))}
+    </>
+    )
+  }
+  
   const renderFooter = () => {
     return (
       <div className="fixed bottom-0 w-[104vw] ml-[-0.5rem]">
@@ -145,6 +138,10 @@ export const Sessao = () => {
       </div>
     )
   }
+
+  useEffect(() => {
+    renderProgram()
+  }, [])
 
   return (
     <>

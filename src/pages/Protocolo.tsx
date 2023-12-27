@@ -34,14 +34,14 @@ export const Protocolo = () => {
   }
 
   const onSubmit = async (formValue: any) => {
-    const data = await create('sessao/protocolo', {
-      formValue
-    })
+    // const data = await create('sessao/protocolo', {
+    //   formValue
+    // })
 
     navigator(`/${CONSTANTES_ROUTERS.SESSION}`, {
       state: {
         event,
-        session: data
+        // session: data
       }
     });
   }
@@ -70,10 +70,9 @@ export const Protocolo = () => {
   const renderHeader = () => {
     return  (
       <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
-      <span className="font-bold"> Protocolo</span>
+      <span className="font-bold"> Protocolo </span>
         { event.paciente.nome } 
         <span className="text-gray-400 font-light text-sm font-inter"> { formatdate(event.dataInicio) }  </span>
-      
       </div>
     )
   }
