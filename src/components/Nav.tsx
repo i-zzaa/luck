@@ -41,7 +41,7 @@ export const Nav = () => {
             const isActive = location.pathname.startsWith(element.path)
             return (
               <li  key={element.path} className={`${isActive ? 'bg-primary-hover text-primary-text-hover' :  'text-primary-text'} hover:px-0 hover:bg-primary-hover  hover:text-primary-text-hover duration-700 grid  justify-center`} >
-                <NavLink  to={element.path} className='grid grid-cols-2 gap-8 items-center text-sm px-4 py-4 '>
+                <NavLink  to={element.path} className='grid grid-cols-2 gap-8 items-center text-sm px-4 py-4  cursor-pointer'>
                   <i className={clsx('text-end', element.icon)} />
                   <span  className='duration-700'>{firtUpperCase(element.path) }</span>
                 </NavLink>

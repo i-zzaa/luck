@@ -329,7 +329,7 @@ export function Input({
             type="transparent"
             color='red'
             size="icon"
-            onClick={()=>onClick &&  onClick('remove')}
+            onClick={()=>onClick && onClick('remove')}
           />
           }
          </div>

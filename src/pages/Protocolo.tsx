@@ -8,6 +8,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes"
 import { create, getList } from "../server"
 import { Tree } from "primereact"
 import { formatdate } from "../util/util";
+import { useAuth } from "../contexts/auth";
 
 const fields = sessionResumoFields;
 const fieldsState: any = {};
@@ -19,7 +20,9 @@ fields.forEach((field: any) => (fieldsState[field.id] = ''));
 */
 
 export const Protocolo = () => {
-  const [dropDownProgram, setDropDownProgram] = useState([])
+  const [dropDownProtocolo, setDropDownProtocolo] = useState([]) as any
+  const [dropDownProgram, setDropDownProgram] = useState([]) as any
+
   const [protocolo, setProtocolo] = useState([]) as any
   const [programas, setProgramas] = useState([]) as any
 
@@ -28,45 +31,93 @@ export const Protocolo = () => {
   const { event } = location.state;
   const { renderToast } = useToast();
 
+  const { user } = useAuth()
+
   const {
     handleSubmit,
     formState: { errors },
     control,
+    setValue
   } = useForm<any>({ });
 
-  const renderProgram =  useMemo(async () => {
+  const renderProtocolo =  useMemo(async () => {
     const list = await getList('programa/dropdown')
-    setDropDownProgram(list)
+    setDropDownProtocolo(list)
+  }, [])
+
+  const renderProgram =  useMemo(async () => {
+    const list = await getList(`sessao/protocolo/${event.paciente.id}`)
+    setDropDownProgram(list.protocolo)
+    setProtocolo(list.protocoloSet)
+  }, [])
+
+  const renderAtividade =  useMemo(async () => {
+    const list = await getList(`sessao/atividade/${event.paciente.id}`)
+    setProgramas(list.atividadeSessaoSet)
   }, [])
 
   const onSubmit = async (formValue: any) => {
-    // const data = await create('sessao/protocolo', {
-    //   formValue
-    // })
 
-    navigator(`/${CONSTANTES_ROUTERS.SESSION}`, {
-      state: {
-        event,
-        // session: data
+    if (formValue.protocolo) {
+      const keys = Object.keys(formValue.protocolo)
+      const programas = await Promise.all(dropDownProtocolo.filter(async (item: any) =>  {
+        item.children =  await Promise.all(item.children.filter((children: any) => keys.includes(children.key)))
+        return  keys.includes(item.key)
+      }))
+
+     const payload = {
+        protocolo: JSON.stringify(programas),
+        protocoloSet: JSON.stringify(formValue.protocolo),
+        pacienteId: event.paciente.id,
+        terapeutaId: user.id,
       }
+
+      await create('sessao/protocolo', payload)
+    }
+
+    if (formValue.atividadeSessao) {
+      const keys = Object.keys(formValue.atividadeSessao)
+      const atividadeSessao = await Promise.all(dropDownProtocolo.filter(async (item: any) =>  {
+        item.children =  await Promise.all(item.children.filter((children: any) => keys.includes(children.key)))
+        return  keys.includes(item.key)
+      }))
+
+     const payload = {
+        atividadeSessao: JSON.stringify(atividadeSessao),
+        atividadeSessaoSet: JSON.stringify(formValue.atividadeSessao),
+        pacienteId: event.paciente.id,
+        terapeutaId: user.id,
+      }
+
+      await create('sessao/atividadeSessao', payload)
+
+    }
+
+    renderProtocolo
+    renderToast({
+      type: 'success',
+      title: 'Sucesso',
+      message:'Protocolo salvo!',
+      open: true,
     });
   }
 
   const renderContentLider = () => {
     return <div className="grid  gap-2 p-2">
-     <span className="text-gray-800"> Selecione os programas</span>
+     <span className="text-gray-800"> Selecione o protocolo</span>
       <Controller
-        name="programas"
+        name="protocolo"
         control={control}
         render={() => (
          <Tree 
           filter filterMode="strict" filterPlaceholder="Programas" 
-          value={dropDownProgram} 
-          selectionKeys={programas} 
+          value={dropDownProtocolo} 
+          selectionKeys={protocolo} 
           selectionMode="checkbox" 
           className="w-full md:w-30rem" 
           onSelectionChange={(e: any) => {
-            setProgramas(e.value)
+            setProtocolo(e.value)
+            setValue('protocolo', e.value)
             return e.value
           }}
         />
@@ -76,19 +127,20 @@ export const Protocolo = () => {
 
   const renderContentAplicadora = () => {
     return <div className="grid  gap-2 p-2">
-     <span className="text-gray-800"> Selecione as atividade para a sessão</span>
+     <span className="text-gray-800"> Selecione as atividades para a sessão</span>
       <Controller
-        name="programas"
+        name="atividadeSessao"
         control={control}
         render={() => (
          <Tree 
-          filter filterMode="strict" filterPlaceholder="Programas" 
+          filter filterMode="strict" filterPlaceholder="atividadeSessao" 
           value={dropDownProgram} 
           selectionKeys={programas} 
           selectionMode="checkbox" 
           className="w-full md:w-30rem" 
           onSelectionChange={(e: any) => {
             setProgramas(e.value)
+            setValue('atividadeSessao', e.value)
             return e.value
           }}
         />
@@ -117,8 +169,8 @@ export const Protocolo = () => {
     return (
       <div className="fixed bottom-0 w-[104vw] ml-[-0.5rem]">
         <ButtonHeron
-          text="Salvar Protocolo"
-          icon="pi pi-play"
+          text="Salvar"
+          icon="pi pi-check"
           type="primary"
           color="white"
           size="full"
@@ -129,7 +181,9 @@ export const Protocolo = () => {
   }
 
   useEffect(() => {
+    renderProtocolo
     renderProgram
+    renderAtividade
   }, [])
 
   return (
