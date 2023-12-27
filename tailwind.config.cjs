@@ -28,6 +28,9 @@ module.exports = {
       fono: '#f6bf26',
       psicopedag: '#000000',
       cancelado: '#f87171',
+      psicopedag: '#000000',
+      motricidade: '#4285F4',
+      musicoterapia: '#795548',
 
       primary: '#662977',
       background: '#f9f9f9',

@@ -17,6 +17,8 @@ export function Tag({ onClick, type, disabled }: TagProps) {
         'bg-fono': type.toUpperCase() === 'FONO',
         'bg-psico': type.toUpperCase() === 'PSICO',
         'bg-black': type.toUpperCase() === 'PSICOPEDAG',
+        'bg-motricidade': type.toUpperCase() === 'MOTRICIDADE',
+        'bg-musicoterapia': type.toUpperCase() === 'MUSICOTERAPIA',
       })}
       disabled={!disabled}
     >
