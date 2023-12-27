@@ -61,7 +61,7 @@ export const Schedule = () => {
 
 
   const cardFree = (item: any) => {
-    return <Card customCss="border-l-4 border-l-green-400 rounded-lg">
+    return <Card customCss="border-l-4 border-l-green-400 rounded-lg cursor-not-allowed">
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.start}</span> -
@@ -73,7 +73,7 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg',  item.borderColor)} onClick={()=>handleClick(item)}>
+    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out',  item.borderColor)} onClick={()=>handleClick(item)}>
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.data.start}</span> -
