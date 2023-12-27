@@ -156,7 +156,7 @@ export function List({
       let isDevolutiva = false;
 
       if (screen === 'CADASTRO_PACIENTES') {
-        buttonFooter.text = 'Cadastrar Programa';
+        buttonFooter.text = 'Prontuário';
         buttonFooter.icon = 'pi pi-palette';
         buttonFooter.type = 'primary';
         buttonFooter.size = 'md';

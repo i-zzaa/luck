@@ -32,9 +32,6 @@ export const Sessao = () => {
     setProgramas(data)
    }
 
-  useEffect(() => {
-    
-  }, [])
 
   const onSubmitResumo = async ({ resumo }: any) => {
     if ( resumo){
@@ -99,20 +96,20 @@ export const Sessao = () => {
     return (
       <div>
         {
-        programas.map((programa: any, key: number)=> {
-          return (
-            <div className="px-4 mt-4" key={key}>
+          programas.map((programa: any, key: number)=> {
+            return (
+              <div className="px-4 mt-4" key={key}>
               <Card>
-              <div className="p-2">
-              <div className="mb-4 font-inter font-semibold">
-              { programa.nome}
+                <div className="p-2">
+                <div className="mb-4 font-inter font-semibold">
+                { programa.nome}
+                </div>
+                {renderAtividades(programa.atividades, key)}
+                </div>
+              </Card>
               </div>
-              {renderAtividades(programa.atividades, key)}
-              </div>
-            </Card>
-            </div>
-          )
-        })
+            )
+          })
         }
 
         <div className="px-4 mt-4" >
@@ -131,7 +128,6 @@ export const Sessao = () => {
             </form>
         </div>
       </div>
-      
     )
   }
 
