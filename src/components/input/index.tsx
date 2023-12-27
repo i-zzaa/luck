@@ -22,7 +22,7 @@ export interface InputProps {
   customCol?: string;
   disabled?: boolean;
   onChange?: (value: any) => void;
-  onClick?: (id: string | undefined) => void;
+  onClick?: () => void;
   validate?: any;
   errors?: any;
   hidden?: any;
@@ -320,7 +320,7 @@ export function Input({
               icon="pi pi-plus"
               type="primary"
               size="icon"
-              onClick={()=> onClick()}
+              onClick={onClick}
             />
           : 
           <ButtonHeron
@@ -329,7 +329,7 @@ export function Input({
             type="transparent"
             color='red'
             size="icon"
-            onClick={()=> onClick(id)}
+            onClick={onClick}
           />
           }
          </div>

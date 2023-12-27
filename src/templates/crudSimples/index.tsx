@@ -324,7 +324,7 @@ export default function CrudSimples({
                   control={control}
                   hidden={field.hidden}
                   customCol={field.customCol}
-                  onClick={(id: string | undefined ) =>  namelist === 'programa' ? handleAddClick(id) : null}
+                  onClick={() =>  namelist === 'programa' ? handleAddClick(field.id) : null}
                   buttonAdd={field?.buttonAdd}
                 />
               ))}
