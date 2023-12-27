@@ -13,8 +13,14 @@ const fields = sessionResumoFields;
 const fieldsState: any = {};
 fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
+/*
+  O protocolo será preenchido pela líder
+  O programa será escolhhi pela aplicadora 
+*/
+
 export const Protocolo = () => {
   const [dropDownProgram, setDropDownProgram] = useState([])
+  const [protocolo, setProtocolo] = useState([]) as any
   const [programas, setProgramas] = useState([]) as any
 
   const navigator = useNavigate()
@@ -46,8 +52,9 @@ export const Protocolo = () => {
     });
   }
 
-  const renderContent = () => {
-    return (
+  const renderContentLider = () => {
+    return <div className="grid  gap-2 p-2">
+     <span className="text-gray-800"> Selecione os programas</span>
       <Controller
         name="programas"
         control={control}
@@ -64,7 +71,36 @@ export const Protocolo = () => {
           }}
         />
       )} />
-    )
+    </div>
+  }
+
+  const renderContentAplicadora = () => {
+    return <div className="grid  gap-2 p-2">
+     <span className="text-gray-800"> Selecione as atividade para a sessão</span>
+      <Controller
+        name="programas"
+        control={control}
+        render={() => (
+         <Tree 
+          filter filterMode="strict" filterPlaceholder="Programas" 
+          value={dropDownProgram} 
+          selectionKeys={programas} 
+          selectionMode="checkbox" 
+          className="w-full md:w-30rem" 
+          onSelectionChange={(e: any) => {
+            setProgramas(e.value)
+            return e.value
+          }}
+        />
+      )} />
+    </div>
+  }
+
+  const renderContent = () => {
+    return <div className="grid gap-4">
+      { renderContentLider()}
+      { renderContentAplicadora()}
+    </div>
   }
 
   const renderHeader = () => {

@@ -57,8 +57,8 @@ export const Nav = () => {
 
   const renderClose = () => {
     return (
-      <aside onClick={()=>  setOpen(true)} className={'fixed shadow-3xl w-12 h-12 z-20 mt-[1vh] right-2 rounded-3xl bg-primary duration-700 ease-in-out'}>
-        <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700"></div>
+      <aside onClick={()=>  setOpen(true)} className={'fixed shadow-3xl w-12 h-12 z-20 mt-[1vh] right-2 rounded-3xl bg-primary duration-700 ease-in-out hover:scale-[105%] cursor-pointer'}>
+        <div className="bg-logo-mini    bg-no-repeat bg-cover h-12 w-12 duration-700"></div>
       </aside>
     )
   }

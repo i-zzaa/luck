@@ -25,19 +25,16 @@ export const Patient = () => {
     setValue,
   } = useForm<any>();
 
+  const renderProgram = useMemo(async () => {
+    const list = await getList('programa/dropdown')
+    setDropDownProgram(list)
+  }, [])
 
-  const customizedMarker = (item: any) => {
-    return (
-      <span className={clsx('flex w-2rem h-2rem items-center p-2 rounded-full justify-center text-white border-circle z-1 shadow-1', {
-        'bg-to': item.evento.especialidade.nome.toUpperCase() === 'TO',
-        'bg-fono': item.evento.especialidade.nome.toUpperCase() === 'FONO',
-        'bg-psico': item.evento.especialidade.nome.toUpperCase() === 'PSICO',
-        'bg-black': item.evento.especialidade.nome.toUpperCase() === 'PSICOPEDAG',
-      })} >
-          <i className="pi pi-calendar"></i>
-      </span>
-    );
-  };
+  const renderSession = useMemo(async () => {
+    const list = await getList(`sessao/${patient.id}`)
+    setDropDownInfo(list)
+  }, [])
+
 
   const onSubmit = async (formValue: any) => {
     const data = await create('sessao/protocolo', {
@@ -60,6 +57,19 @@ export const Patient = () => {
     )
   }
 
+  const customizedMarker = (item: any) => {
+    return (
+      <span className={clsx('flex w-2rem h-2rem items-center p-2 rounded-full justify-center text-white border-circle z-1 shadow-1', {
+        'bg-to': item.evento.especialidade.nome.toUpperCase() === 'TO',
+        'bg-fono': item.evento.especialidade.nome.toUpperCase() === 'FONO',
+        'bg-psico': item.evento.especialidade.nome.toUpperCase() === 'PSICO',
+        'bg-black': item.evento.especialidade.nome.toUpperCase() === 'PSICOPEDAG',
+      })} >
+          <i className="pi pi-calendar"></i>
+      </span>
+    );
+  };
+
   const customizedContent = (item: any) => {
     return (
       <Card title={renderTitle(item)} subTitle={formatdate(item.evento.dataInicio)}>
@@ -67,16 +77,6 @@ export const Patient = () => {
       </Card>
     );
   };
-
-  const renderProgram = useMemo(async () => {
-    const list = await getList('programa/dropdown')
-    setDropDownProgram(list)
-  }, [])
-
-  const renderSession = useMemo(async () => {
-    const list = await getList(`sessao/${patient.id}`)
-    setDropDownInfo(list)
-  }, [])
 
   const renderHeader = () => {
     return  (
