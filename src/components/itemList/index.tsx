@@ -69,7 +69,7 @@ function actionButtons({
 
   return (
     <div
-      className={clsx('', {
+      className={clsx('flex', {
         'flex justify-start': positionActions === 'left',
         'text-right': positionActions === 'right',
       })}
@@ -212,7 +212,7 @@ function itemListSimples({
       <>
         <div className="grid grid-cols-5 justify-between text-base font-medium text-gray-800 mt-4">
           <div className="col-span-4 grid sm:grid-cols-2 gap-2 sm:justify-between text-left">
-            <Text text={textPrimaryLeft} size="md" color="violet" />
+            <Text text={textPrimaryLeft} size="lg" color="violet" />
             <Text text={textPrimaryRight} size="sm" color="gray" />
             <span></span>
           </div>

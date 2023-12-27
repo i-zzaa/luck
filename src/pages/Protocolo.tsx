@@ -7,6 +7,7 @@ import { sessionResumoFields } from '../constants/session';
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes"
 import { create, getList } from "../server"
 import { Tree } from "primereact"
+import { formatdate } from "../util/util";
 
 const fields = sessionResumoFields;
 const fieldsState: any = {};
@@ -72,9 +73,14 @@ export const Protocolo = () => {
   }
 
   const renderHeader = () => {
-    return  <div className="flex justify-center items-center mt-8  font-inter font-medium">
-      {event.paciente.nome}
-    </div>
+    return  (
+      <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
+      <span className="font-bold"> Protocolo</span>
+        { event.paciente.nome } 
+        <span className="text-gray-400 font-light text-sm font-inter"> { formatdate(event.dataInicio) }  </span>
+      
+      </div>
+    )
   }
 
   const renderFooter = () => {

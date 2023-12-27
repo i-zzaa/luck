@@ -199,7 +199,6 @@ export default function CrudSimples({
       _fields.map((f: any) => {
         f.buttonAdd = false
       })
-
       
       new_atividadesFields.buttonAdd = true
       _fields.push(new_atividadesFields)
@@ -259,9 +258,7 @@ export default function CrudSimples({
             setOpenConfirm(true);
           }}
           onClickEdit={(item_: any) => {
-
             const elemento = { ...item_ };
-
             let namelistField = `${namelist}Fields`
             const _fields = [...Fields[namelistField]];
 
@@ -280,7 +277,6 @@ export default function CrudSimples({
             })
         
             setFields(_fields);
-
             setIsEdit(true);
             setItem(elemento);
             setOpen(true);

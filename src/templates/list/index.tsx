@@ -121,12 +121,15 @@ export function List({
           screen={screen}
         />
 
-        {
-          screen === 'CADASTRO_PROGRAMA' && (
-            <DataTable value={item.atividades} size='small' responsiveLayout='scroll' className='-mt-4' >
+      {
+        screen === 'CADASTRO_PROGRAMA' && (
+          <>
+           <> Atividades </>
+            <DataTable value={item.atividades} size='small' responsiveLayout='scroll' className='-mt-4' showGridlines>
               <Column field="id" header="Id"></Column>
               <Column field="nome" header="Nome"></Column>
-          </DataTable>
+            </DataTable>
+          </>
           )
         }
        </>

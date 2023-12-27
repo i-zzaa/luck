@@ -31,9 +31,17 @@ export const Patient = () => {
     );
   };
 
+  const renderTitle = (item: any) => {
+    return (
+      <>
+        { item.evento.especialidade.nome } <span className="text-sm text-gray-400 font-light">[{item.terapeuta.usuario.nome}]</span>
+      </>
+    )
+  }
+
   const customizedContent = (item: any) => {
     return (
-      <Card title={`${item.evento.especialidade.nome} - ${item.terapeuta.usuario.nome}`} subTitle={formatdate(item.evento.dataInicio)}>
+      <Card title={renderTitle(item)} subTitle={formatdate(item.evento.dataInicio)}>
           <p>{item.resumo}</p>
           {/* <Button label="Read more" className="p-button-text"></Button> */}
       </Card>
@@ -57,7 +65,9 @@ export const Patient = () => {
   
   return (
     <div>
-      <div className="text-primary font-base grid justify-center p-2 leading-4 my-4"> 
+      <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
+      <span className="font-bold"> Protuário</span>
+     
         { patient?.nome } 
         <span className="text-gray-400 font-light text-sm"> [{ patient?.responsavel }]  </span>
       

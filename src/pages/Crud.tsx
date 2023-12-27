@@ -13,7 +13,7 @@ export const Crud = () => {
       <TabView className="tabview-custom">
         {hasPermition('CADASTRO_PROGRAMA') ? (
           <TabPanel header="Programas" leftIcon="pi pi-palette">
-          <CrudSimples
+            <CrudSimples
               screen="CADASTRO_PROGRAMA"
               namelist="programa"
               onClick={()=> {}}
