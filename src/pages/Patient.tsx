@@ -81,7 +81,7 @@ export const Patient = () => {
   const renderHeader = () => {
     return  (
       <div className="text-primary font-base grid justify-start m-4 p-2 leading-4"> 
-        <span className="font-bold"> Protuário </span>
+        <span className="font-bold"> Prontuário </span>
         { patient.nome } 
         <span className="text-gray-400 font-light text-sm"> [{ patient?.responsavel }]  </span>
       </div>
