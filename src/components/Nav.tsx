@@ -5,6 +5,7 @@ import { ROUTES, RoutesProps } from '../routes/OtherRoutes';
 import { firtUpperCase } from '../util/util';
 import { useContext, useEffect, useState } from 'react';
 import { LayoutContext } from '../contexts/layout.context';
+import clsx from 'clsx';
 
 export const Nav = () => {
   const { Logout } = useAuth();
@@ -27,7 +28,7 @@ export const Nav = () => {
 
   const renderOpen = () => {
     return (
-      <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700 ease-in-out'}>
+      <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700 ease-in-out justify-center'}>
        <div className="bg-logo-md-write bg-no-repeat bg-cover h-[13rem] "></div> 
        <div className='border-y border-primary-text duration-1000 p-4 mt-2'>
        <h3 className="text-primary-text text-center font-light text-sm "> {  user.nome  }</h3>  
@@ -39,9 +40,9 @@ export const Nav = () => {
           menuSidebar.map((element: any) => {
             const isActive = location.pathname.startsWith(element.path)
             return (
-              <li  key={element.path} className={`${isActive ? 'bg-primary-hover text-primary-text-hover' :  'text-primary-text'} hover:px-0 hover:bg-primary-hover  hover:text-primary-text-hover duration-700 grid grid-cols-6 justify-center`} >
-                <NavLink  to={element.path} className='flex gap-8 items-center text-sm px-4 py-4 col-start-3'>
-                  <i className={element.icon} />
+              <li  key={element.path} className={`${isActive ? 'bg-primary-hover text-primary-text-hover' :  'text-primary-text'} hover:px-0 hover:bg-primary-hover  hover:text-primary-text-hover duration-700 grid  justify-center`} >
+                <NavLink  to={element.path} className='grid grid-cols-2 gap-8 items-center text-sm px-4 py-4 '>
+                  <i className={clsx('text-end', element.icon)} />
                   <span  className='duration-700'>{firtUpperCase(element.path) }</span>
                 </NavLink>
               </li>
@@ -49,7 +50,7 @@ export const Nav = () => {
           })
         }
         </ul>
-        <i onClick={Logout} className={`pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer  w-4 col-span-1 fixed bottom-8 left-6`} />
+        <i onClick={Logout} className={` pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer  w-4 col-span-1 fixed bottom-8 left-6`} />
       </aside>
     )
   }

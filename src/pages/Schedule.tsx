@@ -6,11 +6,15 @@ import { Card } from "../components";
 import { clsx } from 'clsx';
 import { useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
+import { LoadingHeron } from "../components/loading";
+import { NotFound } from "../components/notFound";
 
 export const Schedule = () => {
   const navigator = useNavigate()
   const [list, setList] = useState({}) as any;
   const [keys, setKeys] = useState([]) as any;
+  const [loading, setLoading] = useState<boolean>(false);
+
   const { user } = useAuth();
 
   const current = new Date();
@@ -45,13 +49,16 @@ export const Schedule = () => {
     );
   };
   
-  const getAllTerapeuta = async () => {
+  const getAllTerapeuta = useMemo( async () => {
+    setLoading(true)
     const response: any = await getList(`/evento/filtro/${currentDate.start}/${currentDate.end}?terapeutaId=${user.id}`);
     let clavesOrdenadas = Object.keys(response).sort();
 
     setList(response);
     setKeys(clavesOrdenadas);
-  }
+    setLoading(false)
+  }, [])
+
 
   const cardFree = (item: any) => {
     return <Card customCss="border-l-4 border-l-green-400 rounded-lg">
@@ -99,20 +106,26 @@ export const Schedule = () => {
     }
   }
 
-  const renderContent = useMemo(() => {
-    return keys.map((key: string) => {
-      return (
-        <div key={key}>
-          <div className="font-inter m-2 text-gray-400">
-          { formatdate(key) }
+  const renderContent = () => {
+    if (!loading) {
+      return keys.length ? keys.map((key: string) => {
+        return (
+          <div key={key}>
+            <div className="font-inter m-2 text-gray-400">
+            { formatdate(key) }
+            </div>
+            {
+              list[key].map((item: any)=> formatItem(item))
+            }
           </div>
-          {
-            list[key].map((item: any)=> formatItem(item))
-          }
-        </div>
-      )
-    })
-  },[list])
+        )
+      }) : (
+       <Card> <NotFound /> </Card>
+      );
+    } else {
+      return <LoadingHeron />;
+    }
+  }
 
   const renderHeader = useMemo(() => {
     return  (
@@ -123,14 +136,15 @@ export const Schedule = () => {
     )
   }, [])
 
+
   useEffect(()=> {
-    getAllTerapeuta()
+    getAllTerapeuta
   }, [])
 
   return (
     <>
     { renderHeader }
-    { renderContent }
+    { renderContent() }
     </>
   )
 }
