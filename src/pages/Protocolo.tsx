@@ -26,8 +26,7 @@ export const Protocolo = () => {
     handleSubmit,
     formState: { errors },
     control,
-  } = useForm<any>({ 
-   });
+  } = useForm<any>({ });
 
   const renderProgram = async () => {
     const list = await getList('programa/dropdown')
@@ -46,10 +45,6 @@ export const Protocolo = () => {
       }
     });
   }
-
-  useEffect(() => {
-    renderProgram()
-  }, [])
 
   const renderContent = () => {
     return (
@@ -97,6 +92,10 @@ export const Protocolo = () => {
       </div>
     )
   }
+
+  useEffect(() => {
+    renderProgram()
+  }, [])
 
   return (
     <>
