@@ -22,7 +22,7 @@ export const Sessao = () => {
   const location = useLocation();
   const { event, session } = location.state;
 
-  const [programas, setProgramas ] = useState<any[]>([])
+  const [programas, setProgramas ] = useState([]) as any
   
   const {
     handleSubmit,

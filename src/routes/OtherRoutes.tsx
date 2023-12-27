@@ -7,7 +7,6 @@ import { useContext } from 'react';
 import { LayoutContext } from '../contexts/layout.context';
 import { Protocolo } from '../pages/Protocolo';
 import { Sessao } from '../pages/Sessao';
-import { Prontuario } from '../pages/Prontuario';
 import { Schedule } from '../pages/Schedule';
 import { Crud } from '../pages/Crud';
 import { Patient } from '../pages/Patient';

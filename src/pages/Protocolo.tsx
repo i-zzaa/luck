@@ -15,7 +15,7 @@ fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export const Protocolo = () => {
   const [dropDownProgram, setDropDownProgram] = useState([])
-  const [programas, setProgramas] = useState([]);
+  const [programas, setProgramas] = useState([]) as any
 
   const navigator = useNavigate()
   const location = useLocation();
