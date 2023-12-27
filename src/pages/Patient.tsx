@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { create, getList } from "../server";
 import { Controller, useForm } from "react-hook-form";
@@ -68,15 +68,15 @@ export const Patient = () => {
     );
   };
 
-  const renderProgram = async () => {
+  const renderProgram = useMemo(async () => {
     const list = await getList('programa/dropdown')
     setDropDownProgram(list)
-  }
+  }, [])
 
-  const renderSession = async () => {
+  const renderSession = useMemo(async () => {
     const list = await getList(`sessao/${patient.id}`)
     setDropDownInfo(list)
-  }
+  }, [])
 
   const renderHeader = () => {
     return  (
@@ -133,8 +133,8 @@ export const Patient = () => {
   }
 
   useEffect(() => {
-    renderProgram()
-    renderSession()
+    renderProgram
+    renderSession
   }, [])
   
   return (
