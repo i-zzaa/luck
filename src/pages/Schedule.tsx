@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { diffWeek, formatdate, getPrimeiroDoMes, getUltimoDoMes } from "../util/util";
 import { useAuth } from "../contexts/auth";
 import { getList } from "../server";
@@ -10,6 +10,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 export const Schedule = () => {
   const navigator = useNavigate()
   const [list, setList] = useState({}) as any;
+  const [keys, setKeys] = useState([]) as any;
   const { user } = useAuth();
 
   const current = new Date();
@@ -46,7 +47,10 @@ export const Schedule = () => {
   
   const getAllTerapeuta = async () => {
     const response: any = await getList(`/evento/filtro/${currentDate.start}/${currentDate.end}?terapeutaId=${user.id}`);
+    let clavesOrdenadas = Object.keys(response).sort();
+
     setList(response);
+    setKeys(clavesOrdenadas);
   }
 
   const cardFree = (item: any) => {
@@ -62,10 +66,7 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card customCss={clsx('border-l-4 rounded-lg', {
-      'border-l-red-900': item.borderColor == '#f87171',
-      'border-l-to': item.borderColor == '#ef6c00',
-      })} onClick={()=>handleClick(item)}>
+    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg',  item.borderColor)} onClick={()=>handleClick(item)}>
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.data.start}</span> -
@@ -98,20 +99,29 @@ export const Schedule = () => {
     }
   }
 
-  const handleBody = () => {
-    return Object.keys(list).map((key: string) => {
+  const renderContent = useMemo(() => {
+    return keys.map((key: string) => {
       return (
-        <>
-          <div className="font-inter my-2 text-gray-400">
+        <div key={key}>
+          <div className="font-inter m-2 text-gray-400">
           { formatdate(key) }
           </div>
           {
-            list[key].map((item: any)=> formatItem(item) )
+            list[key].map((item: any)=> formatItem(item))
           }
-        </>
+        </div>
       )
     })
-  }
+  },[list])
+
+  const renderHeader = useMemo(() => {
+    return  (
+      <div className="text-primary font-base grid justify-start m-2 leading-4"> 
+      <span className="font-bold"> Agenda </span>
+        <span className="text-gray-400 font-light text-sm font-inter"> {formatdate(new Date()) } </span>
+      </div>
+    )
+  }, [])
 
   useEffect(()=> {
     getAllTerapeuta()
@@ -119,7 +129,8 @@ export const Schedule = () => {
 
   return (
     <>
-    { handleBody() }
+    { renderHeader }
+    { renderContent }
     </>
   )
 }

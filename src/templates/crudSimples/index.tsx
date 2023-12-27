@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../contexts/toast';
 import { useForm } from 'react-hook-form';
 import {
@@ -56,7 +56,7 @@ export default function CrudSimples({
   } = useForm({
   });
 
-  const renderList = useCallback(async (page: number = 1, pageSize: number= 10) => {
+  const renderList = useMemo(async (page: number = 1, pageSize: number= 10) => {
     setLoading(true);
 
     try {
@@ -75,7 +75,7 @@ export default function CrudSimples({
   const handleClick = async (word: any) => {
     try {
       if (word.search === undefined || word.search === ""){
-        renderList();  
+        renderList;  
         return;
       }
       setLoading(true);
@@ -132,7 +132,7 @@ export default function CrudSimples({
       }
 
       reset();
-      renderList();
+      renderList;
       setIsEdit(false);
       setOpen(false);
       renderToast({
@@ -153,11 +153,13 @@ export default function CrudSimples({
     }
   };
 
+  const onChangePage = () => renderList;
+
   const handleTrashItem = async () => {
     try {
       await deleteItem(`${namelist}/${item.id}`);
 
-      renderList();
+      renderList;
       setOpenConfirm(false);
       renderToast({
         type: 'success',
@@ -179,8 +181,8 @@ export default function CrudSimples({
     });
   };
 
-  const handleAddClick =  (id :  string | undefined ) => {
-    if (id) {
+  const handleAddClick =  (type: 'remove' | 'add', id :  string | undefined ) => {
+    if (type === 'remove' && id) {
       const _fields: any = fields.filter((f: any) => f.id !== id);
       const elemento = {...item}
       delete elemento[id]
@@ -218,7 +220,7 @@ export default function CrudSimples({
   }, [Fields]);
 
   useEffect(() => {
-    renderList();
+    renderList
   }, [renderList]);
 
   return (
@@ -275,6 +277,14 @@ export default function CrudSimples({
               elemento[`atividade${atividade.id}`] =  atividade.nome
               setValue(`atividade${atividade.id}`, atividade.nome)
             })
+
+            // _fields.push({
+            //   ...atividadesFields,
+            //   id: null,
+            //   name: `atividade${atividade.id}`,
+            //   buttonAdd: index === ( elemento.atividades.length - 1)
+            // })
+
         
             setFields(_fields);
             setIsEdit(true);
@@ -293,7 +303,7 @@ export default function CrudSimples({
           }}
         />
 
-       {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={renderList}/>}
+       {pagination.totalPages > 1 && <Pagination totalPages={pagination.totalPages}  currentPage={pagination.currentPage} onChange={onChangePage}/>}
 
       </Card>
 
@@ -324,7 +334,7 @@ export default function CrudSimples({
                   control={control}
                   hidden={field.hidden}
                   customCol={field.customCol}
-                  onClick={() =>  namelist === 'programa' ? handleAddClick(field.id) : null}
+                  onClick={(e: 'remove' | 'add') =>  namelist === 'programa' ? handleAddClick(e, field.id) : null}
                   buttonAdd={field?.buttonAdd}
                 />
               ))}

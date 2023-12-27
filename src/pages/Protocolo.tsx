@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ButtonHeron } from "../components"
 import { useNavigate, useLocation } from "react-router-dom"
 import { Controller, useForm } from 'react-hook-form';
@@ -28,10 +28,10 @@ export const Protocolo = () => {
     control,
   } = useForm<any>({ });
 
-  const renderProgram = async () => {
+  const renderProgram =  useMemo(async () => {
     const list = await getList('programa/dropdown')
     setDropDownProgram(list)
-  }
+  }, [])
 
   const onSubmit = async (formValue: any) => {
     // const data = await create('sessao/protocolo', {
@@ -93,7 +93,7 @@ export const Protocolo = () => {
   }
 
   useEffect(() => {
-    renderProgram()
+    renderProgram
   }, [])
 
   return (

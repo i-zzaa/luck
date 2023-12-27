@@ -27,6 +27,7 @@ module.exports = {
       psico: '#8e24aa',
       fono: '#f6bf26',
       psicopedag: '#000000',
+      cancelado: '#f87171',
 
       primary: '#662977',
       background: '#f9f9f9',
