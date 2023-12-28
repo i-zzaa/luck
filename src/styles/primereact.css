@@ -4037,7 +4037,7 @@ textarea {
 }
 .p-accordion .p-accordion-content {
   padding: 1.25rem;
-  border: 1px solid #dee2e6;
+  border: none;
   background: #ffffff;
   color: #495057;
   border-top: 0;
