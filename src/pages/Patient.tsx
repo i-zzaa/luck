@@ -9,6 +9,11 @@ import { formatdate } from "../util/util";
 import clsx from "clsx";
 import { ButtonHeron } from "../components/button";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
+import { Knob } from "primereact/knob";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Accordion, AccordionTab } from "primereact/accordion";
+import { ScrollPanel } from "primereact/scrollpanel";
 
 export const Patient = () => {
   const location = useLocation();
@@ -52,7 +57,7 @@ export const Patient = () => {
   const renderTitle = (item: any) => {
     return (
       <>
-        { item.evento.especialidade.nome } <span className="text-sm text-gray-400 font-light">[{item.terapeuta.usuario.nome}]</span>
+        { item.evento.especialidade.nome } <span className="text-sm text-gray-400 font-light">[{item.evento.terapeuta.usuario.nome}]</span>
       </>
     )
   }
@@ -70,10 +75,30 @@ export const Patient = () => {
     );
   };
 
+  const customizedBodyTable = (rowData: any) => <Knob value={rowData.porcentagem}  valueTemplate={'{value}%'} />
+
   const customizedContent = (item: any) => {
     return (
       <Card title={renderTitle(item)} subTitle={formatdate(item.evento.dataInicio)}>
-        <p>{item.resumo}</p>
+        <Accordion  className="my-4">
+          {
+            item.sessoes.map((sessao: any, key: number)=> (
+              <AccordionTab header={sessao.label} key={key} tabIndex={key}>
+                  <p className="m-0">
+                    <DataTable value={sessao.children} size='small' responsiveLayout='scroll' className='-mt-4'  >
+                      <Column field="label" header="Atividade"></Column>
+                      <Column header="%" body={customizedBodyTable}></Column>
+                    </DataTable>
+                  </p>
+              </AccordionTab>
+            ))
+          }
+          
+        </Accordion>
+
+        <ScrollPanel style={{ width: '100%', height: '70px' }}>
+          <p>{item.resumo}</p>
+        </ScrollPanel>
       </Card>
     );
   };
@@ -91,46 +116,13 @@ export const Patient = () => {
   const renderContent = () => {
     return (
       <>
-        <Controller
-          name="programas"
-          control={control}
-          render={(field: any) => (
-          <Tree 
-            filterPlaceholder="Programas" 
-            value={dropDownProgram} 
-            selectionKeys={programas} 
-            selectionMode="checkbox" 
-            className="w-full md:w-30rem" 
-            onSelectionChange={(e: any) => {
-              setProgramas(e.value)
-
-              setValue('programas', e.value)
-              return e.value
-            }}
-          />
-        )} />
-
-        <div className="p-1 my-4">
+        <div className="p-1 my-4 overflow-y-auto">
           <Timeline value={dropDownInfo} align="left" className="gap-2" marker={customizedMarker} content={customizedContent} />
         </div>
       </>
     )
   }
 
-  const renderFooter = () => {
-    return (
-      <div className="fixed bottom-0 w-[104vw] ml-[-0.5rem]">
-        <ButtonHeron
-          text="Salvar Protocolo"
-          icon="pi pi-play"
-          type="primary"
-          color="white"
-          size="full"
-          onClick={handleSubmit(onSubmit)}
-        />
-      </div>
-    )
-  }
 
   useEffect(() => {
     renderProgram
@@ -141,7 +133,6 @@ export const Patient = () => {
     <div>
       { renderHeader() }
       { renderContent() }
-      { renderFooter() }
     </div>
   )
 }
