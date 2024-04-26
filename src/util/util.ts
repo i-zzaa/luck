@@ -164,6 +164,6 @@ export const formatDateHours = (hours: any, date: any) => {
 };
 
 export enum DEVICE {
-  mobile = 'mobile',
-  web = 'web',
+  mobile = 'DEVICE_MOBILE',
+  web = 'DEVICE_WEB',
 }

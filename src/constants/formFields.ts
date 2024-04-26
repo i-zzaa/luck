@@ -31,43 +31,4 @@ const loginFields = [
   },
 ];
 
-export const atividadesFields = {
-  labelText: 'Atividade',
-  labelFor: 'atividade',
-  id: 'atividade0',
-  name: 'atividade',
-  type: 'input-add',
-  isRequired: true,
-  placeholder: 'Atividade',
-  customCol: 'col-span-5 sm:col-span-5',
-  buttonAdd: true,
-
-  validate: {
-    required: 'Campo obrigatório!',
-  },
-};
-
-const programaFields = [
-  {
-    labelText: 'Programa',
-    labelFor: 'nome',
-    id: 'nome',
-    name: 'nome',
-    type: 'text',
-    autoComplete: 'text',
-    isRequired: true,
-    placeholder: 'Programa',
-    customCol: 'col-span-6 sm:col-span-6',
-
-    validate: {
-      required: 'Campo obrigatório!',
-      minlength: 8,
-    },
-  },
-];
-
 export { loginFields };
-
-export const Fields: any = {
-  programaFields,
-};

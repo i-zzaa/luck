@@ -29,7 +29,7 @@ export const Nav = () => {
   const renderOpen = () => {
     return (
       <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700 ease-in-out justify-center'}>
-       <div className="bg-logo-md-write bg-no-repeat bg-cover h-[13rem] "></div> 
+       <div className="bg-logo-md-write bg-no-repeat bg-cover h-[13rem] w-[20rem] mx-auto"></div> 
        <div className='border-y border-primary-text duration-1000 p-4 mt-2'>
        <h3 className="text-primary-text text-center font-light text-sm "> {  user.nome  }</h3>  
        <h3 className="text-gray-200 text-center font-light text-xs "> { firtUpperCase(perfil) } </h3> 
@@ -50,7 +50,7 @@ export const Nav = () => {
           })
         }
         </ul>
-        <i onClick={Logout} className={` pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer  w-4 col-span-1 fixed bottom-8 left-6`} />
+        <i onClick={Logout} className={` pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer  w-4 col-span-1 fixed bottom-8 left-[50%]`} />
       </aside>
     )
   }
