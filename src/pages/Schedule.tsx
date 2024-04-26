@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { diffWeek, formatdate, getPrimeiroDoMes, getUltimoDoMes } from "../util/util";
+import { diffWeek, formatdate, formatdateEuaAddDay, formatdateeua } from "../util/util";
 import { useAuth } from "../contexts/auth";
-import { getList } from "../server";
+import { getList, update } from "../server";
 import { ButtonHeron, Card } from "../components";
-import { clsx } from 'clsx';
-import { useNavigate } from "react-router-dom";
-import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { LoadingHeron } from "../components/loading";
 import { NotFound } from "../components/notFound";
+import { useToast } from "../contexts/toast";
+import { STATUS_EVENTS } from "../constants/schedule";
 
 export const Schedule = () => {
-  const navigator = useNavigate()
+  const { renderToast } = useToast();
+
   const [list, setList] = useState({}) as any;
   const [keys, setKeys] = useState([]) as any;
   const [loading, setLoading] = useState<boolean>(false);
@@ -19,17 +19,36 @@ export const Schedule = () => {
 
   const current = new Date();
   const [currentDate, setCurrentDate] = useState<any>({
-    start: getPrimeiroDoMes(current.getFullYear(), current.getMonth() + 1),
-    end: getUltimoDoMes(current.getFullYear(), current.getMonth() + 1),
+    start: formatdateeua(current),
+    end: formatdateEuaAddDay(current),
   });
 
-  const handleClick  = (event: any) => {
-    navigator(`/${CONSTANTES_ROUTERS.SESSION}`, {
-      state: {
-        event
-      }
-    });
+  async function handleSubmitCheckEvent(item: any) {
+    try {
+      await update('/evento/check', {id: item.id});
+
+      renderToast({
+        type: 'success',
+        title: '',
+        message: 'Evento atualizado!',
+        open: true,
+      });
+
+      setTimeout(() => {
+        getDayTerapeuta
+      }, 1000);
+
+    } catch (error) {
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Evento não atualizado!',
+        open: true,
+      });
+    }
   }
+
+
 
   const avaliationCount = (evento: any) => {
     let text = evento.modalidade.nome;
@@ -49,7 +68,7 @@ export const Schedule = () => {
     );
   };
   
-  const getAllTerapeuta = useMemo( async () => {
+  const getDayTerapeuta = useMemo( async () => {
     setLoading(true)
     const response: any = await getList(`/evento/filtro/${currentDate.start}/${currentDate.end}?terapeutaId=${user.id}`);
     let clavesOrdenadas = Object.keys(response).sort();
@@ -61,7 +80,7 @@ export const Schedule = () => {
 
 
   const cardFree = (item: any) => {
-    return <Card customCss="border-l-4 border-l-green-400 rounded-lg cursor-not-allowed">
+    return <Card  key={item.id} customCss="border-l-4 border-l-green-400 rounded-lg cursor-not-allowed">
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.start}</span> -
@@ -73,9 +92,9 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id} customCss={clsx('border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out',  item.borderColor)}>
+    return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'}>
       <div className="flex justify-between w-full item-center"> 
-        <div className="flex gap-2 w-full item-center" onClick={()=>handleClick(item)}> 
+        <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.data.start}</span> -
             <span>{item.data.end}</span>
@@ -95,16 +114,27 @@ export const Schedule = () => {
             </p>
           </div>
         </div>
-        <ButtonHeron
-          text="programa"
-          icon="pi pi-palette"
-          type="transparent"
-          color='yellow'
+
+        { item.statusEventos.nome  == STATUS_EVENTS.atendido  &&  <ButtonHeron
+        text="Atendido"
+        type="transparent"
+        icon="pi pi-check"
+        size="icon"
+        color="violet"
+      />}
+       { item.statusEventos.nome  == STATUS_EVENTS.confirmado ? <ButtonHeron
+          text="Atendido"
+          type="primary"
+          icon="pi pi-check"
           size="icon"
-          onClick={()=> navigator(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {  state: {
-            event: item
-          }})}
-        />
+          onClick={()=> handleSubmitCheckEvent(item)}
+        /> : <ButtonHeron
+        text="Sem evento"
+        type="transparent"
+        icon="pi pi-calendar-times"
+        size="icon"
+        color="red"
+      />}
       </div>
     </Card>
   }
@@ -150,7 +180,7 @@ export const Schedule = () => {
 
 
   useEffect(()=> {
-    getAllTerapeuta
+    getDayTerapeuta
   }, [])
 
   return (

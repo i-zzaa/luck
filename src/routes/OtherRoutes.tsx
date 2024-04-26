@@ -1,25 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
-import { permissionAuth } from '../contexts/permission';
 import { Layout } from '../foms/Layout';
 import { Nav } from '../components/Nav';
 import Home from '../pages/Home';
-import { useContext } from 'react';
-import { LayoutContext } from '../contexts/layout.context';
-import { Protocolo } from '../pages/Protocolo';
-import { Sessao } from '../pages/Sessao';
 import { Schedule } from '../pages/Schedule';
-import { Crud } from '../pages/Crud';
-import { Patient } from '../pages/Patient';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
   CRUD = 'cadastro',
-  CALENDAR = 'agenda',
-  PRONTUARIO = 'prontuario',
-  SESSION = 'sessao',
-  PROGRAM = 'programa',
-  PATIENT = 'paciente',
-  PROTOCOLO = 'protocolo',
+  CALENDAR = 'agenda'
 }
 export interface RoutesProps {
   path: string;
@@ -30,16 +18,10 @@ export interface RoutesProps {
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home' },
-  // { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
-  // { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
-  { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
-  // { path: CONSTANTES_ROUTERS.PROGRAM, componentRoute: Crud, icon: 'pi pi-palette' },
 ]
 
 const OtherRoutes = () => {
-  const { hasPermition } = permissionAuth();
-  const { open } = useContext(LayoutContext);
 
   const routes: RoutesProps[] = ROUTES;
 
@@ -53,17 +35,12 @@ const OtherRoutes = () => {
               key={index}
               path={route.path}
               element={
-                // hasPermition(route.path) ? (
-                  <Layout>
-                    <route.componentRoute />
-                  </Layout>
-                // ) : null
+                <Layout>
+                  <route.componentRoute />
+                </Layout>
               }
             />
           ))}
-          <Route path="/protocolo" element={<Protocolo />} />
-          <Route path="/sessao" element={<Sessao />} />
-          <Route path="/paciente" element={<Patient />} />
         </Routes>
       </main>
     </div>
