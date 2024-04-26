@@ -93,9 +93,15 @@ export const AuthProvider = ({ children }: Props) => {
     });
   };
 
-  const Logout = () => {
+  const Logout = async() => {
     setUser(undefined);
     sessionStorage.clear();
+
+    try {
+      await api.get('/logout');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
