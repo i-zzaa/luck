@@ -1,10 +1,10 @@
 {
   "name": "luck-web",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host",
+    "dev": "vite --port=3002 --host",
     "start": "node serve.js --host",
     "preview": "vite preview --host",
     "sb": "start-storybook -p 6006",

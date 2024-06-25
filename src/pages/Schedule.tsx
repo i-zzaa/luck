@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { diffWeek, formatdate, formatdateEuaAddDay, formatdateeua } from "../util/util";
 import { useAuth } from "../contexts/auth";
 import { getList, update } from "../server";
-import { ButtonHeron, Card } from "../components";
+import { ButtonHeron, Card, Filter } from "../components";
 import { LoadingHeron } from "../components/loading";
 import { NotFound } from "../components/notFound";
 import { useToast } from "../contexts/toast";
-import { STATUS_EVENTS } from "../constants/schedule";
+import { STATUS_EVENTS, filterCalendarFields } from "../constants/schedule";
+
+
+const fieldsConst = filterCalendarFields;
+const fieldsState: any = {};
+fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export const Schedule = () => {
   const { renderToast } = useToast();
@@ -18,10 +23,8 @@ export const Schedule = () => {
   const { user } = useAuth();
 
   const current = new Date();
-  const [currentDate, setCurrentDate] = useState<any>({
-    start: formatdateeua(current),
-    end: formatdateEuaAddDay(current),
-  });
+  const start = formatdateeua(current)
+  const end = formatdateEuaAddDay(current)
 
   async function handleSubmitCheckEvent(item: any) {
     try {
@@ -35,7 +38,7 @@ export const Schedule = () => {
       });
 
       setTimeout(() => {
-        getDayTerapeuta
+        getDayTerapeuta()
       }, 1000);
 
     } catch (error) {
@@ -68,15 +71,25 @@ export const Schedule = () => {
     );
   };
   
-  const getDayTerapeuta = useMemo( async () => {
+  const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
     setLoading(true)
-    const response: any = await getList(`/evento/filtro/${currentDate.start}/${currentDate.end}?terapeutaId=${user.id}`);
-    let clavesOrdenadas = Object.keys(response).sort();
+    try {
+      const response: any = await getList(`/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`);
+      let clavesOrdenadas = Object.keys(response).sort();
 
-    setList(response);
-    setKeys(clavesOrdenadas);
+      setList(response);
+      setKeys(clavesOrdenadas);
+    } catch (error) {
+      setList([]);
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Período não encontrado!',
+        open: true,
+      });
+    }
     setLoading(false)
-  }, [])
+  }
 
 
   const cardFree = (item: any) => {
@@ -178,13 +191,32 @@ export const Schedule = () => {
     )
   }, [])
 
+  const renderFilter = useMemo(() => {
+    return (
+      <Filter
+        id="form-filter-patient"
+        legend="Filtro"
+        nameButton="Agendar"
+        fields={fieldsConst}
+        onSubmit={({dataInicio, datatFim}: any) =>  getDayTerapeuta(dataInicio, datatFim)}
+        onReset={()=>  getDayTerapeuta()}
+        screen="AGENDA_CALENDARIO"
+        loading={loading}
+        dropdown={[]}
+        onInclude={() => {
+        }}
+      />
+    )
+  }, [])
+
 
   useEffect(()=> {
-    getDayTerapeuta
+    getDayTerapeuta()
   }, [])
 
   return (
     <>
+    { renderFilter }
     { renderHeader }
     { renderContent() }
     </>
