@@ -50,7 +50,7 @@ export function Input({
   control,
   disabled,
   hidden,
-  buttonAdd
+  buttonAdd,
 }: InputProps) {
   const renderType = () => {
     switch (type) {
