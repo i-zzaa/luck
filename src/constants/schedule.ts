@@ -11,7 +11,7 @@ export const filterCalendarFields = [
     labelText: 'Data Inicial',
     id: 'dataInicio',
     name: 'dataInicio',
-    customCol: 'col-span-6 sm:col-span-1',
+    customCol: 'col-span-6 sm:col-span-3',
     type: 'date',
   },
   {
@@ -19,7 +19,7 @@ export const filterCalendarFields = [
     labelText: 'Data Final',
     id: 'datatFim',
     name: 'datatFim',
-    customCol: 'col-span-6 sm:col-span-1',
+    customCol: 'col-span-6 sm:col-span-3',
     type: 'date',
   },
 ];

@@ -8,7 +8,7 @@ export interface ResponseSuccessProps {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'https://hdvjel.hospedagemelastica.com.br', //import.meta.env.VITE_API_URL,
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
