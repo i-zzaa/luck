@@ -21,7 +21,7 @@ export const Nav = () => {
     //   hasPermition(route.path) && route.path !== '*'
     // );
     const arrRouterLinks = ROUTES.filter((route: RoutesProps) =>
-       route.path !== '*'
+       route.path !== '*' && route.menu
     );
     setMenuSidebar(arrRouterLinks);
   };
