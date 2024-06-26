@@ -7,6 +7,8 @@ import { LoadingHeron } from "../components/loading";
 import { NotFound } from "../components/notFound";
 import { useToast } from "../contexts/toast";
 import { STATUS_EVENTS, filterCalendarFields } from "../constants/schedule";
+import { useNavigate } from 'react-router-dom';
+import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 
 
 const fieldsConst = filterCalendarFields;
@@ -15,6 +17,7 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
 export const Schedule = () => {
   const { renderToast } = useToast();
+  const navigate = useNavigate();
 
   const [list, setList] = useState({}) as any;
   const [keys, setKeys] = useState([]) as any;
@@ -91,7 +94,6 @@ export const Schedule = () => {
     setLoading(false)
   }
 
-
   const cardFree = (item: any) => {
     return <Card  key={item.id} customCss="border-l-4 border-l-green-400 rounded-lg cursor-not-allowed">
         <div className="flex gap-2 w-full item-center"> 
@@ -105,7 +107,7 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'}>
+    return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
       <div className="flex justify-between w-full item-center"> 
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
@@ -136,7 +138,7 @@ export const Schedule = () => {
         color="violet"
       />}
        { item.statusEventos.nome  == STATUS_EVENTS.confirmado ? <ButtonHeron
-          text="Atendido"
+          text="Confirmado"
           type="primary"
           icon="pi pi-check"
           size="icon"

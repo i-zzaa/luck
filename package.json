@@ -1,6 +1,6 @@
 {
   "name": "luck-web",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "private": true,
   "type": "module",
   "scripts": {
@@ -30,6 +30,7 @@
     "clsx": "1.2.1",
     "cors": "2.8.5",
     "express": "4.18.2",
+    "jodit-react": "^4.1.2",
     "lottie-react": "2.3.1",
     "moment": "2.29.4",
     "postcss-import": "15.0.0",
