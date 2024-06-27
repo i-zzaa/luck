@@ -7,6 +7,7 @@ export interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  typeButton?: 'button' | 'submit' | 'reset'
 }
 import { clsx } from 'clsx';
 import { Button } from 'primereact';
@@ -20,12 +21,13 @@ export function ButtonHeron({
   loading,
   disabled=false,
   onClick,
+  typeButton = 'submit',
 }: ButtonProps) {
   return (
     <Button
        disabled={disabled}
       icon={icon}
-      type='button'
+      type={typeButton}
       loading={loading}
       label={size === 'icon' ? '' : text}
       onClick={onClick}

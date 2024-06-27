@@ -204,6 +204,7 @@ export default function PEICADASTRO() {
               type="primary"
               size="sm"
               onClick={()=> addMeta()}
+              typeButton="button"
             />
           </div>
           {
@@ -217,6 +218,7 @@ export default function PEICADASTRO() {
                     type="primary"
                     size="sm"
                     onClick={()=> addSubitem(key)}
+                    typeButton="button"
                   />
                 </div>
 

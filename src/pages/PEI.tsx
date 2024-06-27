@@ -23,26 +23,38 @@ const PEI = () => {
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
 
+"2024-06-27T00:10:53.683Z"
   const renderContent = () => {
     if (!loading) {
       return list.length ? (
-        <Accordion>
+        <Card>
+          <Accordion>
           {
-            list.map((item: any, key: string) => {
+            list.map((item: any) => {
               return (
-                <div key={key}>
-                  <div className="font-inter m-2 text-gray-400">
-                  </div>
-                  {
-                    <AccordionTab header={item} tabIndex={0}>
-      
-                    </AccordionTab>
-                  }
-                </div>
+                  <AccordionTab header={
+                    <span className="flex align-items-center gap-2 w-full">
+                      { item.estimuloDiscriminativo}
+                      { item.resposta}
+                      { item.estimuloReforcadorPositivo}
+                      { item.programaId}
+                    </span>
+                  } tabIndex={0}>
+
+                    <div>
+                    {
+                      item.metas.map((meta, key)=> {
+                        return <span className="flex align-items-center gap-2 w-full">{meta.labelText} {key + 1}</span>
+                      })
+                    }
+                    </div>
+
+                  </AccordionTab>
               )
             }) 
           }
         </Accordion>
+        </Card>
       ) : (
        <Card> <NotFound /> </Card>
       );
@@ -54,9 +66,9 @@ const PEI = () => {
   const onSubmitFilter = async (formvalue: any) => {
     setLoading(true)
     try {
-      const response: any = await filter('pei', formvalue);
+      const { data }: any = await filter('pei', formvalue);
 
-      setList(response);
+      setList(data);
     } catch (error) {
       setList([]);
       renderToast({
