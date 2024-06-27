@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Filter } from "../templates/filter";
-import { useDropdown } from "../contexts/dropDown";
 import { PEIFields } from "../constants/formFields";
 import { dropDown, filter } from "../server";
 import { useToast } from "../contexts/toast";
@@ -10,6 +9,7 @@ import { LoadingHeron } from "../components/loading";
 import { useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { Accordion, AccordionTab } from "primereact/accordion";
+import { Fieldset } from "primereact/fieldset";
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -23,33 +23,51 @@ const PEI = () => {
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
 
-"2024-06-27T00:10:53.683Z"
+  const renderFiledSet = (title: string, text: string) => (
+    <Fieldset className="text-[8px]">
+      <div className="font-bold text-wrap"> { title } </div>
+      <div className="font-normal text-wrap"> { text }</div>
+    </Fieldset>
+  )
+
   const renderContent = () => {
     if (!loading) {
       return list.length ? (
-        <Card>
-          <Accordion>
+        <Card >
+          <Accordion >
           {
-            list.map((item: any) => {
+            list.map((item: any, key: number) => {
               return (
-                  <AccordionTab header={
-                    <span className="flex align-items-center gap-2 w-full">
-                      { item.estimuloDiscriminativo}
-                      { item.resposta}
-                      { item.estimuloReforcadorPositivo}
-                      { item.programaId}
-                    </span>
-                  } tabIndex={0}>
-
-                    <div>
-                    {
-                      item.metas.map((meta, key)=> {
-                        return <span className="flex align-items-center gap-2 w-full">{meta.labelText} {key + 1}</span>
-                      })
-                    }
+                <AccordionTab key={key} header={
+                  <span className="flex align-items-center gap-2 w-full">
+                    { item.programa.nome}
+                  </span>
+                } tabIndex={key}>
+                  <div className="w-full overflow-y-auto">
+                    <div className="font-bold my-2" > PROCEDIMENTO DE ENSINO: ENSINO ESTRUTURADO - DTT - TREINO DE TENTATIVAS DISCRETAS</div>
+                    <div className=" grid grid-cols-3 gap-1">
+                      { renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
+                      { renderFiledSet('Resposta', item.resposta)}
+                      { renderFiledSet('SR+ (estímulo reforçador positivo))', item.estimuloReforcadorPositivo)}
                     </div>
-
-                  </AccordionTab>
+                    <div className="my-2">
+                      {
+                        item.metas.map((meta: any, indexMeta: number)=> {
+                          return (
+                            <div key={indexMeta}>
+                              <span className="flex align-items-center gap-2 w-full font-inter">Meta {indexMeta + 1}: {meta.value}</span>
+                              <ul className="list-disc	ml-8 font-inter">
+                                {
+                                  meta.subitems.length &&  meta.subitems.map((subitem: any, index: number)=> <li key={index}> {subitem.value} </li>)
+                                }
+                              </ul>
+                            </div>
+                          )
+                        })
+                      }
+                    </div>
+                  </div>
+                </AccordionTab>
               )
             }) 
           }
@@ -74,7 +92,7 @@ const PEI = () => {
       renderToast({
         type: 'failure',
         title: '401',
-        message: 'Período não encontrado!',
+        message: 'PEI não encontrado!',
         open: true,
       });
     }
@@ -99,14 +117,12 @@ const PEI = () => {
   }
   
   const renderPrograma = useCallback(async () => {
-    const [paciente, programa]: any = await Promise.all([
+    const [paciente]: any = await Promise.all([
       dropDown('paciente'),
-      dropDown('programa'),
     ])
 
     setDropDownList({
       paciente,
-      programa,
     })
   }, []);
 

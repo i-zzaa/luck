@@ -97,7 +97,8 @@ export default function PEICADASTRO() {
           if (sub.includes(`${metaId}-sub-item-`)) {
             subitems.push({
               ...SUBITEM,
-              id:  sub
+              id:  sub,
+              value: formvalue[sub]
             })
           }
         })
@@ -105,7 +106,8 @@ export default function PEICADASTRO() {
         payload.metas.push({
           ...METAS,
           id: key,
-          subitems
+          subitems,
+          value: formvalue[key]
         })
       } else if  (key.includes('Id')){
         payload[key] = formvalue[key].id
@@ -178,23 +180,26 @@ export default function PEICADASTRO() {
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} >
       <div>
-        {fields.map((item: any) => (
-          hasPermition(item.permission) && (
-            <Input
-              key={item.id}
-              labelText={item.labelText}
-              id={item.id}
-              type={item.type}
-              customCol={item.customCol}
-              control={control}
-              options={
-                item.type === 'select' ? dropDownList[item.name] : undefined
+          {fields.map((item: any) => (
+            <div>
+              {
+                hasPermition(item.permission) ? (
+                  <Input
+                    key={item.id}
+                    labelText={item.labelText}
+                    id={item.id}
+                    type={item.type}
+                    customCol={item.customCol}
+                    control={control}
+                    options={
+                      item.type === 'select' ? dropDownList[item.name] : undefined
+                    }
+                    buttonAdd={item.buttonAdd}
+                  />
+                ) : null
               }
-              buttonAdd={item.buttonAdd}
-            />
-          )
-        ))}
-
+            </div>
+          ))}
         <div className='mt-8'>
           <div className="text-gray-400 font-inter flex  justify-between m-2 leading-4"> 
             <span className="font-bold"> METAS </span>
@@ -254,16 +259,16 @@ export default function PEICADASTRO() {
               )
             })
           }
-      </div>
-    </div>
+        </div>
 
-    <ButtonHeron
-      text="Salvar"
-      type="primary"
-      size="full"
-      onClick={handleSubmit(onSubmit)}
-      loading={loading}
-    />
-  </form>
+        <ButtonHeron
+          text="Salvar"
+          type="primary"
+          size="full"
+          onClick={handleSubmit(onSubmit)}
+          loading={loading}
+        />
+     </div>
+   </form>
   );
 }
