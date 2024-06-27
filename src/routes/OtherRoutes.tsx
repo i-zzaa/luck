@@ -4,12 +4,18 @@ import { Nav } from '../components/Nav';
 import Home from '../pages/Home';
 import { Schedule } from '../pages/Schedule';
 import { Session } from '../pages/Session';
+import DTT from '../pages/DTT';
+import PEI from '../pages/PEI';
+import PEICADASTRO from '../foms/PEI';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
   CRUD = 'cadastro',
   CALENDAR = 'agenda',
   SESSION = 'session',
+  DTT = 'metas-dtt',
+  PEI = 'pei',
+  PEICADASTRO = 'pei-cadastro',
 }
 export interface RoutesProps {
   path: string;
@@ -20,8 +26,11 @@ export interface RoutesProps {
 
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '', menu: false },
-  // { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
+  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
+  { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true },
 ]
 
@@ -45,16 +54,6 @@ const OtherRoutes = () => {
               }
             />
           ))}
-
-            <Route
-              key={CONSTANTES_ROUTERS.SESSION}
-              path={CONSTANTES_ROUTERS.SESSION}
-              element={
-                <Layout>
-                  <Session />
-                </Layout>
-              }
-            />
         </Routes>
       </main>
     </div>

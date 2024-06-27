@@ -9,6 +9,7 @@ import { useToast } from "../contexts/toast";
 import { STATUS_EVENTS, filterCalendarFields } from "../constants/schedule";
 import { useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
+import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 
 
 const fieldsConst = filterCalendarFields;
@@ -29,51 +30,32 @@ export const Schedule = () => {
   const start = formatdateeua(current)
   const end = formatdateEuaAddDay(current)
 
-  async function handleSubmitCheckEvent(item: any) {
-    try {
-      await update('/evento/check', {id: item.id});
+  // async function handleSubmitCheckEvent(item: any) {
+  //   try {
+  //     await update('/evento/check', {id: item.id});
 
-      renderToast({
-        type: 'success',
-        title: '',
-        message: 'Evento atualizado!',
-        open: true,
-      });
+  //     renderToast({
+  //       type: 'success',
+  //       title: '',
+  //       message: 'Evento atualizado!',
+  //       open: true,
+  //     });
 
-      setTimeout(() => {
-        getDayTerapeuta()
-      }, 1000);
+  //     setTimeout(() => {
+  //       getDayTerapeuta()
+  //     }, 1000);
 
-    } catch (error) {
-      renderToast({
-        type: 'failure',
-        title: '401',
-        message: 'Evento não atualizado!',
-        open: true,
-      });
-    }
-  }
+  //   } catch (error) {
+  //     renderToast({
+  //       type: 'failure',
+  //       title: '401',
+  //       message: 'Evento não atualizado!',
+  //       open: true,
+  //     });
+  //   }
+  // }
 
 
-
-  const avaliationCount = (evento: any) => {
-    let text = evento.modalidade.nome;
-    if (text !== 'Avaliação' || !evento?.dataInicio || !evento?.dataFim)
-      return <span>{text}</span>;
-
-    const current = diffWeek(evento.dataInicio, evento.dataAtual);
-    const diffTotal = diffWeek(evento.dataInicio, evento.dataFim);
-
-    return (
-      <>
-        <span>
-          {text}
-          <span className="font-inter ml-2">{`${current}/${diffTotal}`}</span>{' '}
-        </span>
-      </>
-    );
-  };
-  
   const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
     setLoading(true)
     try {
@@ -108,27 +90,19 @@ export const Schedule = () => {
 
   const cardChoice = (item: any) => {
     return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
-      <div className="flex justify-between w-full item-center"> 
-        <div className="flex gap-2 w-full item-center"> 
-          <div className="grid text-center font-inter text-sm text-gray-400"> 
-            <span> {item.data.start}</span> -
-            <span>{item.data.end}</span>
-          </div>
-          <div className="text-gray-800 text-sm text-center grid justify-center">  
-            <div className="font-base font-semibold text-primary">  { item.title } </div>
-
-            <p className="flex gap-4 items-center justify-between">
-              {avaliationCount(item)} <span>{item.statusEventos.nome}</span>
-            </p>
-                  
-            <p className="flex gap-4 items-center">
-              {item.localidade.nome}
-              {item.isExterno && (
-                <span className="font-bold font-inter"> {`- ${item.km}km`} </span>
-              )}
-            </p>
-          </div>
-        </div>
+      <ChoiceItemSchedule
+       start={item?.data.start}
+       end={item?.data.end}
+       statusEventos={item?.statusEventos.nome}
+       title={item?.title}
+       localidade={item?.localidade.nome}
+       isExterno={item?.isExterno}
+       km={item?.km}
+       modalidade={item?.modalidade.nome}
+       dataInicio={item?.dataInicio}
+       dataFim={item?.dataFim}
+       dataAtual={item?.dataAtual}
+      />
 
         { item.statusEventos.nome  == STATUS_EVENTS.atendido  &&  <ButtonHeron
         text="Atendido"
@@ -137,20 +111,6 @@ export const Schedule = () => {
         size="icon"
         color="violet"
       />}
-       { item.statusEventos.nome  == STATUS_EVENTS.confirmado ? <ButtonHeron
-          text="Confirmado"
-          type="primary"
-          icon="pi pi-check"
-          size="icon"
-          onClick={()=> handleSubmitCheckEvent(item)}
-        /> : <ButtonHeron
-        text="Sem evento"
-        type="transparent"
-        icon="pi pi-calendar-times"
-        size="icon"
-        color="red"
-      />}
-      </div>
     </Card>
   }
 
@@ -205,8 +165,6 @@ export const Schedule = () => {
         screen="AGENDA_CALENDARIO"
         loading={loading}
         dropdown={[]}
-        onInclude={() => {
-        }}
       />
     )
   }, [])

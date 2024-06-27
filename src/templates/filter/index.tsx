@@ -40,10 +40,10 @@ export function Filter({
   };
 
   const handleSubmit2 = (formState: any) => {
-    if (formState.devolutiva) {
-      setValue('naFila', true);
-      formState.naFila = true;
-    }
+    // if (formState.devolutiva) {
+    //   setValue('naFila', true);
+    //   formState.naFila = true;
+    // }
     onSubmit(formState);
   };
 
@@ -83,6 +83,19 @@ export function Filter({
 
           <div className="flex items-center mt-10 gap-2 justify-between">
             <>
+            {onInclude &&
+                hasPermition(`${screen}_FILTRO_BOTAO_CADASTRAR`) && (
+                  <div className="sm:text-end">
+                    <ButtonHeron
+                      text={nameButton || 'Cadastrar'}
+                      icon="pi pi-user-plus"
+                      type="primary"
+                      size="sm"
+                      onClick={onInclude}
+                    />
+                  </div>
+                )}
+                
               <div className="hidden sm:w-2/4 ml-auto sm:grid grid-cols-2 gap-2">
                 <>
                   {hasPermition(`${screen}_FILTRO_BOTAO_LIMPAR`) && (
@@ -142,8 +155,5 @@ export function Filter({
         </form>
       </AccordionTab>
     </Accordion>
-    // <Card legend={legend}>
-
-    // </Card>
   );
 }

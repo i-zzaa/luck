@@ -23,8 +23,9 @@ export function ButtonHeron({
 }: ButtonProps) {
   return (
     <Button
-    disabled={disabled}
+       disabled={disabled}
       icon={icon}
+      type='button'
       loading={loading}
       label={size === 'icon' ? '' : text}
       onClick={onClick}

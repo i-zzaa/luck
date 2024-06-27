@@ -7,6 +7,7 @@ import { ButtonHeron } from "../components/button";
 import { create, getList, update } from "../server";
 import { useToast } from "../contexts/toast";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
+import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -82,34 +83,34 @@ export const Session = () => {
     );
   };
 
+  const renderHeaderSumary = useMemo(() => {
+    return  (
+      <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
+        <span className="font-bold"> Resumo </span>
+      </div>
+    )
+  }, [])
+
   const renderHeader = useMemo(() => {
     return  (
-      <div className="flex gap-2 w-full item-center"> 
-        <div className="grid text-center font-inter text-sm text-gray-400"> 
-          <span> {state.item.data.start}</span> -
-          <span>{state.item.data.end}</span>
-        </div>
-        <div className="text-gray-800 text-sm text-center grid justify-center">  
-          <div className="font-base font-semibold text-primary">  { state.item.title } </div>
-
-          <p className="flex gap-4 items-center justify-between">
-            {avaliationCount()} <span>{state.item.statusEventos.nome}</span>
-          </p>
-                
-          <p className="flex gap-4 items-center">
-            {state.item.localidade.nome}
-            {state.item.isExterno && (
-              <span className="font-bold font-inter"> {`- ${state.item.km}km`} </span>
-            )}
-          </p>
-        </div>
-      </div>
+      <ChoiceItemSchedule
+        start={state.item?.data.start}
+        end={state.item?.data.end}
+        statusEventos={state.item?.statusEventos.nome}
+        title={state.item?.title}
+        localidade={state.item?.localidade.nome}
+        isExterno={state.item?.isExterno}
+        km={state.item?.km}
+        modalidade={state.item?.modalidade.nome}
+        dataInicio={state.item?.dataInicio}
+        dataFim={state.item?.dataFim}
+        dataAtual={state.item?.dataAtual}
+      />
     )
   }, [])
 
   const renderContent = () => {
     return (
-
       <Card  customCss="rounded-lg cursor-not-allowed max-w-[100%]">
         <JoditEditor
         ref={editor}
@@ -154,6 +155,7 @@ export const Session = () => {
     <>
       { renderHeader }
       <div className="h-[85vh] flex flex-col">
+        {renderHeaderSumary}
         { renderContent() }
         { renderFooter()}
       </div>

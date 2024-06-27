@@ -15,6 +15,7 @@ export interface DropdownContextData {
   renderLocalidade: () => void;
   renderFuncao: () => void;
   renderTerapeutas: () => void;
+  renderDropDownPEI: () => void;
   renderEspecialidadeFuncao: (especialidade: string) => void;
   renderEspecialidadeTerapeuta: (especialidade: string) => void;
   renderTerapeutaFuncao: (terapeutaId: number) => void;
@@ -105,6 +106,12 @@ export const DropdownProvider = ({ children }: Props) => {
     const response: any = await dropDown('perfil');
     return response;
   }, []);
+
+  const renderProtocolo = useMemo(async () => {
+    const response: any = await dropDown('protocolo');
+    return response;
+  }, []);
+
 
   const renderPeriodo = useCallback(async () => {
     const response: any = await dropDown('periodo');
@@ -307,6 +314,14 @@ export const DropdownProvider = ({ children }: Props) => {
 
     return dropDownList;
   };
+  
+  const renderDropDownPEI = useCallback( async () => {
+    const dropDownList = {
+      protocolo: await renderProtocolo,
+    };
+
+    return dropDownList;
+  }, [])
 
   return (
     <DropdownContext.Provider
@@ -329,7 +344,8 @@ export const DropdownProvider = ({ children }: Props) => {
         renderDropdownQueueCalendar,
         renderDropdownCalendar,
         renderDropdownFinancial,
-        renderDropdownBaixa
+        renderDropdownBaixa,
+        renderDropDownPEI
       }}
     >
       {children}
