@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: Props) => {
       const _user = JSON.parse(storagedUser);
       setUser(_user);
       setPerfil(storagedPerfil);
-      intercepttRoute(storagedToken, _user.login);
+      intercepttRoute(storagedToken, _user.login, _user.id);
     }
   }, []);
 
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: Props) => {
       setPerfil(perfilName);
       setUser(user);
 
-      await intercepttRoute(accessToken, user.login);
+      await intercepttRoute(accessToken, user.login, user.id);
 
       renderToast({
         type: 'success',

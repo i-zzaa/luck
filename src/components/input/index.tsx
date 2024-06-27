@@ -131,9 +131,8 @@ export function Input({
               <textarea
                 id={field.id}
                 {...field}
-                value={value || field.value}
+                value={value || field?.value}
                 className={customClass}
-                placeholder={field.placeholder}
                 disabled={disabled}
                 rows="8"
               />
@@ -298,19 +297,19 @@ export function Input({
             control={control}
             rules={validate}
             render={({ field }: any) => (
-              <input
+              <textarea
                 disabled={disabled}
                 id={field.id}
                 {...field}
                 value={value || field.value}
                 key={field.id}
-                type={type}
                 className={"inputAnimado col-span-5"}
                 autoComplete="off"
                 onInput={(e: any) => {
                   field.onChange(e);
                   onChange && onChange(e);
                 }}
+                rows={2}
               />
             )}
           />

@@ -31,6 +31,83 @@ const loginFields = [
   },
 ];
 
+const PEIFields = [
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Paciente',
+    id: 'pacienteId',
+    name: 'paciente',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  // {
+  //   permission: 'PEI_FILTRO_SELECT_PROTOCOLO',
+  //   labelText: 'Programa',
+  //   id: 'programaId',
+  //   name: 'programa',
+  //   type: 'select',
+  //   singleSelect: true,
+  //   customCol: 'col-span-6 sm:col-span-6',
+  // },
+];
+
+const PEICadastroFields = [
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Paciente',
+    id: 'pacienteId',
+    name: 'paciente',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Programa',
+    id: 'programaId',
+    name: 'programa',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Estímulo Discriminativo',
+    id: 'estimuloDiscriminativo',
+    name: 'estimuloDiscriminativo',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Resposta',
+    id: 'resposta',
+    name: 'resposta',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Estímulo Reforçador Positivo',
+    id: 'estimuloReforcadorPositivo',
+    name: 'estimuloReforcadorPositivo',
+    type: 'text',
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  // {
+  //   permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+  //   labelText: 'Meta',
+  //   labelFor: 'meta',
+  //   id: 'meta0',
+  //   name: 'meta',
+  //   type: 'input-add',
+  //   isRequired: true,
+  //   customCol: 'col-span-5 sm:col-span-5',
+  //   buttonAdd: true,
+  // },
+];
+
 export const atividadesFields = {
   labelText: 'Atividade',
   labelFor: 'atividade',
@@ -66,7 +143,7 @@ const programaFields = [
   },
 ];
 
-export { loginFields };
+export { loginFields, PEIFields, PEICadastroFields };
 
 export const Fields: any = {
   programaFields,
