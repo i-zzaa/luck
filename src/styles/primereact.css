@@ -6132,6 +6132,10 @@ textarea {
   box-shadow: inset 0 -2px 0 0var(--violet-800);
 }
 
+.p-accordion-header-text {
+  width: 100%;
+}
+
 .p-accordion-header-text > span {
   display: grid;
   grid-template-columns: 20rem auto auto;
