@@ -4,7 +4,7 @@ import { Nav } from '../components/Nav';
 import Home from '../pages/Home';
 import { Schedule } from '../pages/Schedule';
 import { Session } from '../pages/Session';
-import DTT from '../pages/DTT';
+import DTT from '../components/DTT';
 import PEI from '../pages/PEI';
 import PEICADASTRO from '../foms/PEI';
 import MetasDTT from '../pages/MetasDTT';
