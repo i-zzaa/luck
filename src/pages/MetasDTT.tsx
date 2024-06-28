@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { create, filter, getList } from '../server';
+import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
 import { Tree } from 'primereact/tree';
 import { ButtonHeron, Card } from '../components';
@@ -18,6 +18,7 @@ export default function MetasDTT() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [nodes, setNodes] = useState([]);
+  const [isEdit, seIsEdit] = useState(false);
   const [keys, setKeys] = useState([] as any);
   const [selectedKeys, setSelectedKeys] = useState({} as any);
 
@@ -56,6 +57,7 @@ export default function MetasDTT() {
       })
 
       const result: any = await getList(`pei/activity-session/${state.id}`);
+      seIsEdit(Boolean(result.selectedKeys))
       setSelectedKeys(JSON.parse(result.selectedKeys))
 
       setNodes(metas)
@@ -73,8 +75,6 @@ export default function MetasDTT() {
   const onSubmit = async() => {
     setLoading(true)
     try {
-      console.log(keys);
-      
       const atividades: any =  []
       nodes.map((programas: any, programaKey: number) => {
         const programaCurrent: any = []
@@ -107,7 +107,13 @@ export default function MetasDTT() {
         selectedKeys
       }
 
-      await create('pei/activity-session', payload);
+      if (isEdit) {
+        payload.id = state.id
+        await update('pei/activity-session', payload);
+      }else {
+        await create('pei/activity-session', payload);
+      }
+
       renderToast({
         type: 'success',
         title: '200',

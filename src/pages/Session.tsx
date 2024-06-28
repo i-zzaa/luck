@@ -134,15 +134,13 @@ export const Session = () => {
                       ))
                       
                     }
-
-                  </AccordionTab>
+                </AccordionTab>
               ))
             }
           </Accordion>
         </Card>
       </div>
     )
-
   }
 
   const renderSumary = () => {
