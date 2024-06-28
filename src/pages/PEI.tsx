@@ -135,10 +135,10 @@ const PEI = () => {
     }
   }
 
-  const onSubmitFilter = async (formvalue: any) => {
+  const onSubmitFilter = async ({paciente}: any) => {
     setLoading(true)
     try {
-      const { data }: any = await filter('pei', formvalue);
+      const { data }: any = await filter('pei', paciente);
 
       setList(data);
     } catch (error) {

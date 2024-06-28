@@ -65,24 +65,6 @@ export const Session = () => {
     }
   }
 
-  const avaliationCount = () => {
-    let text = state.item.modalidade.nome;
-    if (text !== 'Avaliação' || !state.item?.dataInicio || !state.item?.dataFim)
-      return <span>{text}</span>;
-
-    const current = diffWeek(state.item.dataInicio, state.item.dataAtual);
-    const diffTotal = diffWeek(state.item.dataInicio, state.item.dataFim);
-
-    return (
-      <>
-        <span>
-          {text}
-          <span className="font-inter ml-2">{`${current}/${diffTotal}`}</span>{' '}
-        </span>
-      </>
-    );
-  };
-
   const renderHeaderSumary = useMemo(() => {
     return  (
       <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 

@@ -204,8 +204,8 @@ export default function PEICADASTRO() {
   }, []);
 
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} >
-      <div>
+    <form className="mt-8 space-y-6 " onSubmit={handleSubmit(onSubmit)} >
+      <div className='h-[90vh] flex flex-col overflow-y-auto'>
           {fields.map((item: any) => (
             <div>
               {
@@ -287,13 +287,15 @@ export default function PEICADASTRO() {
           }
         </div>
 
-        <ButtonHeron
-          text="Salvar"
-          type="primary"
-          size="full"
-          onClick={handleSubmit(onSubmit)}
-          loading={loading}
-        />
+        <div className='mt-auto'>
+          <ButtonHeron
+            text="Salvar"
+            type="primary"
+            size="full"
+            onClick={handleSubmit(onSubmit)}
+            loading={loading}
+          />
+        </div>
      </div>
    </form>
   );
