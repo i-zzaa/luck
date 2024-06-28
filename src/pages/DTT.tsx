@@ -75,6 +75,7 @@ const CheckboxDTT = () => {
       optionLabel="value"
       optionValue="value"
       iconTemplate={iconTemplate} 
+      className="w-8 h-8"
     />
   );
 };
