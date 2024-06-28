@@ -17,10 +17,9 @@ export default function MetasDTT() {
   const { state } = location;
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [list, setList] = useState({}) as any;
-
 
   const [nodes, setNodes] = useState([]);
+  const [keys, setKeys] = useState([] as any);
   const [selectedKeys, setSelectedKeys] = useState({} as any);
 
   const getPEI = useMemo(async() => {
@@ -57,10 +56,8 @@ export default function MetasDTT() {
         })
       })
 
-      setList(data);
       setNodes(metas)
     } catch (error) {
-      setList([]);
       renderToast({
         type: 'failure',
         title: '401',
@@ -74,13 +71,8 @@ export default function MetasDTT() {
   const onSubmit = async() => {
     setLoading(true)
     try {
-      const keys: any =  []
-      Object.keys(selectedKeys).filter((key) => {
-        if (selectedKeys[key].checked) {
-          keys.push(key)
-        }
-      })
-
+      console.log(keys);
+      
       const atividades: any =  []
       nodes.map((programas: any, programaKey: number) => {
         const programaCurrent: any = []
@@ -113,7 +105,7 @@ export default function MetasDTT() {
         selectedKeys
       }
 
-      await create('pei/atividade-sessao', payload);
+      await create('pei/activity-session', payload);
       renderToast({
         type: 'success',
         title: '200',
@@ -124,7 +116,6 @@ export default function MetasDTT() {
       navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`)
 
     } catch (error) {
-      setList([]);
       renderToast({
         type: 'failure',
         title: '401',
@@ -135,7 +126,6 @@ export default function MetasDTT() {
     setLoading(false)
 
   }
-
 
   const renderHeader = useMemo(() => {
     return  (
@@ -154,7 +144,6 @@ export default function MetasDTT() {
       />
     )
   }, [])
-  
 
   const renderFooter = useMemo(() => {
     return  (
@@ -165,11 +154,11 @@ export default function MetasDTT() {
           size="full"
           onClick={onSubmit}
           loading={loading}
+          typeButton="button"
         />
       </div>
     )
   }, [])
-
 
   useEffect(() => {
     getPEI
@@ -181,7 +170,12 @@ export default function MetasDTT() {
 
       <div className='grid gap-2 mt-8'>
         <div className='text-gray-400'> Selecione os programas para sessão</div>
-        <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={(e) => setSelectedKeys(e.value)} className="w-full md:w-30rem" />
+        <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
+          setSelectedKeys(e.value)
+          const _keys =  await  Object.keys(e.value)
+         setKeys(_keys)
+
+        }} className="w-full md:w-30rem" />
       </div>
 
       { renderFooter }

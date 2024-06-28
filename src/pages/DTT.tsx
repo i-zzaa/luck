@@ -1,10 +1,11 @@
 import { MultiStateCheckbox } from "primereact/multistatecheckbox";
-import { useState } from "react";
+import {  useState } from "react";
 
 
-const DTT = () => {
-  const [value, setValue] = useState('off');
+const CheckboxDTT = () => {
+  const [value, setValue] = useState(null);
 
+  
   const optionsCurrent = [
       {
         value: 'Correta (Independente)',
@@ -65,19 +66,17 @@ const DTT = () => {
   };
 
   return (
-    <div>
-        <MultiStateCheckbox 
-          value={value} 
-          options={optionsCurrent} 
-          onChange={(e) => {
-            return setValue(e.value)
-          }} 
-          optionLabel="value"
-          optionValue="value"
-          iconTemplate={iconTemplate} 
-        />
-    </div>
+    <MultiStateCheckbox 
+      value={value} 
+      options={optionsCurrent} 
+      onChange={(e) => {
+        return setValue(e.value)
+      }} 
+      optionLabel="value"
+      optionValue="value"
+      iconTemplate={iconTemplate} 
+    />
   );
 };
 
-export default DTT;
+export default CheckboxDTT;
