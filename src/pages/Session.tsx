@@ -96,11 +96,11 @@ export const Session = () => {
 
   const renderActivity = () => {
     return (
-      <>
+      <div className="mt-8">
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> ABA </span>
         </div>
-        <Card customCss="mt-8 rounded-lg cursor-not-allowed max-w-[100%]">
+        <Card customCss=" rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
               activity.map((programa: any, key: number)=> (
@@ -114,7 +114,7 @@ export const Session = () => {
                   }>
                     {
                       programa?.children.map((meta: any, metaKey: number) => (
-                        <div key={metaKey}>
+                        <div key={metaKey} className="my-8">
                           <span className="font-bold">{ meta.label}</span>
                           <ul className="list-disc mt-2 font-inter ml-4">
                           {
@@ -140,7 +140,7 @@ export const Session = () => {
             }
           </Accordion>
         </Card>
-      </>
+      </div>
     )
 
   }
