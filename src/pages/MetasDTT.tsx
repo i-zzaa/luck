@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Header from '../components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { create, filter } from '../server';
+import { create, filter, getList } from '../server';
 import { useToast } from '../contexts/toast';
 import { Tree } from 'primereact/tree';
 import { ButtonHeron, Card } from '../components';
@@ -55,6 +54,9 @@ export default function MetasDTT() {
           children: metaCurrent
         })
       })
+
+      const result: any = await getList(`pei/activity-session/${state.id}`);
+      setSelectedKeys(JSON.parse(result.selectedKeys))
 
       setNodes(metas)
     } catch (error) {
@@ -145,20 +147,20 @@ export default function MetasDTT() {
     )
   }, [])
 
-  const renderFooter = useMemo(() => {
+  const renderFooter = () => {
     return  (
       <div className='mt-auto'>
         <ButtonHeron
           text="Salvar"
           type="primary"
           size="full"
-          onClick={onSubmit}
+          onClick={()=>onSubmit()}
           loading={loading}
           typeButton="button"
         />
       </div>
     )
-  }, [])
+  }
 
   useEffect(() => {
     getPEI
@@ -178,7 +180,7 @@ export default function MetasDTT() {
         }} className="w-full md:w-30rem" />
       </div>
 
-      { renderFooter }
+      { renderFooter() }
     </div>
   );
 }

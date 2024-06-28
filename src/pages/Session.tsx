@@ -96,47 +96,51 @@ export const Session = () => {
 
   const renderActivity = () => {
     return (
-      <Card customCss="mt-8 rounded-lg cursor-not-allowed max-w-[100%]">
-        <Accordion>
-           {
-            activity.map((programa: any, key: number)=> (
-              <AccordionTab 
-                key={key} 
-                tabIndex={key}
-                header={
-                  <div className="flex items-center  w-full">
-                    <span>{ programa.label}</span>
-                  </div>
-                }>
-                  {
-                    programa?.children.map((meta: any, metaKey: number) => (
-                      <div key={metaKey}>
-                        <span className="font-bold">{ meta.label}</span>
-                        <ul className="list-disc mt-2 font-inter ml-4">
-                        {
-                           meta?.children.map((act: any, actKey: number) => {
-                            return (
-                              <li className="" key={actKey}>
-                                 <span>{ act.label}</span>
-                                 <div className="flex gap-1 -ml-4">
-                                  { Array.from({length: repeatActivity}).map((v: any, checkKey: number) => <CheckboxDTT key={checkKey}></CheckboxDTT>)}
-                                 </div>
-                              </li>
-                            )
+      <>
+        <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
+          <span className="font-bold"> ABA </span>
+        </div>
+        <Card customCss="mt-8 rounded-lg cursor-not-allowed max-w-[100%]">
+          <Accordion>
+            {
+              activity.map((programa: any, key: number)=> (
+                <AccordionTab 
+                  key={key} 
+                  tabIndex={key}
+                  header={
+                    <div className="flex items-center  w-full">
+                      <span>{ programa.label}</span>
+                    </div>
+                  }>
+                    {
+                      programa?.children.map((meta: any, metaKey: number) => (
+                        <div key={metaKey}>
+                          <span className="font-bold">{ meta.label}</span>
+                          <ul className="list-disc mt-2 font-inter ml-4">
+                          {
+                            meta?.children.map((act: any, actKey: number) => {
+                              return (
+                                <li className="my-2" key={actKey}>
+                                  <span>{ act.label}</span>
+                                  <div className="flex gap-1 -ml-4">
+                                    { Array.from({length: repeatActivity}).map((v: any, checkKey: number) => <CheckboxDTT key={checkKey}></CheckboxDTT>)}
+                                  </div>
+                                </li>
+                              )
+                            })
+                          }
+                          </ul>
+                        </div>
+                      ))
+                      
+                    }
 
-                           })
-                        }
-                        </ul>
-                      </div>
-                    ))
-                    
-                  }
-
-                </AccordionTab>
-            ))
-           }
-        </Accordion>
-      </Card>
+                  </AccordionTab>
+              ))
+            }
+          </Accordion>
+        </Card>
+      </>
     )
 
   }
@@ -189,13 +193,13 @@ export const Session = () => {
   
 
   return (
-    <>
+    <div className="h-[90vh] flex flex-col">
       { renderHeader }
-      <div className="h-[85vh] flex flex-col">
+      <div className="overflox-y-auto">
         { renderActivity() }
         { renderSumary() }
-        { renderFooter()}
       </div>
-    </>
+        { renderFooter()}
+    </div>
   )
 }
