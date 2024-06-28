@@ -55,8 +55,14 @@ export const Schedule = () => {
   //   }
   // }
 
+  const handleButtonDTTClick = (e: any, item: any) => {
+    e.stopPropagation(); 
+    navigate(`/${CONSTANTES_ROUTERS.METASDTT}`, { state: item})
+  };
 
-  const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
+
+  // const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
+  const getDayTerapeuta = async (currentDateStart = '2024-06-27',  currentDateEnd = '2024-06-28') => {
     setLoading(true)
     try {
       const response: any = await getList(`/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`);
@@ -90,27 +96,39 @@ export const Schedule = () => {
 
   const cardChoice = (item: any) => {
     return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
-      <ChoiceItemSchedule
-       start={item?.data.start}
-       end={item?.data.end}
-       statusEventos={item?.statusEventos.nome}
-       title={item?.title}
-       localidade={item?.localidade.nome}
-       isExterno={item?.isExterno}
-       km={item?.km}
-       modalidade={item?.modalidade.nome}
-       dataInicio={item?.dataInicio}
-       dataFim={item?.dataFim}
-       dataAtual={item?.dataAtual}
-      />
+      <div className="flex">
+        <ChoiceItemSchedule
+        start={item?.data.start}
+        end={item?.data.end}
+        statusEventos={item?.statusEventos.nome}
+        title={item?.title}
+        localidade={item?.localidade.nome}
+        isExterno={item?.isExterno}
+        km={item?.km}
+        modalidade={item?.modalidade.nome}
+        dataInicio={item?.dataInicio}
+        dataFim={item?.dataFim}
+        dataAtual={item?.dataAtual}
+        />
+          {
+            item.statusEventos.nome  != STATUS_EVENTS.atendido && <ButtonHeron
+            text="Pesquisar"
+            icon="pi pi-file-edit"
+            type="primary"
+            size="icon"
+            loading={loading}
+            onClick={(event: any) => handleButtonDTTClick(event, item)}
+          />
+          }
 
-        { item.statusEventos.nome  == STATUS_EVENTS.atendido  &&  <ButtonHeron
-        text="Atendido"
-        type="transparent"
-        icon="pi pi-check"
-        size="icon"
-        color="violet"
-      />}
+          { item.statusEventos.nome  == STATUS_EVENTS.atendido  &&  <ButtonHeron
+          text="Atendido"
+          type="transparent"
+          icon="pi pi-check"
+          size="icon"
+          color="violet"
+        />}
+      </div>
     </Card>
   }
 

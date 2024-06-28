@@ -7,15 +7,17 @@ import { Session } from '../pages/Session';
 import DTT from '../pages/DTT';
 import PEI from '../pages/PEI';
 import PEICADASTRO from '../foms/PEI';
+import MetasDTT from '../pages/MetasDTT';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
   CRUD = 'cadastro',
   CALENDAR = 'agenda',
   SESSION = 'session',
-  DTT = 'metas-dtt',
+  DTT = 'dtt',
   PEI = 'pei',
   PEICADASTRO = 'pei-cadastro',
+  METASDTT = 'metas-dtt',
 }
 export interface RoutesProps {
   path: string;
@@ -28,6 +30,7 @@ export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.METASDTT, componentRoute: MetasDTT, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
   { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
   { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false },

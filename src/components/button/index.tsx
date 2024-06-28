@@ -6,7 +6,7 @@ export interface ButtonProps {
   text: string;
   loading?: boolean;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (event: any) => any;
   typeButton?: 'button' | 'submit' | 'reset'
 }
 import { clsx } from 'clsx';
