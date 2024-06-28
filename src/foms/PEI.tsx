@@ -67,7 +67,8 @@ export default function PEICADASTRO() {
     formState: { errors },
     setValue,
     control,
-    reset
+    reset,
+    watch
   } = useForm<FormProps>({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
@@ -93,14 +94,17 @@ export default function PEICADASTRO() {
     }
 
      Object.keys(formvalue).map((key: any, index) => {
-      if (key.includes('meta-')) {
+      if (key.includes('-meta-') && !key.includes(`-sub-item-`)) {
         const match =  key.match(/\d+/);
-        const metaId = Number(match[0]);
+        const matchLast = key.match(/(\d+)$/);
+
+        const programaId = Number(match[0]);
+        const metaId = Number(matchLast[0]);
 
         const subitems : any=  []
         
-        Object.keys(formvalue).map((sub) => {
-          if (sub.includes(`${metaId}-sub-item-`)) {
+        Object.keys(formvalue).map((sub, subIndex) => {
+          if (sub.includes(`${programaId}-meta-${metaId}-sub-item-`)) {
             subitems.push({
               ...SUBITEM,
               id:  sub,
@@ -117,7 +121,7 @@ export default function PEICADASTRO() {
         })
       } else if  (key.includes('Id')){
         payload[key] = formvalue[key].id
-      } else if(!key.includes('meta-') && ! key.includes('-sub-item-') && !key.includes('Id')) {
+      } else if(!key.includes('-meta-') && ! key.includes('-sub-item-') && !key.includes('Id')) {
         payload[key] = formvalue[key]
       } 
     })
@@ -149,7 +153,10 @@ export default function PEICADASTRO() {
 
   const addMeta = () => {
     const item = [...metas]
-    METAS.id = `meta-${item.length}`
+
+    const programaId: any = watch('programaId');
+
+    METAS.id = `${programaId.id}-meta-${item.length}`
     item.push(METAS)
 
     setMetas(item)
@@ -174,7 +181,9 @@ export default function PEICADASTRO() {
 
     const subitems = item[idMeta]?.subitems ? [...item[idMeta].subitems] : []
 
-    SUBITEM.id = `${idMeta}-sub-item-${subitems.length}`
+    const metakey =   item[idMeta].id
+
+    SUBITEM.id = `${item[idMeta].id}-sub-item-${subitems.length}`
     subitems.push(SUBITEM)
 
     item[idMeta].subitems = subitems

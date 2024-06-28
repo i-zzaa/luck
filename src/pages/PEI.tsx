@@ -32,10 +32,10 @@ const PEI = () => {
    setLoading(true)
    try {
 
-    const pacientId = item.paciente.id
+    const pacienteId = item.paciente
     await deleteItem(`pei/${item.id}`)
 
-    onSubmitFilter({ pacientId })
+    onSubmitFilter({ pacienteId })
     renderToast({
       type: 'success',
       title: 'Sucesso!',
@@ -135,10 +135,10 @@ const PEI = () => {
     }
   }
 
-  const onSubmitFilter = async ({paciente}: any) => {
+  const onSubmitFilter = async ({ pacienteId }: any) => {
     setLoading(true)
     try {
-      const { data }: any = await filter('pei', paciente);
+      const { data }: any = await filter('pei', {paciente: pacienteId});
 
       setList(data);
     } catch (error) {
