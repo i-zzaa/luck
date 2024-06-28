@@ -8,7 +8,8 @@ import { useToast } from "../contexts/toast";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
-import CheckboxDTT from "./DTT";
+import CheckboxDTT from "../components/DTT";
+import { useForm } from 'react-hook-form';
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -21,7 +22,10 @@ export const Session = () => {
   const [repeatActivity, setRepeatActivity] = useState(10);
   const [content, setContent] = useState('');
   const [activity, setActivity] = useState([]);
+  const [list, setList] = useState([] as any);
+  const [dtt, setDTT] = useState([] as any);
   const [session, setSession] = useState({});
+
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -40,10 +44,11 @@ export const Session = () => {
     try {
       const result = await getList(`/pei/activity/session/${state.item.id}`)
       setActivity(result)
+      formatarDado(result)
     }catch (e) {}
   }
 
-  async function handleSubmitSumary() {
+  const handleSubmitSumary = async() => {
     try {
      const payload = {
         calendarioId: state.item.id,
@@ -75,6 +80,12 @@ export const Session = () => {
     }
   }
 
+  const onSubmit = () => {
+    // if (formState.devolutiva) {
+    //   setValue('naFila', true);
+    //   formState.naFila = true;
+    // }
+  };
 
   const renderHeader = useMemo(() => {
     return  (
@@ -94,6 +105,47 @@ export const Session = () => {
     )
   }, [])
 
+  const formatarDado = async (data: any) => {
+    const result = await Promise.all( data.map(async (programa: any, key: number)=> {
+      return {
+        id: programa.id,
+        label: programa.label,
+        children: await Promise.all( programa.children.map(async (meta: any, metakey: number)=> {
+          return {
+            id: meta.id,
+            label: meta.label,
+            children:  await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
+              return {
+                id: sub.id,
+                label: sub.label,
+                disabled: false,
+                children:  Array.from({ length: repeatActivity }).map((index)=> {
+                  return null
+                })
+              }
+            }))
+          }
+        }))
+      }
+    }))
+
+    setList(result)
+
+  }
+
+  const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number) => {
+    return <CheckboxDTT key={checkKey} disabled={ list[programaId].children[metaId].children[activityId].disabled} onChange={(value: any)=> {
+      const current = [...list]
+
+      const firstFourAreC =  list[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
+      list[programaId].children[metaId].children[activityId].disabled = firstFourAreC
+
+      current[programaId].children[metaId].children[activityId].children[checkKey] = value
+      setDTT(current)
+    }} value={dtt} />
+  };
+
+
   const renderActivity = () => {
     return (
       <div className="mt-8">
@@ -103,7 +155,7 @@ export const Session = () => {
         <Card customCss=" rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
-              activity.map((programa: any, key: number)=> (
+              list.map((programa: any, key: number)=> (
                 <AccordionTab 
                   key={key} 
                   tabIndex={key}
@@ -115,7 +167,7 @@ export const Session = () => {
                     {
                       programa?.children.map((meta: any, metaKey: number) => (
                         <div key={metaKey} className="my-8">
-                          <span className="font-bold">{ meta.label}</span>
+                          <span className="font-bold font-inter">Meta {key + 1}: </span> <span className="font-base font-inter">{ meta.label}</span>
                           <ul className="list-disc mt-2 font-inter ml-4">
                           {
                             meta?.children.map((act: any, actKey: number) => {
@@ -123,7 +175,9 @@ export const Session = () => {
                                 <li className="my-2" key={actKey}>
                                   <span>{ act.label}</span>
                                   <div className="flex gap-1 -ml-4">
-                                    { Array.from({length: repeatActivity}).map((v: any, checkKey: number) => <CheckboxDTT key={checkKey}></CheckboxDTT>)}
+                                    {
+                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxes(key, metaKey, actKey, checkKey))
+                                    }
                                   </div>
                                 </li>
                               )
@@ -191,7 +245,7 @@ export const Session = () => {
   
 
   return (
-    <div className="h-[90vh] flex flex-col">
+    <div  className="h-[90vh] flex flex-col">
       { renderHeader }
       <div className="overflox-y-auto">
         { renderActivity() }

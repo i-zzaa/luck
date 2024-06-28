@@ -1,14 +1,13 @@
 import { MultiStateCheckbox } from "primereact/multistatecheckbox";
-import {  useState } from "react";
+import { useEffect, useState } from "react";
 
 
-const CheckboxDTT = () => {
-  const [value, setValue] = useState(null);
+const CheckboxDTT = ({ onChange, value , disabled}: any) => {
+  const [valueCurrent, setValue] = useState(value)
 
-  
   const optionsCurrent = [
       {
-        value: 'Correta (Independente)',
+        value: 'C',
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#662C75"/>
@@ -17,7 +16,7 @@ const CheckboxDTT = () => {
         )
       },
       {
-        value: 'Dica Total',
+        value: 'DT',
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#682D75"/>
@@ -28,7 +27,7 @@ const CheckboxDTT = () => {
         )
       },
       {
-        value: 'Dica Parcial',
+        value: 'DP',
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#682D75"/>
@@ -39,7 +38,7 @@ const CheckboxDTT = () => {
         )
       },
       {
-        value: 'Dica Gestual',
+        value: 'DG',
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#682D75"/>
@@ -49,7 +48,7 @@ const CheckboxDTT = () => {
         )
       },
       {
-        value: 'Dica Verbal',
+        value: 'DV',
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#682D75"/>
@@ -67,15 +66,17 @@ const CheckboxDTT = () => {
 
   return (
     <MultiStateCheckbox 
-      value={value} 
+      value={valueCurrent} 
       options={optionsCurrent} 
       onChange={(e) => {
-        return setValue(e.value)
+        onChange(e.value)
+        return  setValue(e.value)
       }} 
       optionLabel="value"
       optionValue="value"
       iconTemplate={iconTemplate} 
       className="w-8 h-8"
+      disabled={disabled}
     />
   );
 };
