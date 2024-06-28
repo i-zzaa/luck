@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Filter } from "../templates/filter";
 import { PEIFields } from "../constants/formFields";
-import { dropDown, filter } from "../server";
+import { deleteItem, dropDown, filter } from "../server";
 import { useToast } from "../contexts/toast";
 import { Card } from "../components/card";
 import { NotFound } from "../components/notFound";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import { Fieldset } from "primereact/fieldset";
+import { ButtonHeron } from "../components/button";
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -22,6 +23,36 @@ const PEI = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
+
+  const handleEditPrograma = (item: any) => {
+    navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`, { state: item})
+  }
+
+  const handleRemovePrograma = async(item: any) => {
+   setLoading(true)
+   try {
+
+    const pacientId = item.paciente.id
+    await deleteItem(`pei/${item.id}`)
+
+    onSubmitFilter({ pacientId })
+    renderToast({
+      type: 'success',
+      title: 'Sucesso!',
+      message: 'PEI removido!',
+      open: true,
+    });
+
+   } catch (error) {
+     renderToast({
+       type: 'failure',
+       title: '401',
+       message: 'PEI não encontrado!',
+       open: true,
+     });
+   }
+   setLoading(false)
+  }
 
   const renderFiledSet = (title: string, text: string) => (
     <Fieldset className="text-[8px]">
@@ -38,10 +69,33 @@ const PEI = () => {
           {
             list.map((item: any, key: number) => {
               return (
-                <AccordionTab key={key} header={
-                  <span className="flex align-items-center gap-2 w-full">
-                    { item.programa.nome}
-                  </span>
+                <AccordionTab 
+                key={key} 
+                header={
+                  <div className="flex items-center  w-full">
+                    <span>{ item.programa.nome}</span>
+
+                    <div className="ml-auto" >
+                      <ButtonHeron
+                        text="editar"
+                        type="transparent"
+                        size="icon"
+                        icon="pi pi-pencil"
+                        color='violet'
+                        onClick={()=>handleEditPrograma(item)}
+                        loading={loading}
+                      />
+                      <ButtonHeron
+                        text="remove"
+                        icon="pi pi-trash"
+                        type="transparent"
+                        color='red'
+                        size="icon"
+                        onClick={()=>handleRemovePrograma(item)}
+                        loading={loading}
+                      />
+                    </div>
+                  </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
                     <div className="font-bold my-2" > PROCEDIMENTO DE ENSINO: ENSINO ESTRUTURADO - DTT - TREINO DE TENTATIVAS DISCRETAS</div>

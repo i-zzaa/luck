@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form';
 import { ButtonHeron, Input } from '../components/index';
 import { PEICadastroFields } from '../constants/formFields';
 import { useToast } from '../contexts/toast';
-import { create, dropDown } from '../server';
+import { create, dropDown, update } from '../server';
 import { permissionAuth } from '../contexts/permission';
 import { Divider, Fieldset } from 'primereact';
+import { useLocation } from 'react-router-dom';
 
 const fields = PEICadastroFields;
 const fieldsState: any = {};
@@ -15,10 +16,10 @@ fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
 interface FormProps {
   pacienteId: any,
-  protocolo: string,
+  programaId: string,
   estimuloDiscriminativo: string,
   resposta: string,
-  estimuloReforcoPositivo: string,
+  estimuloReforcadorPositivo: string,
 }
 
 export default function PEICADASTRO() {
@@ -27,7 +28,7 @@ export default function PEICADASTRO() {
     programaId: '',
     estimuloDiscriminativo: '',
     resposta: '',
-    estimuloReforcoPositivo: '',
+    estimuloReforcadorPositivo: '',
   };
 
   const METAS = {
@@ -54,9 +55,12 @@ export default function PEICADASTRO() {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [metas, setMetas]= useState<any>([]);
-
+  
+  const location = useLocation();
   const { renderToast } = useToast();
   const { hasPermition } = permissionAuth();
+  
+  const { state } = location;
 
   const {
     handleSubmit,
@@ -67,6 +71,8 @@ export default function PEICADASTRO() {
   } = useForm<FormProps>({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
+
+
     const [paciente, programa]: any = await Promise.all([
       dropDown('paciente'),
       dropDown('programa'),
@@ -98,7 +104,7 @@ export default function PEICADASTRO() {
             subitems.push({
               ...SUBITEM,
               id:  sub,
-              value: formvalue[sub]
+              value: formvalue[sub],
             })
           }
         })
@@ -107,7 +113,7 @@ export default function PEICADASTRO() {
           ...METAS,
           id: key,
           subitems,
-          value: formvalue[key]
+          value: formvalue[key],
         })
       } else if  (key.includes('Id')){
         payload[key] = formvalue[key].id
@@ -116,7 +122,10 @@ export default function PEICADASTRO() {
       } 
     })
 
-      await create('pei', payload);
+    if (Boolean(state))  payload.id = state.id
+    
+    Boolean(state) ? await update('pei', payload)  : await create('pei', payload);
+
       reset()
       setLoading(false);
       setMetas([])
@@ -172,6 +181,23 @@ export default function PEICADASTRO() {
 
     setMetas(item)
   }
+
+  useEffect(()=> {
+    if (Boolean(state)) {
+      const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas} = state
+      setValue('pacienteId', paciente)
+      setValue('programaId', programa)
+      setValue('estimuloDiscriminativo', estimuloDiscriminativo)
+      setValue('resposta', resposta)
+      setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo)
+
+      setMetas(metas)
+      metas.map((meta: any)=> {
+        setValue(meta.id, meta.value)
+        meta.subitems && meta.subitems.map((subitem: any)=>  setValue(subitem.id, subitem.value))
+      })
+    }
+  }, [])
   
   useEffect(() => {
     renderDropdown()
