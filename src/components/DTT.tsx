@@ -1,5 +1,5 @@
 import { MultiStateCheckbox } from "primereact/multistatecheckbox";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 
 const CheckboxDTT = ({ onChange, value , disabled}: any) => {
@@ -67,6 +67,7 @@ const CheckboxDTT = ({ onChange, value , disabled}: any) => {
   return (
     <MultiStateCheckbox 
       value={valueCurrent} 
+      defaultValue={value}
       options={optionsCurrent} 
       onChange={(e) => {
         onChange(e.value)
