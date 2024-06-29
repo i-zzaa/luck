@@ -9,7 +9,6 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
-import { useForm } from 'react-hook-form';
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -21,7 +20,6 @@ export const Session = () => {
   const editor = useRef(null);
   const [repeatActivity, setRepeatActivity] = useState(10);
   const [content, setContent] = useState('');
-  const [activity, setActivity] = useState([]);
   const [list, setList] = useState([] as any);
   const [dtt, setDTT] = useState([] as any);
   const [session, setSession] = useState({});
@@ -31,11 +29,16 @@ export const Session = () => {
 
   const getSumaryContent = async() => {
     try {
-      const result = await getList(`/sessao/sumary/${state.item.id}`)
+      const result = await getList(`/sessao/${state.item.id}`)
       if (result) {
         setContent(result.resumo)
         setSession(result)
         setIsEdit(true)
+
+        formatarDado(result.sessao)
+        setDTT(result.sessao)
+      }else {
+        await getActivity()
       }
     }catch (e) {}
   }
@@ -43,7 +46,6 @@ export const Session = () => {
   const getActivity = async() => {
     try {
       const result = await getList(`/pei/activity/session/${state.item.id}`)
-      setActivity(result)
       formatarDado(result)
     }catch (e) {}
   }
@@ -53,14 +55,12 @@ export const Session = () => {
      const payload = {
         calendarioId: state.item.id,
         pacienteId: state.item.paciente.id,
-        sessao: {
-          teste: "ok"
-        },
+        sessao: JSON.stringify(dtt),
         resumo: content,
         ...session
       };
 
-      isEdit ?  await update('/sessao/sumary', payload):  await create('/sessao/sumary', payload)
+      isEdit ?  await update('/sessao', payload):  await create('/sessao', payload)
 
       renderToast({
         type: 'success',
@@ -80,12 +80,6 @@ export const Session = () => {
     }
   }
 
-  const onSubmit = () => {
-    // if (formState.devolutiva) {
-    //   setValue('naFila', true);
-    //   formState.naFila = true;
-    // }
-  };
 
   const renderHeader = useMemo(() => {
     return  (
@@ -108,20 +102,24 @@ export const Session = () => {
   const formatarDado = async (data: any) => {
     const result = await Promise.all( data.map(async (programa: any, key: number)=> {
       return {
-        id: programa.id,
+        key: programa.key,
         label: programa.label,
         children: await Promise.all( programa.children.map(async (meta: any, metakey: number)=> {
           return {
-            id: meta.id,
+            key: meta.key,
             label: meta.label,
             children:  await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
+              const children = sub.children || Array.from({ length: repeatActivity }).map((index)=> {
+                return null
+              })
+
+              const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
+
               return {
-                id: sub.id,
+                key: sub.key,
                 label: sub.label,
-                disabled: false,
-                children:  Array.from({ length: repeatActivity }).map((index)=> {
-                  return null
-                })
+                disabled: firstFourAreC,
+                children
               }
             }))
           }
@@ -133,8 +131,9 @@ export const Session = () => {
 
   }
 
-  const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number) => {
-    return <CheckboxDTT key={checkKey} disabled={ list[programaId].children[metaId].children[activityId].disabled} onChange={(value: any)=> {
+  const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
+
+    return <CheckboxDTT key={checkKey}  value={value} disabled={ list[programaId].children[metaId].children[activityId].disabled} onChange={(value: any)=> {
       const current = [...list]
 
       const firstFourAreC =  list[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
@@ -142,7 +141,7 @@ export const Session = () => {
 
       current[programaId].children[metaId].children[activityId].children[checkKey] = value
       setDTT(current)
-    }} value={dtt} />
+    }}/>
   };
 
 
@@ -167,7 +166,7 @@ export const Session = () => {
                     {
                       programa?.children.map((meta: any, metaKey: number) => (
                         <div key={metaKey} className="my-8">
-                          <span className="font-bold font-inter">Meta {key + 1}: </span> <span className="font-base font-inter">{ meta.label}</span>
+                          <span className="font-bold font-inter">Meta {metaKey + 1}: </span> <span className="font-base font-inter">{ meta.label}</span>
                           <ul className="list-disc mt-2 font-inter ml-4">
                           {
                             meta?.children.map((act: any, actKey: number) => {
@@ -176,7 +175,7 @@ export const Session = () => {
                                   <span>{ act.label}</span>
                                   <div className="flex gap-1 -ml-4">
                                     {
-                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxes(key, metaKey, actKey, checkKey))
+                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxes(key, metaKey, actKey, checkKey, itm))
                                     }
                                   </div>
                                 </li>
@@ -208,7 +207,7 @@ export const Session = () => {
           ref={editor}
           value={content}
           config={{
-            readonly: isEdit,
+            readonly: false,
             language: 'pt_br',
             buttons: "bold,italic,underline,strikethrough,font,fontsize,paragraph,copyformat,table,fullsize,preview",
             saveModeInStorage: true,
@@ -232,14 +231,13 @@ export const Session = () => {
           size="full"
           loading={loading}
           onClick={() => handleSubmitSumary()}
-          disabled={isEdit}
+          // disabled={isEdit}
         />
       </div>
     )
   }
 
   useEffect(() => {
-    getActivity()
     getSumaryContent()
   }, [])
   
