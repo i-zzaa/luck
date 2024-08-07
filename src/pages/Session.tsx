@@ -58,6 +58,7 @@ export const Session = () => {
         pacienteId: state.item.paciente.id,
         sessao: JSON.stringify(dtt),
         resumo: content,
+        date: state.item.date,
         ...session
       };
 
@@ -134,7 +135,8 @@ export const Session = () => {
 
   const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
 
-    return <CheckboxDTT key={checkKey}  value={value} disabled={ list[programaId].children[metaId].children[activityId].disabled} onChange={(value: any)=> {
+    return <CheckboxDTT key={checkKey}  value={value} disabled={ list[programaId].children[metaId].children[activityId].disabled || isEdit} 
+    onChange={(value: any)=> {
       const current = [...list]
 
       const firstFourAreC =  list[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
@@ -223,7 +225,7 @@ export const Session = () => {
           ref={editor}
           value={content}
           config={{
-            readonly: false,
+            readonly: isEdit,
             language: 'pt_br',
             buttons: "bold,italic,underline,strikethrough,font,fontsize,paragraph,copyformat,table,fullsize,preview",
             saveModeInStorage: true,
