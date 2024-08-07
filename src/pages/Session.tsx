@@ -9,6 +9,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
+import { NotFound } from "../components/notFound";
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -151,7 +152,7 @@ export const Session = () => {
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> ABA </span>
         </div>
-        <Card customCss=" rounded-lg cursor-not-allowed max-w-[100%]">
+        {list.length ? (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
               list.map((programa: any, key: number)=> (
@@ -191,7 +192,22 @@ export const Session = () => {
               ))
             }
           </Accordion>
+        </Card>): (
+        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+          <div className="grid gap-4 justify-center ">
+            <NotFound />
+            <ButtonHeron
+              text="Selecionar Metas-DTT"
+              icon="pi pi-book"
+              type="primary"
+              color='white'
+              size="sm"
+              onClick={()=>   navigate(`/${CONSTANTES_ROUTERS.METASDTT}`, { state: state.item})}
+            />
+          </div>
         </Card>
+        )
+      }
       </div>
     )
   }
