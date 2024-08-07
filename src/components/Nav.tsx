@@ -60,7 +60,7 @@ export const Nav = () => {
 
   const renderClose = () => {
     return (
-      <aside className={'fixed w-full right-2 shadow-3xl h-12 z-20  bg-primary duration-700 ease-in-out hover:scale-[105%] cursor-pointer'}>
+      <aside className={'fixed w-full right-2 shadow-3xl h-12 z-20  bg-primary duration-700 ease-in-out cursor-pointer'}>
         <div className='flex justify-between items-center'>
           <div className="sm:text-end ml-2">
             <ButtonHeron
