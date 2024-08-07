@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
 import { Tree } from 'primereact/tree';
-import { ButtonHeron, Card } from '../components';
+import { ButtonHeron } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { NotFound } from '../components/notFound';
 
 
 export default function MetasDTT() {
@@ -154,6 +155,39 @@ export default function MetasDTT() {
       />
     )
   }, [])
+  
+  const renderContent = () => {
+    return  (
+      <div className='grid gap-2 mt-8'>
+       {
+        nodes.length ? (
+          <div>
+          <div className='text-gray-400'> Selecione os programas para sessão</div>
+          <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
+            setSelectedKeys(e.value)
+            const _keys =  await  Object.keys(e.value)
+          setKeys(_keys)
+
+          }} className="w-full md:w-30rem" />
+        </div>
+        ) : (
+          <div className='grid gap-4 justify-center'>
+             <NotFound />
+              <ButtonHeron
+                text="Cadastrar PEI"
+                icon="pi pi-book"
+                type="primary"
+                color='white'
+                size="sm"
+                onClick={()=>  navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`)}
+              />
+          </div>
+        )
+         
+       }
+    </div>
+    )
+  }
 
   const renderFooter = () => {
     return  (
@@ -178,16 +212,7 @@ export default function MetasDTT() {
     <div className='h-[90vh] flex flex-col'>
       { renderHeader}
 
-      <div className='grid gap-2 mt-8'>
-        <div className='text-gray-400'> Selecione os programas para sessão</div>
-        <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
-          setSelectedKeys(e.value)
-          const _keys =  await  Object.keys(e.value)
-         setKeys(_keys)
-
-        }} className="w-full md:w-30rem" />
-      </div>
-
+      { renderContent() }
       { renderFooter() }
     </div>
   );
