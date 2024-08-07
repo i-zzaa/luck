@@ -64,6 +64,15 @@ const PEICadastroFields = [
   },
   {
     permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Procedimento de Ensino',
+    id: 'procedimentoEnsinoId',
+    name: 'procedimentoEnsino',
+    type: 'select',
+    singleSelect: false,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
     labelText: 'Programa',
     id: 'programaId',
     name: 'programa',

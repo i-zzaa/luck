@@ -6,7 +6,7 @@ import { useToast } from "../contexts/toast";
 import { Card } from "../components/card";
 import { NotFound } from "../components/notFound";
 import { LoadingHeron } from "../components/loading";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import { Fieldset } from "primereact/fieldset";
@@ -19,6 +19,8 @@ fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 const PEI = () => {
   const { renderToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { state } = location;
 
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -98,7 +100,7 @@ const PEI = () => {
                   </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
-                    <div className="font-bold my-2" > PROCEDIMENTO DE ENSINO: ENSINO ESTRUTURADO - DTT - TREINO DE TENTATIVAS DISCRETAS</div>
+                    <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>
                     <div className=" grid grid-cols-3 gap-1">
                       { renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
                       { renderFiledSet('Resposta', item.resposta)}
@@ -166,6 +168,7 @@ const PEI = () => {
         screen="PEI"
         loading={loading}
         onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`)}
+        defaultValues={state}
       />
     )
   }
@@ -181,6 +184,9 @@ const PEI = () => {
   }, []);
 
   useEffect(() => {
+    if (state) {
+      onSubmitFilter(state)
+    }
     renderPrograma();
   }, []);
   

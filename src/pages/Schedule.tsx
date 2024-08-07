@@ -61,8 +61,8 @@ export const Schedule = () => {
   };
 
 
-  // const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
-  const getDayTerapeuta = async (currentDateStart = '2024-06-27',  currentDateEnd = '2024-06-28') => {
+  const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
+  // const getDayTerapeuta = async (currentDateStart = '2024-06-27',  currentDateEnd = '2024-06-28') => {
     setLoading(true)
     try {
       const response: any = await getList(`/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`);
