@@ -57,8 +57,10 @@ export default function MetasDTT() {
       })
 
       const result: any = await getList(`pei/activity-session/${state.id}`);
-      seIsEdit(Boolean(result.selectedKeys))
-      setSelectedKeys(JSON.parse(result.selectedKeys))
+      if (Boolean(result)) {
+        seIsEdit(Boolean(result.selectedKeys))
+        setSelectedKeys(JSON.parse(result.selectedKeys))
+      }
 
       setNodes(metas)
     } catch (error) {

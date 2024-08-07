@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext, useAuth } from '../contexts/auth';
 import { permissionAuth } from '../contexts/permission';
 import { ROUTES, RoutesProps } from '../routes/OtherRoutes';
@@ -6,8 +6,11 @@ import { firtUpperCase } from '../util/util';
 import { useContext, useEffect, useState } from 'react';
 import { LayoutContext } from '../contexts/layout.context';
 import clsx from 'clsx';
+import { ButtonHeron } from './button';
 
 export const Nav = () => {
+  const navigate = useNavigate();
+
   const { Logout } = useAuth();
   const { hasPermition, permissions } = permissionAuth();
   const { open, setOpen } = useContext(LayoutContext);
@@ -57,8 +60,22 @@ export const Nav = () => {
 
   const renderClose = () => {
     return (
-      <aside onClick={()=>  setOpen(true)} className={'fixed shadow-3xl w-12 h-12 z-20 mt-[1vh] right-2 rounded-3xl bg-primary duration-700 ease-in-out hover:scale-[105%] cursor-pointer'}>
-        <div className="bg-logo-mini    bg-no-repeat bg-cover h-12 w-12 duration-700"></div>
+      <aside className={'fixed w-full right-2 shadow-3xl h-12 z-20  bg-primary duration-700 ease-in-out hover:scale-[105%] cursor-pointer'}>
+        <div className='flex justify-between items-center'>
+          <div className="sm:text-end ml-2">
+            <ButtonHeron
+              text=""
+              icon="pi pi-arrow-left"
+              type="primary"
+              color='white'
+              size="icon"
+              onClick={()=>  navigate(-1)}
+            />
+          </div>
+          <div className='w-12 h-12  mt-[1vh] rounded-3xl bg-primary ' onClick={()=>  setOpen(true)} >
+            <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700"></div>
+          </div>
+        </div>
       </aside>
     )
   }

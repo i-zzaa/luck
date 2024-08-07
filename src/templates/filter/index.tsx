@@ -7,6 +7,7 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 
 export interface FilterProps {
   id: string;
+  defaultValues?: any;
   legend?: string;
   nameButton?: string;
   fields: any;
@@ -29,8 +30,9 @@ export function Filter({
   onSubmit,
   onInclude,
   onReset,
+  defaultValues
 }: FilterProps) {
-  const { setValue, handleSubmit, control, reset } = useForm();
+  const { setValue, handleSubmit, control, reset } = useForm({defaultValues});
   const { hasPermition } = permissionAuth();
 
   const handleReset = () => {
@@ -87,7 +89,7 @@ export function Filter({
                   <div className="sm:text-end">
                     <ButtonHeron
                       text={nameButton || 'Cadastrar'}
-                      icon="pi pi-user-plus"
+                      icon="pi pi-plus"
                       type="primary"
                       size="sm"
                       onClick={onInclude}
