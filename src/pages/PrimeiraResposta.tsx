@@ -60,7 +60,6 @@ export default function PrimeiraResposta() {
         onReset={()=> setList([])}
         screen="PEI"
         loading={loading}
-        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`)}
       />
     )
   }
