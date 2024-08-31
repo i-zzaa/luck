@@ -23,54 +23,77 @@ export default function MetasDTT() {
   const [keys, setKeys] = useState([] as any);
   const [selectedKeys, setSelectedKeys] = useState({} as any);
 
-    //manutencao
-    const [nodesMaintenance, setNodesMaintenance] = useState([]);
-    const [selectedKeysMaintenance, setSelectedKeysMaintenance] = useState({} as any);
+  //manutencao
+  const [nodesMaintenance, setNodesMaintenance] = useState([]);
+  const [selectedKeysMaintenance, setSelectedKeysMaintenance] = useState({} as any);
 
-    
+  const formatarDado = (data: any) => {
+    const metas: any = []
+
+    data.map((programa: any) => {
+      const metaCurrent: any = []
+
+      programa.metas.map((meta: any)=> {
+        const children = meta.subitems.map((subitem: any) => ({
+          key: subitem.id,
+          label: subitem.value,
+          data: subitem.id,
+        }))
+
+        metaCurrent.push({
+          key: meta.id,
+          label: meta.value,
+          data:  meta.id,
+          children
+        })
+      })
+
+      metas.push({
+        key: programa.id,
+        label: programa.programa.nome,
+        data: programa.id,
+        children: metaCurrent
+      })
+    })
+
+    return metas
+  }
+
+  const getActivity = useMemo(async() => {
+    try {
+      const result = await  getList(`pei/activity-session/${state.id}`)
+      if (Boolean(result)) {
+        seIsEdit(Boolean(result.selectedKeys))
+        setSelectedKeys(JSON.parse(result.selectedKeys))
+
+        // result.maintenance ? setNodesMaintenance(JSON.parse(result.maintenance)) : setNodesMaintenance([])
+        // result.selectedMaintenanceKeys ?  setSelectedKeysMaintenance(JSON.parse(result.selectedKeys)) : setNodesMaintenance({})
+      }
+      
+    } catch (error) {
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'Atividades não encontrado!',
+        open: true,
+      });
+    }
+  }, [])
+
+
   const getPEI = useMemo(async() => {
     setLoading(true)
     try {
       const paciente = state.paciente
 
       const { data }: any = await filter('pei', { paciente });
-      const metas: any = []
+      const metas: any = formatarDado(data)
 
-      data.map((programa: any) => {
-        const metaCurrent: any = []
+      console.log('metas', metas);
+      
 
-        programa.metas.map((meta: any)=> {
-          const children = meta.subitems.map((subitem: any) => ({
-            key: subitem.id,
-            label: subitem.value,
-            data: subitem.id,
-          }))
-  
-          metaCurrent.push({
-            key: meta.id,
-            label: meta.value,
-            data:  meta.id,
-            children
-          })
-        })
-
-        metas.push({
-          key: programa.id,
-          label: programa.programa.nome,
-          data: programa.id,
-          children: metaCurrent
-        })
-      })
-
-      const result: any = await getList(`pei/activity-session/${state.id}`);
-      if (Boolean(result)) {
-        seIsEdit(Boolean(result.selectedKeys))
-        setSelectedKeys(JSON.parse(result.selectedKeys))
-
-
-        result.maintenance ? setNodesMaintenance(JSON.parse(result.maintenance)) : setNodesMaintenance([])
-        result.selectedMaintenanceKeys ?  setSelectedKeysMaintenance(JSON.parse(result.selectedKeys)) : setNodesMaintenance({})
-      }
+      getActivity
+      getMaintenance
 
       setNodes(metas)
     } catch (error) {
@@ -175,7 +198,7 @@ export default function MetasDTT() {
           <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
             setSelectedKeys(e.value)
             const _keys =  await  Object.keys(e.value)
-          setKeys(_keys)
+            setKeys(_keys)
 
           }} className="w-full md:w-30rem" />
         </div>
