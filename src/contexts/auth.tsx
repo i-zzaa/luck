@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }: Props) => {
       : 'Usuário não encontrado!';
     renderToast({
       type: 'failure',
-      title: data.status,
+      title: data.status || 'Erro no Login!',
       message: message,
       open: true,
     });
