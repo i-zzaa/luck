@@ -24,6 +24,7 @@ export const Session = () => {
   const [list, setList] = useState([] as any);
   const [listMaintenance, setListMaintenance] = useState([] as any);
   const [dtt, setDTT] = useState([] as any);
+  const [maintenance, setMaintenance] = useState([] as any);
   const [session, setSession] = useState({});
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -37,8 +38,11 @@ export const Session = () => {
         setSession(result)
         setIsEdit(true)
 
-        const atividades = await formatarDado(result.atividades)
+        const atividades = await formatarDado(result.sessao)
         setList(atividades)
+
+        const maintenance = await formatarDado(result.maintenance)
+        setListMaintenance(maintenance)
 
         setDTT(result.sessao)
       }else {
@@ -53,6 +57,7 @@ export const Session = () => {
 
       const atividades = await formatarDado(result.atividades)
       setList(atividades)
+      setDTT(result.sessao)
 
       const maintenance = await formatarDado(result.maintenance)
       setListMaintenance(maintenance)
@@ -65,6 +70,8 @@ export const Session = () => {
         calendarioId: state.item.id,
         pacienteId: state.item.paciente.id,
         sessao: JSON.stringify(dtt),
+        maintenance: JSON.stringify(listMaintenance),
+        selectedMaintenanceKeys: JSON.stringify(maintenance),
         resumo: content,
         date: state.item.date,
         ...session
@@ -152,6 +159,20 @@ export const Session = () => {
 
       current[programaId].children[metaId].children[activityId].children[checkKey] = value
       setDTT(current)
+    }}/>
+  };
+
+  const renderedCheckboxesMaintenance = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
+
+    return <CheckboxDTT key={checkKey}  value={value} disabled={ listMaintenance[programaId].children[metaId].children[activityId].disabled || isEdit} 
+    onChange={(value: any)=> {
+      const current = [...listMaintenance]
+
+      const firstFourAreC =  listMaintenance[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
+      listMaintenance[programaId].children[metaId].children[activityId].disabled = firstFourAreC
+
+      current[programaId].children[metaId].children[activityId].children[checkKey] = value
+      setMaintenance(current)
     }}/>
   };
 
@@ -252,7 +273,7 @@ export const Session = () => {
                                   <span>{ act.label}</span>
                                   <div className="flex gap-1 -ml-4">
                                     {
-                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxes(key, metaKey, actKey, checkKey, itm))
+                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxesMaintenance(key, metaKey, actKey, checkKey, itm))
                                     }
                                   </div>
                                 </li>
