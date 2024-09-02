@@ -23,11 +23,10 @@ export default function MetasDTT() {
   const [keys, setKeys] = useState([] as any);
   const [selectedKeys, setSelectedKeys] = useState({} as any);
 
-    //manutencao
-    const [nodesMaintenance, setNodesMaintenance] = useState([]);
-    const [selectedKeysMaintenance, setSelectedKeysMaintenance] = useState({} as any);
+  //manutencao
+  const [nodesMaintenance, setNodesMaintenance] = useState([]);
+  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({} as any);
 
-    
   const getPEI = useMemo(async() => {
     setLoading(true)
     try {
@@ -38,7 +37,6 @@ export default function MetasDTT() {
 
       data.map((programa: any) => {
         const metaCurrent: any = []
-
         programa.metas.map((meta: any)=> {
           const children = meta.subitems.map((subitem: any) => ({
             key: subitem.id,
@@ -64,12 +62,16 @@ export default function MetasDTT() {
 
       const result: any = await getList(`pei/activity-session/${state.id}`);
       if (Boolean(result)) {
-        seIsEdit(Boolean(result.selectedKeys))
-        setSelectedKeys(JSON.parse(result.selectedKeys))
+        const obj = JSON.parse(result.selectedKeys)
+        const allKeys = Object.keys(obj);
+
+        seIsEdit(Boolean(obj))
+        setSelectedKeys(obj)
+        setKeys(allKeys)
 
 
         result.maintenance ? setNodesMaintenance(JSON.parse(result.maintenance)) : setNodesMaintenance([])
-        result.selectedMaintenanceKeys ?  setSelectedKeysMaintenance(JSON.parse(result.selectedKeys)) : setNodesMaintenance({})
+        result.selectedMaintenanceKeys ?  setSelectedMaintenanceKeys(JSON.parse(result.selectedMaintenanceKeys)) : setNodesMaintenance({})
       }
 
       setNodes(metas)
@@ -116,7 +118,9 @@ export default function MetasDTT() {
         peisIds,
         pacienteId: state.paciente.id,
         atividades,
-        selectedKeys
+        selectedKeys,
+        maintenance: nodesMaintenance,
+        selectedMaintenanceKeys,
       }
 
       if (isEdit) {
@@ -198,12 +202,12 @@ export default function MetasDTT() {
     )
   }
 
-  const renderContentManutencao = () => {
+  const renderContentMaintenance = () => {
     return  !!nodesMaintenance.length &&  (
       <div className='grid gap-2 mt-8'>
         <div className='text-gray-400'> Manutenção</div>
-        <Tree value={nodesMaintenance} selectionMode="checkbox" selectionKeys={selectedKeysMaintenance} onSelectionChange={async (e: any) => {
-          setSelectedKeysMaintenance(e.value)
+        <Tree value={nodesMaintenance} selectionMode="checkbox" selectionKeys={selectedMaintenanceKeys} onSelectionChange={async (e: any) => {
+          setSelectedMaintenanceKeys(e.value)
         }} className="w-full md:w-30rem" />
     </div>
     )
@@ -233,7 +237,7 @@ export default function MetasDTT() {
       { renderHeader}
 
       { renderContent() }
-      { renderContentManutencao() }
+      { renderContentMaintenance() }
       { renderFooter() }
     </div>
   );
