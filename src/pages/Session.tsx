@@ -51,6 +51,16 @@ export const Session = () => {
     }catch (e) {}
   }
 
+  // const getTeste = async() => {
+  //   try {
+  //     const result = await getList(`/sessao/teste`)
+
+  //     console.log(result);
+      
+
+  //   }catch (e) {}
+  // }
+
   const getActivity = async() => {
     try {
       const result = await getList(`/pei/activity/session/${state.item.id}`)
@@ -330,7 +340,7 @@ export const Session = () => {
           size="full"
           loading={loading}
           onClick={() => handleSubmitSumary()}
-          // disabled={isEdit}
+          disabled={isEdit}
         />
       </div>
     )
@@ -338,6 +348,7 @@ export const Session = () => {
 
   useEffect(() => {
     getSumaryContent()
+    // getTeste()
   }, [])
   
 

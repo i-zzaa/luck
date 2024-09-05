@@ -32,19 +32,34 @@ export default function MetasDTT() {
     try {
       const paciente = state.paciente
 
-      const { data }: any = await filter('pei', { paciente });
+      const [{data}, result] = await Promise.all([
+        filter('pei', { paciente }),
+        getList(`pei/activity-session/${state.id}`)
+      ])
+
       const metas: any = []
+
+      const selectedMaintenanceKeys =  Boolean(result) ? JSON.parse(result.selectedMaintenanceKeys) : {}
+      const allKeysMaintenance = Boolean(result) ? Object.keys(selectedMaintenanceKeys) : []
 
       data.map((programa: any) => {
         const metaCurrent: any = []
         programa.metas.map((meta: any)=> {
-          const children = meta.subitems.map((subitem: any) => ({
-            key: subitem.id,
-            label: subitem.value,
-            data: subitem.id,
-          }))
+          const children = meta.subitems.reduce((acc: any[], subitem: any) => {
+            // Add o  PEI se nao tiver em manutencao
+            if (!allKeysMaintenance.includes(subitem.id)) {
+              acc.push({
+                key: subitem.id,
+                label: subitem.value,
+                data: subitem.id,
+              });
+            }
+            return acc;
+          }, []);
+
+          
   
-          metaCurrent.push({
+          children.length && metaCurrent.push({
             key: meta.id,
             label: meta.value,
             data:  meta.id,
@@ -52,7 +67,7 @@ export default function MetasDTT() {
           })
         })
 
-        metas.push({
+        metaCurrent.length && metas.push({
           key: programa.id,
           label: programa.programa.nome,
           data: programa.id,
@@ -60,7 +75,6 @@ export default function MetasDTT() {
         })
       })
 
-      const result: any = await getList(`pei/activity-session/${state.id}`);
       if (Boolean(result)) {
         const obj = JSON.parse(result.selectedKeys)
         const allKeys = Object.keys(obj);
