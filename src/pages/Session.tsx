@@ -51,15 +51,15 @@ export const Session = () => {
     }catch (e) {}
   }
 
-  // const getTeste = async() => {
-  //   try {
-  //     const result = await getList(`/sessao/teste`)
+  const getTeste = async() => {
+    try {
+      const result = await getList(`/sessao/teste`)
 
-  //     console.log(result);
+      console.log(result);
       
 
-  //   }catch (e) {}
-  // }
+    }catch (e) {}
+  }
 
   const getActivity = async() => {
     try {
@@ -348,7 +348,7 @@ export const Session = () => {
 
   useEffect(() => {
     getSumaryContent()
-    // getTeste()
+    getTeste()
   }, [])
   
 
