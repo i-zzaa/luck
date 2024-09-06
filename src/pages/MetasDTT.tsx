@@ -25,14 +25,14 @@ export default function MetasDTT() {
 
   //manutencao
   const [nodesMaintenance, setNodesMaintenance] = useState([]);
-  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({} as any);
+  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({});
 
 
   const getAllKeys = (arr: any) =>{
     let current: string[] = [];
   
     arr.forEach((item: any) => {
-      keys.push(item.key); // Pega a chave do item atual
+      current.push(item.key); // Pega a chave do item atual
   
       // Se o item tiver children, faz a recursão
       if (item.children) {
@@ -42,7 +42,7 @@ export default function MetasDTT() {
   
     return current;
   }
-  
+
   const getPEI = useMemo(async() => {
     setLoading(true)
     try {
@@ -97,9 +97,13 @@ export default function MetasDTT() {
         setSelectedKeys(obj)
         setKeys(allKeys)
 
+        if (result.maintenance) {
+          setNodesMaintenance(JSON.parse(result.maintenance))
+        }
 
-        result.maintenance ? setNodesMaintenance(JSON.parse(result.maintenance)) : setNodesMaintenance([])
-        result.selectedMaintenanceKeys ?  setSelectedMaintenanceKeys(JSON.parse(result.selectedMaintenanceKeys)) : setNodesMaintenance({})
+        if (Object.values(result.selectedMaintenanceKeys).length) {
+          setSelectedMaintenanceKeys(JSON.parse(result.selectedMaintenanceKeys)) 
+        }
       }
 
       setNodes(metas)
