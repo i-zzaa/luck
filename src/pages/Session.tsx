@@ -12,6 +12,10 @@ import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/Checkbox";
 
+
+const MAINTENANCE = 'maintenance';
+const ACTIVITY = 'activity';
+
 export const Session = () => {
   const { renderToast } = useToast();
   const location = useLocation();
@@ -21,6 +25,7 @@ export const Session = () => {
 
   const editor = useRef(null);
   const [repeatActivity, setRepeatActivity] = useState(10);
+  const [repeatMaintenance, setRepeatMaintenance] = useState(1);
   const [content, setContent] = useState('');
   const [list, setList] = useState([] as any);
   const [listMaintenance, setListMaintenance] = useState([] as any);
@@ -39,10 +44,10 @@ export const Session = () => {
         setSession(result)
         setIsEdit(true)
 
-        const atividades = await formatarDado(result.sessao)
+        const atividades = await formatarDado(result.sessao, ACTIVITY)
         setList(atividades)
 
-        const maintenance = await formatarDado(result.maintenance)
+        const maintenance = await formatarDado(result.maintenance,  MAINTENANCE)
         setListMaintenance(maintenance)
 
         setDTT(result.sessao)
@@ -66,11 +71,11 @@ export const Session = () => {
     try {
       const result = await getList(`/pei/activity/session/${state.item.id}`)
 
-      const atividades = await formatarDado(result.atividades)
+      const atividades = await formatarDado(result.atividades, ACTIVITY)
       setList(atividades)
       setDTT(result.sessao)
 
-      const maintenance = await formatarDado(result.maintenance)
+      const maintenance = await formatarDado(result.maintenance, MAINTENANCE)
       setListMaintenance(maintenance)
     }catch (e) {}
   }
@@ -127,7 +132,7 @@ export const Session = () => {
     )
   }, [])
 
-  const formatarDado = async (data: any) => {
+  const formatarDado = async (data: any, type: string = ACTIVITY) => {
     const result = await Promise.all( data.map(async (programa: any, key: number)=> {
       return {
         key: programa.key,
@@ -137,16 +142,17 @@ export const Session = () => {
             key: meta.key,
             label: meta.label,
             children:  await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
-              const children = sub.children || Array.from({ length: repeatActivity }).map((index)=> {
+              
+              const children = sub.children || Array.from({ length: type === ACTIVITY ? repeatActivity :  repeatMaintenance}).map((index)=> {
                 return null
               })
 
-              const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
+              // const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
 
               return {
                 key: sub.key,
                 label: sub.label,
-                disabled: firstFourAreC,
+                // disabled: firstFourAreC,
                 children
               }
             }))
@@ -175,15 +181,15 @@ export const Session = () => {
           if (previousValue !== newValue) {
             current[programaId].children[metaId].children[activityId].children[checkKey] = newValue;
             
-            const children = current[programaId].children[metaId].children[activityId].children;
+            // const children = current[programaId].children[metaId].children[activityId].children;
   
             // Verifica se há 4 'C' consecutivos, ignorando mudanças no mesmo checkbox
-            const fourConsecutiveC = children.some((_: any, idx: any) => {
-              if (idx + 3 < children.length) {
-                return children.slice(idx, idx + 4).every((val: string) => val === "C");
-              }
-              return false;
-            });
+            // const fourConsecutiveC = children.some((_: any, idx: any) => {
+            //   if (idx + 3 < children.length) {
+            //     return children.slice(idx, idx + 4).every((val: string) => val === "C");
+            //   }
+            //   return false;
+            // });
   
             // Desabilita o item se houver 4 'C' consecutivos
             // current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
@@ -195,23 +201,23 @@ export const Session = () => {
     );
   };
 
-  const renderedCheckboxesMaintenance = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
+  const renderedCheckboxesMaintenance = (programaId: number, metaId: number, activityId: number, value?: any) => {
     return (
       <CheckboxSN 
-        key={checkKey} 
+        key={0} 
         value={value} 
         disabled={listMaintenance[programaId].children[metaId].children[activityId].disabled || isEdit} 
         onChange={(newValue: any) => {
           const current = [...listMaintenance];
   
           // Verifica o valor atual do checkbox para evitar contagem duplicada
-          const previousValue = listMaintenance[programaId].children[metaId].children[activityId].children[checkKey];
+          const previousValue = listMaintenance[programaId].children[metaId].children[activityId].children[0];
   
           // Só atualiza e faz a verificação se houver uma mudança real no valor
           if (previousValue !== newValue) {
-            current[programaId].children[metaId].children[activityId].children[checkKey] = newValue;
+            current[programaId].children[metaId].children[activityId].children[0] = newValue;
   
-            const children = current[programaId].children[metaId].children[activityId].children;
+            // const children = current[programaId].children[metaId].children[activityId].children;
   
             // Desabilita o item se houver 4 'C' consecutivos
             // current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
@@ -319,13 +325,9 @@ export const Session = () => {
                           {
                             meta?.children.map((act: any, actKey: number) => {
                               return (
-                                <li className="my-2" key={actKey}>
+                                <li className="my-2 flex gap-2 -ml-4 items-center" key={actKey}>
+                                  { renderedCheckboxesMaintenance(key, metaKey, actKey, 0)}
                                   <span>{ act.label}</span>
-                                  <div className="flex gap-1 -ml-4">
-                                    {
-                                       act?.children.map((itm: any, checkKey: number) => renderedCheckboxesMaintenance(key, metaKey, actKey, checkKey, itm))
-                                    }
-                                  </div>
                                 </li>
                               )
                             })
