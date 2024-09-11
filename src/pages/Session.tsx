@@ -237,7 +237,7 @@ export const Session = () => {
           <span className="font-bold"> ABA </span>
         </div>
         {!!list.length && <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-2"> 
-          <span className="text-md"> Interrompa o treino da atividade ao atingir 4 tentativas corretas.</span>
+          <span className="text-md">Interrompa o treino da atividade ao atingir 4 tentativas corretas consecutivas.</span>
         </div>}
         {list.length ? (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
