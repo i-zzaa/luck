@@ -236,7 +236,7 @@ export default function MetasDTT() {
 
   const renderContentMaintenance = () => {
     return  !!nodesMaintenance.length &&  (
-      <div className='grid gap-2 mt-8'>
+      <div className='grid gap-2 my-8'>
         <div className='text-gray-400'> Manutenção</div>
         <Tree value={nodesMaintenance} selectionMode="checkbox" selectionKeys={selectedMaintenanceKeys} onSelectionChange={async (e: any) => {
           setSelectedMaintenanceKeys(e.value)
@@ -265,7 +265,7 @@ export default function MetasDTT() {
   }, [])
 
   return (
-    <div className='h-[90vh] flex flex-col'>
+    <div className='h-[90vh] flex flex-col overflow-y-auto'>
       { renderHeader}
 
       { renderContent() }

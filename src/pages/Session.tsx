@@ -10,6 +10,7 @@ import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
+import CheckboxSN from "../components/Checkbox";
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -185,7 +186,7 @@ export const Session = () => {
             });
   
             // Desabilita o item se houver 4 'C' consecutivos
-            current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
+            // current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
   
             setDTT(current);
           }
@@ -196,7 +197,7 @@ export const Session = () => {
 
   const renderedCheckboxesMaintenance = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
     return (
-      <CheckboxDTT 
+      <CheckboxSN 
         key={checkKey} 
         value={value} 
         disabled={listMaintenance[programaId].children[metaId].children[activityId].disabled || isEdit} 
@@ -212,16 +213,8 @@ export const Session = () => {
   
             const children = current[programaId].children[metaId].children[activityId].children;
   
-            // Verifica se há 4 'C' consecutivos, ignorando mudanças no mesmo checkbox
-            const fourConsecutiveC = children.some((_: any, idx: any) => {
-              if (idx + 3 < children.length) {
-                return children.slice(idx, idx + 4).every((val: string) => val === "C");
-              }
-              return false;
-            });
-  
             // Desabilita o item se houver 4 'C' consecutivos
-            current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
+            // current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
   
             setMaintenance(current);
           }
@@ -237,6 +230,9 @@ export const Session = () => {
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> ABA </span>
         </div>
+        {!!list.length && <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-2"> 
+          <span className="text-md"> Interrompa o treino da atividade ao atingir 4 tentativas corretas.</span>
+        </div>}
         {list.length ? (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
@@ -400,6 +396,7 @@ export const Session = () => {
     <div  className="h-[90vh] flex flex-col">
       { renderHeader }
       <div className="overflox-y-auto">
+  
         { renderActivity() }
         { renderMaintenance() }
         { renderSumary() }
