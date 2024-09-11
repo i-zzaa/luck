@@ -61,8 +61,8 @@ export const Schedule = () => {
   };
 
 
-  const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
-  // const getDayTerapeuta = async (currentDateStart = '2024-10-03',  currentDateEnd =  '2024-10-04') => {
+  // const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
+  const getDayTerapeuta = async (currentDateStart = '2024-10-03',  currentDateEnd =  '2024-10-04') => {
 
     setLoading(true)
     try {
