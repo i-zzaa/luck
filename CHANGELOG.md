@@ -1,5 +1,6 @@
 3º Entrega
 - Implementa Manutenção (tela Meta-dtt/ tela sessão)
+- Tela de sessão precisa considerar qualquer sequencia de 4 "C" e não apenas a que ocorrer no inicio
 
 2º Entrega
 - Implementa Folha de Primeira Resposta

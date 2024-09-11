@@ -159,31 +159,75 @@ export const Session = () => {
   }
 
   const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
-
-    return <CheckboxDTT key={checkKey}  value={value} disabled={ list[programaId].children[metaId].children[activityId].disabled || isEdit} 
-    onChange={(value: any)=> {
-      const current = [...list]
-
-      const firstFourAreC =  list[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
-      list[programaId].children[metaId].children[activityId].disabled = firstFourAreC
-
-      current[programaId].children[metaId].children[activityId].children[checkKey] = value
-      setDTT(current)
-    }}/>
+    return (
+      <CheckboxDTT 
+        key={checkKey} 
+        value={value} 
+        disabled={list[programaId].children[metaId].children[activityId].disabled || isEdit} 
+        onChange={(newValue: any) => {
+          const current = [...list];
+          
+          // Verifica o valor atual do checkbox para evitar contagem duplicada
+          const previousValue = list[programaId].children[metaId].children[activityId].children[checkKey];
+          
+          // Só atualiza e faz a verificação se houver uma mudança real no valor
+          if (previousValue !== newValue) {
+            current[programaId].children[metaId].children[activityId].children[checkKey] = newValue;
+            
+            const children = current[programaId].children[metaId].children[activityId].children;
+  
+            // Verifica se há 4 'C' consecutivos, ignorando mudanças no mesmo checkbox
+            const fourConsecutiveC = children.some((_: any, idx: any) => {
+              if (idx + 3 < children.length) {
+                return children.slice(idx, idx + 4).every((val: string) => val === "C");
+              }
+              return false;
+            });
+  
+            // Desabilita o item se houver 4 'C' consecutivos
+            current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
+  
+            setDTT(current);
+          }
+        }}
+      />
+    );
   };
 
   const renderedCheckboxesMaintenance = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
-
-    return <CheckboxDTT key={checkKey}  value={value} disabled={ listMaintenance[programaId].children[metaId].children[activityId].disabled || isEdit} 
-    onChange={(value: any)=> {
-      const current = [...listMaintenance]
-
-      const firstFourAreC =  listMaintenance[programaId].children[metaId].children[activityId].children.slice(0, 3).every((value: string) => value === "C");
-      listMaintenance[programaId].children[metaId].children[activityId].disabled = firstFourAreC
-
-      current[programaId].children[metaId].children[activityId].children[checkKey] = value
-      setMaintenance(current)
-    }}/>
+    return (
+      <CheckboxDTT 
+        key={checkKey} 
+        value={value} 
+        disabled={listMaintenance[programaId].children[metaId].children[activityId].disabled || isEdit} 
+        onChange={(newValue: any) => {
+          const current = [...listMaintenance];
+  
+          // Verifica o valor atual do checkbox para evitar contagem duplicada
+          const previousValue = listMaintenance[programaId].children[metaId].children[activityId].children[checkKey];
+  
+          // Só atualiza e faz a verificação se houver uma mudança real no valor
+          if (previousValue !== newValue) {
+            current[programaId].children[metaId].children[activityId].children[checkKey] = newValue;
+  
+            const children = current[programaId].children[metaId].children[activityId].children;
+  
+            // Verifica se há 4 'C' consecutivos, ignorando mudanças no mesmo checkbox
+            const fourConsecutiveC = children.some((_: any, idx: any) => {
+              if (idx + 3 < children.length) {
+                return children.slice(idx, idx + 4).every((val: string) => val === "C");
+              }
+              return false;
+            });
+  
+            // Desabilita o item se houver 4 'C' consecutivos
+            current[programaId].children[metaId].children[activityId].disabled = fourConsecutiveC;
+  
+            setMaintenance(current);
+          }
+        }}
+      />
+    );
   };
 
 
