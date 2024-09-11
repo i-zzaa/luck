@@ -67,7 +67,7 @@ const PEI = () => {
     if (!loading) {
       return list.length ? (
         <Card >
-           <div className="flex my-2 items-center  w-full">
+           {/* <div className="flex my-2 items-center  w-full">
             <div className="ml-auto" >
                 <ButtonHeron
                     text="Revisar Metas"
@@ -78,7 +78,7 @@ const PEI = () => {
                     loading={loading}
                   />
               </div>
-           </div>
+           </div> */}
           <Accordion >
           {
             list.map((item: any, key: number) => {
@@ -127,7 +127,8 @@ const PEI = () => {
                               <ul className="list-disc	ml-8 font-inter">
                                 {
                                   meta.subitems.length &&  meta.subitems.map((subitem: any, index: number)=> {
-                                   return <li key={index} className="flex items-center gap-2"> <i className="pi pi-check-circle text-green-400"></i>{subitem.value} </li>
+                                  //  return <li key={index} className="flex items-center gap-2"> <i className="pi pi-check-circle text-green-400"></i>{subitem.value} </li>
+                                   return <li key={index}> {subitem.value} </li>
                                 })
                                 }
                               </ul>
