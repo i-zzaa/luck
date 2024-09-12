@@ -9,6 +9,7 @@ import PEI from '../pages/PEI';
 import PEICADASTRO from '../foms/PEI';
 import MetasDTT from '../pages/MetasDTT';
 import PrimeiraResposta from '../pages/PrimeiraResposta';
+import PROTOCOLO from '../foms/Protocolo';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -20,6 +21,7 @@ export enum CONSTANTES_ROUTERS {
   PEICADASTRO = 'pei-cadastro',
   METASDTT = 'metas-dtt',
   PRIMEIRARESPOSTA = 'primeira-resposta',
+  PROTOCOLO = 'protocolo',
 }
 export interface RoutesProps {
   path: string;
@@ -35,6 +37,7 @@ export const ROUTES = [
   { path: CONSTANTES_ROUTERS.METASDTT, componentRoute: MetasDTT, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
   { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
+  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true },
   { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true },
   { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true },

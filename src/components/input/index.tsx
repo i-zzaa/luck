@@ -333,6 +333,54 @@ export function Input({
           }
          </div>
         );
+      case 'select-add':
+        return (
+         <div className="grid  gap-2 grid-cols-6">
+          <Controller
+            
+            name={id}
+            control={control}
+            rules={validate}
+            render={({ field }: any) => (
+              <Dropdown
+                className="col-span-5"
+                value={value || field.value}
+                virtualScrollerOptions={{ itemSize: 38 }}
+                options={options}
+                onChange={(e: any) => {
+                  onChange && onChange(e.value);
+                  return field.onChange(e.value);
+                }}
+                optionLabel="nome"
+                filter
+                showClear
+                filterBy="nome"
+                disabled={disabled}
+              />
+            )}
+          />
+          { buttonAdd ?
+            <ButtonHeron
+              text="Add"
+              icon="pi pi-plus"
+              type="primary"
+              size="icon"
+              onClick={()=>onClick && onClick('add')}
+              typeButton="button"
+            />
+          : 
+          <ButtonHeron
+            text="remove"
+            icon="pi pi-trash"
+            type="transparent"
+            color='red'
+            size="icon"
+            onClick={()=>onClick && onClick('remove')}
+            typeButton="button"
+          />
+          }
+         </div>
+        );
 
       default:
         return (
