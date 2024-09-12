@@ -6,7 +6,7 @@ import { PEICadastroFields } from '../constants/formFields';
 import { useToast } from '../contexts/toast';
 import { create, dropDown, update } from '../server';
 import { permissionAuth } from '../contexts/permission';
-import { Divider, Fieldset } from 'primereact';
+import { Fieldset  } from 'primereact';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 
@@ -24,7 +24,7 @@ interface FormProps {
   estimuloReforcadorPositivo: string,
 }
 
-export default function PEICADASTRO() {
+export default function PEICADASTRO( { paciente }: { paciente: { id: number, nome: string}}) {
   const defaultValues = {
     pacienteId: '',
     procedimentoEnsinoId: '',
@@ -76,20 +76,21 @@ export default function PEICADASTRO() {
   } = useForm<FormProps>({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
-    const [paciente, programa, procedimentoEnsino]: any = await Promise.all([
-      dropDown('paciente'),
+    const [programa, procedimentoEnsino]: any = await Promise.all([
       dropDown('programa'),
       dropDown('pei/procedimento-ensino'),
     ])
 
     setDropDownList({
-      paciente,
       programa,
       procedimentoEnsino
     })
   }, []);
   
   const onSubmit = async (formvalue: any) => {
+
+    formvalue.pacienteId = paciente
+
     setLoading(true);
     try {
 

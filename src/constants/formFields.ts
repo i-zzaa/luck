@@ -53,15 +53,15 @@ const PEIFields = [
 ];
 
 const PEICadastroFields = [
-  {
-    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
-    labelText: 'Paciente',
-    id: 'pacienteId',
-    name: 'paciente',
-    type: 'select',
-    singleSelect: true,
-    customCol: 'col-span-6 sm:col-span-6',
-  },
+  // {
+  //   permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+  //   labelText: 'Paciente',
+  //   id: 'pacienteId',
+  //   name: 'paciente',
+  //   type: 'select',
+  //   singleSelect: true,
+  //   customCol: 'col-span-6 sm:col-span-6',
+  // },
   {
     permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
     labelText: 'Procedimento de Ensino',
@@ -152,7 +152,64 @@ const programaFields = [
   },
 ];
 
-export { loginFields, PEIFields, PEICadastroFields };
+const ProtocoloFields = [
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Paciente',
+    id: 'pacienteId',
+    name: 'paciente',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Protocolo',
+    id: 'protocoloId',
+    name: 'protocolo',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+];
+
+const PortageCadastroFields = [
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Atividade',
+    id: 'atividadeId',
+    name: 'atividade',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Tipo',
+    id: 'tipoId',
+    name: 'tipoPortage',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Faixa Etaria',
+    id: 'FaixaEtariaId',
+    name: 'faixaEtaria',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
+];
+
+export {
+  loginFields,
+  PEIFields,
+  PEICadastroFields,
+  ProtocoloFields,
+  PortageCadastroFields,
+};
 
 export const Fields: any = {
   programaFields,
