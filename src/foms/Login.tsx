@@ -17,8 +17,8 @@ interface FormProps {
 
 export default function Login() {
   const defaultValues = {
-    username: '',
-    password: '',
+    username: 'cristiane.graff',
+    password: '12345678',
   };
 
   const [checkState, setCheck] = useState<boolean>(false);

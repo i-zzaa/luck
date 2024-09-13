@@ -11,6 +11,7 @@ import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/Checkbox";
+import CheckboxPostage from "../components/CheckboxPostage";
 
 
 const MAINTENANCE = 'maintenance';
@@ -29,9 +30,11 @@ export const Session = () => {
   const [content, setContent] = useState('');
   const [list, setList] = useState([] as any);
   const [listMaintenance, setListMaintenance] = useState([] as any);
+  const [listPostage, setListPostage] = useState([] as any);
   const [dtt, setDTT] = useState([] as any);
   const [maintenance, setMaintenance] = useState([] as any);
   const [session, setSession] = useState({});
+  const [postage, setPostage] = useState([] as any);
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -229,6 +232,77 @@ export const Session = () => {
     );
   };
 
+  const renderedCheckboxesPostage = (programaId: number, metaId: number, activityId: number, value?: any) => {
+    return (
+      <CheckboxPostage 
+        key={0} 
+        value={value} 
+        disabled={listPostage[programaId].children[metaId].children[activityId].disabled || isEdit} 
+        onChange={(newValue: any) => {
+          const current = [...listPostage];
+  
+          // Verifica o valor atual do checkbox para evitar contagem duplicada
+          const previousValue = listPostage[programaId].children[metaId].children[activityId].children[0];
+  
+          // Só atualiza e faz a verificação se houver uma mudança real no valor
+          if (previousValue !== newValue) {
+            current[programaId].children[metaId].children[activityId].children[0] = newValue;
+            setPostage(current);
+          }
+        }}
+      />
+    );
+  };
+
+  const renderPostage  = () => {
+    return !!listPostage.length &&  (
+      <div className="mt-8">
+        <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
+          <span className="font-bold"> Postage </span>
+        </div>
+        { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+          <Accordion>
+            {
+              listPostage.map((programa: any, key: number)=> (
+                <AccordionTab 
+                  key={key} 
+                  tabIndex={key}
+                  header={
+                    <div className="flex items-center  w-full">
+                      <span>{ programa.label}</span>
+                    </div>
+                  }>
+                    {
+                      programa?.children.map((meta: any, metaKey: number) => (
+                        <div key={metaKey} className="my-8">
+                          <span className="font-bold font-inter">Meta {metaKey + 1}: </span> <span className="font-base font-inter">{ meta.label}</span>
+                          <ul className="list-disc mt-2 font-inter ml-4">
+                          {
+                            meta?.children.map((act: any, actKey: number) => {
+                              return (
+                                <li className="my-2 flex gap-2 -ml-4 items-center" key={actKey}>
+                                  { renderedCheckboxesPostage(key, metaKey, actKey, 0)}
+                                  <span>{ act.label}</span>
+                                </li>
+                              )
+                            })
+                          }
+                          </ul>
+                        </div>
+                      ))
+                      
+                    }
+                </AccordionTab>
+              ))
+            }
+          </Accordion>
+        </Card>)
+      }
+      </div>
+    )
+  }
+
+
 
   const renderActivity = () => {
     return (
@@ -399,6 +473,7 @@ export const Session = () => {
       { renderHeader }
       <div className="overflox-y-auto">
   
+        { renderPostage() }
         { renderActivity() }
         { renderMaintenance() }
         { renderSumary() }

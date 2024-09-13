@@ -7,8 +7,8 @@ const manifestForPlugin = {
   includeAssets: ['favicon.ico'],
   registerType: 'autoUpdate',
   manifest: {
-    name: 'Prontuário | Multi Alcance',
-    short_name: 'Prontuário',
+    name: 'ABA | Multi Alcance',
+    short_name: 'ABA',
     description: 'App de prontuário multi alcance',
     icons: [
       {

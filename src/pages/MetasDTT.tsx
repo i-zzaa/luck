@@ -7,6 +7,7 @@ import { ButtonHeron } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { NotFound } from '../components/notFound';
+import { TIPO_PROTOCOLO } from '../constants/protocolo';
 
 
 export default function MetasDTT() {
@@ -27,6 +28,19 @@ export default function MetasDTT() {
   const [nodesMaintenance, setNodesMaintenance] = useState([]);
   const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({});
 
+  //portage 
+  const [nodePortage, setNodesPortage] = useState([]);
+  const [selectedPortageKeys, setSelectedPortageKeys] = useState({});
+
+
+  const getProtocolo = async() => {
+    const { data }: any = await filter('protocolo', {
+      pacienteId: state.paciente.id,
+      protocoloId: TIPO_PROTOCOLO.portage
+    })
+
+    // nodePortage(data);
+  }
 
   const getAllKeys = (arr: any) =>{
     let current: string[] = [];

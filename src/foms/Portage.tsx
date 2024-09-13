@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ButtonHeron, Input } from '../components/index';
-import { create, dropDown, update } from '../server';
+import { create, dropDown, filter, update } from '../server';
 import { Fieldset } from 'primereact';
+import { TIPO_PROTOCOLO } from '../constants/protocolo';
 
 interface FormProps {
   atividadeId: any;
@@ -11,7 +12,7 @@ interface FormProps {
   faixaEtariaId: any;
 }
 
-export default function PortageCadastro( { paciente }: { paciente: { id: number, nome: string}}) {
+export default function PortageCadastro( { paciente}: { paciente: { id: number, nome: string}}) {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>({
     atividade: [],
@@ -32,6 +33,15 @@ export default function PortageCadastro( { paciente }: { paciente: { id: number,
   const faixaEtariaId = watch('faixaEtariaId');
   const tipoId = watch('tipoId');
   const atividadeId = watch('atividadeId');
+
+  const getProtocolo = async() => {
+    const { data }: any = await filter('protocolo', {
+      pacienteId: paciente.id,
+      protocoloId: TIPO_PROTOCOLO.portage
+    })
+
+    setList(data);
+  }
 
   const renderDropdown = useCallback(async () => {
     try {
@@ -109,6 +119,10 @@ export default function PortageCadastro( { paciente }: { paciente: { id: number,
   useEffect(() => {
     renderDropdown();
   }, [renderDropdown]);
+
+  useEffect(() => {
+    getProtocolo()
+  }, [paciente])
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
