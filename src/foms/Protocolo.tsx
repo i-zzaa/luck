@@ -1,17 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useForm } from 'react-hook-form';
-import { ButtonHeron, Input } from '../components/index';
+import { Input } from '../components/index';
 import { ProtocoloFields } from '../constants/formFields';
-import { useToast } from '../contexts/toast';
-import { create, dropDown, update } from '../server';
+import { dropDown } from '../server';
 import { permissionAuth } from '../contexts/permission';
-import { Divider, Fieldset, TabPanel, TabView } from 'primereact';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { TIPO_PROTOCOLO } from '../constants/protocolo';
 import PORTAGECADASTRO from './Portage';
 import PEICADASTRO from './PEI';
+import VBMapp from './VBMapp';
 
 
 const fields = ProtocoloFields;
@@ -53,39 +50,45 @@ export default function Protocolo() {
     })
   }, []);
 
-  
   useEffect(() => {
     renderDropdown()
   }, []);
 
   return (
-    <form className="mt-8 space-y-6 " onSubmit={()=> {}} >
-          {ProtocoloFields.map((item: any) => (
-            <div>
-              {
-                hasPermition(item.permission) ? (
-                  <Input
-                    key={item.id}
-                    labelText={item.labelText}
-                    id={item.id}
-                    type={item.type}
-                    customCol={item.customCol}
-                    control={control}
-                    options={
-                      item.type === 'select' ? dropDownList[item.name] : undefined
-                    }
-                    buttonAdd={item.buttonAdd}
-                  />
-                ) : null
-              }
-            </div>
-          ))}
+    <form className="mt-8" onSubmit={()=> {}} >
+      {
+        hasPermition('PEI_FILTRO_BOTAO_CADASTRAR') ? (
+          <Input
+            key="pacienteId"
+            labelText='Paciente'
+            id='pacienteId'
+            type='select'
+            customCol='col-span-6 sm:col-span-6'
+            control={control}
+            options={dropDownList.paciente}
+           
+          />
+        ) : null
+      }
+      {
+        hasPermition('PEI_FILTRO_BOTAO_CADASTRAR') ? (
+          <Input
+            key="protocoloId"
+            labelText='Protocolo'
+            id='protocoloId'
+            type='select'
+            customCol='col-span-6 sm:col-span-6'
+            control={control}
+            options={dropDownList.protocolo }
+            disabled={!pacienteObj?.nome.length}
+            // onChange={(e)=> getProtocolo(e.id)}
+          />
+        ) : null
+      }
 
-          { protocoloObj.id === TIPO_PROTOCOLO.portage && <PORTAGECADASTRO paciente={pacienteObj}/>}
-          { protocoloObj.id === TIPO_PROTOCOLO.dtt && <PEICADASTRO paciente={pacienteObj} />}
-          {/* { protocolo === TIPO_PROTOCOLO.portage && <PORTAGECADASTRO />} */}
-
-
+      { protocoloObj.id === TIPO_PROTOCOLO.portage && <PORTAGECADASTRO paciente={pacienteObj}/>}
+      { protocoloObj.id === TIPO_PROTOCOLO.pei && <PEICADASTRO paciente={pacienteObj} />}
+      { protocoloObj.id === TIPO_PROTOCOLO.vbMapp && <VBMapp  paciente={pacienteObj}/>}
    </form>
   );
 }

@@ -1,8 +1,8 @@
 {
-  "name": "heron-list",
-  "short_name": "HL",
+  "name": "ABA",
+  "short_name": "ABA",
   "theme_color": "#662977",
-  "background_color": "#FFFFFF",
+  "background_color": "#662977",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
