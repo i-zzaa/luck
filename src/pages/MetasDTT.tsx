@@ -29,7 +29,7 @@ export default function MetasDTT() {
   const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({});
 
   //portage 
-  const [nodePortage, setNodesPortage] = useState([]);
+  const [nodesPortage, setNodesPortage] = useState([]);
   const [selectedPortageKeys, setSelectedPortageKeys] = useState({});
 
 
@@ -62,17 +62,21 @@ export default function MetasDTT() {
     try {
       const paciente = state.paciente
 
-      const [{data}, result] = await Promise.all([
+      const [ protocoloData, {data}, result] = await Promise.all([
+        filter('protocolo/meta', { paciente, protocoloId: TIPO_PROTOCOLO.portage }),
         filter('pei', { paciente }),
         getList(`pei/activity-session/${state.id}`)
       ])
+
+      const pei = data
+      const protocolo = protocoloData.data
 
       const metas: any = []
 
       const selectedMaintenanceKeys =  Boolean(result) ? JSON.parse(result.maintenance) : {}
       const allKeysMaintenance = Boolean(result) ? getAllKeys(selectedMaintenanceKeys) : []
 
-      data.map((programa: any) => {
+      pei.map((programa: any) => {
         const metaCurrent: any = []
         programa.metas.map((meta: any)=> {
           const children = meta.subitems.reduce((acc: any[], subitem: any) => {
@@ -102,6 +106,11 @@ export default function MetasDTT() {
           children: metaCurrent
         })
       })
+
+      if (Boolean(protocolo)) {
+        setNodesPortage(protocolo)
+        setSelectedPortageKeys(result.selectedPortageKeys)
+      }
 
       if (Boolean(result)) {
         const obj = JSON.parse(result.selectedKeys)
@@ -167,6 +176,7 @@ export default function MetasDTT() {
         selectedKeys,
         maintenance: nodesMaintenance,
         selectedMaintenanceKeys,
+        selectedPortageKeys: JSON.stringify(selectedPortageKeys)
       }
 
       if (isEdit) {
@@ -259,6 +269,18 @@ export default function MetasDTT() {
     )
   }
 
+
+  const renderContentPortage = () => {
+    return  !!nodesPortage.length &&  (
+      <div className='grid gap-2 mt-8'>
+        <div className='text-gray-400'> Portage </div>
+        <Tree value={nodesPortage} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
+          setSelectedPortageKeys(e.value)
+        }} className="w-full md:w-30rem" />
+    </div>
+    )
+  }
+
   const renderFooter = () => {
     return  (
       <div className='mt-auto'>
@@ -282,6 +304,7 @@ export default function MetasDTT() {
     <div className='h-[90vh] flex flex-col overflow-y-auto'>
       { renderHeader}
 
+      { renderContentPortage() }
       { renderContent() }
       { renderContentMaintenance() }
       { renderFooter() }

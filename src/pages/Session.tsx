@@ -80,6 +80,9 @@ export const Session = () => {
 
       const maintenance = await formatarDado(result.maintenance, MAINTENANCE)
       setListMaintenance(maintenance)
+      
+      const portage = await formatarDado(result.portage, MAINTENANCE)
+      setListPostage(portage)
     }catch (e) {}
   }
 
@@ -137,14 +140,18 @@ export const Session = () => {
 
   const formatarDado = async (data: any, type: string = ACTIVITY) => {
     const result = await Promise.all( data.map(async (programa: any, key: number)=> {
+  
       return {
         key: programa.key,
         label: programa.label,
         children: await Promise.all( programa.children.map(async (meta: any, metakey: number)=> {
-          return {
+          const item: any = {
             key: meta.key,
             label: meta.label,
-            children:  await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
+          }
+
+          if (meta?.children) {
+            item.children = await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
               
               const children = sub.children || Array.from({ length: type === ACTIVITY ? repeatActivity :  repeatMaintenance}).map((index)=> {
                 return null
@@ -159,7 +166,13 @@ export const Session = () => {
                 children
               }
             }))
+          } else {
+            item.children =  Array.from({ length: type === ACTIVITY ? repeatActivity :  repeatMaintenance}).map((index)=> {
+              return null
+            })
           }
+
+          return item
         }))
       }
     }))
@@ -237,16 +250,16 @@ export const Session = () => {
       <CheckboxPostage 
         key={0} 
         value={value} 
-        disabled={listPostage[programaId].children[metaId].children[activityId].disabled || isEdit} 
+        disabled={isEdit} 
         onChange={(newValue: any) => {
           const current = [...listPostage];
   
           // Verifica o valor atual do checkbox para evitar contagem duplicada
-          const previousValue = listPostage[programaId].children[metaId].children[activityId].children[0];
+          const previousValue = listPostage[programaId].children[metaId].children[0];
   
           // Só atualiza e faz a verificação se houver uma mudança real no valor
           if (previousValue !== newValue) {
-            current[programaId].children[metaId].children[activityId].children[0] = newValue;
+            current[programaId].children[metaId].children[0] = newValue;
             setPostage(current);
           }
         }}
@@ -258,7 +271,7 @@ export const Session = () => {
     return !!listPostage.length &&  (
       <div className="mt-8">
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
-          <span className="font-bold"> Postage </span>
+          <span className="font-bold"> Portage </span>
         </div>
         { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
@@ -274,21 +287,10 @@ export const Session = () => {
                   }>
                     {
                       programa?.children.map((meta: any, metaKey: number) => (
-                        <div key={metaKey} className="my-8">
-                          <span className="font-bold font-inter">Meta {metaKey + 1}: </span> <span className="font-base font-inter">{ meta.label}</span>
-                          <ul className="list-disc mt-2 font-inter ml-4">
-                          {
-                            meta?.children.map((act: any, actKey: number) => {
-                              return (
-                                <li className="my-2 flex gap-2 -ml-4 items-center" key={actKey}>
-                                  { renderedCheckboxesPostage(key, metaKey, actKey, 0)}
-                                  <span>{ act.label}</span>
-                                </li>
-                              )
-                            })
-                          }
-                          </ul>
-                        </div>
+                        <li className="my-2 flex gap-2 -ml-4 items-center" key={metaKey}>
+                        { renderedCheckboxesPostage(key, metaKey, metaKey, 0)}
+                        <span>{ meta.label}</span>
+                      </li>
                       ))
                       
                     }
@@ -358,7 +360,7 @@ export const Session = () => {
           <div className="grid gap-4 justify-center ">
             <NotFound />
             <ButtonHeron
-              text="Selecionar Metas-DTT"
+              text="Selecionar Metas"
               icon="pi pi-book"
               type="primary"
               color='white'
@@ -469,10 +471,9 @@ export const Session = () => {
   
 
   return (
-    <div  className="h-[90vh] flex flex-col">
+    <div  className="grid overflox-y-auto">
       { renderHeader }
-      <div className="overflox-y-auto">
-  
+      <div className="">
         { renderPostage() }
         { renderActivity() }
         { renderMaintenance() }
