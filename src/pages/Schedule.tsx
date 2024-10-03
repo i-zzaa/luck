@@ -57,7 +57,7 @@ export const Schedule = () => {
 
   const handleButtonDTTClick = (e: any, item: any) => {
     e.stopPropagation(); 
-    navigate(`/${CONSTANTES_ROUTERS.METASDTT}`, { state: item})
+    navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: item})
   };
 
 
@@ -112,7 +112,7 @@ export const Schedule = () => {
         dataAtual={item?.dataAtual}
         />
           {
-            item.statusEventos.nome  != STATUS_EVENTS.atendido && <ButtonHeron
+            item.statusEventos.nome  == STATUS_EVENTS.atendido && <ButtonHeron
             text="Pesquisar"
             icon="pi pi-file-edit"
             type="primary"

@@ -1,5 +1,6 @@
 import { MultiStateCheckbox } from "primereact/multistatecheckbox";
 import { useState } from "react";
+import { VALOR_PORTAGE } from "../constants/protocolo";
 
 
 const CheckboxPostage = ({ onChange, value , disabled}: any) => {
@@ -7,7 +8,7 @@ const CheckboxPostage = ({ onChange, value , disabled}: any) => {
 
   const optionsCurrent = [
       {
-        value: '1',
+        value: VALOR_PORTAGE.sim,
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#672D74"/>
@@ -16,7 +17,7 @@ const CheckboxPostage = ({ onChange, value , disabled}: any) => {
         )
       },
       {
-        value: '0.5',
+        value: VALOR_PORTAGE.asVezes,
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
           <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#682D76"/>
@@ -27,7 +28,7 @@ const CheckboxPostage = ({ onChange, value , disabled}: any) => {
         )
       },
       {
-        value: '0',
+        value: VALOR_PORTAGE.nao,
         icon: (
           <svg version="1.1" viewBox="0 0 1600 1600" width="1280" height="1280" xmlns="http://www.w3.org/2000/svg">
             <path transform="translate(0)" d="m0 0h1600v1600h-1600z" fill="#672C74"/>

@@ -365,7 +365,7 @@ export const Session = () => {
               type="primary"
               color='white'
               size="sm"
-              onClick={()=>   navigate(`/${CONSTANTES_ROUTERS.METASDTT}`, { state: state.item})}
+              onClick={()=>   navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: state.item})}
             />
           </div>
         </Card>

@@ -1,216 +1,175 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { ButtonHeron, Input } from '../components/index';
-import { create, dropDown, filter, update } from '../server';
-import { Fieldset } from 'primereact';
-import { TIPO_PROTOCOLO } from '../constants/protocolo';
+import { Accordion, AccordionTab, Column, DataTable } from 'primereact';
+import CheckboxPostage from '../components/CheckboxPostage';
+import { create, dropDown, filter } from '../server';
+import { TIPO_PORTAGE, TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
+import { ButtonHeron } from '../components';
 
-interface FormProps {
-  atividadeId: any;
-  pacienteId: any;
-  tipoId: any;
-  faixaEtariaId: any;
-}
 
-export default function PortageCadastro( { paciente}: { paciente: { id: number, nome: string}}) {
+export default function PortageCadastro({ paciente }: { paciente: { id: number; nome: string } }) {
   const [loading, setLoading] = useState<boolean>(false);
-  const [dropDownList, setDropDownList] = useState<any>({
-    atividade: [],
-    tipoPortage: [],
-    faixaEtaria: [],
-  });
-  const [list, setList] = useState<any[]>([]);
+  const [list, setList] = useState<any>({});
+  const [selectedItems, setSelectedItems] = useState<any[]>([]); // Controlar itens selecionados
 
-  const { handleSubmit, watch, control, reset } = useForm<FormProps>({
-    defaultValues: {
-      atividadeId: '',
-      pacienteId: paciente,
-      tipoId: '',
-      faixaEtariaId: ''
-    }
-  });
-
-  const faixaEtariaId = watch('faixaEtariaId');
-  const tipoId = watch('tipoId');
-  const atividadeId = watch('atividadeId');
-
-  const getProtocolo = async() => {
+  const getPortage = async () => {
     const { data }: any = await filter('protocolo', {
       pacienteId: paciente.id,
       protocoloId: TIPO_PROTOCOLO.portage
     })
 
-    setList(data);
-  }
+    if (data) {
+      setList(data.portage);
+    }else {
+      renderList()
+    }
 
-  const renderDropdown = useCallback(async () => {
+  };
+
+  const renderList = useCallback(async () => {
     try {
-      const [atividade, tipoPortage, faixaEtaria] = await Promise.all([
-        dropDown('protocolo/portage'),
-        dropDown('protocolo/tipo-portage'),
-        dropDown('protocolo/faixa-etaria'),
-      ]);
-
-      setDropDownList({ atividade, tipoPortage, faixaEtaria });
+      const atividade = await dropDown('protocolo/portage');
+      setList(atividade);
     } catch (error) {
-      console.error("Error fetching dropdown data", error);
+      console.error('Error fetching dropdown data', error);
     }
   }, []);
 
-  const addMeta = () => {
-    setList((prevList) => [
-      ...prevList,
-      {
-        tipoId,
-        faixaEtariaId,
-        atividades: [],
-        pacienteId: paciente
+  const onCheckboxChange = (portageType: string, faixaEtaria: string, itemId: any, value = undefined) => {
+    const updatedSelection = { ...list };
+
+    if (updatedSelection[portageType] && updatedSelection[portageType][faixaEtaria]) {
+      const activities = updatedSelection[portageType][faixaEtaria];
+      const index = activities.findIndex((activity: any) => activity.id === itemId);
+
+      if (index !== -1) {
+        if (value !== undefined) {
+          // Atualiza com o valor do checkbox diretamente
+          activities[index].selected = value;
+        } else {
+          // Simula o clique na linha, seguindo a lógica dos 3 estados
+          let currentValue = activities[index].selected || null;
+          let newValue;
+
+          if (currentValue === VALOR_PORTAGE.sim) {
+            newValue = VALOR_PORTAGE.asVezes;
+          } else if (currentValue === VALOR_PORTAGE.asVezes) {
+            newValue = VALOR_PORTAGE.nao;
+          } else if (currentValue === VALOR_PORTAGE.nao) {
+            newValue = null;
+          } else {
+            newValue = VALOR_PORTAGE.sim;
+          }
+
+          activities[index].selected = newValue;
+        }
+
+        setList(updatedSelection);
+        // setSelectedItems((prevSelected) => {
+        //   // Adiciona ou remove o item selecionado na lista de selecionados
+        //   if (value === null) {
+        //     return prevSelected.filter(item => item.id !== itemId);
+        //   } else {
+        //     const alreadySelected = prevSelected.find(item => item.id === itemId);
+        //     if (!alreadySelected) {
+        //       return [...prevSelected, activities[index]];
+        //     }
+        //     return prevSelected.map(item => (item.id === itemId ? activities[index] : item));
+        //   }
+        // });
       }
-    ]);
+    }
   };
 
-  const removeMeta = (index: number) =>   setList((prevList) => prevList.filter((_, i) => i !== index));
-
-  const addSubitem = (index: number) => {
-    setList((prevList) => {
-      const updatedList = [...prevList];
-      updatedList[index].atividades.push(atividadeId);
-      return updatedList;
-    });
-  };
-
-  const removeSubitem = (metaIndex: number, subitemIndex: number) => {
-    setList((prevList) => {
-      const updatedList = [...prevList];
-      updatedList[metaIndex].atividades.splice(subitemIndex, 1);
-      return updatedList;
-    });
-  };
-
-  const onSubmit = async (formData: FormProps) => {
+  const onSubmit = async () => {
     setLoading(true);
+
+    const payload = {
+      pacienteId: paciente,
+      portage: list
+    }
+
     try {
-      await create('protocolo/portage', list);
-      reset();
+      await create('protocolo/portage', payload);
     } catch (error) {
-      console.error("Error saving form data", error);
+      console.error('Error saving form data', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTemplateHeader = (item: any, index: number) => {
+  const renderedCheckboxesPostage = (portageType: string, faixaEtaria: string, rowData: any) => {
+    const value = rowData.selected || null;
+
     return (
-      <div className='flex gap-2 items-center'>
-        {item.tipoId?.nome || ''} {item.faixaEtariaId?.nome || ''}
-        <ButtonHeron
-          text="Remover"
-          icon="pi pi-trash"
-          type="transparent"
-          color="red"
-          size="icon"
-          onClick={() => removeMeta(index)}
-          typeButton="button"
-        />
-      </div>
-    )
-  }
+      <CheckboxPostage
+        key={rowData.id}
+        value={value}
+        onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} // Atualiza o checkbox
+      />
+    );
+  };
+
+  const renderTable = (type: string) => (
+    <div className="mt-8">
+      {list?.[type] && (
+        <div className="">
+          <span className="col-span-12 text-gray-400 font-inter leading-4 mb-2">{type}</span>
+          <Accordion>
+          {Object.keys(list[type]).map((faixaEtaria: any) => (
+            <AccordionTab className="mb-2" key={faixaEtaria} 
+            tabIndex={faixaEtaria}
+            header={
+              <div className="flex items-center  w-full">
+                <span>{ faixaEtaria}</span>
+              </div>
+            }>
+              <DataTable
+                id="portage-page"
+                value={list[type][faixaEtaria]}
+                selection={selectedItems}
+                responsiveLayout={null}
+                dataKey="id"
+                tableStyle={{ minWidth: 'none' }}
+              >
+                <Column
+                  body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} // Renderiza o checkbox personalizado
+                  bodyStyle={{ padding: '.1rem' }}
+                ></Column>
+                <Column
+                  field="nome"
+                  header=""
+                  bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }}
+                ></Column>
+              </DataTable>
+            </AccordionTab>
+          ))}
+           </Accordion>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderFooter = () => (
+    <div className="mt-auto">
+      <ButtonHeron
+        text="Salvar"
+        type="primary"
+        size="full"
+        onClick={onSubmit}
+        loading={loading}
+      />
+    </div>
+  );
 
   useEffect(() => {
-    renderDropdown();
-  }, [renderDropdown]);
-
-  useEffect(() => {
-    getProtocolo()
-  }, [paciente])
+    getPortage();
+  }, [paciente]);
 
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-      <div className="h-[90vh] flex flex-col overflow-y-auto">
-        <div className="mt-4">
-          <div className="grid grid-cols-12 gap-2 m-4 mb-8 items-center">
-            <span className="col-span-12 text-gray-400 font-inter leading-4">
-              Inclua os Grupos
-            </span>
-            <Input
-              key="portage-tipo"
-              labelText="Tipo Portage"
-              id="tipoId"
-              type="select"
-              customCol="col-span-6"
-              control={control}
-              options={dropDownList.tipoPortage}
-            />
-            <Input
-              key="portage-faixa-etaria"
-              labelText="Faixa Etária"
-              id="faixaEtariaId"
-              type="select"
-              customCol="col-span-6"
-              control={control}
-              options={dropDownList.faixaEtaria}
-            />
-            <div className="col-span-12">
-              <ButtonHeron
-                text="Adicionar"
-                icon="pi pi-plus"
-                type="primary"
-                size="full"
-                onClick={addMeta}
-                typeButton="button"
-              />
-            </div>
-          </div>
-
-          {list.map((item, index) => (
-            <Fieldset
-              key={index}
-              legend={handleTemplateHeader(item, index)}
-              className="mb-2"
-              toggleable
-            >
-              
-              <Input
-                key={`atividade-${index}`}
-                labelText="Atividade"
-                id="atividadeId"
-                type="select-add"
-                control={control}
-                options={dropDownList.atividade}
-                buttonAdd
-                onClick={() => addSubitem(index)}
-              />
-              <ul>
-                {item.atividades.map((subitem: any, subIndex: number) => (
-                  <li key={subIndex} className="flex font-inter text-sm items-center">
-                    <ButtonHeron
-                      text="Remover"
-                      icon="pi pi-trash"
-                      type="transparent"
-                      color="red"
-                      size="icon"
-                      onClick={() => removeSubitem(index, subIndex)}
-                      typeButton="button"
-                    />
-                    <span>{subitem?.nome || 'Atividade'}</span>
-                  </li>
-                ))}
-              </ul>
-            </Fieldset>
-          ))}
-        </div>
-
-        <div className="mt-auto">
-          <ButtonHeron
-            text="Salvar"
-            type="primary"
-            size="full"
-            onClick={handleSubmit(onSubmit)}
-            loading={loading}
-            disabled={!list.length}
-          />
-        </div>
-      </div>
-    </form>
+    <div className="mt-8 space-y-6">
+      {renderTable(TIPO_PORTAGE.socializacao)}
+      {renderTable(TIPO_PORTAGE.cognicao)}
+      {renderFooter()}
+    </div>
   );
 }

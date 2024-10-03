@@ -10,7 +10,7 @@ import { NotFound } from '../components/notFound';
 import { TIPO_PROTOCOLO } from '../constants/protocolo';
 
 
-export default function MetasDTT() {
+export default function Metas() {
   const { renderToast } = useToast();
   
   const navigate = useNavigate();
@@ -33,14 +33,14 @@ export default function MetasDTT() {
   const [selectedPortageKeys, setSelectedPortageKeys] = useState({});
 
 
-  const getProtocolo = async() => {
-    const { data }: any = await filter('protocolo', {
-      pacienteId: state.paciente.id,
-      protocoloId: TIPO_PROTOCOLO.portage
-    })
+  // const getProtocolo = async() => {
+  //   const { data }: any = await filter('protocolo', {
+  //     pacienteId: state.paciente.id,
+  //     protocoloId: TIPO_PROTOCOLO.portage
+  //   })
 
-    // nodePortage(data);
-  }
+  //   // nodePortage(data);
+  // }
 
   const getAllKeys = (arr: any) =>{
     let current: string[] = [];
@@ -109,7 +109,7 @@ export default function MetasDTT() {
 
       if (Boolean(protocolo)) {
         setNodesPortage(protocolo)
-        setSelectedPortageKeys(result.selectedPortageKeys)
+        setSelectedPortageKeys(JSON.parse(result.selectedPortageKeys))
       }
 
       if (Boolean(result)) {
@@ -176,7 +176,7 @@ export default function MetasDTT() {
         selectedKeys,
         maintenance: nodesMaintenance,
         selectedMaintenanceKeys,
-        selectedPortageKeys: JSON.stringify(selectedPortageKeys)
+        selectedPortageKeys: selectedPortageKeys
       }
 
       if (isEdit) {

@@ -2843,6 +2843,7 @@ textarea {
 .p-datatable.p-datatable-scrollable > .p-datatable-wrapper > .p-virtualscroller > .p-datatable-table > .p-datatable-tfoot {
   background-color: #f8f9fa;
 }
+
 .p-datatable .p-datatable-loading-icon {
   font-size: 2rem;
 }
