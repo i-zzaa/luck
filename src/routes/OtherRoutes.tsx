@@ -7,9 +7,9 @@ import { Session } from '../pages/Session';
 import DTT from '../components/DTT';
 import PEI from '../pages/PEI';
 import PEICADASTRO from '../foms/PEI';
-import MetasDTT from '../pages/MetasDTT';
 import PrimeiraResposta from '../pages/PrimeiraResposta';
 import PROTOCOLO from '../foms/Protocolo';
+import Metas from '../pages/Metas';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -19,7 +19,7 @@ export enum CONSTANTES_ROUTERS {
   DTT = 'dtt',
   PEI = 'pei',
   PEICADASTRO = 'pei-cadastro',
-  METASDTT = 'metas-dtt',
+  METAS = 'metas',
   PRIMEIRARESPOSTA = 'primeira-resposta',
   PROTOCOLO = 'protocolo',
 }
@@ -34,7 +34,7 @@ export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.METASDTT, componentRoute: MetasDTT, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
   { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
   { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true },
