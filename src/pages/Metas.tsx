@@ -73,8 +73,7 @@ export default function Metas() {
 
       const metas: any = []
 
-      const selectedMaintenanceKeys =  Boolean(result) ? JSON.parse(result.maintenance) : {}
-      const allKeysMaintenance = Boolean(result) ? getAllKeys(selectedMaintenanceKeys) : []
+      const allKeysMaintenance = Boolean(result) ? getAllKeys( result.maintenance) : []
 
       pei.map((programa: any) => {
         const metaCurrent: any = []
@@ -109,11 +108,11 @@ export default function Metas() {
 
       if (Boolean(protocolo)) {
         setNodesPortage(protocolo)
-        setSelectedPortageKeys(JSON.parse(result.selectedPortageKeys))
+        setSelectedPortageKeys(result.selectedPortageKeys)
       }
 
       if (Boolean(result)) {
-        const obj = JSON.parse(result.selectedKeys)
+        const obj = result.selectedKeys
         const allKeys = Object.keys(obj);
 
         seIsEdit(Boolean(obj))
@@ -121,11 +120,11 @@ export default function Metas() {
         setKeys(allKeys)
 
         if (result.maintenance) {
-          setNodesMaintenance(JSON.parse(result.maintenance))
+          setNodesMaintenance(result.maintenance)
         }
 
         if (Object.values(result.selectedMaintenanceKeys).length) {
-          setSelectedMaintenanceKeys(JSON.parse(result.selectedMaintenanceKeys)) 
+          setSelectedMaintenanceKeys(result.selectedMaintenanceKeys) 
         }
       }
 
@@ -176,7 +175,8 @@ export default function Metas() {
         selectedKeys,
         maintenance: nodesMaintenance,
         selectedMaintenanceKeys,
-        selectedPortageKeys: selectedPortageKeys
+        selectedPortageKeys: selectedPortageKeys,
+        portage: nodesPortage
       }
 
       if (isEdit) {

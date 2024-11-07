@@ -1,25 +1,57 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable } from 'primereact';
-import CheckboxPostage from '../components/CheckboxPostage';
+import CheckboxPortage from '../components/CheckboxPortage';
 import { create, dropDown, filter } from '../server';
 import { TIPO_PORTAGE, TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
 
+import { useToast } from '../contexts/toast';
+import gerarPdf from '../constants/pdfPortage';
 
 export default function PortageCadastro({ paciente }: { paciente: { id: number; nome: string } }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [list, setList] = useState<any>({});
   const [selectedItems, setSelectedItems] = useState<any[]>([]); // Controlar itens selecionados
+  const { renderToast } = useToast();
+
+  const [exitePortage, setExitePortage] = useState<boolean>(false);
+
+  const exportPDF = async() => {
+    const { data }: any = await filter('protocolo', {
+      pacienteId: paciente.id,
+      protocoloId: TIPO_PROTOCOLO.portage,
+      type: 'pdf'
+    })
+
+    if (data) {
+      await handleGerarPdf(data)
+    }else {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Não existe Portage cadastrado no momento!',
+        open: true,
+      });
+    }
+  }
+
+  const handleGerarPdf = async (data: any) => {
+    gerarPdf(data)
+  };
 
   const getPortage = async () => {
     const { data }: any = await filter('protocolo', {
       pacienteId: paciente.id,
-      protocoloId: TIPO_PROTOCOLO.portage
+      protocoloId: TIPO_PROTOCOLO.portage,
+      type: 'local'
     })
 
     if (data) {
+      setExitePortage(true)
       setList(data.portage);
     }else {
+      setExitePortage(false)
       renderList()
     }
 
@@ -90,8 +122,22 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
 
     try {
       await create('protocolo/portage', payload);
+      setExitePortage(true)
+      renderToast({
+        type: 'success',
+        title: 'Sucesso!',
+        message: 'Portage Cadastrado.',
+        open: true,
+      });
+
     } catch (error) {
       console.error('Error saving form data', error);
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão',
+        open: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -101,7 +147,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     const value = rowData.selected || null;
 
     return (
-      <CheckboxPostage
+      <CheckboxPortage
         key={rowData.id}
         value={value}
         onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} // Atualiza o checkbox
@@ -127,7 +173,8 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
                 id="portage-page"
                 value={list[type][faixaEtaria]}
                 selection={selectedItems}
-                responsiveLayout={null}
+
+                responsiveLayout="scroll"
                 dataKey="id"
                 tableStyle={{ minWidth: 'none' }}
               >
@@ -149,6 +196,20 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     </div>
   );
 
+  const renderExport = () => (
+    exitePortage &&  <div className="mt-auto">
+      <ButtonHeron
+        text="Gerar Relatório"
+        type="primary"
+        size="full"
+        icon="pi pi-file-pdf"
+        onClick={exportPDF}
+        loading={loading}
+        typeButton="button"
+      />
+    </div>
+  );
+
   const renderFooter = () => (
     <div className="mt-auto">
       <ButtonHeron
@@ -167,6 +228,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
 
   return (
     <div className="mt-8 space-y-6">
+      {renderExport()}
       {renderTable(TIPO_PORTAGE.socializacao)}
       {renderTable(TIPO_PORTAGE.cognicao)}
       {renderFooter()}
