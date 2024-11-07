@@ -3,7 +3,7 @@ import { useState } from "react";
 import { VALOR_PORTAGE } from "../constants/protocolo";
 
 
-const CheckboxPostage = ({ onChange, value , disabled}: any) => {
+const CheckboxPortage = ({ onChange, value , disabled}: any) => {
   const [valueCurrent, setValue] = useState(value)
 
   const optionsCurrent = [
@@ -60,4 +60,4 @@ const CheckboxPostage = ({ onChange, value , disabled}: any) => {
   );
 };
 
-export default CheckboxPostage;
+export default CheckboxPortage;

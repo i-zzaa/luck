@@ -1,4 +1,4 @@
-import{g as fa}from"./fast-deep-equal.aae8ee5f.js";import{r as da}from"./react.4862a0f1.js";import{s as pa}from"./scheduler.2450001e.js";var ru={},di={exports:{}},ce={};/**
+import{g as fa}from"./core-js.fef2c0d7.js";import{r as da}from"./react.705ad3af.js";import{s as pa}from"./scheduler.2450001e.js";var ru={},di={exports:{}},ce={};/**
  * @license React
  * react-dom.production.min.js
  *

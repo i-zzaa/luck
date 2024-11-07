@@ -11,11 +11,12 @@ import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/Checkbox";
-import CheckboxPostage from "../components/CheckboxPostage";
+import CheckboxPortage from "../components/CheckboxPortage";
 
 
 const MAINTENANCE = 'maintenance';
 const ACTIVITY = 'activity';
+const PORTAGE = 'portage';
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -30,11 +31,11 @@ export const Session = () => {
   const [content, setContent] = useState('');
   const [list, setList] = useState([] as any);
   const [listMaintenance, setListMaintenance] = useState([] as any);
-  const [listPostage, setListPostage] = useState([] as any);
+  const [listPortage, setListPortage] = useState([] as any);
   const [dtt, setDTT] = useState([] as any);
   const [maintenance, setMaintenance] = useState([] as any);
   const [session, setSession] = useState({});
-  const [postage, setPostage] = useState([] as any);
+  const [portage, setPortage] = useState([] as any);
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -47,12 +48,15 @@ export const Session = () => {
         setSession(result)
         setIsEdit(true)
 
-        const atividades = await formatarDado(result.sessao, ACTIVITY)
+        const [atividades, maintenance] = await Promise.all([
+          formatarDado(result.sessao, ACTIVITY),
+          formatarDado(result.portage, PORTAGE),
+          formatarDado(result.maintenance,  MAINTENANCE)
+        ])
+
         setList(atividades)
-
-        const maintenance = await formatarDado(result.maintenance,  MAINTENANCE)
+        setListPortage(result.portage)
         setListMaintenance(maintenance)
-
         setDTT(result.sessao)
       }else {
         await getActivity()
@@ -63,10 +67,7 @@ export const Session = () => {
   // const getTeste = async() => {
   //   try {
   //     const result = await getList(`/sessao/teste`)
-
   //     console.log(result);
-      
-
   //   }catch (e) {}
   // }
 
@@ -74,15 +75,16 @@ export const Session = () => {
     try {
       const result = await getList(`/pei/activity/session/${state.item.id}`)
 
-      const atividades = await formatarDado(result.atividades, ACTIVITY)
+      const [atividades, maintenance, portage] = await Promise.all([
+        formatarDado(result.atividades, ACTIVITY),
+        formatarDado(result.maintenance, MAINTENANCE),
+        formatarDado(result.portage, PORTAGE)
+      ])
+
       setList(atividades)
       setDTT(result.sessao)
-
-      const maintenance = await formatarDado(result.maintenance, MAINTENANCE)
       setListMaintenance(maintenance)
-      
-      const portage = await formatarDado(result.portage, MAINTENANCE)
-      setListPostage(portage)
+      setListPortage(portage)
     }catch (e) {}
   }
 
@@ -91,11 +93,12 @@ export const Session = () => {
      const payload = {
         calendarioId: state.item.id,
         pacienteId: state.item.paciente.id,
-        sessao: JSON.stringify(dtt),
-        maintenance: JSON.stringify(listMaintenance),
-        selectedMaintenanceKeys: JSON.stringify(maintenance),
+        sessao: dtt,
+        maintenance: listMaintenance,
+        selectedMaintenanceKeys: maintenance,
         resumo: content,
         date: state.item.date,
+        portage: portage,
         ...session
       };
 
@@ -153,7 +156,7 @@ export const Session = () => {
           if (meta?.children) {
             item.children = await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
               
-              const children = sub.children || Array.from({ length: type === ACTIVITY ? repeatActivity :  repeatMaintenance}).map((index)=> {
+              const children = sub.children || Array.from({ length: type === ACTIVITY || PORTAGE ? repeatActivity :  repeatMaintenance}).map((index)=> {
                 return null
               })
 
@@ -167,7 +170,7 @@ export const Session = () => {
               }
             }))
           } else {
-            item.children =  Array.from({ length: type === ACTIVITY ? repeatActivity :  repeatMaintenance}).map((index)=> {
+            item.children =  Array.from({ length: type === ACTIVITY  || PORTAGE? repeatActivity :  repeatMaintenance}).map((index)=> {
               return null
             })
           }
@@ -178,7 +181,6 @@ export const Session = () => {
     }))
 
     return result
-
   }
 
   const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
@@ -245,30 +247,30 @@ export const Session = () => {
     );
   };
 
-  const renderedCheckboxesPostage = (programaId: number, metaId: number, activityId: number, value?: any) => {
+  const renderedCheckboxesPortage = (programaId: number, metaId: number, checkKey: number, value?: any) => {
     return (
-      <CheckboxPostage 
+      <CheckboxDTT 
         key={0} 
         value={value} 
         disabled={isEdit} 
         onChange={(newValue: any) => {
-          const current = [...listPostage];
+          const current = [...listPortage];
   
           // Verifica o valor atual do checkbox para evitar contagem duplicada
-          const previousValue = listPostage[programaId].children[metaId].children[0];
+          // const previousValue = list[programaId].children[metaId].children[activityId].children[checkKey];
   
           // Só atualiza e faz a verificação se houver uma mudança real no valor
-          if (previousValue !== newValue) {
-            current[programaId].children[metaId].children[0] = newValue;
-            setPostage(current);
-          }
+          // if (previousValue !== newValue) {
+            // current[programaId].children[metaId].children[activityId].children[checkKey] = newValue;
+            setPortage(current);
+          // }
         }}
       />
     );
   };
 
-  const renderPostage  = () => {
-    return !!listPostage.length &&  (
+  const renderPortage  = () => {
+    return !!listPortage.length &&  (
       <div className="mt-8">
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> Portage </span>
@@ -276,7 +278,7 @@ export const Session = () => {
         { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
-              listPostage.map((programa: any, key: number)=> (
+              listPortage.map((programa: any, key: number)=> (
                 <AccordionTab 
                   key={key} 
                   tabIndex={key}
@@ -287,9 +289,16 @@ export const Session = () => {
                   }>
                     {
                       programa?.children.map((meta: any, metaKey: number) => (
-                        <li className="my-2 flex gap-2 -ml-4 items-center" key={metaKey}>
-                        { renderedCheckboxesPostage(key, metaKey, metaKey, 0)}
+                        <li className="my-2 grid gap-2  items-center" key={metaKey}>
+  
                         <span>{ meta.label}</span>
+                        {
+                         <div className="flex gap-1">
+                           {
+                              meta?.children.map((itm: any, checkKey: number) => renderedCheckboxesPortage(key, metaKey, checkKey, itm))
+                           }
+                         </div>
+                        }
                       </li>
                       ))
                       
@@ -474,7 +483,7 @@ export const Session = () => {
     <div  className="grid overflox-y-auto">
       { renderHeader }
       <div className="">
-        { renderPostage() }
+        { renderPortage() }
         { renderActivity() }
         { renderMaintenance() }
         { renderSumary() }
