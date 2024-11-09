@@ -14,7 +14,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
   const [selectedItems, setSelectedItems] = useState<any[]>([]); // Controlar itens selecionados
   const { renderToast } = useToast();
 
-  const [exitePortage, setExitePortage] = useState<boolean>(false);
+  const [existePortage, setExistePortage] = useState<boolean>(false);
 
   const exportPDF = async() => {
     const { data }: any = await filter('protocolo', {
@@ -48,10 +48,10 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     })
 
     if (data) {
-      setExitePortage(true)
+      setExistePortage(true)
       setList(data.portage);
     }else {
-      setExitePortage(false)
+      setExistePortage(false)
       renderList()
     }
 
@@ -122,7 +122,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
 
     try {
       await create('protocolo/portage', payload);
-      setExitePortage(true)
+      setExistePortage(true)
       renderToast({
         type: 'success',
         title: 'Sucesso!',
@@ -197,7 +197,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
   );
 
   const renderExport = () => (
-    exitePortage &&  <div className="mt-auto">
+    existePortage &&  <div className="mt-auto">
       <ButtonHeron
         text="Gerar Relatório"
         type="primary"

@@ -14,3 +14,9 @@ export enum TIPO_PORTAGE {
   socializacao = 'Socialização',
   cognicao = 'Cognição',
 }
+
+export enum VBMAPP {
+  um = 1,
+  dois = 2,
+  tres = 3,
+}
