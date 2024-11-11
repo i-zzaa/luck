@@ -2,92 +2,73 @@ import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable, TabPanel, TabView } from 'primereact';
 import CheckboxPortage from '../components/CheckboxPortage';
 import { create, dropDown, filter } from '../server';
-import {TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
+import { TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
 
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
 import { NotFound } from '../components/notFound';
 
-export default function VBMapp({ paciente }: { paciente: { id: number; nome: string } }) {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [list, setList] = useState<any>({});
-  const [selectedItems, setSelectedItems] = useState<any[]>([]); // Controlar itens selecionados
+export default function VBMapp({ paciente }) {
+  const [loading, setLoading] = useState(false);
+  const [list, setList] = useState({});
+  const [selectedItems, setSelectedItems] = useState([]);
   const { renderToast } = useToast();
 
-  const [nivel, setNivel] = useState<number>(VBMAPP.um);
-  const [nivelIndex, setNivelIndex] = useState<number>(VBMAPP.um - 1);
-  const [existe, setExiste] = useState<boolean>(false);
+  const [nivel, setNivel] = useState(VBMAPP.um);
+  const [nivelIndex, setNivelIndex] = useState(VBMAPP.um - 1);
+  const [existe, setExiste] = useState(false);
 
-
-  const exportPDF = async() => {
-    const { data }: any = await filter('protocolo', {
-      pacienteId: paciente.id,
-      protocoloId: TIPO_PROTOCOLO.vbMapp,
-      type: 'pdf'
-    })
-
-    if (data) {
-      await handleGerarPdf(data)
-    }else {
-      setLoading(false);
-      renderToast({
-        type: 'failure',
-        title: 'Erro!',
-        message: 'Não existe Portage cadastrado no momento!',
-        open: true,
-      });
-    }
-  }
-
-  const handleGerarPdf = async (data: any) => {
-    gerarPdf(data)
-  };
-
-  const getVBMapp = async (nivelCurrent: number = nivel) => {
-    const { data }: any = await filter('protocolo', {
-      pacienteId: paciente.id,
-      protocoloId: TIPO_PROTOCOLO.vbMapp,
-      nivel: nivelCurrent
-    })
-
-    if (Object.keys(data).length > 0) {
-      setExiste(true)
-      setList(data);
-    }else {
-      renderList(nivelCurrent)
-
-      setExiste(false)
-    }
-  };
-
-  const renderList = useCallback(async (nivelCurrent: number) => {
+  const exportPDF = useCallback(async () => {
     try {
-      const atividade = await dropDown(`protocolo/vbmapp/${nivelCurrent}`);
-      setList(atividade);
+      const { data } = await filter('protocolo', {
+        pacienteId: paciente.id,
+        protocoloId: TIPO_PROTOCOLO.vbMapp,
+        type: 'pdf',
+      });
+
+      if (data) {
+        await gerarPdf(data);
+      } else {
+        setLoading(false);
+        renderToast({
+          type: 'failure',
+          title: 'Erro!',
+          message: 'Não existe Portage cadastrado no momento!',
+          open: true,
+        });
+      }
     } catch (error) {
-      console.error('Error fetching dropdown data', error);
+      console.error('Erro ao gerar PDF', error);
     }
-  }, []);
+  }, [paciente.id, renderToast]);
 
-  const onSubmit = async () => {
+  const getVBMapp = useCallback(
+    async (nivelCurrent = nivel) => {
+      const { data } = await filter('protocolo', {
+        pacienteId: paciente.id,
+        protocoloId: TIPO_PROTOCOLO.vbMapp,
+        nivel: nivelCurrent,
+      });
+      setList(data.data);
+      setExiste(data.existeResposta);
+    },
+    [nivel, paciente.id]
+  );
+
+  const onSubmit = useCallback(async () => {
     setLoading(true);
-
-    const payload = {
-      pacienteId: paciente.id,
-      vbmapp: list
-    }
+    const payload = { pacienteId: paciente.id, vbmapp: list };
 
     try {
       await create('protocolo/vbmapp', payload);
-      setExiste(true)
+      setExiste(true);
       renderToast({
         type: 'success',
         title: 'Sucesso!',
         message: 'VB Mapp Cadastrado.',
         open: true,
       });
-
     } catch (error) {
       console.error('Error saving form data', error);
       renderToast({
@@ -99,116 +80,90 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
     } finally {
       setLoading(false);
     }
-  };
+  }, [list, paciente.id, renderToast]);
 
-  const renderTab = () => {
-    return (
-      <TabView activeIndex={nivelIndex}   onTabChange={(e) => {
-        setNivel(e.index + 1)
-        setNivelIndex(e.index)
-        getVBMapp(e.index + 1)
-      }}>
-        <TabPanel header="Nível 1">
-          { renderTable() }
-        </TabPanel>
-        <TabPanel header="Nível 2">
-          { renderTable() }
-        </TabPanel>
-        <TabPanel header="Nível 3">
-          { renderTable() }
-        </TabPanel>
-      </TabView>
-    )
-  }
+  const updateNivel = useCallback(
+    (e) => {
+      setNivel(e.index + 1);
+      setNivelIndex(e.index);
+      getVBMapp(e.index + 1);
+    },
+    [getVBMapp]
+  );
 
-  const renderedCheckboxes = (rowData: any, programa: string) => {
+  const renderedCheckboxes = useCallback((rowData, programa) => {
     const value = rowData.selected || null;
-
     return (
       <CheckboxPortage
         key={rowData.id}
         value={value}
-        onChange={(newValue: any) => {
-          rowData.selected = newValue
-        }} // Atualiza o checkbox
+        onChange={(newValue) => {
+          rowData.selected = newValue;
+        }}
       />
     );
-  };
+  }, []);
 
-  const renderTable = () => (
+  const renderTable = useCallback(() => (
     <div className="mt-8">
-       {Object.keys(list).length > 0 ? <Accordion>
-        {
-          Object.keys(list).map((programa: any, keys: number) => (
-            <AccordionTab className="mb-2" key={keys} 
-            tabIndex={keys}
-            header={
-              <div className="flex items-center  w-full">
-                <span>{ programa }</span>
-              </div>
-            }>
-            <DataTable
+      {Object.keys(list).length > 0 ? (
+        <Accordion>
+          {Object.keys(list).map((programa, keys) => (
+            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={<div className="flex items-center w-full"><span>{programa}</span></div>}>
+              <DataTable
                 id="vbmapp-page"
                 value={list[programa]}
                 selection={selectedItems}
-
                 responsiveLayout="scroll"
                 dataKey="id"
                 tableStyle={{ minWidth: 'none' }}
               >
-                <Column
-                  body={(row: any) => renderedCheckboxes(row, programa)} // Renderiza o checkbox personalizado
-                  bodyStyle={{ padding: '.1rem' }}
-                ></Column>
-                <Column
-                  field="nome"
-                  header=""
-                  bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }}
-                ></Column>
+                <Column body={(row) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
+                <Column field="nome" header="" bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }} />
               </DataTable>
             </AccordionTab>
-          ))
-        }
-      </Accordion> :  <NotFound /> 
-    }
-
+          ))}
+        </Accordion>
+      ) : (
+        <NotFound />
+      )}
     </div>
-  );
+  ), [list, renderedCheckboxes]);
 
-  const renderExport = () => (
-    existe &&  <div className="mt-auto">
-      <ButtonHeron
-        text="Gerar Relatório"
-        type="primary"
-        size="full"
-        icon="pi pi-file-pdf"
-        onClick={exportPDF}
-        loading={loading}
-        typeButton="button"
-      />
-    </div>
-  );
+  const renderExport = useCallback(() => (
+    existe && (
+      <div className="mt-auto">
+        <ButtonHeron
+          text="Gerar Relatório"
+          type="primary"
+          size="full"
+          icon="pi pi-file-pdf"
+          onClick={exportPDF}
+          loading={loading}
+          typeButton="button"
+        />
+      </div>
+    )
+  ), [existe, exportPDF, loading]);
 
-  const renderFooter = () => (
+  const renderFooter = useCallback(() => (
     <div className="mt-auto">
-      <ButtonHeron
-        text="Salvar"
-        type="primary"
-        size="full"
-        onClick={onSubmit}
-        loading={loading}
-      />
+      <ButtonHeron text="Salvar" type="primary" size="full" onClick={onSubmit} loading={loading} />
     </div>
-  );
+  ), [onSubmit, loading]);
 
   useEffect(() => {
-    getVBMapp ();
-  }, [paciente]);
+    getVBMapp();
+  }, [paciente, getVBMapp]);
 
   return (
     <div className="mt-8 space-y-6">
       {renderExport()}
-      {renderTab() }
+      <TabView activeIndex={nivelIndex} onTabChange={updateNivel}>
+        <TabPanel header="Nível 1">{renderTable()}</TabPanel>
+        <TabPanel header="Nível 2">{renderTable()}</TabPanel>
+        <TabPanel header="Nível 3">{renderTable()}</TabPanel>
+      </TabView>
       {renderFooter()}
     </div>
   );
