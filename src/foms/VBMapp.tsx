@@ -9,9 +9,9 @@ import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
 import { NotFound } from '../components/notFound';
 
-export default function VBMapp({ paciente }) {
+export default function VBMapp({ paciente }: any) {
   const [loading, setLoading] = useState(false);
-  const [list, setList] = useState({});
+  const [list, setList] = useState({} as any);
   const [selectedItems, setSelectedItems] = useState([]);
   const { renderToast } = useToast();
 
@@ -83,7 +83,7 @@ export default function VBMapp({ paciente }) {
   }, [list, paciente.id, renderToast]);
 
   const updateNivel = useCallback(
-    (e) => {
+    (e: any) => {
       setNivel(e.index + 1);
       setNivelIndex(e.index);
       getVBMapp(e.index + 1);
@@ -91,13 +91,13 @@ export default function VBMapp({ paciente }) {
     [getVBMapp]
   );
 
-  const renderedCheckboxes = useCallback((rowData, programa) => {
+  const renderedCheckboxes = useCallback((rowData: any, programa: any) => {
     const value = rowData.selected || null;
     return (
       <CheckboxPortage
         key={rowData.id}
         value={value}
-        onChange={(newValue) => {
+        onChange={(newValue: any) => {
           rowData.selected = newValue;
         }}
       />

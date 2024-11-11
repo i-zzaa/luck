@@ -86,9 +86,9 @@ export default function Protocolo() {
         ) : null
       }
 
-      { protocoloObj.id === TIPO_PROTOCOLO.portage && <PORTAGECADASTRO paciente={pacienteObj}/>}
-      { protocoloObj.id === TIPO_PROTOCOLO.pei && <PEICADASTRO paciente={pacienteObj} />}
-      { protocoloObj.id === TIPO_PROTOCOLO.vbMapp && <VBMapp  paciente={pacienteObj}/>}
+      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.portage && pacienteObj?.id &&  <PORTAGECADASTRO paciente={pacienteObj}/>}
+      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.pei && pacienteObj?.id && <PEICADASTRO paciente={pacienteObj} />}
+      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.vbMapp && pacienteObj?.id && <VBMapp  paciente={pacienteObj}/>}
    </form>
   );
 }
