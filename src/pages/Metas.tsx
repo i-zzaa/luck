@@ -62,7 +62,7 @@ export default function Metas() {
     try {
       const paciente = state.paciente
 
-      const [ protocoloData, {data}, result] = await Promise.all([
+      const [ protocoloData, {data}, atividadesSessao] = await Promise.all([
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
         filter('pei', { paciente}),
         getList(`pei/activity-session/${state.id}`)
@@ -73,7 +73,7 @@ export default function Metas() {
 
       const metas: any = []
 
-      const allKeysMaintenance = Boolean(result) ? getAllKeys( result.maintenance) : []
+      const allKeysMaintenance = Boolean(atividadesSessao) ? getAllKeys( atividadesSessao.maintenance) : []
 
       pei.map((programa: any) => {
         const metaCurrent: any = []
@@ -106,25 +106,25 @@ export default function Metas() {
         })
       })
 
-      if (Boolean(protocolo)) {
+      if (protocolo && protocolo.length > 0) {
         setNodesPortage(protocolo)
-        setSelectedPortageKeys(result.selectedPortageKeys)
+        setSelectedPortageKeys(atividadesSessao?.selectedPortageKeys)
       }
 
-      if (Boolean(result)) {
-        const obj = result.selectedKeys
+      if (atividadesSessao && Object.values(atividadesSessao).length > 0) {
+        const obj = atividadesSessao.selectedKeys
         const allKeys = Object.keys(obj);
 
         seIsEdit(Boolean(obj))
         setSelectedKeys(obj)
         setKeys(allKeys)
 
-        if (result.maintenance) {
-          setNodesMaintenance(result.maintenance)
+        if (atividadesSessao.maintenance) {
+          setNodesMaintenance(atividadesSessao.maintenance)
         }
 
-        if (Object.values(result.selectedMaintenanceKeys).length) {
-          setSelectedMaintenanceKeys(result.selectedMaintenanceKeys) 
+        if (Object.values(atividadesSessao.selectedMaintenanceKeys).length) {
+          setSelectedMaintenanceKeys(atividadesSessao.selectedMaintenanceKeys) 
         }
       }
 
