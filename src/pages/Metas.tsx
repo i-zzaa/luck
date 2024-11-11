@@ -63,8 +63,8 @@ export default function Metas() {
       const paciente = state.paciente
 
       const [ protocoloData, {data}, result] = await Promise.all([
-        filter('protocolo/meta', { paciente, protocoloId: TIPO_PROTOCOLO.portage }),
-        filter('pei', { paciente }),
+        filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
+        filter('pei', { paciente}),
         getList(`pei/activity-session/${state.id}`)
       ])
 
