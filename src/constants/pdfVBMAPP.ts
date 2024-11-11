@@ -2,8 +2,10 @@ import jsPDF from 'jspdf';
 
 type DadosAtividade = {
   [nivel: number]: {
-    [programa: string]: {
-      [atividade: string]: { percentual: number };
+    [data: string]: {
+      [programa: string]: {
+        [atividade: string]: { percentual: number };
+      };
     };
   };
 };
@@ -21,16 +23,17 @@ const gerarGraficoPDF = (dados: DadosAtividade): void => {
   const cellWidth = 15;
   const headerCellHeight = 10; // Altura do cabeçalho
   const activityCellHeight = 6; // Altura menor das atividades
-  const spacing = 0;
-  let startY = 40;
+  const spacing = 2; // Espaço menor entre os gráficos
+  const maxActivities = 10; // Número máximo de atividades (linhas) por gráfico
+  let startY = 20;
 
-  doc.setFontSize(16);
-  doc.text(
-    'Relatório de Avaliação - Gráfico de Progresso',
-    pageWidth / 2,
-    startY - 15,
-    { align: 'center' }
-  );
+  // doc.setFontSize(16);
+  // doc.text(
+  //   'Relatório de Avaliação - Gráfico de Progresso',
+  //   pageWidth / 2,
+  //   startY - 15,
+  //   { align: 'center' }
+  // );
 
   // Função para definir a cor com base no nível
   const getLevelColor = (nivel: number): string => {
@@ -47,84 +50,101 @@ const gerarGraficoPDF = (dados: DadosAtividade): void => {
 
   // Itera sobre os níveis para gerar o título e gráficos para cada nível
   niveisOrdenados.forEach((nivel) => {
-    const programas = Object.keys(dados[nivel]);
-    const numProgramas = programas.length;
-    const startX = (pageWidth - numProgramas * (cellWidth + spacing)) / 2;
+    const datas = Object.keys(dados[nivel]);
+    startY += 15; // Ajuste para o título do nível
 
-    // Título do nível
-    startY += 5;
     doc.setFontSize(14);
     doc.text(`Nível ${nivel}`, pageWidth / 2, startY, { align: 'center' });
-    startY += 2;
+    startY += 5;
 
-    // Configura cabeçalhos (nomes dos programas)
-    const maxActivities = 10;
+    // Calcula a largura total necessária para centralizar os gráficos de cada nível
+    const totalWidth = datas.reduce((width, data) => {
+      const programas = Object.keys(dados[nivel][data]).length;
+      return width + programas * cellWidth + spacing * (programas - 1) + 20;
+    }, -20);
 
-    // Desenhar cabeçalhos dos programas
-    programas.forEach((programa, colIndex) => {
-      const x = startX + colIndex * (cellWidth + spacing);
-      doc.setFillColor(GRAY);
-      doc.rect(x, startY, cellWidth, headerCellHeight, 'F');
-      doc.setTextColor(BLACK);
-      doc.setFontSize(8);
-      doc.setDrawColor(BLACK);
-      doc.setLineWidth(0.2);
-      doc.rect(x, startY, cellWidth, headerCellHeight);
+    let graficoOffsetX = (pageWidth - totalWidth) / 2; // Centraliza o conjunto de gráficos
 
+    datas.forEach((data) => {
+      const programas = Object.keys(dados[nivel][data]);
+
+      // Adiciona a data acima de cada gráfico
+      doc.setFontSize(10);
       doc.text(
-        programa.toUpperCase(),
-        x + cellWidth / 2,
-        startY + headerCellHeight / 2 + 2,
+        data,
+        graficoOffsetX + (programas.length * cellWidth) / 2,
+        startY,
         { align: 'center' }
       );
-    });
+      const headerY = startY + 2;
 
-    // Desenhar 10 blocos de atividades para cada programa no nível
-    for (let i = 0; i < maxActivities; i++) {
+      // Desenhar cabeçalhos dos programas
       programas.forEach((programa, colIndex) => {
-        const atividades = Object.keys(dados[nivel][programa]);
-        const atividade = atividades[i];
-        const percentual = atividade
-          ? dados[nivel][programa][atividade].percentual
-          : 0;
-
-        const color = getLevelColor(nivel);
-
-        const x = startX + colIndex * (cellWidth + spacing);
-        const y =
-          startY + headerCellHeight + i * (activityCellHeight + spacing);
-
-        if (percentual === 100) {
-          doc.setFillColor(color);
-          doc.rect(x, y, cellWidth, activityCellHeight, 'F');
-        } else if (percentual === 50) {
-          // Preenche metade inferior com a cor do nível e metade superior em branco
-          doc.setFillColor(color);
-          doc.rect(
-            x,
-            y + activityCellHeight / 2,
-            cellWidth,
-            activityCellHeight / 2,
-            'F'
-          ); // Metade inferior
-          doc.setFillColor(WHITE);
-          doc.rect(x, y, cellWidth, activityCellHeight / 2, 'F'); // Metade superior
-        } else {
-          // Preenche 0% em branco
-          doc.setFillColor(WHITE);
-          doc.rect(x, y, cellWidth, activityCellHeight, 'F');
-        }
-
-        // Adicionar borda preta ao redor do bloco
+        const x = graficoOffsetX + colIndex * cellWidth;
+        doc.setFillColor(GRAY);
+        doc.rect(x, headerY, cellWidth, headerCellHeight, 'F');
+        doc.setTextColor(BLACK);
+        doc.setFontSize(8);
         doc.setDrawColor(BLACK);
         doc.setLineWidth(0.2);
-        doc.rect(x, y, cellWidth, activityCellHeight);
+        doc.rect(x, headerY, cellWidth, headerCellHeight);
+
+        doc.text(
+          programa.toUpperCase(),
+          x + cellWidth / 2,
+          headerY + headerCellHeight / 2 + 2,
+          { align: 'center' }
+        );
       });
-    }
+
+      // Desenhar 10 blocos de atividades para cada programa na data e nível
+      for (let i = 0; i < maxActivities; i++) {
+        programas.forEach((programa, colIndex) => {
+          const atividades = Object.keys(dados[nivel][data][programa]);
+          const atividade = atividades[i];
+          const percentual = atividade
+            ? dados[nivel][data][programa][atividade].percentual
+            : 0;
+
+          const color = getLevelColor(nivel);
+
+          const x = graficoOffsetX + colIndex * cellWidth;
+          const y = headerY + headerCellHeight + i * activityCellHeight;
+
+          if (percentual === 100) {
+            doc.setFillColor(color);
+            doc.rect(x, y, cellWidth, activityCellHeight, 'F');
+          } else if (percentual === 50) {
+            // Preenche metade inferior com a cor do nível e metade superior em branco
+            doc.setFillColor(color);
+            doc.rect(
+              x,
+              y + activityCellHeight / 2,
+              cellWidth,
+              activityCellHeight / 2,
+              'F'
+            ); // Metade inferior
+            doc.setFillColor(WHITE);
+            doc.rect(x, y, cellWidth, activityCellHeight / 2, 'F'); // Metade superior
+          } else {
+            // Preenche 0% em branco
+            doc.setFillColor(WHITE);
+            doc.rect(x, y, cellWidth, activityCellHeight, 'F');
+          }
+
+          // Adicionar borda preta ao redor do bloco
+          doc.setDrawColor(BLACK);
+          doc.setLineWidth(0.2);
+          doc.rect(x, y, cellWidth, activityCellHeight);
+        });
+      }
+
+      // Move o próximo gráfico para a direita
+      graficoOffsetX += programas.length * cellWidth + 20; // Ajuste do espaçamento entre gráficos
+    });
 
     // Ajusta a posição inicial para o próximo nível
-    startY +=
-      headerCellHeight + maxActivities * (activityCellHeight + spacing) + 20;
+    startY += headerCellHeight + maxActivities * spacing + 40;
   });
 
   window.open(doc.output('bloburl'));
