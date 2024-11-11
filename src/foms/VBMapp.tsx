@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable, TabPanel, TabView } from 'primereact';
 import CheckboxPortage from '../components/CheckboxPortage';
 import { create, dropDown, filter } from '../server';
-import { TIPO_PORTAGE, TIPO_PROTOCOLO, VALOR_PORTAGE, VBMAPP } from '../constants/protocolo';
+import {TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
 
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
+import { NotFound } from '../components/notFound';
 
 export default function VBMapp({ paciente }: { paciente: { id: number; nome: string } }) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -15,6 +16,7 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
   const { renderToast } = useToast();
 
   const [nivel, setNivel] = useState<number>(VBMAPP.um);
+  const [nivelIndex, setNivelIndex] = useState<number>(VBMAPP.um - 1);
   const [existe, setExiste] = useState<boolean>(false);
 
 
@@ -42,25 +44,26 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
     gerarPdf(data)
   };
 
-  const getVBMapp = async () => {
+  const getVBMapp = async (nivelCurrent: number = nivel) => {
     const { data }: any = await filter('protocolo', {
       pacienteId: paciente.id,
       protocoloId: TIPO_PROTOCOLO.vbMapp,
-      nivel
+      nivel: nivelCurrent
     })
 
-    if (data) {
+    if (Object.keys(data).length > 0) {
       setExiste(true)
-      // setList(data.portage);
+      setList(data);
     }else {
+      renderList(nivelCurrent)
+
       setExiste(false)
-      renderList(nivel)
     }
   };
 
-  const renderList = useCallback(async (nivel: number) => {
+  const renderList = useCallback(async (nivelCurrent: number) => {
     try {
-      const atividade = await dropDown(`protocolo/vbmapp/${nivel}`);
+      const atividade = await dropDown(`protocolo/vbmapp/${nivelCurrent}`);
       setList(atividade);
     } catch (error) {
       console.error('Error fetching dropdown data', error);
@@ -100,9 +103,10 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
 
   const renderTab = () => {
     return (
-      <TabView activeIndex={nivel}   onTabChange={(e) => {
-        setNivel(e.index)
-        renderList(e.index + 1)
+      <TabView activeIndex={nivelIndex}   onTabChange={(e) => {
+        setNivel(e.index + 1)
+        setNivelIndex(e.index)
+        getVBMapp(e.index + 1)
       }}>
         <TabPanel header="Nível 1">
           { renderTable() }
@@ -133,7 +137,7 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
 
   const renderTable = () => (
     <div className="mt-8">
-       <Accordion>
+       {Object.keys(list).length > 0 ? <Accordion>
         {
           Object.keys(list).map((programa: any, keys: number) => (
             <AccordionTab className="mb-2" key={keys} 
@@ -165,7 +169,9 @@ export default function VBMapp({ paciente }: { paciente: { id: number; nome: str
             </AccordionTab>
           ))
         }
-      </Accordion>
+      </Accordion> :  <NotFound /> 
+    }
+
     </div>
   );
 
