@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import logoLg from '../assets/logo-lg.jpg';
 
 type DadosAtividade = {
   [nivel: number]: {
@@ -17,15 +18,35 @@ const GRAY = '#d9d9d9';
 const WHITE = '#ffffff';
 const BLACK = '#000000';
 
-const gerarGraficoPDF = (dados: DadosAtividade): void => {
+const gerarGraficoPDF = ({ data, paciente }: any): void => {
+  const dados = data;
   const doc = new jsPDF();
+
+  const logoURL = logoLg; // Se tiver o logo, insira o URL ou base64 aqui
+  doc.addImage(logoURL, 'PNG', 15, 10, 50, 20); // Ajuste a posição e o tamanho do logotipo
+
+  doc.setFontSize(9);
+  doc.text('Cel: (11) 97271-6993 • E-mail: alcance.nt@yahoo.com', 15, 35);
+  doc.text('CNPJ: 37.999.009/0001-68', 15, 40);
+
+  // Título principal
+  doc.setFontSize(12);
+  doc.setFont('Helvetica', 'bold');
+  doc.text('RELATÓRIO DE INTERVENÇÃO ABA INDIVIDUALIZADO', 15, 50);
+
+  doc.setFont('Helvetica', 'bold');
+  doc.text('DADOS DE IDENTIFICAÇÃO:', 15, 60);
+  doc.setFont('Helvetica', 'normal');
+  doc.text(`Nome: ${paciente.nome}`, 15, 65);
+  doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, 110, 65);
+
   const pageWidth = doc.internal.pageSize.width;
   const cellWidth = 15;
   const headerCellHeight = 10; // Altura do cabeçalho
   const activityCellHeight = 6; // Altura menor das atividades
   const spacing = 2; // Espaço menor entre os gráficos
   const maxActivities = 10; // Número máximo de atividades (linhas) por gráfico
-  let startY = 20;
+  let startY = 70;
 
   // doc.setFontSize(16);
   // doc.text(
