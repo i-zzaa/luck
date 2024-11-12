@@ -101,6 +101,14 @@ const gerarPdf = (data: any) => {
     },
   });
 
+  // Define o rodapé
+  const pageHeight = doc.internal.pageSize.height;
+  doc.text(
+    'Av. Henrique Andrés, 700 – Centro – Jundiaí-SP',
+    10,
+    pageHeight - 10
+  ); // 10 é o espaço do rodapé a partir do final da página
+
   // Salvar o PDF
   // doc.save('relatorio_aba.pdf');
   window.open(doc.output('bloburl'));
