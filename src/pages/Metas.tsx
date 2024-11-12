@@ -31,16 +31,11 @@ export default function Metas() {
   //portage 
   const [nodesPortage, setNodesPortage] = useState([]);
   const [selectedPortageKeys, setSelectedPortageKeys] = useState({});
-
-
-  // const getProtocolo = async() => {
-  //   const { data }: any = await filter('protocolo', {
-  //     pacienteId: state.paciente.id,
-  //     protocoloId: TIPO_PROTOCOLO.portage
-  //   })
-
-  //   // nodePortage(data);
-  // }
+  
+  
+  //vbMapp 
+  const [nodesVbMapp, setNodesVbMapp] = useState([]);
+  const [selectedVbMappKeys, setSelectedVbMappKeys] = useState({});
 
   const getAllKeys = (arr: any) =>{
     let current: string[] = [];
@@ -62,7 +57,8 @@ export default function Metas() {
     try {
       const paciente = state.paciente
 
-      const [ protocoloData, {data}, atividadesSessao] = await Promise.all([
+      const [vbMappData, protocoloData, {data}, atividadesSessao] = await Promise.all([
+        filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
         filter('pei', { paciente}),
         getList(`pei/activity-session/${state.id}`)
@@ -70,10 +66,11 @@ export default function Metas() {
 
       const pei = data
       const protocolo = protocoloData.data
+      const vbMapp = vbMappData.data
 
       const metas: any = []
 
-      const allKeysMaintenance = Boolean(atividadesSessao) ? getAllKeys( atividadesSessao.maintenance) : []
+      const allKeysMaintenance = Boolean(atividadesSessao?.maintenance) &&  typeof atividadesSessao?.maintenance === 'object' ? getAllKeys(atividadesSessao.maintenance) : []
 
       pei.map((programa: any) => {
         const metaCurrent: any = []
@@ -109,6 +106,11 @@ export default function Metas() {
       if (protocolo && protocolo.length > 0) {
         setNodesPortage(protocolo)
         setSelectedPortageKeys(atividadesSessao?.selectedPortageKeys)
+      }
+
+      if (vbMapp && vbMapp.length > 0) {
+        setNodesVbMapp(vbMapp)
+        setSelectedVbMappKeys(atividadesSessao?.selectedVbMappKeys)
       }
 
       if (atividadesSessao && Object.values(atividadesSessao).length > 0) {
@@ -176,7 +178,9 @@ export default function Metas() {
         maintenance: nodesMaintenance,
         selectedMaintenanceKeys,
         selectedPortageKeys: selectedPortageKeys,
-        portage: nodesPortage
+        portage: nodesPortage,
+        selectedVbMappKeys: selectedVbMappKeys,
+        vbmapp: nodesVbMapp        
       }
 
       if (isEdit) {
@@ -281,9 +285,20 @@ export default function Metas() {
     )
   }
 
+  const renderContentVbMapp = () => {
+    return  !!nodesVbMapp.length &&  (
+      <div className='grid gap-2 mt-8'>
+        <div className='text-gray-400'> Vb Mapp </div>
+        <Tree value={nodesVbMapp} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
+          setSelectedVbMappKeys(e.value)
+        }} className="w-full md:w-30rem" />
+    </div>
+    )
+  }
+
   const renderFooter = () => {
     return  (
-      <div className='mt-auto'>
+      <div className=' mt-8'>
         <ButtonHeron
           text="Salvar"
           type="primary"
@@ -304,9 +319,10 @@ export default function Metas() {
     <div className='h-[90vh] flex flex-col overflow-y-auto'>
       { renderHeader}
 
+      { renderContentVbMapp() }
       { renderContentPortage() }
       { renderContent() }
-      { renderContentMaintenance() }
+      {/* { renderContentMaintenance() } */}
       { renderFooter() }
     </div>
   );
