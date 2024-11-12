@@ -17,6 +17,7 @@ import CheckboxPortage from "../components/CheckboxPortage";
 const MAINTENANCE = 'maintenance';
 const ACTIVITY = 'activity';
 const PORTAGE = 'portage';
+const VBMAPP = 'vbmapp';
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -32,10 +33,12 @@ export const Session = () => {
   const [list, setList] = useState([] as any);
   const [listMaintenance, setListMaintenance] = useState([] as any);
   const [listPortage, setListPortage] = useState([] as any);
+  const [listVBMapp, setLisVBMapp] = useState([] as any);
   const [dtt, setDTT] = useState([] as any);
   const [maintenance, setMaintenance] = useState([] as any);
   const [session, setSession] = useState({});
   const [portage, setPortage] = useState([] as any);
+  const [vbmapp, setVBMapp] = useState([] as any);
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -50,12 +53,14 @@ export const Session = () => {
 
         const [atividades, maintenance] = await Promise.all([
           formatarDado(result.sessao, ACTIVITY),
-          formatarDado(result.portage, PORTAGE),
+          // formatarDado(result.portage, PORTAGE),
+          // formatarDado(result.vbmapp, PORTAGE),
           formatarDado(result.maintenance,  MAINTENANCE)
         ])
 
         setList(atividades)
         setListPortage(result.portage)
+        setLisVBMapp(result.vbmapp)
         setListMaintenance(maintenance)
         setDTT(result.sessao)
       }else {
@@ -73,18 +78,20 @@ export const Session = () => {
 
   const getActivity = async() => {
     try {
-      const result = await getList(`/pei/activity/session/${state.item.id}`)
+      const result = await getList(`/pei/activity/session/${state.item.paciente.id}`)
 
-      const [atividades, maintenance, portage] = await Promise.all([
+      const [atividades, maintenance, portage, vbmappCurrent] = await Promise.all([
         formatarDado(result.atividades, ACTIVITY),
         formatarDado(result.maintenance, MAINTENANCE),
-        formatarDado(result.portage, PORTAGE)
+        formatarDado(result.portage, PORTAGE),
+        formatarDado(result.vbmapp, VBMAPP)
       ])
 
       setList(atividades)
       setDTT(result.sessao)
       setListMaintenance(maintenance)
       setListPortage(portage)
+      setLisVBMapp(vbmappCurrent)
     }catch (e) {}
   }
 
@@ -99,6 +106,7 @@ export const Session = () => {
         resumo: content,
         date: state.item.date,
         portage: portage,
+        vbmapp: vbmapp,
         ...session
       };
 
@@ -155,19 +163,34 @@ export const Session = () => {
 
           if (meta?.children) {
             item.children = await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
+
+              if (type=== VBMAPP) {
+                const subCurrent: any = {
+                  key: sub.key,
+                  label: sub.label,
+                  children:  sub.children || Array.from({ length: repeatActivity }).map((index)=> {
+                    return null
+                  })
+                }
+
+                return subCurrent
               
-              const children = sub.children || Array.from({ length: type === ACTIVITY || PORTAGE ? repeatActivity :  repeatMaintenance}).map((index)=> {
-                return null
-              })
+              }else {
+                const children = sub.children || Array.from({ length: type === ACTIVITY || PORTAGE ? repeatActivity :  repeatMaintenance}).map((index)=> {
+                  return null
+                })
+  
+                // const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
+  
+                return {
+                  key: sub.key,
+                  label: sub.label,
+                  // disabled: firstFourAreC,
+                  children
+                }
 
-              // const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
-
-              return {
-                key: sub.key,
-                label: sub.label,
-                // disabled: firstFourAreC,
-                children
               }
+              
             }))
           } else {
             item.children =  Array.from({ length: type === ACTIVITY  || PORTAGE? repeatActivity :  repeatMaintenance}).map((index)=> {
@@ -268,6 +291,73 @@ export const Session = () => {
       />
     );
   };
+
+  const renderVBMapp  = () => {
+    return !!listVBMapp.length &&  (
+      <div className="mt-8">
+        <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
+          <span className="font-bold"> VB Mapp </span>
+        </div>
+        { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+          <Accordion>
+            {
+              listVBMapp.map((programa: any, key: number)=> (
+                <AccordionTab 
+                  key={key} 
+                  tabIndex={key}
+                  header={
+                    <div className="flex items-center  w-full">
+                      <span>{ programa.label}</span>
+                    </div>
+                  }>
+                    {
+                      <Accordion>
+                      {
+                        programa?.children.map((meta: any, metaKey: number) => (
+                          <AccordionTab 
+                          key={key} 
+                          tabIndex={key}
+                          header={
+                            <div className="flex items-center  w-full">
+                              <span>{ meta.label}</span>
+                            </div>
+                          }>
+                            <div className="flex gap-1">
+                            
+                            {
+                              meta?.children.map((sub: any, subKey: number) => (
+                                <li className="my-2 grid gap-2  items-center" key={subKey}>
+  
+                                <span>{ sub.label}</span>
+                                {
+                                <div className="flex gap-1">
+                                  {
+                                      sub?.children.map((itm: any, checkKey: number) => renderedCheckboxesPortage(key, metaKey, checkKey, itm))
+                                  }
+                                </div>
+                                }
+                              </li>
+                              ))
+                           }
+                            </div>
+                          </AccordionTab>
+  
+                        
+                        ))
+                      }
+                      </Accordion>
+                      
+                    }
+                </AccordionTab>
+              ))
+            }
+          </Accordion>
+        </Card>)
+      }
+      </div>
+    )
+  }
+
 
   const renderPortage  = () => {
     return !!listPortage.length &&  (
@@ -483,6 +573,7 @@ export const Session = () => {
     <div  className="grid overflox-y-auto">
       { renderHeader }
       <div className="">
+        { renderVBMapp() }
         { renderPortage() }
         { renderActivity() }
         { renderMaintenance() }
