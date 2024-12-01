@@ -109,7 +109,7 @@ export default function VBMapp({ paciente }: any) {
       {Object.keys(list).length > 0 ? (
         <Accordion>
           {Object.keys(list).map((programa, keys) => (
-            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={<div className="flex items-center w-full"><span>{programa}</span></div>}>
+            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={<div className="flex items-center w-full"><span>{programa.toLocaleUpperCase()}</span></div>}>
               <DataTable
                 id="vbmapp-page"
                 value={list[programa]}

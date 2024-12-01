@@ -20,6 +20,7 @@ const BLACK = '#000000';
 
 const gerarGraficoPDF = ({ data, paciente }: any): void => {
   const dados = data;
+  // const doc = new jsPDF({ orientation: 'landscape' });
   const doc = new jsPDF();
 
   const logoURL = logoLg; // Se tiver o logo, insira o URL ou base64 aqui
@@ -41,9 +42,9 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
   doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, 110, 65);
 
   const pageWidth = doc.internal.pageSize.width;
-  const cellWidth = 15;
-  const headerCellHeight = 10; // Altura do cabeçalho
-  const activityCellHeight = 6; // Altura menor das atividades
+  const cellWidth = 8;
+  const headerCellHeight = 2 // Altura do cabeçalho
+  const activityCellHeight = 2; // Altura menor das atividades
   const spacing = 2; // Espaço menor entre os gráficos
   const maxActivities = 10; // Número máximo de atividades (linhas) por gráfico
   let startY = 70;
@@ -105,7 +106,7 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
         doc.setFillColor(GRAY);
         doc.rect(x, headerY, cellWidth, headerCellHeight, 'F');
         doc.setTextColor(BLACK);
-        doc.setFontSize(8);
+        doc.setFontSize(4);
         doc.setDrawColor(BLACK);
         doc.setLineWidth(0.2);
         doc.rect(x, headerY, cellWidth, headerCellHeight);
@@ -113,7 +114,7 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
         doc.text(
           programa.toUpperCase(),
           x + cellWidth / 2,
-          headerY + headerCellHeight / 2 + 2,
+          headerY + headerCellHeight / 2 + 0.5,
           { align: 'center' }
         );
       });
@@ -165,11 +166,12 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
     });
 
     // Ajusta a posição inicial para o próximo nível
-    startY += headerCellHeight + maxActivities * spacing + 40;
+    startY += headerCellHeight + maxActivities * spacing + 1;
   });
 
   // Define o rodapé
   const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(8);
   doc.text(
     'Av. Henrique Andrés, 700 – Centro – Jundiaí-SP',
     10,
