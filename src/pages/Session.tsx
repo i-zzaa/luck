@@ -322,7 +322,7 @@ export const Session = () => {
                               <span>{ meta.label}</span>
                             </div>
                           }>
-                            <div className="flex gap-1">
+                            <div className="grid gap-1">
                             
                             {
                               meta?.children.map((sub: any, subKey: number) => (
@@ -406,10 +406,10 @@ export const Session = () => {
 
 
   const renderActivity = () => {
-    return (
+    return  !!list.length && (
       <div className="mt-8">
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
-          <span className="font-bold"> ABA </span>
+          <span className="font-bold"> Manual </span>
         </div>
         {!!list.length && <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-2"> 
           <span className="text-md">Interrompa o treino da atividade ao atingir 4 tentativas corretas consecutivas.</span>
@@ -455,19 +455,20 @@ export const Session = () => {
             }
           </Accordion>
         </Card>): (
-        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
-          <div className="grid gap-4 justify-center ">
-            <NotFound />
-            <ButtonHeron
-              text="Selecionar Metas"
-              icon="pi pi-book"
-              type="primary"
-              color='white'
-              size="sm"
-              onClick={()=>   navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: state.item})}
-            />
-          </div>
-        </Card>
+          <></>
+        // <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        //   <div className="grid gap-4 justify-center ">
+        //     <NotFound />
+        //     <ButtonHeron
+        //       text="Selecionar Metas"
+        //       icon="pi pi-book"
+        //       type="primary"
+        //       color='white'
+        //       size="sm"
+        //       onClick={()=>   navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: state.item})}
+        //     />
+        //   </div>
+        // </Card>
         )
       }
       </div>
