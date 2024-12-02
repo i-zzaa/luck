@@ -9,6 +9,7 @@ import { TIPO_PROTOCOLO } from '../constants/protocolo';
 import PORTAGECADASTRO from './Portage';
 import PEICADASTRO from './PEI';
 import VBMapp from './VBMapp';
+import { useLocation } from 'react-router-dom';
 
 
 const fields = ProtocoloFields;
@@ -24,10 +25,14 @@ export default function Protocolo() {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
 
+  const location = useLocation();
+  const { state } = location;
+  
   const {
     handleSubmit,
     control,
-    watch
+    watch,
+    setValue
   } = useForm<any>({ 
     defaultValues: {
       protocoloId: OBJ,
@@ -48,6 +53,17 @@ export default function Protocolo() {
       paciente,
       protocolo
     })
+
+    if (state.tipoProtocolo) {
+      const currentProtocolo = protocolo.filter((item: any) => item.id === state.tipoProtocolo)[0]
+      setValue('protocoloId', currentProtocolo)
+    }
+
+    if (state.item) {
+      const currentPaciente = paciente.filter((item: any) => state.item.paciente.id === item.id)[0]
+      setValue('pacienteId', currentPaciente)
+    }
+
   }, []);
 
   useEffect(() => {
@@ -87,8 +103,8 @@ export default function Protocolo() {
       }
 
       {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.portage && pacienteObj?.id &&  <PORTAGECADASTRO paciente={pacienteObj}/>}
-      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.pei && pacienteObj?.id && <PEICADASTRO paciente={pacienteObj} />}
       {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.vbMapp && pacienteObj?.id && <VBMapp  paciente={pacienteObj}/>}
+      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.pei && pacienteObj?.id && <PEICADASTRO paciente={pacienteObj} />}
    </form>
   );
 }

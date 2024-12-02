@@ -230,35 +230,18 @@ export default function Metas() {
   }, [])
   
   const renderContent = () => {
-    return  (
+    return  !!nodes.length && (
       <div className='grid gap-2 mt-8'>
-       {
-        nodes.length ? (
-          <div>
+       <div>
           <div className='text-gray-400'> Selecione os programas para sessão</div>
           <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
             setSelectedKeys(e.value)
             const _keys =  await  Object.keys(e.value)
-          setKeys(_keys)
+            setKeys(_keys)
 
           }} className="w-full md:w-30rem" />
         </div>
-        ) : (
-          <div className='grid gap-4 justify-center'>
-             <NotFound />
-              <ButtonHeron
-                text="Cadastrar PEI"
-                icon="pi pi-book"
-                type="primary"
-                color='white'
-                size="sm"
-                onClick={()=>  navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`)}
-              />
-          </div>
-        )
-         
-       }
-    </div>
+     </div>
     )
   }
 
@@ -296,8 +279,22 @@ export default function Metas() {
     )
   }
 
+  const renderNotFound = () => {
+    return  !nodesVbMapp.length && !nodesPortage.length && !nodesMaintenance.length && !nodes.length && <div className='grid gap-4 justify-center'>
+    <NotFound />
+     <ButtonHeron
+       text="Cadastrar Protocolo"
+       icon="pi pi-book"
+       type="primary"
+       color='white'
+       size="sm"
+       onClick={()=>  navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item: { paciente: state.paciente }}})}
+     />
+ </div>
+  }
+
   const renderFooter = () => {
-    return  (
+    return !!nodesVbMapp.length && !!nodesPortage.length && !!nodesMaintenance.length && !!nodes.length &&  (
       <div className=' mt-8'>
         <ButtonHeron
           text="Salvar"
@@ -322,7 +319,8 @@ export default function Metas() {
       { renderContentVbMapp() }
       { renderContentPortage() }
       { renderContent() }
-      {/* { renderContentMaintenance() } */}
+      { renderContentMaintenance() }
+      { renderNotFound() }
       { renderFooter() }
     </div>
   );

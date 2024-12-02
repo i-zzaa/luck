@@ -131,9 +131,9 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
       } 
     })
 
-    if (Boolean(state))  payload.id = state.id
+    if (Boolean(state.item.id))  payload.id = state.item.id
     
-      Boolean(state) ? await update('pei', payload)  : await create('pei', payload);
+      Boolean(state.item.id) ? await update('pei', payload)  : await create('pei', payload);
       navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: {pacienteId: formvalue.pacienteId}})
 
       reset()
@@ -203,8 +203,8 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
   }
 
   useEffect(()=> {
-    if (Boolean(state)) {
-      const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas, procedimentoEnsino} = state
+    if (Boolean(state.item.programa)) {
+      const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas, procedimentoEnsino} = state.item
       setValue('pacienteId', paciente)
       setValue('programaId', programa)
       setValue('procedimentoEnsinoId', procedimentoEnsino)

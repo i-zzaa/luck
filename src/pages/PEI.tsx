@@ -11,6 +11,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import { Fieldset } from "primereact/fieldset";
 import { ButtonHeron } from "../components/button";
+import { TIPO_PROTOCOLO } from "../constants/protocolo";
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -27,7 +28,7 @@ const PEI = () => {
   const [list, setList] = useState({}) as any;
 
   const handleEditPrograma = (item: any) => {
-    navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`, { state: item})
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo: TIPO_PROTOCOLO.pei } })
   }
 
   const handleRemovePrograma = async(item: any) => {
@@ -182,7 +183,7 @@ const PEI = () => {
         onReset={()=> setList([])}
         screen="PEI"
         loading={loading}
-        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PEICADASTRO}`)}
+        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { tipoProtocolo: TIPO_PROTOCOLO.pei } })}
         defaultValues={state}
       />
     )
