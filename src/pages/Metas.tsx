@@ -294,7 +294,7 @@ export default function Metas() {
   }
 
   const renderFooter = () => {
-    return !!nodesVbMapp.length && !!nodesPortage.length && !!nodesMaintenance.length && !!nodes.length &&  (
+    return (!!nodesVbMapp.length || !!nodesPortage.length || !!nodesMaintenance.length || !!nodes.length ) &&  (
       <div className=' mt-8'>
         <ButtonHeron
           text="Salvar"
