@@ -21,7 +21,7 @@ export enum CONSTANTES_ROUTERS {
   PEICADASTRO = 'pei-cadastro',
   METAS = 'metas',
   PRIMEIRARESPOSTA = 'primeira-resposta',
-  PROTOCOLO = 'protocolo',
+  PROTOCOLO = 'protocolo-av',
 }
 export interface RoutesProps {
   path: string;

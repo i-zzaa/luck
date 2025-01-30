@@ -9,6 +9,8 @@ import { permissionAuth } from '../contexts/permission';
 import { Fieldset  } from 'primereact';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { TIPO_PROTOCOLO } from '../constants/protocolo';
+import { OBJ_ITEM, OBJ_META } from '../util/util';
 
 const fields = PEICadastroFields;
 const fieldsState: any = {};
@@ -24,7 +26,7 @@ interface FormProps {
   estimuloReforcadorPositivo: string,
 }
 
-export default function PEICADASTRO( { paciente }: { paciente: { id: number, nome: string}}) {
+export default function PEICADASTRO( { paciente, param }: { paciente: { id: number, nome: string}, param?: any}) {
   const defaultValues = {
     pacienteId: '',
     procedimentoEnsinoId: '',
@@ -33,27 +35,6 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
     resposta: '',
     estimuloReforcadorPositivo: '',
   };
-
-  const METAS = {
-    labelText: 'Meta',
-    labelFor: 'meta',
-    id: 'meta-0',
-    name: 'meta',
-    type: 'input-add',
-    customCol: 'col-span-5 sm:col-span-5',
-    buttonAdd: true,
-    subitems: []
-  }
-
-  const SUBITEM = {
-    labelText: 'Item',
-    labelFor: 'item',
-    id: 'item-0',
-    name: 'item',
-    type: 'input-add',
-    customCol: 'col-span-5 sm:col-span-5',
-    buttonAdd: true,
-  }
 
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
@@ -87,6 +68,33 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
     })
   }, []);
   
+ const formatPortage = (formvalue: any) => {
+  const meta = {...formvalue.metas[0]}
+  delete formvalue.metas
+  const selectedMeta = metas[0]?.selected ? {selected: metas[0].selected} : {}
+
+ return {
+  ...formvalue,
+  nome: meta.value,
+  id: meta.id,
+  portage: metas[0].portage,
+  faixaEtaria: metas[0].faixaEtaria,
+  permiteSubitens: true,
+  ...selectedMeta,
+  subitems: meta.subitems.map((item: any, key: any) => {
+    const selected = metas[0].subitems[key]?.selected ? {selected: metas[0].subitems[key]?.selected} : {}
+
+    return {
+      nome: item.value,
+      id: item.id,
+      ...selected,
+    }
+
+  }),
+ }
+}
+
+
   const onSubmit = async (formvalue: any) => {
 
     formvalue.pacienteId = paciente
@@ -96,6 +104,18 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
 
     const payload: any = {
       metas: []
+    }
+    
+    if (Object.values(formvalue).some(valor => valor === "")) {
+      setLoading(false);
+      renderToast({
+        type: 'failure',
+        title: 'Valores Vazios!',
+        message: 'Preencha a descrição da meta e/ou do item ou exclua-o',
+        open: true,
+      });
+
+      return
     }
 
      Object.keys(formvalue).map((key: any, index) => {
@@ -111,7 +131,7 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
         Object.keys(formvalue).map((sub, subIndex) => {
           if (sub.includes(`${programaId}-meta-${metaId}-sub-item-`)) {
             subitems.push({
-              ...SUBITEM,
+              ...OBJ_ITEM,
               id:  sub,
               value: formvalue[sub],
             })
@@ -119,7 +139,7 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
         })
 
         payload.metas.push({
-          ...METAS,
+          ...OBJ_META,
           id: key,
           subitems,
           value: formvalue[key],
@@ -131,10 +151,15 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
       } 
     })
 
-    if (Boolean(state.item.id))  payload.id = state.item.id
-    
-      Boolean(state.item.id) ? await update('pei', payload)  : await create('pei', payload);
+    if (Boolean(state?.item?.id))  payload.id = state.item.id
+
+    if (state?.tipoProtocolo === TIPO_PROTOCOLO.pei)  {
+      Boolean(state?.item?.id) ? await update('pei', payload)  : await create('pei', payload);
       navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: {pacienteId: formvalue.pacienteId}})
+    }else if(state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
+      const response = formatPortage(payload)
+      navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, tipoProtocolo: TIPO_PROTOCOLO.portage, metaEdit: response}})
+    }
 
       reset()
       setLoading(false);
@@ -162,8 +187,8 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
 
     const programaId: any = watch('programaId');
 
-    METAS.id = `${programaId.id}-meta-${item.length}`
-    item.push(METAS)
+    OBJ_META.id = `${programaId.id}-meta-${item.length}`
+    item.push(OBJ_META)
 
     setMetas(item)
   }
@@ -193,8 +218,8 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
 
     const metakey =   item[idMeta].id
 
-    SUBITEM.id = `${item[idMeta].id}-sub-item-${subitems.length}`
-    subitems.push(SUBITEM)
+    OBJ_ITEM.id = `${item[idMeta].id}-sub-item-${subitems.length}`
+    subitems.push(OBJ_ITEM)
 
     item[idMeta].subitems = subitems
 
@@ -203,7 +228,7 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
   }
 
   useEffect(()=> {
-    if (Boolean(state.item.programa)) {
+    if (Boolean(state?.item?.programa)) {
       const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas, procedimentoEnsino} = state.item
       setValue('pacienteId', paciente)
       setValue('programaId', programa)
@@ -217,6 +242,27 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
         setValue(meta.id, meta.value)
         meta.subitems && meta.subitems.map((subitem: any)=>  setValue(subitem.id, subitem.value))
       })
+    } else if (state?.tipoProtocolo && state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
+      const {paciente, metas} = param.item
+
+      const procedimentoEnsino = dropDownList?.procedimentoEnsino?.filter((item: any)=> item.id ===metas[0].procedimentoEnsino )[0]
+      const programa = dropDownList?.programa?.filter((item: any)=> item.id ===metas[0].programa )[0]
+
+      setMetas(metas)
+      setValue(metas[0].id, metas[0].value)
+      setValue('pacienteId', paciente)
+      setValue('programaId', programa)
+      setValue('procedimentoEnsinoId', procedimentoEnsino)
+      setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo)
+      setValue('resposta', metas[0].resposta)
+      setValue('estimuloReforcadorPositivo', metas[0].estimuloReforcadorPositivo)
+
+
+      if (metas[0]?.subitems) {
+        metas[0]?.subitems.map((subitem: any)=>  setValue(subitem.id, subitem.value))
+      }else {
+        metas[0].subitems = []
+      }
     }
   }, [])
   
@@ -250,14 +296,14 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
         <div className='mt-8'>
           <div className="text-gray-400 font-inter flex  justify-between m-2 leading-4"> 
             <span className="font-bold"> METAS </span>
-            <ButtonHeron
+            {(!state?.tipoProtocolo || state?.tipoProtocolo === TIPO_PROTOCOLO.pei )&& <ButtonHeron
               text="Add Meta"
               icon="pi pi-plus"
               type="primary"
               size="sm"
               onClick={()=> addMeta()}
               typeButton="button"
-            />
+            />}
           </div>
           {
           metas.map((item: any, key: number) => {
@@ -276,13 +322,14 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
 
                 <Input
                   key={item.id}
-                  labelText="Decrição"
+                  labelText="Descrição"
                   id={item.id}
                   type="input-add"
                   customCol="col-span-6 sm:col-span-6"
                   control={control}
                   options={undefined}
                   onClick={()=>removeMeta(key)}
+                  disabled={state?.tipoProtocolo !== TIPO_PROTOCOLO.pei }
                 />
 
                 {
@@ -297,7 +344,6 @@ export default function PEICADASTRO( { paciente }: { paciente: { id: number, nom
                         control={control}
                         options={undefined}
                         onClick={()=>removeSubitem(key, index)}
-
                       />
                     )
                   })

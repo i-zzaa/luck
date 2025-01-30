@@ -322,7 +322,7 @@ export function Input({
               onClick={()=>onClick && onClick('add')}
             />
           : 
-          <ButtonHeron
+          !disabled && <ButtonHeron
             text="remove"
             icon="pi pi-trash"
             type="transparent"
@@ -367,9 +367,10 @@ export function Input({
               size="icon"
               onClick={()=>onClick && onClick('add')}
               typeButton="button"
+              disabled={disabled}
             />
           : 
-          <ButtonHeron
+          disabled && <ButtonHeron
             text="remove"
             icon="pi pi-trash"
             type="transparent"

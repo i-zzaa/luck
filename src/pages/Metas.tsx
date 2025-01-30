@@ -57,51 +57,57 @@ export default function Metas() {
     try {
       const paciente = state.paciente
 
-      const [vbMappData, protocoloData, {data}, atividadesSessao] = await Promise.all([
+      const [vbMappData, protocoloData, peiData, atividadesSessao] = await Promise.all([
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
-        filter('pei', { paciente}),
+        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei}),
         getList(`pei/activity-session/${state.id}`)
       ])
 
-      const pei = data
+      const pei = peiData.data
       const protocolo = protocoloData.data
       const vbMapp = vbMappData.data
 
-      const metas: any = []
 
       const allKeysMaintenance = Boolean(atividadesSessao?.maintenance) &&  typeof atividadesSessao?.maintenance === 'object' ? getAllKeys(atividadesSessao.maintenance) : []
 
-      pei.map((programa: any) => {
-        const metaCurrent: any = []
-        programa.metas.map((meta: any)=> {
-          const children = meta.subitems.reduce((acc: any[], subitem: any) => {
-            // Add o  PEI se nao tiver em manutencao
-            if (!allKeysMaintenance.includes(subitem.id)) {
-              acc.push({
-                key: subitem.id,
-                label: subitem.value,
-                data: subitem.id,
-              });
-            }
-            return acc;
-          }, []);
+      if (pei && pei.length > 0) {
+      const metas: any = []
 
-          children.length && metaCurrent.push({
-            key: meta.id,
-            label: meta.value,
-            data:  meta.id,
-            children
+        pei.map((programa: any) => {
+          const metaCurrent: any = []
+          programa.metas.map((meta: any)=> {
+            const children = meta.subitems.reduce((acc: any[], subitem: any) => {
+              // Add o  PEI se nao tiver em manutencao
+              if (!allKeysMaintenance.includes(subitem.id)) {
+                acc.push({
+                  key: subitem.id,
+                  label: subitem.value,
+                  data: subitem.id,
+                });
+              }
+              return acc;
+            }, []);
+  
+            children.length && metaCurrent.push({
+              key: meta.id,
+              label: meta.value,
+              data:  meta.id,
+              children
+            })
+          })
+  
+          metaCurrent.length && metas.push({
+            key: programa.id,
+            label: programa.programa.nome,
+            data: programa.id,
+            children: metaCurrent
           })
         })
 
-        metaCurrent.length && metas.push({
-          key: programa.id,
-          label: programa.programa.nome,
-          data: programa.id,
-          children: metaCurrent
-        })
-      })
+      setNodes(metas)
+        
+      }
 
       if (protocolo && protocolo.length > 0) {
         setNodesPortage(protocolo)
@@ -113,7 +119,7 @@ export default function Metas() {
         setSelectedVbMappKeys(atividadesSessao?.selectedVbMappKeys)
       }
 
-      if (atividadesSessao && Object.values(atividadesSessao).length > 0) {
+      if (atividadesSessao.selectedKeys && Object.values(atividadesSessao.selectedKeys).length > 0) {
         const obj = atividadesSessao.selectedKeys
         const allKeys = Object.keys(obj);
 
@@ -130,7 +136,6 @@ export default function Metas() {
         }
       }
 
-      setNodes(metas)
     } catch (error) {
       renderToast({
         type: 'failure',
@@ -248,7 +253,7 @@ export default function Metas() {
   const renderContentMaintenance = () => {
     return  !!nodesMaintenance.length &&  (
       <div className='grid gap-2 my-8'>
-        <div className='text-gray-400'> Manutenção</div>
+        <div className='text-gray-400'> Manutenção </div>
         <Tree value={nodesMaintenance} selectionMode="checkbox" selectionKeys={selectedMaintenanceKeys} onSelectionChange={async (e: any) => {
           setSelectedMaintenanceKeys(e.value)
         }} className="w-full md:w-30rem" />
@@ -316,9 +321,9 @@ export default function Metas() {
     <div className='h-[90vh] flex flex-col overflow-y-auto'>
       { renderHeader}
 
-      { renderContentVbMapp() }
-      { renderContentPortage() }
       { renderContent() }
+      { renderContentPortage() }
+      { renderContentVbMapp() }
       { renderContentMaintenance() }
       { renderNotFound() }
       { renderFooter() }

@@ -102,9 +102,10 @@ export default function Protocolo() {
         ) : null
       }
 
-      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.portage && pacienteObj?.id &&  <PORTAGECADASTRO paciente={pacienteObj}/>}
-      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.vbMapp && pacienteObj?.id && <VBMapp  paciente={pacienteObj}/>}
-      {  protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.pei && pacienteObj?.id && <PEICADASTRO paciente={pacienteObj} />}
+      {  !state?.edit && protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.portage && pacienteObj?.id &&  <PORTAGECADASTRO paciente={pacienteObj}/>}
+      {  !state?.edit && protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.vbMapp && pacienteObj?.id && <VBMapp  paciente={pacienteObj}/>}
+      {  !state?.edit && protocoloObj?.id && protocoloObj.id === TIPO_PROTOCOLO.pei && pacienteObj?.id && <PEICADASTRO  paciente={pacienteObj}/>}
+      {  state?.edit && <PEICADASTRO paciente={pacienteObj} param={state} />}
    </form>
   );
 }

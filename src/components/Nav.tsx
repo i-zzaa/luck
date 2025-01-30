@@ -29,6 +29,13 @@ export const Nav = () => {
     setMenuSidebar(arrRouterLinks);
   };
 
+  const formatName = (name: string) => {
+    return name
+    .split('-') // Divide em ['protocolo', 'av']
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitaliza cada palavra
+    .join(' '); // Junta novamente com um espaço
+  }
+
   const renderOpen = () => {
     return (
       <aside onClick={()=>  setOpen(false)} className={'fixed border-box shadow-3xl w-full h-screen z-20  bg-primary duration-700 ease-in-out justify-center'}>
@@ -46,7 +53,7 @@ export const Nav = () => {
               <li  key={element.path} className={`${isActive ? 'bg-primary-hover text-primary-text-hover' :  'text-primary-text'} hover:px-0 hover:bg-primary-hover  hover:text-primary-text-hover duration-700 grid  justify-center`} >
                 <NavLink  to={element.path} className='grid grid-cols-2 gap-8 items-center text-sm px-4 py-4  cursor-pointer'>
                   <i className={clsx('text-end', element.icon)} />
-                  <span  className='duration-700'>{firtUpperCase(element.path) }</span>
+                  <span  className='duration-700'>{formatName(element.path) }</span>
                 </NavLink>
               </li>
             )
