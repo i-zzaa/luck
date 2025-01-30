@@ -7,13 +7,20 @@ import { ButtonHeron } from '../components';
 
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfPortage';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { OBJ_ITEM, OBJ_META } from '../util/util';
 
 export default function PortageCadastro({ paciente }: { paciente: { id: number; nome: string } }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [list, setList] = useState<any>({});
   const [selectedItems, setSelectedItems] = useState<any[]>([]); // Controlar itens selecionados
   const { renderToast } = useToast();
+  const navigate = useNavigate();
 
+    const location = useLocation();
+    const { state } = location;
+    
   const [existePortage, setExistePortage] = useState<boolean>(false);
 
   const exportPDF = async() => {
@@ -50,66 +57,96 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     if (data) {
       setExistePortage(true)
       setList(data.portage);
+
+      getMetaEdit(data.portage)
     }else {
       setExistePortage(false)
       renderList()
     }
-
   };
+
+  const getMetaEdit = (currentList: any) => {
+    if (state?.metaEdit) {
+      const idMetaEdit = parseInt(state?.metaEdit.id.replace(/^0-meta-/, ""), 10);
+  
+      // Criando uma cópia do objeto atual
+      const editList = { ...currentList };
+  
+      // Criando uma cópia do array para evitar mutação direta
+      editList[state?.metaEdit.portage][state?.metaEdit.faixaEtaria] = 
+        editList[state?.metaEdit.portage][state?.metaEdit.faixaEtaria].map((item: any) => 
+          item.id === idMetaEdit ? { ...state?.metaEdit } : item
+        );
+  
+      // Atualizando o estado com a nova lista editada
+      setList(editList);
+    }
+  }
 
   const renderList = useCallback(async () => {
     try {
       const atividade = await dropDown('protocolo/portage');
       setList(atividade);
+      getMetaEdit(atividade);
     } catch (error) {
       console.error('Error fetching dropdown data', error);
     }
   }, []);
 
+  // Função auxiliar para alternar os estados
+const getNextState = (currentValue: any) => {
+  if (currentValue === VALOR_PORTAGE.sim) {
+      return VALOR_PORTAGE.asVezes;
+  } else if (currentValue === VALOR_PORTAGE.asVezes) {
+      return VALOR_PORTAGE.nao;
+  } else if (currentValue === VALOR_PORTAGE.nao) {
+      return null;
+  } else {
+      return VALOR_PORTAGE.sim;
+  }
+};
+
   const onCheckboxChange = (portageType: string, faixaEtaria: string, itemId: any, value = undefined) => {
-    const updatedSelection = { ...list };
+    setList((prevList: any) => {
+      // Criando uma cópia profunda para garantir a atualização do React
+      const updatedSelection = JSON.parse(JSON.stringify(prevList));
 
-    if (updatedSelection[portageType] && updatedSelection[portageType][faixaEtaria]) {
-      const activities = updatedSelection[portageType][faixaEtaria];
-      const index = activities.findIndex((activity: any) => activity.id === itemId);
+      if (updatedSelection[portageType] && updatedSelection[portageType][faixaEtaria]) {
+          const activities = updatedSelection[portageType][faixaEtaria];
 
-      if (index !== -1) {
-        if (value !== undefined) {
-          // Atualiza com o valor do checkbox diretamente
-          activities[index].selected = value;
-        } else {
-          // Simula o clique na linha, seguindo a lógica dos 3 estados
-          let currentValue = activities[index].selected || null;
-          let newValue;
+          // Verifica se o item é um subitem
+          const isSubItem = itemId.toString().includes('-sub-item-');
 
-          if (currentValue === VALOR_PORTAGE.sim) {
-            newValue = VALOR_PORTAGE.asVezes;
-          } else if (currentValue === VALOR_PORTAGE.asVezes) {
-            newValue = VALOR_PORTAGE.nao;
-          } else if (currentValue === VALOR_PORTAGE.nao) {
-            newValue = null;
+          if (isSubItem) {
+              // Atualizando apenas o subitem
+              const [subItemId] = itemId.split('-sub-item-'); // Obtém o ID da meta principal
+              const [,metaId] = subItemId.split('0-meta-');
+
+              const parentIndex = activities.findIndex((activity: any) => activity.id === parseInt(metaId));
+
+              if (parentIndex !== -1) {
+                  const subItemIndex = activities[parentIndex].subitems.findIndex((sub: any) => sub.id === itemId);
+                  if (subItemIndex !== -1) {
+                      if (value !== undefined) {
+                          activities[parentIndex].subitems[subItemIndex].selected = value;
+                      } else {
+                          activities[parentIndex].subitems[subItemIndex].selected = getNextState(activities[parentIndex].subitems[subItemIndex].selected);
+                      }
+                  }
+              }
           } else {
-            newValue = VALOR_PORTAGE.sim;
+              // Atualizando apenas o item pai (meta), sem alterar subitens
+              const index = activities.findIndex((activity: any) => activity.id === itemId);
+
+              if (index !== -1) {
+                  let newValue = value !== undefined ? value : getNextState(activities[index].selected);
+                  activities[index].selected = newValue;
+              }
           }
-
-          activities[index].selected = newValue;
-        }
-
-        setList(updatedSelection);
-        // setSelectedItems((prevSelected) => {
-        //   // Adiciona ou remove o item selecionado na lista de selecionados
-        //   if (value === null) {
-        //     return prevSelected.filter(item => item.id !== itemId);
-        //   } else {
-        //     const alreadySelected = prevSelected.find(item => item.id === itemId);
-        //     if (!alreadySelected) {
-        //       return [...prevSelected, activities[index]];
-        //     }
-        //     return prevSelected.map(item => (item.id === itemId ? activities[index] : item));
-        //   }
-        // });
       }
-    }
+
+      return updatedSelection;
+  });
   };
 
   const onSubmit = async () => {
@@ -143,15 +180,71 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     }
   };
 
+  const onClickAddSubItem = async (item: any) => {
+    const id = `0-meta-${item.id}`
+    const selectedMeta = item?.selected ? {selected: item.selected} : {}
+
+
+    const meta = {
+      ...OBJ_META,
+      id,
+      value: item.nome,
+      portage: item.portage,
+      faixaEtaria: item.faixaEtaria,
+
+        estimuloDiscriminativo: item?.estimuloDiscriminativo,
+        estimuloReforcadorPositivo: item?.estimuloReforcadorPositivo,
+        procedimentoEnsino: item?.procedimentoEnsinoId,
+        programa: item?.programaId,
+        resposta: item?.resposta,
+        ...selectedMeta
+    }
+
+    if (item?.subitems) {
+      const subitems = item?.subitems.map((subitem: any) => {
+        const selected = subitem?.selected ? {selected: subitem.selected} : {}
+        return {
+          ...OBJ_ITEM,
+          id: subitem.id,
+          value: subitem.nome,
+          ...selected
+        }
+      })
+
+      meta.subitems = subitems
+    }
+
+
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { edit: true, item: { metas: [meta], paciente },  tipoProtocolo: TIPO_PROTOCOLO.portage } })
+  }
+
   const renderedCheckboxesPostage = (portageType: string, faixaEtaria: string, rowData: any) => {
     const value = rowData.selected || null;
 
     return (
-      <CheckboxPortage
-        key={rowData.id}
-        value={value}
-        onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} // Atualiza o checkbox
-      />
+    //   <CheckboxPortage
+    //   key={rowData.id}
+    //   value={value}
+    //   onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} // Atualiza o checkbox
+    // />
+      <div >
+        <div  className='flex items-center gap-2'>
+          <CheckboxPortage
+            key={rowData.id}
+            value={value}
+            onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} Atualiza o checkbox
+          />
+          { rowData.nome }
+          { rowData?.permiteSubitens  && <i className="pi pi-pencil" onClick={()=> onClickAddSubItem(rowData)} /> }
+        </div>
+        <div className='grid ml-8 mt-2'>
+        {
+          rowData?.subitems && (
+            rowData.subitems.map((subItem: any)=> renderedCheckboxesPostage(portageType, faixaEtaria, subItem))
+          )
+        }
+        </div>
+      </div>
     );
   };
 
@@ -182,11 +275,11 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
                   body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} // Renderiza o checkbox personalizado
                   bodyStyle={{ padding: '.1rem' }}
                 ></Column>
-                <Column
+                {/* <Column
                   field="nome"
                   header=""
                   bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }}
-                ></Column>
+                ></Column> */}
               </DataTable>
             </AccordionTab>
           ))}

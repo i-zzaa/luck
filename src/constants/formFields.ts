@@ -41,15 +41,15 @@ const PEIFields = [
     singleSelect: true,
     customCol: 'col-span-6 sm:col-span-6',
   },
-  // {
-  //   permission: 'PEI_FILTRO_SELECT_PROTOCOLO',
-  //   labelText: 'Programa',
-  //   id: 'programaId',
-  //   name: 'programa',
-  //   type: 'select',
-  //   singleSelect: true,
-  //   customCol: 'col-span-6 sm:col-span-6',
-  // },
+  {
+    permission: 'PEI_FILTRO_SELECT_PROTOCOLO',
+    labelText: 'Protocolo',
+    id: 'protocoloId',
+    name: 'protocolo',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  },
 ];
 
 const PEICadastroFields = [

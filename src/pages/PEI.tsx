@@ -153,10 +153,10 @@ const PEI = () => {
     }
   }
 
-  const onSubmitFilter = async ({ pacienteId }: any) => {
+  const onSubmitFilter = async ({ pacienteId, protocoloId }: any) => {
     setLoading(true)
     try {
-      const { data }: any = await filter('pei', {paciente: pacienteId});
+      const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId});
 
       setList(data);
     } catch (error) {
@@ -190,12 +190,14 @@ const PEI = () => {
   }
   
   const renderPrograma = useCallback(async () => {
-    const [paciente]: any = await Promise.all([
+    const [paciente, protocolo]: any = await Promise.all([
       dropDown('paciente'),
+      dropDown('protocolo'),
     ])
 
     setDropDownList({
       paciente,
+      protocolo
     })
   }, []);
 

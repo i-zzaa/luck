@@ -574,9 +574,9 @@ export const Session = () => {
     <div  className="grid overflox-y-auto">
       { renderHeader }
       <div className="">
-        { renderVBMapp() }
-        { renderPortage() }
         { renderActivity() }
+        { renderPortage() }
+        { renderVBMapp() }
         { renderMaintenance() }
         { renderSumary() }
       </div>
