@@ -253,34 +253,30 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
       />
     );
   };
+
   const renderedCheckboxesPortage = (programaId: number, metaId: number, checkKey: number, item: any) => {
     return (
       <CheckboxDTT
         key={checkKey}
-        value={item?.children?.[checkKey] ? item?.children?.[checkKey] : item} // Usa ?? para evitar erros se undefined
+        value={item?.children ? item?.children[checkKey] :  item} // Pegamos o valor correto do checkbox
         disabled={isEdit}
         onChange={(newValue: any) => {
           const current = [...listPortage];
   
-          // Verifica se o programa e a meta existem antes de acessar
-          if (!current[programaId] || !current[programaId].children[metaId]) return;
-  
+          // Percorre os níveis da árvore até o checkbox correto
           const programa = current[programaId];
           const meta = programa.children[metaId];
   
-          // Verifica se a estrutura do meta.children existe antes de acessar checkKey
-          if (!meta.children || !meta.children[checkKey]) return;
-  
-          // Se for 4 níveis (meta -> item -> subitem -> checkboxes)
-          if (meta.children[checkKey]?.children) {
-            meta.children[checkKey].children = meta.children[checkKey].children.map(
-              (val: any, idx: number) => (idx === checkKey ? newValue : val)
+          // Verifica se o item tem um subitem antes dos checkboxes (4 níveis)
+          if (meta.children[checkKey].children) {
+            // Caso 4 níveis: Atualiza o valor no último nível (checkboxes dentro do subitem)
+            meta.children[checkKey].children = meta.children[checkKey].children.map((val: any, idx: number) =>
+              idx === checkKey ? newValue : val
             );
-          } 
-          // Se for 3 níveis (meta -> item -> checkboxes diretamente)
-          else {
-            meta.children = meta.children.map(
-              (val: any, idx: number) => (idx === checkKey ? newValue : val)
+          } else {
+            // Caso 3 níveis: Atualiza diretamente no nível do item
+            meta.children = meta.children.map((val: any, idx: number) =>
+              idx === checkKey ? newValue : val
             );
           }
   
@@ -289,7 +285,6 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
       />
     );
   };
-  
 
   const renderVBMapp  = () => {
     return !!listVBMapp.length &&  (
