@@ -148,63 +148,46 @@ export const Session = () => {
       />
     )
   }, [])
+// Função auxiliar recursiva que transforma cada nó
+const transformNode = async (node: any, type: string): Promise<any> => {
+  // Cria o objeto base para o nó
+  const transformed: any = {
+    key: node.key,
+    label: node.label,
+  };
 
-  const formatarDado = async (data: any, type: string = ACTIVITY) => {
-    const result = await Promise.all( data.map(async (programa: any, key: number)=> {
-  
-      return {
-        key: programa.key,
-        label: programa.label,
-        children: await Promise.all( programa.children.map(async (meta: any, metakey: number)=> {
-          const item: any = {
-            key: meta.key,
-            label: meta.label,
-          }
-
-          if (meta?.children) {
-            item.children = await Promise.all( meta.children.map(async (sub: any, subkey: number)=> {
-
-              if (type=== VBMAPP) {
-                const subCurrent: any = {
-                  key: sub.key,
-                  label: sub.label,
-                  children:  sub.children || Array.from({ length: repeatActivity }).map((index)=> {
-                    return null
-                  })
-                }
-
-                return subCurrent
-              
-              }else {
-                const children = sub.children || Array.from({ length: type === ACTIVITY || PORTAGE ? repeatActivity :  repeatMaintenance}).map((index)=> {
-                  return null
-                })
-  
-                // const firstFourAreC =  sub.children ? sub.children.slice(0, 3).every((value: string) => value === "C") : false
-  
-                return {
-                  key: sub.key,
-                  label: sub.label,
-                  // disabled: firstFourAreC,
-                  children
-                }
-
-              }
-              
-            }))
-          } else {
-            item.children =  Array.from({ length: type === ACTIVITY  || PORTAGE? repeatActivity :  repeatMaintenance}).map((index)=> {
-              return null
-            })
-          }
-
-          return item
-        }))
-      }
-    }))
-
-    return result
+  // Se o nó tiver `permiteSubitens`, aplica a lógica especial
+  if (node.permiteSubitens && node.children && node.children.length > 0) {
+    // Mantemos os filhos, mas garantimos que cada um tenha `children` com 10 `nulls`
+    transformed.children = await Promise.all(
+      node.children.map(async (child: any) => ({
+        key: child.key,
+        label: child.label,
+        children: Array.from({ length: 10 }).map(() => null),
+      }))
+    );
   }
+  // Se o nó tiver filhos normais (e não for `permiteSubitens`), aplica transformação recursiva
+  else if (node.children && node.children.length > 0) {
+    transformed.children = await Promise.all(
+      node.children.map(async (child: any) => transformNode(child, type))
+    );
+  }
+  // Se o nó não tiver filhos, recebe um array padrão de `nulls`
+  else {
+    transformed.children = Array.from({
+      length: type === ACTIVITY || type === PORTAGE ? repeatActivity : repeatMaintenance,
+    }).map(() => null);
+  }
+
+  return transformed;
+};
+
+// Função principal para formatar os dados
+const formatarDado = async (data: any, type: string = ACTIVITY) => {
+  return await Promise.all(data.map(async (programa: any) => transformNode(programa, type)));
+};
+
 
   const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
     return (
@@ -358,50 +341,107 @@ export const Session = () => {
     )
   }
 
+  const renderItems = (items: any[], progKey: number, metaKey: number) => {
+    const validChildren = items[0]?.label ;
 
-  const renderPortage  = () => {
-    return !!listPortage.length &&  (
-      <div className="mt-8">
-        <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
-          <span className="font-bold"> Portage </span>
+    if (validChildren) {
+      return  items.map((itm, checkKey) => {
+        return (
+          <div key={checkKey} className="flex flex-col ml-2">
+            <span>- {itm.label}</span>
+            <div className="flex flex-col gap-1">
+              {renderItems(itm.children, progKey, metaKey)}
+            </div>
+          </div>
+        )
+      })
+    }
+    else if (items.length === 10) {
+      return (
+        <div className="flex gap-1">
+          {items.map((_item, idx) =>
+            renderedCheckboxesPortage(progKey, metaKey, idx, _item)
+          )}
         </div>
-        { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
-          <Accordion>
-            {
-              listPortage.map((programa: any, key: number)=> (
-                <AccordionTab 
-                  key={key} 
-                  tabIndex={key}
-                  header={
-                    <div className="flex items-center  w-full">
-                      <span>{ programa.label}</span>
-                    </div>
-                  }>
-                    {
-                      programa?.children.map((meta: any, metaKey: number) => (
-                        <li className="my-2 grid gap-2  items-center" key={metaKey}>
-  
-                        <span>{ meta.label}</span>
-                        {
-                         <div className="flex gap-1">
-                           {
-                              meta?.children.map((itm: any, checkKey: number) => renderedCheckboxesPortage(key, metaKey, checkKey, itm))
-                           }
-                         </div>
-                        }
-                      </li>
-                      ))
-                      
-                    }
-                </AccordionTab>
-              ))
-            }
-          </Accordion>
-        </Card>)
+      )
+    }
+
+
+    return items.map((itm, checkKey) => {
+      // Verifica se o item tem `children` válidos (diferentes de null)
+      // const validChildren = itm?.children?.filter((child) => child !== null) || [];
+
+      if (validChildren) {
+        // Se o item tem filhos válidos, ele exibe o label e renderiza os filhos
+        return (
+          <div key={itm.key} className="flex flex-col">
+            <span>{itm.label}</span>
+            <div className="ml-4 flex flex-col gap-1">
+              {renderItems(validChildren, progKey, metaKey)}
+            </div>
+          </div>
+        );
+      } else if (itm?.children && itm?.children.length === 10) {
+        // Se o item tem um array de 10 `nulls`, renderiza os checkboxes
+        return (
+          <div key={itm.key} className="flex flex-col gap-1">
+            <span>{itm?.label}</span>
+            <div className="flex gap-1">
+              {itm.children.map((_, idx) =>
+                renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
+              )}
+            </div>
+          </div>
+        );
+      } else {
+        // Caso especial: Se um item não tiver filhos mas não for um array de nulls, ainda exibe checkboxes
+        return (
+          <div key={checkKey} className="flex flex-col gap-1">
+            <span>{itm?.label}</span>
+            <div className="flex gap-1">
+              {Array.from({ length: 10 }).map((_, idx) =>
+                renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
+              )}
+            </div>
+          </div>
+        );
       }
+    });
+  };
+
+  const renderPortage = () => {
+    return !!listPortage.length && (
+      <div className="mt-8">
+        <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
+          <span className="font-bold">Portage</span>
+        </div>
+        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+          <Accordion>
+            {listPortage.map((programa, key) => (
+              <AccordionTab
+                key={programa.key}
+                tabIndex={key}
+                header={
+                  <div className="flex items-center w-full">
+                    <span>{programa.label}</span>
+                  </div>
+                }
+              >
+                {programa?.children.map((meta, metaKey) => (
+                  <li className="my-2 grid gap-2 items-center" key={meta.key}>
+                    <span>{meta.label}</span>
+                    <div className="flex flex-col gap-1">
+                      {renderItems(meta.children, key, metaKey)}
+                    </div>
+                  </li>
+                ))}
+              </AccordionTab>
+            ))}
+          </Accordion>
+        </Card>
       </div>
-    )
-  }
+    );
+  };
 
 
 
