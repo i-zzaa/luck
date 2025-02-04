@@ -12,6 +12,7 @@ import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/Checkbox";
 import CheckboxPortage from "../components/CheckboxPortage";
+import { Fieldset } from "primereact/fieldset";
 
 
 const MAINTENANCE = 'maintenance';
@@ -159,6 +160,11 @@ const transformNode = async (node: any, type: string): Promise<any> => {
   // Se o nó tiver `permiteSubitens`, aplica a lógica especial
   if (node.permiteSubitens && node.children && node.children.length > 0) {
     // Mantemos os filhos, mas garantimos que cada um tenha `children` com 10 `nulls`
+
+    transformed.estimuloDiscriminativo = node?.estimuloDiscriminativo || ''
+    transformed.estimuloReforcadorPositivo = node?.estimuloReforcadorPositivo || ''
+    transformed.resposta = node?.resposta || ''
+
     transformed.children = await Promise.all(
       node.children.map(async (child: any) => ({
         key: child.key,
@@ -254,6 +260,13 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
     );
   };
 
+  const renderFiledSet = (title: string, text: string) => (
+    <Fieldset className="text-[8px]">
+      <div className="font-bold text-wrap"> { title } </div>
+      <div className="font-normal text-wrap"> { text }</div>
+    </Fieldset>
+  )
+    
   const renderedCheckboxesPortage = (programaId: number, metaId: number, checkKey: number, item: any) => {
     return (
       <CheckboxDTT
@@ -352,11 +365,18 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
     )
   }
 
-  const renderItems = (items: any[], progKey: number, metaKey: number) => {
-    const validChildren = items[0]?.label ;
+  const renderItems = (items: any, progKey: number, metaKey: number) => {
+    const validChildren = items?.children ? items?.children[0]?.label  : false
 
     if (validChildren) {
-      return  items.map((itm, checkKey) => {
+      return  (
+        <div>
+          <div className=" grid grid-cols-3 gap-1 mb-2">
+            { renderFiledSet('SD (estímulo discriminativo)', items?.estimuloDiscriminativo || '')}
+            { renderFiledSet('Resposta', items?.resposta || '')}
+            { renderFiledSet('SR+ (estímulo reforçador positivo))', items?.estimuloReforcadorPositivo || '')}
+          </div>
+          {items?.children.map((itm, checkKey) => {
         return (
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
@@ -365,7 +385,10 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
             </div>
           </div>
         )
-      })
+      })}
+
+        </div>
+        )
     }
     else if (items.length === 10) {
       return (
@@ -378,46 +401,46 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
     }
 
 
-    return items.map((itm, checkKey) => {
-      // Verifica se o item tem `children` válidos (diferentes de null)
-      // const validChildren = itm?.children?.filter((child) => child !== null) || [];
+    // return items.map((itm, checkKey) => {
+    //   // Verifica se o item tem `children` válidos (diferentes de null)
+    //   // const validChildren = itm?.children?.filter((child) => child !== null) || [];
 
-      if (validChildren) {
-        // Se o item tem filhos válidos, ele exibe o label e renderiza os filhos
-        return (
-          <div key={itm.key} className="flex flex-col">
-            <span>{itm.label}</span>
-            <div className="ml-4 flex flex-col gap-1">
-              {renderItems(validChildren, progKey, metaKey)}
-            </div>
-          </div>
-        );
-      } else if (itm?.children && itm?.children.length === 10) {
-        // Se o item tem um array de 10 `nulls`, renderiza os checkboxes
-        return (
-          <div key={itm.key} className="flex flex-col gap-1">
-            <span>{itm?.label}</span>
-            <div className="flex gap-1">
-              {itm.children.map((_, idx) =>
-                renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
-              )}
-            </div>
-          </div>
-        );
-      } else {
-        // Caso especial: Se um item não tiver filhos mas não for um array de nulls, ainda exibe checkboxes
-        return (
-          <div key={checkKey} className="flex flex-col gap-1">
-            <span>{itm?.label}</span>
-            <div className="flex gap-1">
-              {Array.from({ length: 10 }).map((_, idx) =>
-                renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
-              )}
-            </div>
-          </div>
-        );
-      }
-    });
+    //   if (validChildren) {
+    //     // Se o item tem filhos válidos, ele exibe o label e renderiza os filhos
+    //     return (
+    //       <div key={itm.key} className="flex flex-col">
+    //         <span>{itm.label}</span>
+    //         <div className="ml-4 flex flex-col gap-1">
+    //           {renderItems(validChildren, progKey, metaKey)}
+    //         </div>
+    //       </div>
+    //     );
+    //   } else if (itm?.children && itm?.children.length === 10) {
+    //     // Se o item tem um array de 10 `nulls`, renderiza os checkboxes
+    //     return (
+    //       <div key={itm.key} className="flex flex-col gap-1">
+    //         <span>{itm?.label}</span>
+    //         <div className="flex gap-1">
+    //           {itm.children.map((_, idx) =>
+    //             renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
+    //           )}
+    //         </div>
+    //       </div>
+    //     );
+    //   } else {
+    //     // Caso especial: Se um item não tiver filhos mas não for um array de nulls, ainda exibe checkboxes
+    //     return (
+    //       <div key={checkKey} className="flex flex-col gap-1">
+    //         <span>{itm?.label}</span>
+    //         <div className="flex gap-1">
+    //           {Array.from({ length: 10 }).map((_, idx) =>
+    //             renderedCheckboxesPortage(progKey, metaKey, `${checkKey}-${idx}`, itm)
+    //           )}
+    //         </div>
+    //       </div>
+    //     );
+    //   }
+    // });
   };
 
   const renderPortage = () => {
@@ -442,7 +465,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
                   <li className="my-2 grid gap-2 items-center" key={meta.key}>
                     <span>{meta.label}</span>
                     <div className="flex flex-col gap-1">
-                      {renderItems(meta.children, key, metaKey)}
+                      {renderItems(meta, key, metaKey)}
                     </div>
                   </li>
                 ))}
