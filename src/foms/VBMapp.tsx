@@ -52,6 +52,8 @@ export default function VBMapp({ paciente }: any) {
 
   const getVBMapp = useCallback(
     async (nivelCurrent = nivel) => {
+      delete state?.metaEdit
+
       const { data } = await filter('protocolo', {
         pacienteId: paciente.id,
         protocoloId: TIPO_PROTOCOLO.vbMapp,
@@ -71,44 +73,49 @@ export default function VBMapp({ paciente }: any) {
 }
 
 const getMetaEdit = (currentList) => {
-    if (!state?.metaEdit && state.pacienteId.id === paciente.id) {
-      setList(currentList);
-      return;
-    }
-  
-    // Criando uma cópia profunda do objeto para evitar mutação direta
-    const copyList = JSON.parse(JSON.stringify(currentList));
-  
-    // Obtendo o programa que está sendo editado
-    const programa = state.metaEdit.programa;
-  
-    if (!copyList[programa]) {
-      console.error("Programa não encontrado em copyList:", programa);
-      return;
-    }
-  
-    // Atualizando as metas dentro do programa
+  if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
+    setList(currentList);
+    return;
+  }
+
+  // Criando uma cópia profunda do objeto para evitar mutação direta
+  const copyList = JSON.parse(JSON.stringify(currentList));
+
+  // Iterar sobre cada programa dentro da lista
+  Object.keys(copyList).forEach((programa) => {
     copyList[programa] = copyList[programa].map((meta) => {
       // Encontrar a meta editada no state
-      const metaEditada = state.metaEdit.metas.find((metaEdit) => {
+      const metaEditada = state.metaEdit?.metas?.find((metaEdit) => {
         return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
       });
-  
+
       if (metaEditada) {
-        const subitems = meta.subitems || {}
+        let updatedSubitems = meta.subitems || [];
+
+        // Atualizar os subitems com a resposta correta se existir
+        if (Array.isArray(updatedSubitems) && Array.isArray(metaEditada.subitems)) {
+          updatedSubitems = updatedSubitems.map((subitem) => {
+            const subitemEditado = metaEditada.subitems.find((edit) => edit.id === subitem.id);
+            return subitemEditado 
+              ? { ...subitem, selected: subitemEditado.selected || false } // Garante que selected sempre tenha valor booleano
+              : subitem;
+          });
+        }
+
         return {
           ...meta,
           ...metaEditada,
-         ...subitems,
-          id: meta.id
+          subitems: updatedSubitems, // Atualiza os subitems corretamente
+          selected: metaEditada.selected !== undefined ? metaEditada.selected : meta.selected, // Atualiza a meta principal também
         };
       }
-  
+
       return meta;
     });
-  
-    // Atualiza o estado com a lista modificada
-    setList(copyList);
+  });
+
+  // Atualiza o estado com a lista modificada
+  setList(copyList);
 };
 
 
@@ -120,6 +127,8 @@ const getMetaEdit = (currentList) => {
     try {
       await create('protocolo/vbmapp', payload);
       setExiste(true);
+
+      delete state.metaEdit
       renderToast({
         type: 'success',
         title: 'Sucesso!',
@@ -236,37 +245,29 @@ const getMetaEdit = (currentList) => {
   }
 
   const renderedCheckboxes = useCallback((rowData: any, programa: any) => {
-    const value = rowData.selected || null;
-    return (
-      // <CheckboxPortage
-      //   key={rowData.id}
-      //   value={value}
-      //   onChange={(newValue: any) => {
-      //     rowData.selected = newValue;
-      //   }}
-      // />
+    // Garante que o valor seja sempre um booleano válido
+    const value = rowData.selected !== undefined ? rowData.selected : false;
 
-      <div >
-        <div  className='flex items-center gap-2'>
-          <div className='w-8 h-8'>
-          <CheckboxPortage
-            key={rowData.id}
-            value={value}
-            onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
-          />
+    return (
+      <div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8">
+            <CheckboxPortage
+              key={rowData.id}
+              value={value} // Corrigido para garantir que seja um booleano válido
+              onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
+            />
           </div>
-          { rowData.nome }
+          {rowData.nome}
         </div>
-        <div className='grid ml-8 mt-2'>
-        {
-          rowData?.subitems && (
-            rowData.subitems.map((subItem: any)=> renderedCheckboxes(subItem, programa))
-          )
-        }
+        <div className="grid ml-8 mt-2">
+          {rowData?.subitems &&
+            rowData.subitems.map((subItem: any) => renderedCheckboxes(subItem, programa))}
         </div>
       </div>
     );
-  }, []);
+}, []);
+
 
   const renderTable = useCallback(() => (
     <div className="mt-8">
