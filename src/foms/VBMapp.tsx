@@ -71,7 +71,7 @@ export default function VBMapp({ paciente }: any) {
 }
 
 const getMetaEdit = (currentList) => {
-    if (!state?.metaEdit && state.pacienteId.id === paciente.id) {
+    if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
       setList(currentList);
       return;
     }
@@ -95,11 +95,27 @@ const getMetaEdit = (currentList) => {
       });
   
       if (metaEditada) {
-        const subitems = meta.subitems || {}
+        let updatedSubitems = meta.subitems || [];
+
+        // Atualizar os subitems com a resposta correta se existir
+        if (Array.isArray(updatedSubitems) && Array.isArray(metaEditada.subitems)) {
+          if (updatedSubitems.length) {
+            updatedSubitems = updatedSubitems.map((subitem) => {
+              const subitemEditado = metaEditada.subitems.find((edit) => edit.id === subitem.id);
+              return subitemEditado 
+                ? { ...subitem, selected: subitemEditado.selected || subitem.selected } // Garante que selected sempre tenha valor booleano
+                : subitem;
+            });
+          } else {
+            updatedSubitems = metaEditada.subitems
+          }
+        }
+
         return {
           ...meta,
           ...metaEditada,
-         ...subitems,
+          subitems: updatedSubitems, // Atualiza os subitems corretamente
+          selected: metaEditada.selected !== undefined ? metaEditada.selected : meta.selected, // Atualiza a meta principal também
           id: meta.id
         };
       }
