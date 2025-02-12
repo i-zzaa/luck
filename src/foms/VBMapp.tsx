@@ -8,6 +8,9 @@ import { ButtonHeron } from '../components';
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
 import { NotFound } from '../components/notFound';
+import { OBJ_ITEM, OBJ_META } from '../util/util';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 
 export default function VBMapp({ paciente }: any) {
   const [loading, setLoading] = useState(false);
@@ -18,6 +21,10 @@ export default function VBMapp({ paciente }: any) {
   const [nivel, setNivel] = useState(VBMAPP.um);
   const [nivelIndex, setNivelIndex] = useState(VBMAPP.um - 1);
   const [existe, setExiste] = useState(false);
+
+  const location = useLocation();
+  const { state } = location;
+  const navigate = useNavigate();
 
   const exportPDF = useCallback(async () => {
     try {
@@ -50,11 +57,61 @@ export default function VBMapp({ paciente }: any) {
         protocoloId: TIPO_PROTOCOLO.vbMapp,
         nivel: nivelCurrent,
       });
-      setList(data.data);
+      // setList(data.data);
+
+      getMetaEdit(data.data)
       setExiste(data.existeResposta);
     },
     [nivel, paciente.id]
   );
+
+ const pegarNumeroDepoisDeMeta = (str: string) => {
+    const match = str.match(/-meta-(\d+)$/);
+    return match ? parseInt(match[1], 10) : null;
+}
+
+const getMetaEdit = (currentList) => {
+    if (!state?.metaEdit && state.pacienteId.id === paciente.id) {
+      setList(currentList);
+      return;
+    }
+  
+    // Criando uma cópia profunda do objeto para evitar mutação direta
+    const copyList = JSON.parse(JSON.stringify(currentList));
+  
+    // Obtendo o programa que está sendo editado
+    const programa = state.metaEdit.programa;
+  
+    if (!copyList[programa]) {
+      console.error("Programa não encontrado em copyList:", programa);
+      return;
+    }
+  
+    // Atualizando as metas dentro do programa
+    copyList[programa] = copyList[programa].map((meta) => {
+      // Encontrar a meta editada no state
+      const metaEditada = state.metaEdit.metas.find((metaEdit) => {
+        return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
+      });
+  
+      if (metaEditada) {
+        const subitems = meta.subitems || {}
+        return {
+          ...meta,
+          ...metaEditada,
+         ...subitems,
+          id: meta.id
+        };
+      }
+  
+      return meta;
+    });
+  
+    // Atualiza o estado com a lista modificada
+    setList(copyList);
+};
+
+
 
   const onSubmit = useCallback(async () => {
     setLoading(true);
@@ -91,16 +148,102 @@ export default function VBMapp({ paciente }: any) {
     [getVBMapp]
   );
 
+  const onCheckboxChange = () => {
+    
+  }
+
+  const validItensPermiteSubitens= (programaList: any) => {
+    const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens)
+
+    return !!itensPermiteSubitens.length
+  }
+
+
+ const onClickAddSubItem = async (programaList: any, index: number, programa: string) => {
+  const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens)
+    
+
+  const {
+    estimuloDiscriminativo, 
+    estimuloReforcadorPositivo, 
+    procedimentoEnsinoId, 
+    resposta
+   } = itensPermiteSubitens[0]
+    
+
+
+    const meta = itensPermiteSubitens.map((item: any, key: any) => {
+  const id = `${index}-meta-${item.id}`
+
+      const objeto = {
+        ...OBJ_META,
+        value: item.nome,
+        ...item,
+        
+        respostaSessao: item?.respostaSessao,
+        
+        id,
+
+      }
+
+      if (item?.subitems) {
+        const subitems = item?.subitems.map((subitem: any) => {
+          const selected = subitem?.selected ? {selected: subitem.selected} : {}
+          return {
+            ...OBJ_ITEM,
+            id: subitem.id,
+            value: subitem.nome,
+            ...selected
+          }
+        })
+  
+        objeto.subitems = subitems
+      }
+
+      return objeto
+    })
+
+
+
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { edit: true, item: { 
+      metas: meta, paciente, 
+      estimuloDiscriminativo,
+      estimuloReforcadorPositivo,
+      procedimentoEnsinoId,
+      programa, resposta
+    },  tipoProtocolo: TIPO_PROTOCOLO.vbMapp } })
+  }
+
   const renderedCheckboxes = useCallback((rowData: any, programa: any) => {
     const value = rowData.selected || null;
     return (
-      <CheckboxPortage
-        key={rowData.id}
-        value={value}
-        onChange={(newValue: any) => {
-          rowData.selected = newValue;
-        }}
-      />
+      // <CheckboxPortage
+      //   key={rowData.id}
+      //   value={value}
+      //   onChange={(newValue: any) => {
+      //     rowData.selected = newValue;
+      //   }}
+      // />
+
+      <div >
+        <div  className='flex items-center gap-2'>
+          <div className='w-8 h-8'>
+          <CheckboxPortage
+            key={rowData.id}
+            value={value}
+            onChange={(newValue: any) => onCheckboxChange()} 
+          />
+          </div>
+          { rowData.nome }
+        </div>
+        <div className='grid ml-8 mt-2'>
+        {
+          rowData?.subitems && (
+            rowData.subitems.map((subItem: any)=> renderedCheckboxes(subItem, programa))
+          )
+        }
+        </div>
+      </div>
     );
   }, []);
 
@@ -109,7 +252,13 @@ export default function VBMapp({ paciente }: any) {
       {Object.keys(list).length > 0 ? (
         <Accordion>
           {Object.keys(list).map((programa, keys) => (
-            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={<div className="flex items-center w-full"><span>{programa.toLocaleUpperCase()}</span></div>}>
+            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={
+            <div className="flex items-center w-full gap-2">
+              <span>{programa.toLocaleUpperCase()}</span>
+              { validItensPermiteSubitens(list[programa]) && <i className="pi pi-pencil" onClick={()=> onClickAddSubItem(list[programa], keys, programa)} /> }
+            </div>
+            
+            }>
               <DataTable
                 id="vbmapp-page"
                 value={list[programa]}
@@ -119,7 +268,7 @@ export default function VBMapp({ paciente }: any) {
                 tableStyle={{ minWidth: 'none' }}
               >
                 <Column body={(row) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
-                <Column field="nome" header="" bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }} />
+                {/* <Column field="nome" header="" bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }} /> */}
               </DataTable>
             </AccordionTab>
           ))}
