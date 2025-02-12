@@ -62,10 +62,15 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
       dropDown('pei/procedimento-ensino'),
     ])
 
-    setDropDownList({
+    const drop = {
       programa,
       procedimentoEnsino
-    })
+    }
+
+    setDropDownList(drop)
+
+
+    formatarDado(drop)
   }, []);
   
  const formatPortage = (formvalue: any) => {
@@ -91,6 +96,41 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
     }
 
   }),
+ }
+}
+
+const formatVBMapp = (formvalue: any) => {
+  const {procedimentoEnsinoId, estimuloDiscriminativo, estimuloReforcadorPositivo, resposta, metas, pacienteId, programaId} = {...formvalue}
+ 
+  const programaObj = dropDownList?.programa?.filter((item: any)=> item.id === programaId )[0]
+
+  const formated = metas.map((metaCurrent: any) => {
+
+    return {
+      id: metaCurrent.id,
+      nome: metaCurrent.value,
+      procedimentoEnsinoId, 
+      estimuloDiscriminativo, 
+      estimuloReforcadorPositivo, 
+      resposta,
+      pacienteId,
+      permiteSubitens: true,
+      subitems: metaCurrent.subitems.map((item: any, key: any) => {
+      const selected = metas[0].subitems[key]?.selected ? {selected: metas[0].subitems[key]?.selected} : {}
+        return {
+          nome: item.value,
+          id: item.id,
+          ...selected,
+        }
+
+      }),
+    }
+  })
+
+
+ return {
+  programa: programaObj.nome.toLowerCase(),
+  metas: formated
  }
 }
 
@@ -159,6 +199,9 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
     }else if(state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
       const response = formatPortage(payload)
       navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, tipoProtocolo: TIPO_PROTOCOLO.portage, metaEdit: response}})
+    }else if(state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
+      const response = formatVBMapp(payload)
+      navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, tipoProtocolo: TIPO_PROTOCOLO.vbMapp, metaEdit: response}})
     }
 
       reset()
@@ -227,12 +270,17 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
 
   }
 
-  useEffect(()=> {
-    if (Boolean(state?.item?.programa)) {
-      const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas, procedimentoEnsino} = state.item
+  const formatarDado = (drop: any) => {
+    if (Boolean(state?.item?.programa) || (state?.tipoProtocolo && state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
+      const {paciente, programa, estimuloDiscriminativo, resposta, estimuloReforcadorPositivo, metas, procedimentoEnsinoId
+      } = state.item
+  
+      const programaObj = typeof programa !== 'object' ? drop?.programa?.filter((item: any)=> item.nome.toLowerCase() === programa )[0] : programa
+      const procedimentoEnsinoObj = typeof procedimentoEnsinoId !== 'object' ? drop?.procedimentoEnsino?.filter((item: any)=> item.id === procedimentoEnsinoId)[0] : programa
+
       setValue('pacienteId', paciente)
-      setValue('programaId', programa)
-      setValue('procedimentoEnsinoId', procedimentoEnsino)
+      setValue('programaId', programaObj)
+      setValue('procedimentoEnsinoId', procedimentoEnsinoObj)
       setValue('estimuloDiscriminativo', estimuloDiscriminativo)
       setValue('resposta', resposta)
       setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo)
@@ -245,8 +293,8 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
     } else if (state?.tipoProtocolo && state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
       const {paciente, metas} = param.item
 
-      const procedimentoEnsino = dropDownList?.procedimentoEnsino?.filter((item: any)=> item.id ===metas[0].procedimentoEnsino )[0]
-      const programa = dropDownList?.programa?.filter((item: any)=> item.id ===metas[0].programa )[0]
+      const procedimentoEnsino = drop.procedimentoEnsino?.filter((item: any)=> item.id ===metas[0].procedimentoEnsino )[0]
+      const programa = drop?.programa?.filter((item: any)=> item.id ===metas[0].programa )[0]
 
       setMetas(metas)
       setValue(metas[0].id, metas[0].value)
@@ -264,7 +312,33 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
         metas[0].subitems = []
       }
     }
-  }, [])
+    // else if (state?.tipoProtocolo && state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
+    //   const {paciente, metas} = param.item
+
+    //   const procedimentoEnsino = drop?.procedimentoEnsino?.filter((item: any)=> item.id ===metas[0].procedimentoEnsino )[0]
+    //   const programa = drop?.programa?.filter((item: any)=> {
+    //     return item.nome.toLowerCase() === metas[0].programa.toLowerCase()
+    //   } )[0]
+
+    //   setMetas(metas)
+
+
+    //   setValue(metas[0].id, metas[0].value)
+    //   setValue('pacienteId', paciente)
+    //   setValue('programaId', programa)
+    //   setValue('procedimentoEnsinoId', procedimentoEnsino)
+    //   setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo || '')
+    //   setValue('resposta', metas[0].resposta || '')
+    //   setValue('estimuloReforcadorPositivo', metas[0].estimuloReforcadorPositivo || '')
+
+
+    //   if (metas[0]?.subitems) {
+    //     metas[0]?.subitems.map((subitem: any)=>  setValue(subitem.id, subitem.value))
+    //   }else {
+    //     metas[0].subitems = []
+    //   }
+    // }
+  }
   
   useEffect(() => {
     renderDropdown()
