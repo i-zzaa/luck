@@ -148,8 +148,29 @@ const getMetaEdit = (currentList) => {
     [getVBMapp]
   );
 
-  const onCheckboxChange = () => {
-    
+  const onCheckboxChange = (programa: string, itemId: string, newValue: boolean) => {
+    setList((prevList) => {
+      const updatedList = { ...prevList };
+  
+      // Percorre os itens dentro do programa para encontrar o item pelo ID
+      updatedList[programa] = updatedList[programa].map((item: any) => {
+        if (item.id === itemId) {
+          return { ...item, selected: newValue };
+        }
+        
+        // Se houver subitems, percorre e atualiza o estado do checkbox neles
+        if (item.subitems) {
+          const updatedSubitems = item.subitems.map((subitem: any) =>
+            subitem.id === itemId ? { ...subitem, selected: newValue } : subitem
+          );
+          return { ...item, subitems: updatedSubitems };
+        }
+  
+        return item;
+      });
+  
+      return updatedList;
+    });
   }
 
   const validItensPermiteSubitens= (programaList: any) => {
@@ -231,7 +252,7 @@ const getMetaEdit = (currentList) => {
           <CheckboxPortage
             key={rowData.id}
             value={value}
-            onChange={(newValue: any) => onCheckboxChange()} 
+            onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
           />
           </div>
           { rowData.nome }
