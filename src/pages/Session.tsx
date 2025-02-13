@@ -13,6 +13,7 @@ import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/Checkbox";
 import CheckboxPortage from "../components/CheckboxPortage";
 import { Fieldset } from "primereact/fieldset";
+import { TIPO_PROTOCOLO } from "../constants/protocolo";
 
 
 const MAINTENANCE = 'maintenance';
@@ -82,10 +83,10 @@ export const Session = () => {
       const result = await getList(`/pei/activity/session/${state.item.paciente.id}`)
 
       const [atividades, maintenance, portage, vbmappCurrent] = await Promise.all([
-        formatarDado(result.atividades, ACTIVITY),
-        formatarDado(result.maintenance, MAINTENANCE),
-        formatarDado(result.portage, PORTAGE),
-        formatarDado(result.vbmapp, VBMAPP)
+        formatarDado(result.atividades, ACTIVITY, TIPO_PROTOCOLO.portage),
+        formatarDado(result.maintenance, MAINTENANCE, TIPO_PROTOCOLO.portage),
+        formatarDado(result.portage, PORTAGE, TIPO_PROTOCOLO.portage),
+        formatarDado(result.vbmapp, VBMAPP, TIPO_PROTOCOLO.vbMapp)
       ])
 
       setList(atividades)
@@ -150,7 +151,7 @@ export const Session = () => {
     )
   }, [])
 // Função auxiliar recursiva que transforma cada nó
-const transformNode = async (node: any, type: string): Promise<any> => {
+const transformNode = async (node: any, type: string, tipoProtocolo = TIPO_PROTOCOLO.portage): Promise<any> => {
   // Cria o objeto base para o nó
   const transformed: any = {
     key: node.key,
@@ -173,17 +174,26 @@ const transformNode = async (node: any, type: string): Promise<any> => {
         // permiteSubitens: node.permiteSubitens
       }))
     );
+  }else if( tipoProtocolo === TIPO_PROTOCOLO.vbMapp && node.permiteSubitens) {
+
+    // transformed.estimuloDiscriminativo = node?.estimuloDiscriminativo || ''
+    // transformed.estimuloReforcadorPositivo = node?.estimuloReforcadorPositivo || ''
+    // transformed.resposta = node?.resposta || ''
+
+    transformed.children = Array.from({ length: 10 }).map(() => null)
+    transformed.permiteSubitens = node.permiteSubitens
+
   }
   // Se o nó tiver filhos normais (e não for `permiteSubitens`), aplica transformação recursiva
   else if (node.children && node.children.length > 0) {
     transformed.children = await Promise.all(
-      node.children.map(async (child: any) => transformNode(child, type))
+      node.children.map(async (child: any) => transformNode(child, type, tipoProtocolo))
     );
   }
   // Se o nó não tiver filhos, recebe um array padrão de `nulls`
   else {
     transformed.children = Array.from({
-      length: type === ACTIVITY || type === PORTAGE ? repeatActivity : repeatMaintenance,
+      length: type === ACTIVITY || type === PORTAGE ||  type === VBMAPP ? repeatActivity : repeatMaintenance,
     }).map(() => null);
   }
 
@@ -191,8 +201,8 @@ const transformNode = async (node: any, type: string): Promise<any> => {
 };
 
 // Função principal para formatar os dados
-const formatarDado = async (data: any, type: string = ACTIVITY) => {
-  return await Promise.all(data.map(async (programa: any) => transformNode(programa, type)));
+const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = TIPO_PROTOCOLO.portage) => {
+  return await Promise.all(data.map(async (programa: any) => transformNode(programa, type, tipoProtocolo)));
 };
 
 
@@ -300,69 +310,55 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
   };
 
   const renderVBMapp  = () => {
-    return !!listVBMapp.length &&  (
+    return !!listVBMapp.length && (
       <div className="mt-8">
-        <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
-          <span className="font-bold"> VB Mapp </span>
+        <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
+          <span className="font-bold">VB Mapp</span>
         </div>
-        { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
-            {
-              listVBMapp.map((programa: any, key: number)=> (
-                <AccordionTab 
-                  key={key} 
-                  tabIndex={key}
+            {listVBMapp.map((nivel, key) => (
+              <AccordionTab
+                key={nivel.key}
+                tabIndex={key}
+                header={
+                  <div className="flex items-center w-full">
+                    <span>{nivel.label}</span>
+                  </div>
+                }
+              > 
+
+              <Accordion>
+                {nivel?.children.map((programa, programaKey) => (
+                  <AccordionTab
+                  key={programa.key}
+                  tabIndex={programaKey}
+                  className="w-[90%]"
                   header={
-                    <div className="flex items-center  w-full">
-                      <span>{ programa.label}</span>
+                    <div className="flex items-center w-full">
+                      <span>{programa.label}</span>
                     </div>
-                  }>
-                    {
-                      <Accordion>
-                      {
-                        programa?.children.map((meta: any, metaKey: number) => (
-                          <AccordionTab 
-                          key={key} 
-                          tabIndex={key}
-                          header={
-                            <div className="flex items-center  w-full">
-                              <span>{ meta.label}</span>
-                            </div>
-                          }>
-                            <div className="grid gap-1">
-                            
-                            {
-                              meta?.children.map((sub: any, subKey: number) => (
-                                <li className="my-2 grid gap-2  items-center" key={subKey}>
-  
-                                <span>{ sub.label}</span>
-                                {
-                                <div className="flex gap-1">
-                                  {
-                                      sub?.children.map((itm: any, checkKey: number) => renderedCheckboxesPortage(key, metaKey, checkKey, itm))
-                                  }
-                                </div>
-                                }
-                              </li>
-                              ))
-                           }
-                            </div>
-                          </AccordionTab>
-  
-                        
-                        ))
-                      }
-                      </Accordion>
-                      
-                    }
+                  }
+                > 
+                {
+                  programa.children.map((meta, metaKey) => (
+                    <li>
+                      <span>{meta.label}</span>
+                      <div className="flex flex-col gap-1 m-4">
+                      {renderItems(meta, key, programaKey)}
+                      </div>
+                    </li>
+                  ))
+                }
                 </AccordionTab>
-              ))
-            }
+                ))}
+              </Accordion>
+              </AccordionTab>
+            ))}
           </Accordion>
-        </Card>)
-      }
+        </Card>
       </div>
-    )
+    );
   }
 
   const renderItems = (items: any, progKey: number, metaKey: number) => {
@@ -389,6 +385,8 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
 
         </div>
         )
+    }else if (items?.label && items?.children.length === 10) {
+      return renderItems(items.children, progKey, metaKey)
     }
     else if (items.length === 10) {
       return (
@@ -398,6 +396,17 @@ const formatarDado = async (data: any, type: string = ACTIVITY) => {
           )}
         </div>
       )
+    }else if (items[0]?.children) {
+      items.map((itm, checkKey) => {
+        return (
+          <div key={checkKey} className="flex flex-col ml-2">
+            <span>- {itm.label}</span>
+            <div className="flex flex-col gap-1">
+              {renderItems(itm.children, progKey, metaKey)}
+            </div>
+          </div>
+        )
+      })
     }
 
 
