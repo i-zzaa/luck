@@ -100,8 +100,16 @@ export default function PEICADASTRO( { paciente, param }: { paciente: { id: numb
 }
 
 const formatVBMapp = (formvalue: any) => {
-  const {procedimentoEnsinoId, estimuloDiscriminativo, estimuloReforcadorPositivo, resposta, metas, pacienteId, programaId} = {...formvalue}
- 
+  const {
+    procedimentoEnsinoId = "",
+    estimuloDiscriminativo = "",
+    estimuloReforcadorPositivo = "",
+    resposta = "",
+    metas = [],
+    pacienteId = "",
+    programaId = "",
+  } = formvalue ?? {};
+  
   const programaObj = dropDownList?.programa?.filter((item: any)=> item.id === programaId )[0]
 
   const formated = metas.map((metaCurrent: any) => {

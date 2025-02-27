@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
+import { clearCache } from '../localStorage/sessionStorage';
 
 interface AuthContextData {
   signed: boolean;
@@ -94,8 +95,8 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const Logout = async() => {
+    clearCache();
     setUser(undefined);
-    sessionStorage.clear();
 
     try {
       await api.get('/logout');

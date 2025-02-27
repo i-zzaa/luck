@@ -40,7 +40,7 @@ const manifestForPlugin = {
     background_color: '#662977',
     display: 'standalone',
     scope: '/',
-    start_url: '/',
+    start_url: "/?v=2",
     orientation: 'portrait',
   },
 };
