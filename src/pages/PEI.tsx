@@ -27,6 +27,8 @@ const PEI = () => {
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
 
+  const [protocolo, setProtocolo] = useState(TIPO_PROTOCOLO.pei )
+
   const handleEditPrograma = (item: any) => {
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo: TIPO_PROTOCOLO.pei } })
   }
@@ -90,7 +92,7 @@ const PEI = () => {
                   <div className="flex items-center  w-full">
                     <span>{ item.programa.nome}</span>
 
-                    <div className="ml-auto" >
+                    {protocolo === TIPO_PROTOCOLO.pei && (<div className="ml-auto" >
                       <ButtonHeron
                         text="editar"
                         type="transparent"
@@ -109,13 +111,14 @@ const PEI = () => {
                         onClick={()=>handleRemovePrograma(item)}
                         loading={loading}
                       />
-                    </div>
+                    </div>)}
                   </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
-                    {item.procedimentoEnsino && <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>}
+                    { <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>}
+                   
                     <div className=" grid grid-cols-3 gap-1">
-                      {item.estimuloDiscriminativ &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
+                      {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
                       { item.resposta && renderFiledSet('Resposta', item.resposta)}
                       { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo))', item.estimuloReforcadorPositivo)}
                     </div>
@@ -155,6 +158,8 @@ const PEI = () => {
 
   const onSubmitFilter = async ({ pacienteId, protocoloId }: any) => {
     setLoading(true)
+
+    setProtocolo(protocoloId)
     try {
       const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId});
 
