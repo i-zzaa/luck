@@ -113,11 +113,11 @@ const PEI = () => {
                   </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
-                    <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>
+                    {item.procedimentoEnsino && <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>}
                     <div className=" grid grid-cols-3 gap-1">
-                      { renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
-                      { renderFiledSet('Resposta', item.resposta)}
-                      { renderFiledSet('SR+ (estímulo reforçador positivo))', item.estimuloReforcadorPositivo)}
+                      {item.estimuloDiscriminativ &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
+                      { item.resposta && renderFiledSet('Resposta', item.resposta)}
+                      { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo))', item.estimuloReforcadorPositivo)}
                     </div>
                     <div className="my-2">
                       {
@@ -127,7 +127,7 @@ const PEI = () => {
                               <span className="flex align-items-center gap-2 w-full font-inter">Meta {indexMeta + 1}: {meta.value}</span>
                               <ul className="list-disc	ml-8 font-inter">
                                 {
-                                  meta.subitems.length &&  meta.subitems.map((subitem: any, index: number)=> {
+                                  meta.subitems &&  meta.subitems.map((subitem: any, index: number)=> {
                                   //  return <li key={index} className="flex items-center gap-2"> <i className="pi pi-check-circle text-green-400"></i>{subitem.value} </li>
                                    return <li key={index}> {subitem.value} </li>
                                 })

@@ -70,7 +70,7 @@ export default function VBMapp({ paciente }: any) {
     return match ? parseInt(match[1], 10) : null;
 }
 
-const getMetaEdit = (currentList) => {
+const getMetaEdit = (currentList: any) => {
     if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
       setList(currentList);
       return;
@@ -88,9 +88,9 @@ const getMetaEdit = (currentList) => {
     }
   
     // Atualizando as metas dentro do programa
-    copyList[programa] = copyList[programa].map((meta) => {
+    copyList[programa] = copyList[programa].map((meta: any) => {
       // Encontrar a meta editada no state
-      const metaEditada = state.metaEdit.metas.find((metaEdit) => {
+      const metaEditada = state.metaEdit.metas.find((metaEdit: any) => {
         return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
       });
   
@@ -101,7 +101,7 @@ const getMetaEdit = (currentList) => {
         if (Array.isArray(updatedSubitems) && Array.isArray(metaEditada.subitems)) {
           if (updatedSubitems.length) {
             updatedSubitems = updatedSubitems.map((subitem) => {
-              const subitemEditado = metaEditada.subitems.find((edit) => edit.id === subitem.id);
+              const subitemEditado = metaEditada.subitems.find((edit: any) => edit.id === subitem.id);
               return subitemEditado 
                 ? { ...subitem, selected: subitemEditado.selected || subitem.selected } // Garante que selected sempre tenha valor booleano
                 : subitem;
@@ -165,7 +165,7 @@ const getMetaEdit = (currentList) => {
   );
 
   const onCheckboxChange = (programa: string, itemId: string, newValue: boolean) => {
-    setList((prevList) => {
+    setList((prevList: any) => {
       const updatedList = { ...prevList };
   
       // Percorre os itens dentro do programa para encontrar o item pelo ID

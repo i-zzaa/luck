@@ -317,7 +317,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         </div>
         <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
-            {listVBMapp.map((nivel, key) => (
+            {listVBMapp.map((nivel: any, key: any) => (
               <AccordionTab
                 key={nivel.key}
                 tabIndex={key}
@@ -329,7 +329,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
               > 
 
               <Accordion>
-                {nivel?.children.map((programa, programaKey) => (
+                {nivel?.children.map((programa: any, programaKey: any) => (
                   <AccordionTab
                   key={programa.key}
                   tabIndex={programaKey}
@@ -341,7 +341,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
                   }
                 > 
                 {
-                  programa.children.map((meta, metaKey) => (
+                  programa.children.map((meta: any, metaKey: any) => (
                     <li>
                       <span>{meta.label}</span>
                       <div className="flex flex-col gap-1 m-4">
@@ -360,8 +360,8 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
       </div>
     );
   }
-
-  const renderItems = (items: any, progKey: number, metaKey: number) => {
+  
+  const renderItems = (items: any, progKey: number, metaKey: number): any => {
     const validChildren = items?.children ? items?.children[0]?.label  : false
 
     if (validChildren) {
@@ -372,7 +372,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
             { renderFiledSet('Resposta', items?.resposta || '')}
             { renderFiledSet('SR+ (estímulo reforçador positivo))', items?.estimuloReforcadorPositivo || '')}
           </div>
-          {items?.children.map((itm, checkKey) => {
+          {items?.children.map((itm: any, checkKey: any) => {
         return (
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
@@ -391,13 +391,13 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
     else if (items.length === 10) {
       return (
         <div className="flex gap-1">
-          {items.map((_item, idx) =>
+          {items.map((_item: any, idx: any) =>
             renderedCheckboxesPortage(progKey, metaKey, idx, _item)
           )}
         </div>
       )
     }else if (items[0]?.children) {
-      items.map((itm, checkKey) => {
+      items.map((itm: any, checkKey: any) => {
         return (
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
@@ -460,7 +460,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         </div>
         <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
-            {listPortage.map((programa, key) => (
+            {listPortage.map((programa: any, key: any) => (
               <AccordionTab
                 key={programa.key}
                 tabIndex={key}
@@ -470,7 +470,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
                   </div>
                 }
               >
-                {programa?.children.map((meta, metaKey) => (
+                {programa?.children.map((meta: any, metaKey: any) => (
                   <li className="my-2 grid gap-2 items-center" key={meta.key}>
                     <span>{meta.label}</span>
                     <div className="flex flex-col gap-1">
