@@ -1,40 +1,13 @@
-export interface TitleProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-  children: string;
-  color?:
-    | 'gray'
-    | 'gray-dark'
-    | 'gray-light'
-    | 'yellow'
-    | 'violet'
-    | 'black'
-    | 'white';
-}
 import { clsx } from 'clsx';
+import { COLOR_CLASSES, SIZE_CLASSES, TitleProps } from './types';
 
 export function Title({
   size = 'md',
   color = 'gray-dark',
   children,
 }: TitleProps) {
-  return (
-    <span
-      className={clsx('font-bold', {
-        'text-xs': size === 'xs',
-        'text-sm': size === 'sm',
-        'text-md': size === 'md',
-        'text-lg': size === 'lg',
+  const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const colorClass = COLOR_CLASSES[color] || COLOR_CLASSES['gray-dark'];
 
-        'text-white': color === 'white',
-        'text-gray-300': color === 'gray-light',
-        'text-gray-400': color === 'gray',
-        'text-gray-800': color === 'gray-dark',
-        'text-violet-800': color === 'violet',
-        'text-yellow-400': color === 'yellow',
-        'text-black': color === 'black',
-      })}
-    >
-      {children}
-    </span>
-  );
+  return <span className={clsx('font-bold', sizeClass, colorClass)}>{children}</span>;
 }

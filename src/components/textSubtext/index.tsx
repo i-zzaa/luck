@@ -1,22 +1,5 @@
-export interface TextSubtextProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-  text?: string;
-  subtext?: ReactNode;
-  color?:
-    | 'gray'
-    | 'gray-dark'
-    | 'gray-light'
-    | 'yellow'
-    | 'violet'
-    | 'black'
-    | 'white'
-    | 'red';
-  display: 'flex' | 'grid';
-  icon?: string;
-  className?: string;
-}
 import { clsx } from 'clsx';
-import { ReactNode } from 'react';
+import { COLOR_CLASSES, SIZE_CLASSES, TextSubtextProps } from './types';
 
 export function TextSubtext({
   size = 'md',
@@ -27,25 +10,15 @@ export function TextSubtext({
   icon,
   className,
 }: TextSubtextProps) {
+  const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const colorClass = COLOR_CLASSES[color] || COLOR_CLASSES['gray-dark'];
+
   return (
     <div
       className={clsx(
         'flex gap-4 font-normal tracking-wider text-start items-center text-ellipsis overflow-hidden whitespace-nowrap',
-        {
-          'text-xs': size === 'xs',
-          'text-sm': size === 'sm',
-          'text-md': size === 'md',
-          'text-lg': size === 'lg',
-
-          'text-white': color === 'white',
-          'text-gray-300': color === 'gray-light',
-          'text-gray-400': color === 'gray',
-          'text-gray-800': color === 'gray-dark',
-          'text-violet-800': color === 'violet',
-          'text-yellow-400': color === 'yellow',
-          'text-red-900': color === 'red',
-          'text-black': color === 'black',
-        },
+        sizeClass,
+        colorClass,
         className
       )}
     >
@@ -54,9 +27,10 @@ export function TextSubtext({
           <i className={icon}></i>
         </div>
       )}
+
       <span className={display}>
         {text}&nbsp;
-        <strong className='font-inter'> {subtext}</strong>
+        <strong className="font-inter">{subtext}</strong>
       </span>
     </div>
   );
