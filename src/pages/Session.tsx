@@ -10,8 +10,8 @@ import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
 import { NotFound } from "../components/notFound";
-import CheckboxSN from "../components/CheckboxSN";
-import CheckboxPortage from "../components/CheckboxPortage";
+import CheckboxSN from "../components/checkboxSN";
+import CheckboxPortage from "../components/checkboxPortage";
 import { Fieldset } from "primereact/fieldset";
 import { TIPO_PROTOCOLO } from "../constants/protocolo";
 

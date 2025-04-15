@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MultiStateCheckbox } from 'primereact/multistatecheckbox';
-import { CheckboxSNProps } from './types';
 import { IconYes, IconNo } from './icons';
+import { CheckboxSNProps } from './types';
 
 export default function CheckboxSN({ value, onChange, disabled }: CheckboxSNProps) {
   const [valueCurrent, setValue] = useState(value);

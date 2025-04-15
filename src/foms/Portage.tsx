@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable } from 'primereact';
-import CheckboxPortage from '../components/CheckboxPortage';
+import CheckboxPortage from '../components/checkboxPortage';
 import { create, dropDown, filter } from '../server';
 import { TIPO_PORTAGE, TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
