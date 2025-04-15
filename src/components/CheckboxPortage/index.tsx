@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { MultiStateCheckbox } from 'primereact/multistatecheckbox';
-import { CheckboxPortageProps } from './types';
 import { IconSim, IconAsVezes, IconNao } from './icons';
 import { VALOR_PORTAGE } from '../../constants/protocolo';
+import { CheckboxPortageProps } from './types';
 
 export default function CheckboxPortage({ value, onChange, disabled }: CheckboxPortageProps) {
   const [valueCurrent, setValue] = useState(value);
