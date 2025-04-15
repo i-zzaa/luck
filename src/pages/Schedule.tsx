@@ -84,7 +84,7 @@ export const Schedule = () => {
   }
 
   const cardFree = (item: any) => {
-    return <Card  key={item.id} customCss="border-l-4 border-l-green-400 rounded-lg cursor-not-allowed">
+    return <Card  key={item.id} type="free">
         <div className="flex gap-2 w-full item-center"> 
           <div className="grid text-center font-inter text-sm text-gray-400"> 
             <span> {item.start}</span> -
@@ -96,7 +96,7 @@ export const Schedule = () => {
   }
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id}  type={item.especialidade.nome} customCss={'border-l-4 rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out'} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
+    return <Card key={item.id} type={item.especialidade.nome} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
       <div className="flex">
         <ChoiceItemSchedule
         start={item?.data.start}
