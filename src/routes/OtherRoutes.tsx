@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Layout } from '../foms/Layout';
-import { Nav } from '../components/Nav';
+import { Nav } from '../components/NAV/Nav';
 import Home from '../pages/Home';
 import { Schedule } from '../pages/Schedule';
 import { Session } from '../pages/Session';

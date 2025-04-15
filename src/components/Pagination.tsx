@@ -1,34 +1,48 @@
-import { useState } from 'react';
-
 export interface PaginationProps {
   totalPages: number;
   currentPage: number;
-  onChange: (page: number) => any;
+  onChange: (page: number) => void;
 }
 
-export default function Pagination( { totalPages, currentPage, onChange}: PaginationProps) {
-  const [currentPageLocal, setCurrentPageLocal] = useState(currentPage || 1);
 
-  const handleNext = () => {
-    setCurrentPageLocal(currentPageLocal + 1)
-    onChange(currentPageLocal + 1)
+import { useState, useEffect } from 'react';
+
+export default function Pagination({ totalPages, currentPage, onChange }: PaginationProps) {
+  const [localPage, setLocalPage] = useState(currentPage);
+
+  useEffect(() => {
+    setLocalPage(currentPage);
+  }, [currentPage]);
+
+  const updatePage = (page: number) => {
+    setLocalPage(page);
+    onChange(page);
   };
-  const handlePrev = () => {
-    setCurrentPageLocal(currentPageLocal - 1)
-    onChange(currentPageLocal - 1)
-  };
+
+  const isFirstPage = localPage === 1;
+  const isLastPage = localPage === totalPages;
 
   return (
     <div className="flex items-center justify-center p-2 gap-2 mt-1">
-      <button onClick={handlePrev}  disabled={currentPageLocal === 1} className="bg-transparent w-12 h-12 cursor-pointer hover:scale-110 duration-700 text-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:text-slate-200">      
-        <i  className="pi pi-arrow-circle-left"    />
+      <button
+        onClick={() => updatePage(localPage - 1)}
+        disabled={isFirstPage}
+        className="bg-transparent w-12 h-12 cursor-pointer hover:scale-110 duration-700 text-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:text-slate-200"
+      >
+        <i className="pi pi-arrow-circle-left" />
       </button>
-      <span className='text-primary font-inter'>{ currentPageLocal } de { totalPages }</span>
-      <button onClick={handleNext} disabled={currentPageLocal === totalPages} className="bg-transparent w-12 h-12 cursor-pointer hover:scale-110 duration-700 text-primary  disabled:opacity-30 disabled:cursor-not-allowed disabled:text-slate-200">      
-        <i  className="pi pi-arrow-circle-right"   />
-      </button>    
+
+      <span className="text-primary font-inter">
+        {localPage} de {totalPages}
+      </span>
+
+      <button
+        onClick={() => updatePage(localPage + 1)}
+        disabled={isLastPage}
+        className="bg-transparent w-12 h-12 cursor-pointer hover:scale-110 duration-700 text-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:text-slate-200"
+      >
+        <i className="pi pi-arrow-circle-right" />
+      </button>
     </div>
   );
 }
-
-
