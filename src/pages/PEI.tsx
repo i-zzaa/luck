@@ -115,7 +115,7 @@ const PEI = () => {
                   </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
-                    { <div className="font-bold my-2" > { item.procedimentoEnsino.nome }</div>}
+                    { <div className="font-bold my-2" > { item.procedimentoEnsino?.nome || '' }</div>}
                    
                     <div className=" grid grid-cols-3 gap-1">
                       {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
