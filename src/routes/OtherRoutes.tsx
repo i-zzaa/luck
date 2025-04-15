@@ -1,15 +1,15 @@
 import { Routes, Route } from 'react-router-dom';
-import { Layout } from '../foms/Layout';
+import { LayoutDefault } from '../components/layoutDefault';
 import { Nav } from '../components/nav';
 import Home from '../pages/Home';
 import { Schedule } from '../pages/Schedule';
 import { Session } from '../pages/Session';
 import DTT from '../components/DTT';
 import PEI from '../pages/PEI';
-import PEICADASTRO from '../foms/PEI';
 import PrimeiraResposta from '../pages/PrimeiraResposta';
 import PROTOCOLO from '../foms/Protocolo';
 import Metas from '../pages/Metas';
+import PEICADASTRO from '../foms/pei';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -57,9 +57,9 @@ const OtherRoutes = () => {
               key={index}
               path={route.path}
               element={
-                <Layout>
+                <LayoutDefault>
                   <route.componentRoute />
-                </Layout>
+                </LayoutDefault>
               }
             />
           ))}
