@@ -1,19 +1,7 @@
-import { diffWeek } from '../../util/util';
 import { FC } from 'react';
-
-interface ChoiceItemScheduleProps {
-  start: string;
-  end: string;
-  title: string;
-  statusEventos: string;
-  localidade: string;
-  isExterno: boolean;
-  km?: number;
-  modalidade: string;
-  dataInicio?: string;
-  dataFim?: string;
-  dataAtual?: string;
-}
+import { useModalidadeInfo } from './useModalidadeInfo';
+import { ScheduleInfo } from './ScheduleInfo';
+import { ChoiceItemScheduleProps } from './types';
 
 export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
   start,
@@ -28,24 +16,7 @@ export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
   dataFim,
   dataAtual,
 }) => {
-  const renderModalidadeInfo = () => {
-    const isAvaliacao = modalidade === 'Avaliação';
-    const hasDatasValidas = dataInicio && dataFim && dataAtual;
-
-    if (!isAvaliacao || !hasDatasValidas) {
-      return <span>{modalidade}</span>;
-    }
-
-    const semanaAtual = diffWeek(dataInicio, dataAtual);
-    const totalSemanas = diffWeek(dataInicio, dataFim);
-
-    return (
-      <span>
-        {modalidade}
-        <span className="font-inter ml-2">{`${semanaAtual}/${totalSemanas}`}</span>
-      </span>
-    );
-  };
+  const modalidadeInfo = useModalidadeInfo(modalidade, dataInicio, dataFim, dataAtual);
 
   return (
     <div className="flex gap-2 w-full items-center">
@@ -53,21 +24,14 @@ export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
         <span>{start}</span> - <span>{end}</span>
       </div>
 
-      <div className="text-gray-800 text-sm text-center grid justify-center">
-        <div className="font-base font-semibold text-primary">{title}</div>
-
-        <p className="flex gap-4 items-center justify-between">
-          {renderModalidadeInfo()}
-          <span>{statusEventos}</span>
-        </p>
-
-        <p className="flex gap-4 items-center">
-          {localidade}
-          {isExterno && (
-            <span className="font-bold font-inter">{`- ${km}km`}</span>
-          )}
-        </p>
-      </div>
+      <ScheduleInfo
+        title={title}
+        status={statusEventos}
+        localidade={localidade}
+        isExterno={isExterno}
+        km={km}
+        modalidadeInfo={modalidadeInfo}
+      />
     </div>
   );
 };
