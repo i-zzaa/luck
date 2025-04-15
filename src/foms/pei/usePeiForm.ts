@@ -39,12 +39,13 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   } = useForm({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
-    const [programa, procedimentoEnsino]: any = await Promise.all([
+    const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
       dropDown('programa'),
       dropDown('pei/procedimento-ensino'),
+      dropDown('protocolo')
     ]);
 
-    const drop = { programa, procedimentoEnsino };
+    const drop = { programa, procedimentoEnsino, protocolo };
     setDropDownList(drop);
     formatarDado(drop);
   }, [setDropDownList]);
@@ -101,6 +102,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
 
     try {
       const payload: any = { metas: [] };
+      const [tipoProtocolo] = dropDownList.protocolo.filter((item: any)=> item.id == state.tipoProtocolo)
 
       if (Object.values(formvalue).some((valor) => valor === '')) {
         setLoading(false);
@@ -141,13 +143,14 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
         Boolean(state?.item?.id)
           ? await update('pei', payload)
           : await create('pei', payload);
-        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId } });
+
+        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId,  protocoloId:tipoProtocolo } });
       } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
         const response = formatPortage(payload, metas);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, tipoProtocolo: TIPO_PROTOCOLO.portage, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
       } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
         const response = formatVBMapp(payload, metas, dropDownList);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, tipoProtocolo: TIPO_PROTOCOLO.vbMapp, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
       }
 
       reset();

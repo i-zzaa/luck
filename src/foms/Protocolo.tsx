@@ -7,9 +7,9 @@ import { dropDown } from '../server';
 import { permissionAuth } from '../contexts/permission';
 import { TIPO_PROTOCOLO } from '../constants/protocolo';
 import PORTAGECADASTRO from './Portage';
-import PEICADASTRO from './PEI';
 import VBMapp from './VBMapp';
 import { useLocation } from 'react-router-dom';
+import PEICADASTRO from './pei';
 
 
 const fields = ProtocoloFields;
@@ -57,6 +57,10 @@ export default function Protocolo() {
     if (state.tipoProtocolo) {
       const currentProtocolo = protocolo.filter((item: any) => item.id === state.tipoProtocolo)[0]
       setValue('protocoloId', currentProtocolo)
+    }
+
+    if (state.pacienteId) {
+      setValue('pacienteId', state.pacienteId)
     }
 
     if (state.item) {

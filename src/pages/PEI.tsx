@@ -12,6 +12,7 @@ import { Accordion, AccordionTab } from "primereact/accordion";
 import { Fieldset } from "primereact/fieldset";
 import { ButtonHeron } from "../components/button";
 import { TIPO_PROTOCOLO } from "../constants/protocolo";
+import { useForm } from "react-hook-form";
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -30,7 +31,7 @@ const PEI = () => {
   const [protocolo, setProtocolo] = useState(TIPO_PROTOCOLO.pei )
 
   const handleEditPrograma = (item: any) => {
-    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo: TIPO_PROTOCOLO.pei } })
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo: protocolo } })
   }
 
   const handleRemovePrograma = async(item: any) => {
@@ -157,11 +158,13 @@ const PEI = () => {
   }
 
   const onSubmitFilter = async ({ pacienteId, protocoloId }: any) => {
+    if(!protocoloId) return
+
     setLoading(true)
 
-    setProtocolo(protocoloId)
+    protocoloId && setProtocolo(protocoloId.id)
     try {
-      const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId});
+      const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId: protocoloId});
 
       setList(data);
     } catch (error) {
@@ -188,7 +191,7 @@ const PEI = () => {
         onReset={()=> setList([])}
         screen="PEI"
         loading={loading}
-        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { tipoProtocolo: TIPO_PROTOCOLO.pei } })}
+        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { tipoProtocolo: protocolo, pacienteId: state.pacienteId} })}
         defaultValues={state}
       />
     )
@@ -204,12 +207,13 @@ const PEI = () => {
       paciente,
       protocolo
     })
-  }, []);
 
-  useEffect(() => {
     if (state) {
       onSubmitFilter(state)
     }
+  }, []);
+
+  useEffect(() => {
     renderPrograma();
   }, []);
   

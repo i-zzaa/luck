@@ -28,21 +28,19 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
   }, [renderDropdown]);
 
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+    <div className="mt-8 space-y-6" >
       <div className='h-[90vh] flex flex-col overflow-y-auto'>
         {PEICadastroFields.map((item: any) => (
           <div key={item.id}>
-            {hasPermition(item.permission) ? (
-              <Input
-                labelText={item.labelText}
-                id={item.id}
-                type={item.type}
-                customCol={item.customCol}
-                control={control}
-                options={item.type === 'select' ? dropDownList[item.name] : undefined}
-                buttonAdd={item.buttonAdd}
-              />
-            ): null}
+          <Input
+              labelText={item.labelText}
+              id={item.id}
+              type={item.type}
+              customCol={item.customCol}
+              control={control}
+              options={item.type === 'select' ? dropDownList[item.name] : undefined}
+              buttonAdd={item.buttonAdd}
+            />
           </div>
         ))}
 
@@ -104,11 +102,12 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
             text="Salvar"
             type="primary"
             size="full"
+            typeButton="button"
             onClick={handleSubmit(onSubmit)}
             loading={loading}
           />
         </div>
       </div>
-    </form>
+    </div>
   );
 }
