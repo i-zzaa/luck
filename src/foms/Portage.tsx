@@ -232,7 +232,7 @@ const getNextState = (currentValue: any) => {
           <CheckboxPortage
             key={rowData.id}
             value={value}
-            onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} Atualiza o checkbox
+            onChange={(newValue: any) => onCheckboxChange(portageType, faixaEtaria, rowData.id, newValue)} //Atualiza o checkbox
           />
           { rowData.nome }
           { rowData?.permiteSubitens  && <i className="pi pi-pencil" onClick={()=> onClickAddSubItem(rowData)} /> }
