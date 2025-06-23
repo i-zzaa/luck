@@ -24,7 +24,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
   } = usePeiForm({ paciente, param });
 
   useEffect(() => {
-    renderDropdown();
+    renderDropdown(state?.tipoProtocolo);
   }, [renderDropdown]);
 
   return (

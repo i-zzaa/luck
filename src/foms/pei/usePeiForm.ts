@@ -38,9 +38,9 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     watch,
   } = useForm({ defaultValues });
 
-  const renderDropdown = useCallback(async () => {
+  const renderDropdown = useCallback(async (tipoProtocolo = TIPO_PROTOCOLO.pei) => {
     const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
-      dropDown('programa'),
+      dropDown(`programa/${tipoProtocolo}`),
       dropDown('pei/procedimento-ensino'),
       dropDown('protocolo')
     ]);
@@ -81,7 +81,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
       const { paciente, metas } = param.item;
 
       const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
-      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa);
+      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa || item.nome === metas[0].programa );
 
       setMetas(metas);
       setValue(metas[0].id, metas[0].value);
@@ -101,7 +101,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     setLoading(true);
 
     try {
-      const payload: any = { metas: [] };
+      const payload: any = { metas: [], programa: formvalue.programaId};
       const [tipoProtocolo] = dropDownList.protocolo.filter((item: any)=> item.id == state.tipoProtocolo)
 
       if (Object.values(formvalue).some((valor) => valor === '')) {

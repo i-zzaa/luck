@@ -73,8 +73,8 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       const editList = { ...currentList };
   
       // Criando uma cópia do array para evitar mutação direta
-      editList[state?.metaEdit.portage][state?.metaEdit.faixaEtaria] = 
-        editList[state?.metaEdit.portage][state?.metaEdit.faixaEtaria].map((item: any) => 
+      editList[state?.metaEdit.programa][state?.metaEdit.faixaEtaria] = 
+        editList[state?.metaEdit.programa][state?.metaEdit.faixaEtaria].map((item: any) => 
           item.id === idMetaEdit ? { ...state?.metaEdit } : item
         );
   
@@ -184,20 +184,19 @@ const getNextState = (currentValue: any) => {
     const id = `0-meta-${item.id}`
     const selectedMeta = item?.selected ? {selected: item.selected} : {}
 
-
     const meta = {
       ...OBJ_META,
       id,
       value: item.nome,
-      portage: item.portage,
+      // portage: item.portage,
       faixaEtaria: item.faixaEtaria,
 
-        estimuloDiscriminativo: item?.estimuloDiscriminativo,
-        estimuloReforcadorPositivo: item?.estimuloReforcadorPositivo,
-        procedimentoEnsino: item?.procedimentoEnsinoId,
-        programa: item?.programaId,
-        resposta: item?.resposta,
-        ...selectedMeta
+      estimuloDiscriminativo: item?.estimuloDiscriminativo,
+      estimuloReforcadorPositivo: item?.estimuloReforcadorPositivo,
+      procedimentoEnsino: item?.procedimentoEnsinoId,
+      programa: item?.programaId || item?.programa,
+      resposta: item?.resposta,
+      ...selectedMeta
     }
 
     if (item?.subitems) {

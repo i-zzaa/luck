@@ -54,16 +54,16 @@ export default function Protocolo() {
       protocolo
     })
 
-    if (state.tipoProtocolo) {
+    if (state?.tipoProtocolo) {
       const currentProtocolo = protocolo.filter((item: any) => item.id === state.tipoProtocolo)[0]
       setValue('protocoloId', currentProtocolo)
     }
 
-    if (state.pacienteId) {
+    if (state?.pacienteId) {
       setValue('pacienteId', state.pacienteId)
     }
 
-    if (state.item) {
+    if (state?.item) {
       const currentPaciente = paciente.filter((item: any) => state.item.paciente.id === item.id)[0]
       setValue('pacienteId', currentPaciente)
     }
@@ -100,7 +100,7 @@ export default function Protocolo() {
             customCol='col-span-6 sm:col-span-6'
             control={control}
             options={dropDownList.protocolo }
-            disabled={!pacienteObj?.nome.length}
+            disabled={!pacienteObj?.nome.length || state?.tipoProtocolo}
             // onChange={(e)=> getProtocolo(e.id)}
           />
         ) : null

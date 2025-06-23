@@ -7,7 +7,7 @@ export function formatPortage(formvalue: any, metas: any[]) {
     ...formvalue,
     nome: meta.value,
     id: meta.id,
-    portage: metas[0].portage,
+    programa: formvalue.programa.nome,
     faixaEtaria: metas[0].faixaEtaria,
     permiteSubitens: true,
     ...selectedMeta,
