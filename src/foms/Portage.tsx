@@ -34,21 +34,10 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     }
   };
 
-  const getMetaEdit = (currentList: any) => {
-    if (state?.metaEdit) {
-      const idMetaEdit = parseInt(state.metaEdit.id.replace(/^0-meta-/, ''), 10);
-      currentList[state.metaEdit.programa][state.metaEdit.faixaEtaria] =
-        currentList[state.metaEdit.programa][state.metaEdit.faixaEtaria].map((item: any) =>
-          item.id === idMetaEdit ? { ...state.metaEdit } : item
-        );
-    }
-  };
-
   const renderList = useCallback(async () => {
     try {
       const atividade = await dropDown('protocolo/portage');
       setList(atividade);
-      getMetaEdit(atividade);
     } catch (error) {
       console.error('Error fetching dropdown data', error);
     }
@@ -120,16 +109,18 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       programa: item?.programaId || item?.programa,
       resposta: item?.resposta,
       ...selectedMeta,
-      subitems: item?.subitems?.map((sub: any) => ({ ...OBJ_ITEM, id: sub.id, value: sub.nome, ...(sub.selected && { selected: sub.selected }) })) || [],
+      subitems: item?.subitems?.map((sub: any) => ({
+        ...OBJ_ITEM,
+        id: sub.id,
+        value: sub.nome,
+        ...(sub.selected && { selected: sub.selected })
+      })) || []
     };
 
     const existingDrafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
     const metaId = parseInt(meta.id.replace(/^0-meta-/, ''), 10);
     const updatedDrafts = existingDrafts.filter((m: any) => parseInt(m.id.replace(/^0-meta-/, '')) !== metaId);
-    updatedDrafts.push({
-      ...meta,
-      subitems: meta.subitems && meta.subitems.length > 0 ? meta.subitems : existingDrafts.find((m: any) => m.id === meta.id)?.subitems || []
-    });
+    updatedDrafts.push(meta);
     sessionStorage.setItem('draftSubitems', JSON.stringify(updatedDrafts));
 
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
@@ -189,12 +180,18 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       const id = state.metaEdit.id;
       const index = drafts.findIndex((m: any) => m.id === id);
       if (index !== -1) {
-        drafts[index] = state.metaEdit;
+        const old = drafts[index];
+        const allSubitems = [...(old.subitems || []), ...(state.metaEdit.subitems || [])];
+        const merged = Array.from(
+          new Map(allSubitems.map((s) => [s.id, { ...old.subitems?.find((x) => x.id === s.id), ...s }])).values()
+        );
+        drafts[index] = { ...old, ...state.metaEdit, subitems: merged };
       } else {
         drafts.push(state.metaEdit);
       }
       sessionStorage.setItem('draftSubitems', JSON.stringify(drafts));
     }
+
     const init = async () => {
       const { data }: any = await filter('protocolo', {
         pacienteId: paciente.id,
@@ -217,19 +214,18 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
             if (!listAtual[programa][faixaEtaria]) listAtual[programa][faixaEtaria] = [];
 
             const metas = listAtual[programa][faixaEtaria];
-            const index = metas.findIndex((m: any) => m.id === metaId);
+            const index = metas.findIndex((m: any) => m.id === metaId || m.id === meta.id);
             if (index !== -1) {
-              // merge mantendo subitens existentes se não vierem no draft
               const old = metas[index];
-              metas[index] = {
-                ...meta,
-                subitems: meta.subitems && meta.subitems.length > 0 ? meta.subitems : old.subitems || []
-              };
+              const allSubitems = [...(old.subitems || []), ...(meta.subitems || [])];
+              const merged = Array.from(
+                new Map(allSubitems.map((s) => [s.id, { ...old.subitems?.find((x) => x.id === s.id), ...s }])).values()
+              );
+              metas[index] = { ...old, ...meta, subitems: merged };
             } else {
               metas.push(meta);
             }
           }
-          // sessionStorage.removeItem('draftSubitems'); // Comentado para manter os subitens ao adicionar outros
         }
 
         setList(listAtual);
