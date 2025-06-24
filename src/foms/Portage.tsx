@@ -149,7 +149,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       {list?.[type] && (
         <Accordion>
           {Object.keys(list[type]).map((faixaEtaria: any) => (
-            <AccordionTab key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
+            <AccordionTab key={faixaEtaria} header={<span>{faixaEtaria}</span>}>
               <DataTable value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
                 <Column body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} bodyStyle={{ padding: '.1rem' }} />
               </DataTable>
@@ -211,7 +211,17 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
             const metas = listAtual[programa][faixaEtaria];
             const index = metas.findIndex((m: any) => m.id === metaId || m.id === meta.id);
             if (index !== -1) {
-              metas[index] = { ...meta };
+              const oldSubitems = metas[index].subitems || [];
+              const newSubitems = meta.subitems || [];
+              const updatedSubitems = newSubitems.map((draftSub: any) => {
+                const selected = draftSub.selected !== undefined ? draftSub.selected : oldSubitems.find((s: any) => s.id === draftSub.id)?.selected;
+                return { ...draftSub, selected };
+              });
+              metas[index] = {
+                ...metas[index],
+                ...meta,
+                subitems: updatedSubitems
+              };
             } else {
               metas.push(meta);
             }
