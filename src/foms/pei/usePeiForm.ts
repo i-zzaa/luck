@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormContext } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { permissionAuth } from '../../contexts/permission';
@@ -36,6 +36,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     control,
     reset,
     watch,
+    unregister, resetField
   } = useForm({ defaultValues });
 
   const renderDropdown = useCallback(async (tipoProtocolo = TIPO_PROTOCOLO.pei) => {
@@ -181,19 +182,37 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   const addSubitem = (idMeta: number) => {
     const item = [...metas];
     const subitems = item[idMeta]?.subitems ? [...item[idMeta].subitems] : [];
-    OBJ_ITEM.id = `${item[idMeta].id}-sub-item-${subitems.length}`;
-    subitems.push({ ...OBJ_ITEM });
+
+    // Busca o maior número de subitem existente
+    const lastIndex = subitems.reduce((max, sub) => {
+      const match = sub.id.match(/sub-item-(\d+)$/);
+      const num = match ? parseInt(match[1], 10) : 0;
+      return Math.max(max, num);
+    }, -1);
+
+    // Gera o novo id com base no último índice encontrado
+    const newSubitemId = `${item[idMeta].id}-sub-item-${lastIndex + 1}`;
+    const newSubitem = { ...OBJ_ITEM, id: newSubitemId };
+
+    subitems.push(newSubitem);
     item[idMeta].subitems = subitems;
     setMetas(item);
   };
 
-  const removeSubitemFromMeta = (idMeta: number, index: number) => {
-    const item = [...metas];
-    const subitem = item[idMeta].subitems[index];
-    item[idMeta].subitems.splice(index, 1);
-    setValue(subitem.id, undefined);
-    setMetas(item);
+  const removeSubitemFromMeta = (metaIndex: number, subIndex: number) => {
+    const novasMetas = [...metas];
+    const subitemRemovido = novasMetas[metaIndex]?.subitems?.[subIndex];
+
+    if (subitemRemovido?.id) {
+      // Remove o campo e seu valor do react-hook-form
+      unregister(subitemRemovido.id, { keepValue: false });
+      resetField(subitemRemovido.id); // Garante que valores persistentes sejam limpos
+    }
+
+    novasMetas[metaIndex].subitems.splice(subIndex, 1);
+    setMetas(novasMetas);
   };
+
 
   return {
     control,
