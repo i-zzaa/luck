@@ -149,7 +149,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       {list?.[type] && (
         <Accordion>
           {Object.keys(list[type]).map((faixaEtaria: any) => (
-            <AccordionTab key={faixaEtaria} header={<span>{faixaEtaria}</span>}>
+            <AccordionTab key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
               <DataTable value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
                 <Column body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} bodyStyle={{ padding: '.1rem' }} />
               </DataTable>
@@ -180,12 +180,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       const id = state.metaEdit.id;
       const index = drafts.findIndex((m: any) => m.id === id);
       if (index !== -1) {
-        const old = drafts[index];
-        const allSubitems = [...(old.subitems || []), ...(state.metaEdit.subitems || [])];
-        const merged = Array.from(
-          new Map(allSubitems.map((s) => [s.id, { ...old.subitems?.find((x) => x.id === s.id), ...s }])).values()
-        );
-        drafts[index] = { ...old, ...state.metaEdit, subitems: merged };
+        drafts[index] = { ...state.metaEdit };
       } else {
         drafts.push(state.metaEdit);
       }
@@ -216,12 +211,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
             const metas = listAtual[programa][faixaEtaria];
             const index = metas.findIndex((m: any) => m.id === metaId || m.id === meta.id);
             if (index !== -1) {
-              const old = metas[index];
-              const allSubitems = [...(old.subitems || []), ...(meta.subitems || [])];
-              const merged = Array.from(
-                new Map(allSubitems.map((s) => [s.id, { ...old.subitems?.find((x) => x.id === s.id), ...s }])).values()
-              );
-              metas[index] = { ...old, ...meta, subitems: merged };
+              metas[index] = { ...meta };
             } else {
               metas.push(meta);
             }
