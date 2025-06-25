@@ -57,7 +57,7 @@ export default function Metas() {
     try {
       const paciente = state.paciente
 
-      const [vbMappData, protocoloData, peiData, atividadesSessao] = await Promise.all([
+      const [vbMappData, portageData, peiData, atividadesSessao] = await Promise.all([
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
         filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei}),
@@ -65,9 +65,10 @@ export default function Metas() {
       ])
 
       const pei = peiData.data
-      const protocolo = protocoloData.data
+      const portage = portageData.data
       const vbMapp = vbMappData.data
 
+      seIsEdit(!!pei.length || !!portage.length || !!vbMapp.length)
 
       const allKeysMaintenance = Boolean(atividadesSessao?.maintenance) &&  typeof atividadesSessao?.maintenance === 'object' ? getAllKeys(atividadesSessao.maintenance) : []
 
@@ -109,8 +110,8 @@ export default function Metas() {
         
       }
 
-      if (protocolo && protocolo.length > 0) {
-        setNodesPortage(protocolo)
+      if (portage && portage.length > 0) {
+        setNodesPortage(portage)
         setSelectedPortageKeys(atividadesSessao?.selectedPortageKeys)
       }
 
@@ -123,7 +124,6 @@ export default function Metas() {
         const obj = atividadesSessao.selectedKeys
         const allKeys = Object.keys(obj);
 
-        seIsEdit(Boolean(obj))
         setSelectedKeys(obj)
         setKeys(allKeys)
 
