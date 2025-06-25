@@ -9,9 +9,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import CheckboxDTT from "../components/DTT";
-import { NotFound } from "../components/notFound";
 import CheckboxSN from "../components/checkboxSN";
-import CheckboxPortage from "../components/checkboxPortage";
 import { Fieldset } from "primereact/fieldset";
 import { TIPO_PROTOCOLO } from "../constants/protocolo";
 
@@ -291,7 +289,8 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
           const meta = programa.children[metaId];
   
           // Verifica se o item tem um subitem antes dos checkboxes (4 níveis)
-          if (meta.children[checkKey].children) {
+          // if (meta.children[checkKey].children) {
+          if (meta.children[checkKey] && meta.children[checkKey].children) {
             // Caso 4 níveis: Atualiza o valor no último nível (checkboxes dentro do subitem)
             meta.children[checkKey].children = meta.children[checkKey].children.map((val: any, idx: number) =>
               idx === checkKey ? newValue : val
@@ -315,7 +314,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
           <span className="font-bold">VB Mapp</span>
         </div>
-        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {listVBMapp.map((nivel: any, key: any) => (
               <AccordionTab
@@ -458,7 +457,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
           <span className="font-bold">Portage</span>
         </div>
-        <Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {listPortage.map((programa: any, key: any) => (
               <AccordionTab
@@ -497,7 +496,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         {!!list.length && <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-2"> 
           <span className="text-md">Interrompa o treino da atividade ao atingir 4 tentativas corretas consecutivas.</span>
         </div>}
-        {list.length ? (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        {list.length ? (<Card className="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
               list.map((programa: any, key: number)=> (
@@ -564,7 +563,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> Manutenção </span>
         </div>
-        { (<Card customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        { (<Card className="rounded-lg cursor-not-allowed max-w-[100%]">
           <Accordion>
             {
               listMaintenance.map((programa: any, key: number)=> (
@@ -612,7 +611,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4"> 
           <span className="font-bold"> Resumo </span>
         </div>
-        <Card  customCss="rounded-lg cursor-not-allowed max-w-[100%]">
+        <Card  className="rounded-lg cursor-not-allowed max-w-[100%]">
           <JoditEditor
           ref={editor}
           value={content}
@@ -649,7 +648,6 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
 
   useEffect(() => {
     getSumaryContent()
-    // getTeste()
   }, [])
   
 

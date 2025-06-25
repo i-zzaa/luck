@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
@@ -52,7 +52,7 @@ export default function Metas() {
     return current;
   }
 
-  const getPEI = useMemo(async() => {
+  const getPEI = useCallback(async() => {
     setLoading(true)
     try {
       const paciente = state.paciente
@@ -143,9 +143,10 @@ export default function Metas() {
         message: 'PEI não encontrado!',
         open: true,
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }, [])
+  }, [renderToast])
 
   const onSubmit = async() => {
     setLoading(true)
@@ -314,7 +315,7 @@ export default function Metas() {
   }
 
   useEffect(() => {
-    getPEI
+    getPEI()
   }, [])
 
   return (
