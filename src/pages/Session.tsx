@@ -632,7 +632,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
 
   const renderFooter = () => {
     return (
-      <div className="mt-auto">
+      !isEdit && <div className="mt-auto">
         <ButtonHeron
           text="Salvar"
           icon="pi pi-check"
