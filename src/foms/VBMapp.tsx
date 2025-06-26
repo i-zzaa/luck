@@ -304,7 +304,7 @@ const getMetaEdit = (currentList: any) => {
                 dataKey="id"
                 tableStyle={{ minWidth: 'none' }}
               >
-                <Column body={(row) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
+                <Column body={(row: any) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
                 {/* <Column field="nome" header="" bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }} /> */}
               </DataTable>
             </AccordionTab>
