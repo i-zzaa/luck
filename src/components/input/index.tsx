@@ -13,12 +13,15 @@ import { InputTime } from './inputs/InputTime';
 import { InputText } from './inputs/InputText';
 import { InputSelectAdd } from './inputs/InputSelectAdd';
 import { InputPassword } from './inputs/InputPassword';
+import { InputList } from './inputs/InputList';
 
 export function Input(props: InputProps) {
   const { type } = props;
 
   const renderByType = () => {
     switch (type) {
+      case 'list':
+        return <InputList {...props} />;
       case 'textarea':
         return <InputTextarea {...props} />;
       case 'select':

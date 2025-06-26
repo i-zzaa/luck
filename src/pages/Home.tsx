@@ -53,7 +53,7 @@ export default function Home() {
 
   return (
     <>
-      <Card customCss='rounded-lg border border-gray-200 p-4'>
+      <Card className='rounded-lg border border-gray-200 p-4'>
         <div className="grid sm:grid-cols-2">
           <TextSubtext
             text={user?.nome}
