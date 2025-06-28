@@ -7,7 +7,7 @@ import { ButtonHeron } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { NotFound } from '../components/notFound';
-import { TIPO_PROTOCOLO } from '../constants/protocolo';
+import { TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
 
 
 export default function Metas() {
@@ -60,7 +60,7 @@ export default function Metas() {
       const [vbMappData, portageData, peiData, atividadesSessao] = await Promise.all([
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
-        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei}),
+        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei, notSelected: [VALOR_PORTAGE.sim]}),
         getList(`pei/activity-session/${state.id}`)
       ])
 
