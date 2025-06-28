@@ -164,6 +164,30 @@ export const formatDateHours = (hours: any, date: any) => {
 };
 
 export enum DEVICE {
-  mobile = 'mobile',
-  web = 'web',
+  mobile = 'DEVICE_MOBILE',
+  web = 'DEVICE_WEB',
+}
+
+
+export const OBJ_META = {
+  id: "",
+  name: "meta",
+  type: "input-add",
+  value: "",
+  labelFor: "meta",
+  subitems: [],
+  buttonAdd: true,
+  customCol: "col-span-5 sm:col-span-5",
+  labelText: "Meta"
+}
+
+export const OBJ_ITEM = {
+  id: "",
+  name: "item",
+  type: "input-add",
+  value: "",
+  labelFor: "item",
+  buttonAdd: true,
+  customCol: "col-span-5 sm:col-span-5",
+  labelText: "Item"
 }

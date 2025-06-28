@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
+import { clearCache } from '../localStorage/sessionStorage';
 
 interface AuthContextData {
   signed: boolean;
@@ -33,7 +34,7 @@ export const AuthProvider = ({ children }: Props) => {
       const _user = JSON.parse(storagedUser);
       setUser(_user);
       setPerfil(storagedPerfil);
-      intercepttRoute(storagedToken, _user.login);
+      intercepttRoute(storagedToken, _user.login, _user.id);
     }
   }, []);
 
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }: Props) => {
       setPerfil(perfilName);
       setUser(user);
 
-      await intercepttRoute(accessToken, user.login);
+      await intercepttRoute(accessToken, user.login, user.id);
 
       renderToast({
         type: 'success',
@@ -87,15 +88,21 @@ export const AuthProvider = ({ children }: Props) => {
       : 'Usuário não encontrado!';
     renderToast({
       type: 'failure',
-      title: data.status,
+      title: data.status || 'Erro no Login!',
       message: message,
       open: true,
     });
   };
 
-  const Logout = () => {
+  const Logout = async() => {
+    clearCache();
     setUser(undefined);
-    sessionStorage.clear();
+
+    try {
+      await api.get('/logout');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

@@ -1,45 +1,49 @@
 import { Routes, Route } from 'react-router-dom';
-import { permissionAuth } from '../contexts/permission';
-import { Layout } from '../foms/Layout';
-import { Nav } from '../components/Nav';
+import { LayoutDefault } from '../components/layoutDefault';
+import { Nav } from '../components/nav';
 import Home from '../pages/Home';
-import { useContext } from 'react';
-import { LayoutContext } from '../contexts/layout.context';
-import { Protocolo } from '../pages/Protocolo';
-import { Sessao } from '../pages/Sessao';
 import { Schedule } from '../pages/Schedule';
-import { Crud } from '../pages/Crud';
-import { Patient } from '../pages/Patient';
+import { Session } from '../pages/Session';
+import DTT from '../components/DTT';
+import PEI from '../pages/PEI';
+import PrimeiraResposta from '../pages/PrimeiraResposta';
+import PROTOCOLO from '../foms/Protocolo';
+import Metas from '../pages/Metas';
+import PEICADASTRO from '../foms/pei';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
   CRUD = 'cadastro',
   CALENDAR = 'agenda',
-  PRONTUARIO = 'prontuario',
-  SESSION = 'sessao',
-  PROGRAM = 'programa',
-  PATIENT = 'paciente',
-  PROTOCOLO = 'protocolo',
+  SESSION = 'session',
+  DTT = 'dtt',
+  PEI = 'pei',
+  PEICADASTRO = 'pei-cadastro',
+  METAS = 'metas',
+  PRIMEIRARESPOSTA = 'primeira-resposta',
+  PROTOCOLO = 'protocolo-av',
 }
 export interface RoutesProps {
   path: string;
   componentRoute: any;
-  icon: string
+  icon: string;
+  menu?: boolean;
 }
 
 export const ROUTES = [
-  { path: '*', componentRoute: Home, icon: '' },
-  { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home' },
-  // { path: CONSTANTES_ROUTERS.PRONTUARIO, componentRoute: Prontuario, icon: 'pi pi-book' },
-  // { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
-  { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar' },
-  { path: CONSTANTES_ROUTERS.CRUD, componentRoute: Crud, icon: 'pi pi-credit-card' },
-  // { path: CONSTANTES_ROUTERS.PROGRAM, componentRoute: Crud, icon: 'pi pi-palette' },
+  { path: '*', componentRoute: Home, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
+  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
+  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true },
+  { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false },
+  { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true },
+  { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true },
 ]
 
 const OtherRoutes = () => {
-  const { hasPermition } = permissionAuth();
-  const { open } = useContext(LayoutContext);
 
   const routes: RoutesProps[] = ROUTES;
 
@@ -53,17 +57,12 @@ const OtherRoutes = () => {
               key={index}
               path={route.path}
               element={
-                // hasPermition(route.path) ? (
-                  <Layout>
-                    <route.componentRoute />
-                  </Layout>
-                // ) : null
+                <LayoutDefault>
+                  <route.componentRoute />
+                </LayoutDefault>
               }
             />
           ))}
-          <Route path="/protocolo" element={<Protocolo />} />
-          <Route path="/sessao" element={<Sessao />} />
-          <Route path="/paciente" element={<Patient />} />
         </Routes>
       </main>
     </div>

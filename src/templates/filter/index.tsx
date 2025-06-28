@@ -1,4 +1,3 @@
-import { Card } from '../../components/card';
 import { Input } from '../../components/input';
 import { ButtonHeron } from '../../components/button';
 import { useForm } from 'react-hook-form';
@@ -8,6 +7,7 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 
 export interface FilterProps {
   id: string;
+  defaultValues?: any;
   legend?: string;
   nameButton?: string;
   fields: any;
@@ -30,8 +30,9 @@ export function Filter({
   onSubmit,
   onInclude,
   onReset,
+  defaultValues
 }: FilterProps) {
-  const { setValue, handleSubmit, control, reset } = useForm();
+  const { setValue, handleSubmit, control, reset } = useForm({defaultValues});
   const { hasPermition } = permissionAuth();
 
   const handleReset = () => {
@@ -40,10 +41,10 @@ export function Filter({
   };
 
   const handleSubmit2 = (formState: any) => {
-    if (formState.devolutiva) {
-      setValue('naFila', true);
-      formState.naFila = true;
-    }
+    // if (formState.devolutiva) {
+    //   setValue('naFila', true);
+    //   formState.naFila = true;
+    // }
     onSubmit(formState);
   };
 
@@ -76,7 +77,6 @@ export function Filter({
                     options={
                       field.type === 'select' ? dropdown[field.name] : undefined
                     }
-                    // hidden={field.hidden}
                   />
                 )
             )}
@@ -84,18 +84,19 @@ export function Filter({
 
           <div className="flex items-center mt-10 gap-2 justify-between">
             <>
-              {onInclude &&
+            {onInclude &&
                 hasPermition(`${screen}_FILTRO_BOTAO_CADASTRAR`) && (
                   <div className="sm:text-end">
                     <ButtonHeron
                       text={nameButton || 'Cadastrar'}
-                      icon="pi pi-user-plus"
+                      icon="pi pi-plus"
                       type="primary"
                       size="sm"
                       onClick={onInclude}
                     />
                   </div>
                 )}
+                
               <div className="hidden sm:w-2/4 ml-auto sm:grid grid-cols-2 gap-2">
                 <>
                   {hasPermition(`${screen}_FILTRO_BOTAO_LIMPAR`) && (
@@ -155,8 +156,5 @@ export function Filter({
         </form>
       </AccordionTab>
     </Accordion>
-    // <Card legend={legend}>
-
-    // </Card>
   );
 }

@@ -1,28 +1,19 @@
-export interface TagProps {
-  onClick?: () => void;
-  type: 'to' | 'fono' | 'psico' | 'PsicoPEDAG';
-  disabled: boolean;
-}
 import { clsx } from 'clsx';
-
-const CLASSFIX =
-  'text-sm items-center flex text-white py-2 px-2 rounded-full cursor-not-allowed cursor-pointer opacity-25 disabled:opacity-100 ';
+import { BASE_CLASS, bgClassMap, TagProps } from './types';
 
 export function Tag({ onClick, type, disabled }: TagProps) {
+  const typeKey = type.toUpperCase();
+  const bgClass = bgClassMap[typeKey] || 'bg-gray-400';
+
   return (
     <button
       onClick={onClick}
-      className={clsx(CLASSFIX, {
-        'bg-to': type.toUpperCase() === 'TO',
-        'bg-fono': type.toUpperCase() === 'FONO',
-        'bg-psico': type.toUpperCase() === 'PSICO',
-        'bg-black': type.toUpperCase() === 'PSICOPEDAG',
-        'bg-motricidade': type.toUpperCase() === 'MOTRICIDADE',
-        'bg-musicoterapia': type.toUpperCase() === 'MUSICOTERAPIA',
+      className={clsx(BASE_CLASS, bgClass, {
+        'opacity-25 cursor-not-allowed': !disabled,
       })}
       disabled={!disabled}
     >
-      {type.toUpperCase()}
+      {typeKey}
     </button>
   );
 }

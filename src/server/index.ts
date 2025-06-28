@@ -16,7 +16,7 @@ export const api = axios.create({
   },
 });
 
-export const intercepttRoute = (token: string, login: string) => {
+export const intercepttRoute = (token: string, login: string, id: any) => {
   api.interceptors.request.use(
     async (config: any) => {
       if (!config.url.endsWith('login')) {
@@ -27,6 +27,7 @@ export const intercepttRoute = (token: string, login: string) => {
         // } else {
         config.headers.Authorization = `Bearer ${token}`;
         config.headers.login = login;
+        config.headers.idUser = id;
 
         // }
       }

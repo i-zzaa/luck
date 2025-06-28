@@ -1,10 +1,11 @@
 import { ReactNode } from 'react';
 import { ButtonHeron } from '../button';
-import { Tag, TagProps } from '../tag';
+import { Tag } from '../tag';
 import { Text } from '../text';
 import { clsx } from 'clsx';
 import { Tooltip } from 'primereact/tooltip';
 import { COORDENADOR, permissionAuth } from '../../contexts/permission';
+import { TagProps } from '../tag/types';
 
 export interface ActionProps {
   onClickEdit?: () => void;

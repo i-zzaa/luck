@@ -1,15 +1,6 @@
-export interface ButtonProps {
-  type?: 'primary' | 'second' | 'transparent';
-  color?: string;
-  size?: 'full' | 'sm' | 'icon' | 'link' | 'md';
-  icon?: string;
-  text: string;
-  loading?: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}
-import { clsx } from 'clsx';
 import { Button } from 'primereact';
+import { ButtonProps } from './types';
+import { useButtonStyles } from './useButtonStyles';
 
 export function ButtonHeron({
   icon,
@@ -18,34 +9,22 @@ export function ButtonHeron({
   color = 'white',
   text,
   loading,
-  disabled=false,
+  disabled = false,
   onClick,
+  typeButton = 'submit',
 }: ButtonProps) {
+  const isIconOnly = size === 'icon';
+  const buttonClass = useButtonStyles(type, color, size);
+
   return (
     <Button
-    disabled={disabled}
       icon={icon}
+      type={typeButton}
+      label={isIconOnly ? '' : text}
       loading={loading}
-      label={size === 'icon' ? '' : text}
+      disabled={disabled}
       onClick={onClick}
-      className={clsx(' text-white text-sm rounded-md border-none ', {
-        'bg-violet-800 hover:bg-violet-600': type === 'primary',
-        'bg-yellow-400 hover:bg-violet-800': type === 'second',
-        'bg-transparent hover:bg-transparent': type === 'transparent',
-
-        'text-white': color === 'white',
-        'text-red-400 hover:text-violet-800 focus:text-violet-600':
-          color === 'red',
-        'text-green-400 hover:text-violet-800 focus:text-violet-600':
-          color === 'green',
-        'text-yellow-400 hover:text-violet-800 focus:text-violet-600':
-          color === 'yellow',
-        'text-violet-800 hover:text-violet-600 focus:text-violet-600':
-          color === 'violet',
-
-        'w-full': size === 'full',
-        'sm:w-2/5 w-full': size === 'md',
-      })}
+      className={buttonClass}
     />
   );
 }
