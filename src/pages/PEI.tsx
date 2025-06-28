@@ -121,7 +121,7 @@ const PEI = () => {
                     <div className=" grid grid-cols-3 gap-1">
                       {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
                       { item.resposta && renderFiledSet('Resposta', item.resposta)}
-                      { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo))', item.estimuloReforcadorPositivo)}
+                      { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo)', item.estimuloReforcadorPositivo)}
                     </div>
                     <div className="my-2">
                       {
