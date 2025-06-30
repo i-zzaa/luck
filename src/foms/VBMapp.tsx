@@ -71,63 +71,53 @@ export default function VBMapp({ paciente }: any) {
 }
 
 const getMetaEdit = (currentList: any) => {
-    if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
-      setList(currentList);
-      return;
-    }
-  
-    // Criando uma cópia profunda do objeto para evitar mutação direta
-    const copyList = JSON.parse(JSON.stringify(currentList));
-  
-    // Obtendo o programa que está sendo editado
-    const programa = state.metaEdit.programa;
-  
-    if (!copyList[programa]) {
-      console.error("Programa não encontrado em copyList:", programa);
-      return;
-    }
-  
-    // Atualizando as metas dentro do programa
-    copyList[programa] = copyList[programa].map((meta: any) => {
-      // Encontrar a meta editada no state
-      const metaEditada = state.metaEdit.metas.find((metaEdit: any) => {
-        return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
-      });
-  
-      if (metaEditada) {
-        let updatedSubitems = meta.subitems || [];
+  if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
+    setList(currentList);
+    return;
+  }
 
-        // Atualizar os subitems com a resposta correta se existir
-        if (Array.isArray(updatedSubitems) && Array.isArray(metaEditada.subitems)) {
-          if (updatedSubitems.length) {
-            updatedSubitems = updatedSubitems.map((subitem) => {
-              const subitemEditado = metaEditada.subitems.find((edit: any) => edit.id === subitem.id);
-              return subitemEditado 
-                ? { ...subitem, selected: subitemEditado.selected || subitem.selected } // Garante que selected sempre tenha valor booleano
-                : subitem;
-            });
-          } else {
-            updatedSubitems = metaEditada.subitems
-          }
-        }
+  const copyList = JSON.parse(JSON.stringify(currentList));
+  const programa = state.metaEdit.programa;
+
+  if (!copyList[programa]) {
+    console.error("Programa não encontrado em copyList:", programa);
+    return;
+  }
+
+  copyList[programa] = copyList[programa].map((meta: any) => {
+    const metaEditada = state.metaEdit.metas.find((metaEdit: any) => {
+      return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
+    });
+
+    if (metaEditada) {
+      // Só os subitens que vieram da edição
+      const updatedSubitems = (metaEditada.subitems || []).map((edit: any) => {
+        const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
 
         return {
-          ...meta,
-          ...metaEditada,
-          subitems: updatedSubitems, // Atualiza os subitems corretamente
-          selected: metaEditada.selected !== undefined ? metaEditada.selected : meta.selected, // Atualiza a meta principal também
-          id: meta.id
+          ...OBJ_ITEM,
+          ...backendSub,
+          ...edit,
+          selected: edit.selected !== undefined
+            ? edit.selected
+            : backendSub?.selected ?? false,
         };
-      }
-  
-      return meta;
-    });
-  
-    // Atualiza o estado com a lista modificada
-    setList(copyList);
+      });
+
+      return {
+        ...meta,
+        ...metaEditada,
+        subitems: updatedSubitems,
+        selected: metaEditada.selected ?? meta.selected,
+        id: meta.id,
+      };
+    }
+
+    return meta;
+  });
+
+  setList(copyList);
 };
-
-
 
   const onSubmit = useCallback(async () => {
     setLoading(true);
