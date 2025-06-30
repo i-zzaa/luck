@@ -150,7 +150,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
         const response = formatPortage(payload, metas);
         navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
       } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
-        const response = formatVBMapp(payload, metas, dropDownList);
+        const response = formatVBMapp(payload, dropDownList);
         navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
       }
 
