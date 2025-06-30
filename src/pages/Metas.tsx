@@ -57,10 +57,10 @@ export default function Metas() {
     try {
       const paciente = state.paciente
 
-      const [vbMappData, portageData, peiData, atividadesSessao] = await Promise.all([
+      const [peiData, vbMappData, portageData, atividadesSessao] = await Promise.all([
+        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei}),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
-        filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage }),
-        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei, notSelected: [VALOR_PORTAGE.sim]}),
+        filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage, notSelected: [VALOR_PORTAGE.sim] }),
         getList(`pei/activity-session/${state.id}`)
       ])
 
@@ -237,9 +237,9 @@ export default function Metas() {
   
   const renderContent = () => {
     return  !!nodes.length && (
-      <div className='grid gap-2 mt-8'>
+      <div className='grid gap-2 mt-4'>
        <div>
-          <div className='text-gray-400'> Selecione os programas para sessão</div>
+          <div className='text-gray-400'> Manual</div>
           <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
             setSelectedKeys(e.value)
             const _keys =  await  Object.keys(e.value)
@@ -321,6 +321,8 @@ export default function Metas() {
   return (
     <div className='h-[90vh] flex flex-col overflow-y-auto'>
       { renderHeader}
+
+      <div className='text-gray-400 mt-8 text-center'> Selecione os programas para sessão</div>
 
       { renderContent() }
       { renderContentPortage() }
