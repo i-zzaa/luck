@@ -16,7 +16,6 @@ const fields = ProtocoloFields;
 const fieldsState: any = {};
 fields.forEach((field: any) => (fieldsState[field.id] = ''));
 
-
 const OBJ = {id: '', nome: ''}
 
 export default function Protocolo() {

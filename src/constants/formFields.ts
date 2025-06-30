@@ -31,6 +31,18 @@ const loginFields = [
   },
 ];
 
+const PrimeirasRespostasFields = [
+  {
+    permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
+    labelText: 'Paciente',
+    id: 'pacienteId',
+    name: 'paciente',
+    type: 'select',
+    singleSelect: true,
+    customCol: 'col-span-6 sm:col-span-6',
+  }
+];
+
 const PEIFields = [
   {
     permission: 'PEI_FILTRO_BOTAO_CADASTRAR',
@@ -209,6 +221,7 @@ export {
   PEICadastroFields,
   ProtocoloFields,
   PortageCadastroFields,
+  PrimeirasRespostasFields
 };
 
 export const Fields: any = {
