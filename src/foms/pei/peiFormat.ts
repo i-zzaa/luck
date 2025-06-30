@@ -22,7 +22,7 @@ export function formatPortage(formvalue: any, metas: any[]) {
   };
 }
 
-export function formatVBMapp(formvalue: any, metas: any[], dropDownList: any) {
+export function formatVBMapp(formvalue: any, dropDownList: any) {
   const {
     procedimentoEnsinoId = '',
     estimuloDiscriminativo = '',
@@ -30,6 +30,7 @@ export function formatVBMapp(formvalue: any, metas: any[], dropDownList: any) {
     resposta = '',
     pacienteId = '',
     programaId = '',
+    metas = []
   } = formvalue ?? {};
 
   const programaObj = dropDownList?.programa?.find((item: any) => item.id === programaId);
@@ -44,7 +45,7 @@ export function formatVBMapp(formvalue: any, metas: any[], dropDownList: any) {
     pacienteId,
     permiteSubitens: true,
     subitems: metaCurrent.subitems.map((item: any, key: number) => {
-      const selected = metas[0].subitems[key]?.selected ? { selected: metas[0].subitems[key]?.selected } : {};
+      const selected = metaCurrent.subitems[key]?.selected ? { selected: metaCurrent.subitems[key]?.selected } : {};
       return {
         nome: item.value,
         id: item.id,

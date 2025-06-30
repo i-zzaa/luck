@@ -41,11 +41,11 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
   doc.text(`Nome: ${paciente.nome}`, 15, 65);
   doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, 110, 65);
 
-  const pageWidth = doc.internal.pageSize.width;
-  const cellWidth = 8;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const cellWidth = 6;
   const headerCellHeight = 2 // Altura do cabeçalho
   const activityCellHeight = 2; // Altura menor das atividades
-  const spacing = 2; // Espaço menor entre os gráficos
+  const spacing = 1; // Espaço menor entre os gráficos
   const maxActivities = 10; // Número máximo de atividades (linhas) por gráfico
   let startY = 70;
 
@@ -75,15 +75,15 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
     const datas = Object.keys(dados[nivel]);
     startY += 15; // Ajuste para o título do nível
 
-    doc.setFontSize(14);
+    doc.setFontSize(10);
     doc.text(`Nível ${nivel}`, pageWidth / 2, startY, { align: 'center' });
     startY += 5;
 
     // Calcula a largura total necessária para centralizar os gráficos de cada nível
     const totalWidth = datas.reduce((width, data) => {
       const programas = Object.keys(dados[nivel][data]).length;
-      return width + programas * cellWidth + spacing * (programas - 1) + 20;
-    }, -20);
+      return width + programas * cellWidth + 5 ;
+    }, -5);
 
     let graficoOffsetX = (pageWidth - totalWidth) / 2; // Centraliza o conjunto de gráficos
 
@@ -91,7 +91,7 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
       const programas = Object.keys(dados[nivel][data]);
 
       // Adiciona a data acima de cada gráfico
-      doc.setFontSize(10);
+      doc.setFontSize(8);
       doc.text(
         data,
         graficoOffsetX + (programas.length * cellWidth) / 2,
@@ -106,7 +106,7 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
         doc.setFillColor(GRAY);
         doc.rect(x, headerY, cellWidth, headerCellHeight, 'F');
         doc.setTextColor(BLACK);
-        doc.setFontSize(4);
+        doc.setFontSize(3);
         doc.setDrawColor(BLACK);
         doc.setLineWidth(0.2);
         doc.rect(x, headerY, cellWidth, headerCellHeight);
@@ -162,7 +162,7 @@ const gerarGraficoPDF = ({ data, paciente }: any): void => {
       }
 
       // Move o próximo gráfico para a direita
-      graficoOffsetX += programas.length * cellWidth + 20; // Ajuste do espaçamento entre gráficos
+      graficoOffsetX += programas.length * cellWidth + 5; // Ajuste do espaçamento entre gráficos
     });
 
     // Ajusta a posição inicial para o próximo nível
