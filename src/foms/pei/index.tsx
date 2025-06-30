@@ -5,7 +5,7 @@ import { PEICadastroFields } from '../../constants/formFields';
 import { TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { usePeiForm } from './usePeiForm';
 
-export default function PEICADASTRO({ paciente, param }: { paciente: { id: number; nome: string }; param?: any }) {
+export default function PEICADASTRO({ paciente, param }: { paciente: { id: number; nome: string }; param?: any}) {  
   const {
     control,
     errors,
@@ -13,7 +13,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
     loading,
     metas,
     dropDownList,
-    state,
+    tipoProtocolo,
     addMeta,
     addSubitem,
     removeMeta,
@@ -24,7 +24,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
   } = usePeiForm({ paciente, param });
 
   useEffect(() => {
-    renderDropdown(state?.tipoProtocolo);
+    renderDropdown();
   }, [renderDropdown]);
 
   return (
@@ -47,7 +47,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
         <div className='mt-8'>
           <div className="text-gray-400 font-inter flex justify-between m-2 leading-4">
             <span className="font-bold">METAS</span>
-            {!state?.tipoProtocolo || state?.tipoProtocolo === TIPO_PROTOCOLO.pei ? (
+            {tipoProtocolo === TIPO_PROTOCOLO.pei ? (
               <ButtonHeron
                 text="Add Meta"
                 icon="pi pi-plus"
@@ -79,7 +79,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
                 customCol="col-span-6 sm:col-span-6"
                 control={control}
                 onClick={() => removeMeta(key)}
-                disabled={state?.tipoProtocolo !== TIPO_PROTOCOLO.pei}
+                disabled={tipoProtocolo !== TIPO_PROTOCOLO.pei}
               />
 
               {item?.subitems?.map((subitem: any, index: number) => (

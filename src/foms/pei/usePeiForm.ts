@@ -29,6 +29,8 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   const { hasPermition } = permissionAuth();
   const { state } = location;
 
+  const tipoProtocolo = state?.tipoProtocolo || TIPO_PROTOCOLO.pei;
+
   const {
     handleSubmit,
     formState: { errors },
@@ -39,7 +41,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     unregister, resetField
   } = useForm({ defaultValues });
 
-  const renderDropdown = useCallback(async (tipoProtocolo = TIPO_PROTOCOLO.pei) => {
+  const renderDropdown = useCallback(async () => {
     const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
       dropDown(`programa/${tipoProtocolo}`),
       dropDown('pei/procedimento-ensino'),
@@ -52,7 +54,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   }, [setDropDownList]);
 
   const formatarDado = (drop: any) => {
-    if (Boolean(state?.item?.programa) || (state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
+    if (Boolean(state?.item?.programa) || (tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
       const {
         paciente,
         programa,
@@ -78,7 +80,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
         setValue(meta.id, meta.value);
         meta.subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
       });
-    } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
+    } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
       const { paciente, metas } = param.item;
 
       const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
@@ -103,7 +105,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
 
     try {
       const payload: any = { metas: [], programa: formvalue.programaId};
-      const [tipoProtocolo] = dropDownList.protocolo.filter((item: any)=> item.id == state.tipoProtocolo)
+      const [protocoloId] = dropDownList.protocolo.filter((item: any)=> item.id == tipoProtocolo)
 
       if (Object.values(formvalue).some((valor) => valor === '')) {
         setLoading(false);
@@ -140,18 +142,18 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
 
       if (Boolean(state?.item?.id)) payload.id = state.item.id;
 
-      if (state?.tipoProtocolo === TIPO_PROTOCOLO.pei) {
+      if (tipoProtocolo === TIPO_PROTOCOLO.pei) {
         Boolean(state?.item?.id)
           ? await update('pei', payload)
           : await create('pei', payload);
 
-        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId,  protocoloId:tipoProtocolo } });
-      } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
+        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId, protocoloId } });
+      } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
         const response = formatPortage(payload, metas);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
-      } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
+      } else if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
         const response = formatVBMapp(payload, dropDownList);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId:tipoProtocolo, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
       }
 
       reset();
@@ -221,7 +223,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     loading,
     metas,
     dropDownList,
-    state,
+    tipoProtocolo,
     addMeta,
     addSubitem,
     removeMeta,

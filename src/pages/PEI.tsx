@@ -28,10 +28,11 @@ const PEI = () => {
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
 
-  const [protocolo, setProtocolo] = useState(TIPO_PROTOCOLO.pei )
+  const [tipoProtocolo, setTipoProtocolo] = useState()
+  const [pacienteCurrent, setPacienteCurrent] = useState()
 
   const handleEditPrograma = (item: any) => {
-    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo: protocolo } })
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item, tipoProtocolo } })
   }
 
   const handleRemovePrograma = async(item: any) => {
@@ -41,7 +42,7 @@ const PEI = () => {
     const pacienteId = item.paciente
     await deleteItem(`pei/${item.id}`)
 
-    onSubmitFilter({ pacienteId })
+    onSubmitFilter({ pacienteId, protocoloId: tipoProtocolo })
     renderToast({
       type: 'success',
       title: 'Sucesso!',
@@ -93,7 +94,7 @@ const PEI = () => {
                   <div className="flex items-center  w-full">
                     <span>{ item.programa.nome}</span>
 
-                    {protocolo === TIPO_PROTOCOLO.pei && (<div className="ml-auto" >
+                    {tipoProtocolo === TIPO_PROTOCOLO.pei && (<div className="ml-auto" >
                       <ButtonHeron
                         text="editar"
                         type="transparent"
@@ -162,7 +163,9 @@ const PEI = () => {
 
     setLoading(true)
 
-    protocoloId && setProtocolo(protocoloId.id)
+    protocoloId && setTipoProtocolo(protocoloId.id)
+    pacienteId && setPacienteCurrent(pacienteId)
+
     try {
       const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId: protocoloId});
 
@@ -191,7 +194,9 @@ const PEI = () => {
         onReset={()=> setList([])}
         screen="PEI"
         loading={loading}
-        onInclude={() => navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { tipoProtocolo: protocolo, pacienteId: state.pacienteId} })}
+        onInclude={() => {
+          navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { tipoProtocolo, pacienteId: state?.pacienteId || pacienteCurrent} })
+        }}
         defaultValues={state}
       />
     )

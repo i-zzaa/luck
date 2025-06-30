@@ -4,7 +4,7 @@ import { dropDown, filter, getList } from '../server';
 import { Card } from '../components/card';
 import { useToast } from '../contexts/toast';
 import { Filter } from '../components';
-import { PEIFields } from '../constants/formFields';
+import { PrimeirasRespostasFields } from '../constants/formFields';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { useNavigate } from 'react-router-dom';
 import { NotFound } from '../components/notFound';
@@ -15,7 +15,7 @@ import clsx from 'clsx';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 
 
-const fieldsConst = PEIFields;
+const fieldsConst = PrimeirasRespostasFields;
 const fieldsState: any = {};
 fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
 
