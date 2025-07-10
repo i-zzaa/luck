@@ -151,15 +151,18 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
   const renderTable = (type: string) => (
     <div className="mt-8">
       {list?.[type] && (
-        <Accordion>
-          {Object.keys(list[type]).map((faixaEtaria: any) => (
-            <AccordionTab tabIndex={faixaEtaria} key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
-              <DataTable value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
-                <Column body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} bodyStyle={{ padding: '.1rem' }} />
-              </DataTable>
-            </AccordionTab>
-          ))}
-        </Accordion>
+        <>
+         <div className='text-gray-400 my-4 text-start'> { type } </div>
+          <Accordion>
+            {Object.keys(list[type]).map((faixaEtaria: any) => (
+              <AccordionTab tabIndex={faixaEtaria} key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
+                <DataTable value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
+                  <Column body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} bodyStyle={{ padding: '.1rem' }} />
+                </DataTable>
+              </AccordionTab>
+            ))}
+          </Accordion>
+        </>
       )}
     </div>
   );
