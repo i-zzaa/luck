@@ -38,6 +38,8 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     try {
       const atividade = await dropDown('protocolo/portage');
       setList(atividade);
+
+      getMetaEdit(atividade);
     } catch (error) {
       console.error('Error fetching dropdown data', error);
     }
@@ -173,6 +175,21 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       <ButtonHeron text="Salvar" type="primary" size="full" onClick={onSubmit} loading={loading} />
     </div>
   );
+
+  const getMetaEdit = (currentList: any) => {
+  if (state?.metaEdit) {
+    const idMetaEdit = parseInt(state?.metaEdit.id.replace(/^0-meta-/, ""), 10);
+    const editList = { ...currentList };
+
+    editList[state.metaEdit.programa][state.metaEdit.faixaEtaria] = 
+      editList[state.metaEdit.programa][state.metaEdit.faixaEtaria].map((item: any) => 
+        item.id === idMetaEdit ? { ...state.metaEdit } : item
+      );
+
+    setList(editList);
+  }
+};
+
 
   useEffect(() => {
     if (state?.metaEdit) {
