@@ -132,17 +132,17 @@ export default function Metas() {
         }
 
         if (Object.values(atividadesSessao.selectedMaintenanceKeys).length) {
-          setSelectedMaintenanceKeys(atividadesSessao.selectedMaintenanceKeys) 
+          setSelectedMaintenanceKeys(atividadesSessao?.selectedMaintenanceKeys) 
         }
       }
 
     } catch (error) {
-      renderToast({
-        type: 'failure',
-        title: '401',
-        message: 'PEI não encontrado!',
-        open: true,
-      });
+      // renderToast({
+      //   type: 'failure',
+      //   title: '401',
+      //   message: 'PEI não encontrado!',
+      //   open: true,
+      // });
     } finally {
       setLoading(false);
     }
