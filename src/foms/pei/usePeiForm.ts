@@ -107,12 +107,12 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
       const payload: any = { metas: [], programa: formvalue.programaId};
       const [protocoloId] = dropDownList.protocolo.filter((item: any)=> item.id == tipoProtocolo)
 
-      if (Object.values(formvalue).some((valor) => valor === '')) {
+      if (Object.values(formvalue).some((valor) => valor === '' || valor === undefined)) {
         setLoading(false);
         renderToast({
           type: 'failure',
           title: 'Valores Vazios!',
-          message: 'Preencha a descrição da meta e/ou do item ou exclua-o',
+          message: 'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
           open: true,
         });
         return;
