@@ -87,6 +87,8 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     try {
       await create('protocolo/portage', payload);
       sessionStorage.removeItem('draftSubitems');
+      navigate(location.pathname, { replace: true });
+
       setExistePortage(true);
       renderToast({ type: 'success', title: 'Sucesso!', message: 'Portage Cadastrado.', open: true });
     } catch (error) {
