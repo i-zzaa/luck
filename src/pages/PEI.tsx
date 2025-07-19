@@ -11,7 +11,7 @@ import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import { Fieldset } from "primereact/fieldset";
 import { ButtonHeron } from "../components/button";
-import { TIPO_PROTOCOLO } from "../constants/protocolo";
+import { TIPO_PROTOCOLO, VALOR_PORTAGE } from "../constants/protocolo";
 import { useForm } from "react-hook-form";
 
 const fieldsConst = PEIFields;
@@ -167,7 +167,7 @@ const PEI = () => {
     pacienteId && setPacienteCurrent(pacienteId)
 
     try {
-      const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId: protocoloId});
+      const { data }: any = await filter('pei', {paciente: pacienteId, protocoloId: protocoloId, notSelected: [VALOR_PORTAGE.sim]});
 
       setList(data);
     } catch (error) {
