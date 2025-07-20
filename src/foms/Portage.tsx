@@ -126,6 +126,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     const updatedDrafts = existingDrafts.filter((m: any) => parseInt(m.id.replace(/^0-meta-/, '')) !== metaId);
     updatedDrafts.push(meta);
     sessionStorage.setItem('draftSubitems', JSON.stringify(updatedDrafts));
+    sessionStorage.setItem('prePEIList', JSON.stringify(list));
 
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
       state: { edit: true, item: { metas: [meta], paciente }, tipoProtocolo: TIPO_PROTOCOLO.portage },
@@ -219,7 +220,31 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       if (data) {
         setExistePortage(true);
         let listAtual = JSON.parse(JSON.stringify(data.portage));
+        const prePEIList = JSON.parse(sessionStorage.getItem('prePEIList') || '{}');
 
+        // Função recursiva para preservar valores selected
+        const mergeSelected = (newItems: any[], oldItems: any[]) => {
+          return newItems.map((newItem: any) => {
+            const oldItem = oldItems.find((o: any) => o.id === newItem.id);
+            const merged = { ...newItem };
+            if (oldItem) {
+              if (oldItem.selected !== undefined) merged.selected = oldItem.selected;
+              if (newItem.subitems?.length && oldItem.subitems?.length) {
+                merged.subitems = mergeSelected(newItem.subitems, oldItem.subitems);
+              }
+            }
+            return merged;
+          });
+        };
+
+        // Percorre a lista atual e tenta aplicar os `selected` do prePEIList
+        for (const programa in listAtual) {
+          for (const faixa in listAtual[programa]) {
+            const newItems = listAtual[programa][faixa];
+            const oldItems = prePEIList?.[programa]?.[faixa] || [];
+            listAtual[programa][faixa] = mergeSelected(newItems, oldItems);
+          }
+        }
         const drafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
         if (drafts.length > 0) {
           for (const meta of drafts) {
