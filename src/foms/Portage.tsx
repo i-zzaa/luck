@@ -1,3 +1,4 @@
+// código completo e final atualizado com fluxo de prioridade ajustado
 import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable } from 'primereact';
 import CheckboxPortage from '../components/checkboxPortage';
@@ -26,7 +27,6 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       protocoloId: TIPO_PROTOCOLO.portage,
       type: 'pdf',
     });
-
     if (data) await gerarPdf(data);
     else {
       setLoading(false);
@@ -38,8 +38,6 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     try {
       const atividade = await dropDown('protocolo/portage');
       setList(atividade);
-
-      getMetaEdit(atividade);
     } catch (error) {
       console.error('Error fetching dropdown data', error);
     }
@@ -57,9 +55,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       const updatedSelection = JSON.parse(JSON.stringify(prevList));
       const activities = updatedSelection?.[portageType]?.[faixaEtaria];
       if (!activities) return prevList;
-
       const isSubItem = itemId.toString().includes('-sub-item-');
-
       if (isSubItem) {
         const [subItemId] = itemId.split('-sub-item-');
         const [, metaId] = subItemId.split('0-meta-');
@@ -88,7 +84,6 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
       await create('protocolo/portage', payload);
       sessionStorage.removeItem('draftSubitems');
       navigate(location.pathname, { replace: true });
-
       setExistePortage(true);
       renderToast({ type: 'success', title: 'Sucesso!', message: 'Portage Cadastrado.', open: true });
     } catch (error) {
@@ -120,14 +115,12 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
         ...(sub.selected && { selected: sub.selected })
       })) || []
     };
-
     const existingDrafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
     const metaId = parseInt(meta.id.replace(/^0-meta-/, ''), 10);
     const updatedDrafts = existingDrafts.filter((m: any) => parseInt(m.id.replace(/^0-meta-/, '')) !== metaId);
     updatedDrafts.push(meta);
     sessionStorage.setItem('draftSubitems', JSON.stringify(updatedDrafts));
     sessionStorage.setItem('prePEIList', JSON.stringify(list));
-
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
       state: { edit: true, item: { metas: [meta], paciente }, tipoProtocolo: TIPO_PROTOCOLO.portage },
     });
@@ -153,7 +146,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     <div className="mt-8">
       {list?.[type] && (
         <>
-         <div className='text-gray-400 my-4 text-start'> { type } </div>
+          <div className='text-gray-400 my-4 text-start'> { type } </div>
           <Accordion>
             {Object.keys(list[type]).map((faixaEtaria: any) => (
               <AccordionTab tabIndex={faixaEtaria} key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
@@ -182,104 +175,122 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
     </div>
   );
 
-  const getMetaEdit = (currentList: any) => {
-  if (state?.metaEdit) {
-    const idMetaEdit = parseInt(state?.metaEdit.id.replace(/^0-meta-/, ""), 10);
-    const editList = { ...currentList };
-
-    editList[state.metaEdit.programa][state.metaEdit.faixaEtaria] = 
-      editList[state.metaEdit.programa][state.metaEdit.faixaEtaria].map((item: any) => 
-        item.id === idMetaEdit ? { ...state.metaEdit } : item
-      );
-
-    setList(editList);
-  }
-};
-
-
   useEffect(() => {
     if (state?.metaEdit) {
       const drafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
       const id = state.metaEdit.id;
       const index = drafts.findIndex((m: any) => m.id === id);
-      if (index !== -1) {
-        drafts[index] = { ...state.metaEdit };
-      } else {
-        drafts.push(state.metaEdit);
-      }
+      if (index !== -1) drafts[index] = { ...state.metaEdit };
+      else drafts.push(state.metaEdit);
       sessionStorage.setItem('draftSubitems', JSON.stringify(drafts));
     }
 
     const init = async () => {
+      let listAtual;
       const { data }: any = await filter('protocolo', {
         pacienteId: paciente.id,
         protocoloId: TIPO_PROTOCOLO.portage,
         type: 'local',
       });
 
-      if (data) {
+      if (data?.portage) {
         setExistePortage(true);
-        let listAtual = JSON.parse(JSON.stringify(data.portage));
-        const prePEIList = JSON.parse(sessionStorage.getItem('prePEIList') || '{}');
+        listAtual = JSON.parse(JSON.stringify(data.portage));
+      } else {
+        setExistePortage(false);
+        const atividade = await dropDown('protocolo/portage');
+        listAtual = JSON.parse(JSON.stringify(atividade));
+      }
 
-        // Função recursiva para preservar valores selected
-        const mergeSelected = (newItems: any[], oldItems: any[]) => {
-          return newItems.map((newItem: any) => {
-            const oldItem = oldItems.find((o: any) => o.id === newItem.id);
-            const merged = { ...newItem };
-            if (oldItem) {
-              if (oldItem.selected !== undefined) merged.selected = oldItem.selected;
-              if (newItem.subitems?.length && oldItem.subitems?.length) {
-                merged.subitems = mergeSelected(newItem.subitems, oldItem.subitems);
-              }
+      const prePEIList = JSON.parse(sessionStorage.getItem('prePEIList') || '{}');
+
+      const mergeSelected = (newItems: any[], oldItems: any[]) => {
+        return newItems.map((newItem: any) => {
+          const oldItem = oldItems.find((o: any) => o.id === newItem.id);
+          const merged = { ...newItem };
+          if (oldItem) {
+            if (oldItem.selected !== undefined) merged.selected = oldItem.selected;
+            if (newItem.subitems?.length && oldItem.subitems?.length) {
+              merged.subitems = mergeSelected(newItem.subitems, oldItem.subitems);
             }
-            return merged;
+          }
+          return merged;
+        });
+      };
+
+      for (const programa in listAtual) {
+        for (const faixa in listAtual[programa]) {
+          const newItems = listAtual[programa][faixa];
+          const oldItems = prePEIList?.[programa]?.[faixa] || [];
+          listAtual[programa][faixa] = mergeSelected(newItems, oldItems);
+        }
+      }
+
+      if (state?.metaEdit) {
+        const idMetaEdit = parseInt(state.metaEdit.id.replace(/^0-meta-/, ""), 10);
+        const programa = state.metaEdit.programa;
+        const faixaEtaria = state.metaEdit.faixaEtaria;
+
+        if (!listAtual[programa]) listAtual[programa] = {};
+        if (!listAtual[programa][faixaEtaria]) listAtual[programa][faixaEtaria] = [];
+
+        const metaIndex = listAtual[programa][faixaEtaria].findIndex(
+          (m: any) => parseInt(m.id.toString().replace(/^0-meta-/, ""), 10) === idMetaEdit
+        );
+
+        const preMeta = prePEIList?.[programa]?.[faixaEtaria]?.find(
+          (m: any) => parseInt(m.id.toString().replace(/^0-meta-/, ""), 10) === idMetaEdit
+        );
+
+        const mergeSubitems = (newSubs: any[], preSubs: any[]) => {
+          return newSubs.map((sub: any) => {
+            const preSub = preSubs.find((s: any) => s.id === sub.id);
+            return {
+              ...sub,
+              selected: preSub?.selected ?? sub.selected ?? null,
+            };
           });
         };
 
-        // Percorre a lista atual e tenta aplicar os `selected` do prePEIList
-        for (const programa in listAtual) {
-          for (const faixa in listAtual[programa]) {
-            const newItems = listAtual[programa][faixa];
-            const oldItems = prePEIList?.[programa]?.[faixa] || [];
-            listAtual[programa][faixa] = mergeSelected(newItems, oldItems);
-          }
-        }
-        const drafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
-        if (drafts.length > 0) {
-          for (const meta of drafts) {
-            const programa = meta.programa;
-            const faixaEtaria = meta.faixaEtaria;
-            const metaId = parseInt(meta.id.replace(/^0-meta-/, ''), 10);
+        const updatedMeta = {
+          ...state.metaEdit,
+          selected: preMeta?.selected ?? state.metaEdit.selected ?? null,
+          subitems: mergeSubitems(state.metaEdit.subitems ?? [], preMeta?.subitems ?? []),
+        };
 
-            if (!listAtual[programa]) listAtual[programa] = {};
-            if (!listAtual[programa][faixaEtaria]) listAtual[programa][faixaEtaria] = [];
-
-            const metas = listAtual[programa][faixaEtaria];
-            const index = metas.findIndex((m: any) => m.id === metaId || m.id === meta.id);
-            if (index !== -1) {
-              const oldSubitems = metas[index].subitems || [];
-              const newSubitems = meta.subitems || [];
-              const updatedSubitems = newSubitems.map((draftSub: any) => {
-                const selected = draftSub.selected !== undefined ? draftSub.selected : oldSubitems.find((s: any) => s.id === draftSub.id)?.selected;
-                return { ...draftSub, selected };
-              });
-              metas[index] = {
-                ...metas[index],
-                ...meta,
-                subitems: updatedSubitems
-              };
-            } else {
-              metas.push(meta);
-            }
-          }
-        }
-
-        setList(listAtual);
-      } else {
-        setExistePortage(false);
-        renderList();
+        if (metaIndex !== -1) listAtual[programa][faixaEtaria][metaIndex] = updatedMeta;
+        else listAtual[programa][faixaEtaria].push(updatedMeta);
       }
+
+      const drafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
+      if (drafts.length > 0) {
+        for (const meta of drafts) {
+          const programa = meta.programa;
+          const faixaEtaria = meta.faixaEtaria;
+          const metaId = parseInt(meta.id.replace(/^0-meta-/, ''), 10);
+          if (!listAtual[programa]) listAtual[programa] = {};
+          if (!listAtual[programa][faixaEtaria]) listAtual[programa][faixaEtaria] = [];
+          const metas = listAtual[programa][faixaEtaria];
+          const index = metas.findIndex((m: any) => m.id === metaId || m.id === meta.id);
+          if (index !== -1) {
+            const oldSubitems = metas[index].subitems || [];
+            const newSubitems = meta.subitems || [];
+            const updatedSubitems = newSubitems.map((draftSub: any) => {
+              const selected = draftSub.selected !== undefined ? draftSub.selected : oldSubitems.find((s: any) => s.id === draftSub.id)?.selected;
+              return { ...draftSub, selected };
+            });
+            metas[index] = {
+              ...metas[index],
+              ...meta,
+              subitems: updatedSubitems
+            };
+          } else {
+            metas.push(meta);
+          }
+        }
+      }
+
+      setList(listAtual);
     };
 
     init();
