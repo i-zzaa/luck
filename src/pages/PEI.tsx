@@ -68,6 +68,20 @@ const PEI = () => {
     </Fieldset>
   )
 
+  const renderHeader = (item: any) => {
+    return (
+      <>
+      { <div className="font-bold my-2" > { item.procedimentoEnsino?.nome || '' }</div>}
+                   
+        <div className=" grid grid-cols-3 gap-1">
+          {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
+          { item.resposta && renderFiledSet('Resposta', item.resposta)}
+          { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo)', item.estimuloReforcadorPositivo)}
+        </div>
+      </>
+    )
+  }
+
   const renderContent = () => {
     if (!loading) {
       return list.length ? (
@@ -117,18 +131,14 @@ const PEI = () => {
                   </div>
                 } tabIndex={key}>
                   <div className="w-full overflow-y-auto">
-                    { <div className="font-bold my-2" > { item.procedimentoEnsino?.nome || '' }</div>}
-                   
-                    <div className=" grid grid-cols-3 gap-1">
-                      {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
-                      { item.resposta && renderFiledSet('Resposta', item.resposta)}
-                      { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo)', item.estimuloReforcadorPositivo)}
-                    </div>
+                    {tipoProtocolo !== TIPO_PROTOCOLO.portage && renderHeader(item)}
                     <div className="my-2">
                       {
                         item.metas.map((meta: any, indexMeta: number)=> {
                           return (
-                            <div key={indexMeta}>
+                            <div key={indexMeta} className={meta?.procedimentoEnsino && "mb-8"}>
+                              {tipoProtocolo === TIPO_PROTOCOLO.portage && renderHeader(meta)}
+
                               <span className="flex align-items-center gap-2 w-full font-inter">Meta {indexMeta + 1}: {meta.value}</span>
                               <ul className="list-disc	ml-8 font-inter">
                                 {
