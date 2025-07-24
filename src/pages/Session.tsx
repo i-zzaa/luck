@@ -1,4 +1,4 @@
-import {  useEffect, useMemo, useRef, useState } from "react"
+import {  Children, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from 'react-router-dom';
 import JoditEditor from 'jodit-react';
 import { Card } from "../components/card";
@@ -42,6 +42,7 @@ export const Session = () => {
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const getSumaryContent = async() => {
     try {
@@ -276,13 +277,19 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
   )
     
   const renderedCheckboxesPortage = (programaId: number, metaId: number, checkKey: number, item: any) => {
+    const metaCurrent = listPortage[programaId].children[metaId].children[checkKey]
+    const value = metaCurrent?.children ? metaCurrent.children[item] :  listPortage[programaId].children[metaId].children[item]
+    if (!metaCurrent?.children) {
+      debugger
+    }
+    
     return (
       <CheckboxDTT
         key={checkKey}
-        value={item?.children ? item?.children[checkKey] :  item} // Pegamos o valor correto do checkbox
+        value={value} // Pegamos o valor correto do checkbox
         disabled={isEdit}
         onChange={(newValue: any) => {
-          const current = [...listPortage];
+          const current = portage.length ? [...portage]: [...listPortage];
   
           // Percorre os níveis da árvore até o checkbox correto
           const programa = current[programaId];
@@ -290,16 +297,13 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
   
           // Verifica se o item tem um subitem antes dos checkboxes (4 níveis)
           // if (meta.children[checkKey].children) {
-          if (meta.children[checkKey] && meta.children[checkKey].children) {
+          // if (meta.children[checkKey] && meta.children[checkKey].children) {
+          if (typeof item === 'number' && meta.children[0]?.label) {
             // Caso 4 níveis: Atualiza o valor no último nível (checkboxes dentro do subitem)
-            meta.children[checkKey].children = meta.children[checkKey].children.map((val: any, idx: number) =>
-              idx === checkKey ? newValue : val
-            );
-          } else {
+            meta.children[checkKey].children[item] = newValue
+          } else if(meta.children.length === 10 && !meta.children[0]?.label) {
             // Caso 3 níveis: Atualiza diretamente no nível do item
-            meta.children = meta.children.map((val: any, idx: number) =>
-              idx === checkKey ? newValue : val
-            );
+            meta.children[item] = newValue
           }
   
           setPortage(current); // Atualiza o estado
@@ -360,7 +364,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
     );
   }
   
-  const renderItems = (items: any, progKey: number, metaKey: number): any => {
+  const renderItems = (items: any, progKey: number, metaKey: number, childrenKey?: number): any => {
     const validChildren = items?.children ? items?.children[0]?.label  : false
 
     if (validChildren) {
@@ -376,7 +380,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
             <div className="flex flex-col gap-1">
-              {renderItems(itm.children, progKey, metaKey)}
+              {renderItems(itm.children, progKey, metaKey, checkKey)}
             </div>
           </div>
         )
@@ -390,9 +394,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
     else if (items.length === 10) {
       return (
         <div className="flex gap-1">
-          {items.map((_item: any, idx: any) =>
-            renderedCheckboxesPortage(progKey, metaKey, idx, _item)
-          )}
+          {items.map((_item: any, idx: any) => renderedCheckboxesPortage(progKey, metaKey, childrenKey || 0, idx))}
         </div>
       )
     }else if (items[0]?.children) {
@@ -458,7 +460,12 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
           <span className="font-bold">Portage</span>
         </div>
         <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
-          <Accordion>
+          <Accordion activeIndex={activeIndex} onTabChange={(e) => {
+            if (e.index === null) {
+              setListPortage(portage)
+            }
+            setActiveIndex(e.index)
+          }}>
             {listPortage.map((programa: any, key: any) => (
               <AccordionTab
                 key={programa.key}
