@@ -20,16 +20,16 @@ export const intercepttRoute = (token: string, login: string, id: any) => {
   api.interceptors.request.use(
     async (config: any) => {
       if (!config.url.endsWith('login')) {
-        // const userTokenExpiration = new Date(token);
-        // const today = new Date();
-        // if (today > userTokenExpiration) {
-        //   config.headers.Authorization = null;
-        // } else {
+        const userTokenExpiration = new Date(token);
+        const today = new Date();
+        if (today > userTokenExpiration) {
+          config.headers.Authorization = null;
+        } else {
         config.headers.Authorization = `Bearer ${token}`;
         config.headers.login = login;
         config.headers.idUser = id;
 
-        // }
+        }
       }
       return config;
     },
