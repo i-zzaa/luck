@@ -3,13 +3,14 @@ import { LayoutDefault } from '../components/layoutDefault';
 import { Nav } from '../components/nav';
 import Home from '../pages/Home';
 import { Schedule } from '../pages/Schedule';
-import { Session } from '../pages/Session';
+// import { Session } from '../pages/Session';
 import DTT from '../components/DTT';
 import PEI from '../pages/PEI';
 import PrimeiraResposta from '../pages/PrimeiraResposta';
 import PROTOCOLO from '../foms/Protocolo';
 import Metas from '../pages/Metas';
 import PEICADASTRO from '../foms/pei';
+import { Session } from '../pages/session/Session';
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
