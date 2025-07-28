@@ -76,7 +76,10 @@ const getMetaEdit = (currentList: any) => {
     return;
   }
 
-  const copyList = JSON.parse(JSON.stringify(currentList));
+  const savedList = sessionStorage.getItem('prePEIListVBMapp');
+  const previousList = savedList ? JSON.parse(savedList) : currentList;
+
+  const copyList = JSON.parse(JSON.stringify(previousList));
   const programa = state.metaEdit.programa;
 
   if (!copyList[programa]) {
@@ -84,40 +87,46 @@ const getMetaEdit = (currentList: any) => {
     return;
   }
 
+  const metasEditadasMap = new Map(
+    state.metaEdit.metas.map((meta: any) => [pegarNumeroDepoisDeMeta(meta.id), meta])
+  );
+
+  // Remove metas excluídas no PEI
+  copyList[programa] = copyList[programa].filter((meta: any) =>
+    metasEditadasMap.has(meta.id)
+  );
+
+  // Mescla alterações de metas e subitens
   copyList[programa] = copyList[programa].map((meta: any) => {
-    const metaEditada = state.metaEdit.metas.find((metaEdit: any) => {
-      return pegarNumeroDepoisDeMeta(metaEdit.id) === meta.id;
-    });
+    const metaEditada = metasEditadasMap.get(meta.id);
+    if (!metaEditada) return meta;
 
-    if (metaEditada) {
-      // Só os subitens que vieram da edição
-      const updatedSubitems = (metaEditada.subitems || []).map((edit: any) => {
-        const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
-
-        return {
-          ...OBJ_ITEM,
-          ...backendSub,
-          ...edit,
-          selected: edit.selected !== undefined
-            ? edit.selected
-            : backendSub?.selected ?? false,
-        };
-      });
+    const updatedSubitems = (metaEditada.subitems || []).map((edit: any) => {
+      const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
 
       return {
-        ...meta,
-        ...metaEditada,
-        subitems: updatedSubitems,
-        selected: metaEditada.selected ?? meta.selected,
-        id: meta.id,
+        ...OBJ_ITEM,
+        ...backendSub,
+        ...edit,
+        selected: edit.selected !== undefined
+          ? edit.selected
+          : backendSub?.selected ?? false,
       };
-    }
+    });
 
-    return meta;
+    return {
+      ...meta,
+      ...metaEditada,
+      subitems: updatedSubitems,
+      selected: metaEditada.selected ?? meta.selected,
+      id: meta.id,
+    };
   });
 
   setList(copyList);
 };
+
+
 
   const onSubmit = useCallback(async () => {
     setLoading(true);
@@ -231,6 +240,7 @@ const getMetaEdit = (currentList: any) => {
     })
 
 
+sessionStorage.setItem('prePEIListVBMapp', JSON.stringify(list));
 
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { edit: true, item: { 
       metas: meta, paciente, 
