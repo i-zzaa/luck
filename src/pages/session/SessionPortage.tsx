@@ -79,7 +79,7 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
     });
   };
 
-  return !!listPortage.length && (
+  return !!listPortage.length ? (
     <div className="mt-8">
       <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
         <span className="font-bold">Portage</span>
@@ -107,5 +107,5 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
         </Accordion>
       </Card>
     </div>
-  );
+  ): <></>
 };
