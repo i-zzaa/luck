@@ -98,10 +98,10 @@ const getMetaEdit = (currentList: any) => {
 
   // Mescla alterações de metas e subitens
   copyList[programa] = copyList[programa].map((meta: any) => {
-    const metaEditada = metasEditadasMap.get(meta.id);
+    const metaEditada: any = metasEditadasMap.get(meta.id);
     if (!metaEditada) return meta;
 
-    const updatedSubitems = (metaEditada.subitems || []).map((edit: any) => {
+    const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
       const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
 
       return {
@@ -118,7 +118,7 @@ const getMetaEdit = (currentList: any) => {
       ...meta,
       ...metaEditada,
       subitems: updatedSubitems,
-      selected: metaEditada.selected ?? meta.selected,
+      selected: metaEditada?.selected ?? meta.selected,
       id: meta.id,
     };
   });

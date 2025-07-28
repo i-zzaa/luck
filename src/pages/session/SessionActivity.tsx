@@ -28,7 +28,7 @@ export const SessionActivity = ({ list, dtt, isEdit, setDTT }: Props) => {
     );
   };
 
-  return !!list.length && (
+  return !!list.length ? (
     <div className="mt-8">
       <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4">
         <span className="font-bold"> Manual </span>
@@ -63,5 +63,5 @@ export const SessionActivity = ({ list, dtt, isEdit, setDTT }: Props) => {
         </Accordion>
       </Card>
     </div>
-  );
+  ): <></>
 };

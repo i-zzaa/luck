@@ -28,7 +28,7 @@ export const SessionMaintenance = ({ listMaintenance, maintenance, isEdit, setMa
     />
   );
 
-  return !!listMaintenance.length && (
+  return !!listMaintenance.length ? (
     <div className="mt-8">
       <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
         <span className="font-bold">Manutenção</span>
@@ -60,5 +60,5 @@ export const SessionMaintenance = ({ listMaintenance, maintenance, isEdit, setMa
         </Accordion>
       </Card>
     </div>
-  );
+  ): <></>
 };

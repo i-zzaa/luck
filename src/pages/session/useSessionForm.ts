@@ -81,6 +81,7 @@ export const useSessionForm = () => {
       setListMaintenance(maintenance);
       setListPortage(portage);
       setLisVBMapp(vbmappCurrent);
+      setVBMapp(vbmappCurrent);
       setDTT(result.sessao);
     } catch (e) {
       console.error('Erro ao buscar atividades', e);
