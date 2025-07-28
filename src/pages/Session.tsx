@@ -18,6 +18,8 @@ const MAINTENANCE = 'maintenance';
 const ACTIVITY = 'activity';
 const PORTAGE = 'portage';
 const VBMAPP = 'vbmapp';
+type TipoProtocolo = 'vbmapp' | 'portage' | 'maintenance' | 'activity';
+
 
 export const Session = () => {
   const { renderToast } = useToast();
@@ -169,7 +171,7 @@ const transformNode = async (node: any, type: string, tipoProtocolo = TIPO_PROTO
       node.children.map(async (child: any) => ({
         key: child.key,
         label: child.label,
-        children: Array.from({ length: 10 }).map(() => null),
+        children: Array.from({ length: 10 }, () => null)
         // permiteSubitens: node.permiteSubitens
       }))
     );
@@ -276,37 +278,104 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
     </Fieldset>
   )
     
-  const renderedCheckboxesPortage = (programaId: number, metaId: number, checkKey: number, item: any) => {
-    const metaCurrent = listPortage[programaId].children[metaId].children[checkKey]
-    const value = metaCurrent?.children ? metaCurrent.children[item] :  listPortage[programaId].children[metaId].children[item]
-    if (!metaCurrent?.children) {
-      debugger
+  const renderedCheckboxesPortage = (type: TipoProtocolo, programaId: number, metaId: number, checkKey: number, item: any) => {
+    let LIST = listPortage;
+    let value: any;
+
+    if (!LIST.length) return;
+
+    const programa = LIST[programaId];
+    const meta = programa.children[metaId];
+
+    const isSubItem = meta.children[checkKey]?.label !== undefined;
+
+    if (isSubItem) {
+      value = meta.children[checkKey].children[item];
+    } else {
+      value = meta.children[checkKey];
     }
-    
+
     return (
       <CheckboxDTT
         key={checkKey}
         value={value} // Pegamos o valor correto do checkbox
         disabled={isEdit}
         onChange={(newValue: any) => {
-          const current = portage.length ? [...portage]: [...listPortage];
-  
-          // Percorre os níveis da árvore até o checkbox correto
-          const programa = current[programaId];
-          const meta = programa.children[metaId];
-  
-          // Verifica se o item tem um subitem antes dos checkboxes (4 níveis)
-          // if (meta.children[checkKey].children) {
-          // if (meta.children[checkKey] && meta.children[checkKey].children) {
-          if (typeof item === 'number' && meta.children[0]?.label) {
-            // Caso 4 níveis: Atualiza o valor no último nível (checkboxes dentro do subitem)
-            meta.children[checkKey].children[item] = newValue
-          } else if(meta.children.length === 10 && !meta.children[0]?.label) {
-            // Caso 3 níveis: Atualiza diretamente no nível do item
-            meta.children[item] = newValue
-          }
-  
-          setPortage(current); // Atualiza o estado
+            let current = portage.length ?[...portage]  :LIST;
+    
+            const programa = { ...current[programaId] };
+            const meta = { ...programa.children[metaId] };
+
+            if (meta.children[checkKey]?.children) {
+              // Subitem de meta com children (VB-MAPP)
+              const subItem = { ...meta.children[checkKey] };
+              const updatedChildren = [...subItem.children];
+              updatedChildren[item] = newValue;
+              subItem.children = updatedChildren;
+              meta.children[checkKey] = subItem;
+            } else {
+              // Meta direta com array de children (Portage)
+              const updatedChildren = [...meta.children];
+              updatedChildren[item] = newValue;
+              meta.children = updatedChildren;
+            }
+
+            programa.children[metaId] = meta;
+            current[programaId] = programa;
+
+            setPortage([...current])
+        }}
+      />
+    );
+  };
+
+    const renderedCheckboxesVbMapp = (type: TipoProtocolo, programaId: number, metaId: number, checkKey: number, item: any) => {
+    let LIST = listVBMapp;
+    let value: any;
+
+    if (!LIST.length) return;
+
+      const programa = LIST[programaId];
+      const meta = programa.children[metaId];
+
+      // Verifica se é subitem (com label)
+      const isSubItem = meta.children[checkKey]?.label !== undefined;
+
+      if (isSubItem) {
+        value = meta.children[checkKey].children[item]; // 4 níveis
+      } else {
+        value = meta.children[checkKey]; // 3 níveis
+      }
+
+    return (
+      <CheckboxDTT
+        key={checkKey}
+        value={value} // Pegamos o valor correto do checkbox
+        disabled={isEdit}
+        onChange={(newValue: any) => {
+            const current = vbmapp.length ?vbmapp : LIST;
+
+            const programa = { ...current[programaId] };
+            const meta = { ...programa.children[metaId] };
+
+            if (meta.children[checkKey]?.children) {
+              // Subitem de meta com children (VB-MAPP)
+              const subItem = { ...meta.children[checkKey] };
+              const updatedChildren = [...subItem.children];
+              updatedChildren[item] = newValue;
+              subItem.children = updatedChildren;
+              meta.children[checkKey] = subItem;
+            } else {
+              // Meta direta com array de children (Portage)
+              const updatedChildren = [...meta.children];
+              updatedChildren[item] = newValue;
+              meta.children = updatedChildren;
+            }
+
+            programa.children[metaId] = meta;
+            current[programaId] = programa;
+
+            setVBMapp([...current])
         }}
       />
     );
@@ -319,7 +388,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
           <span className="font-bold">VB Mapp</span>
         </div>
         <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
-          <Accordion>
+          <Accordion >
             {listVBMapp.map((nivel: any, key: any) => (
               <AccordionTab
                 key={nivel.key}
@@ -331,7 +400,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
                 }
               > 
 
-              <Accordion>
+              <Accordion  key={`accordion-${nivel}`} style={{padding: "0.25rem !important"}} >
                 {nivel?.children.map((programa: any, programaKey: any) => (
                   <AccordionTab
                   key={programa.key}
@@ -343,12 +412,14 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
                     </div>
                   }
                 > 
+                {renderHeaderPrograma(programa)}
                 {
+
                   programa.children.map((meta: any, metaKey: any) => (
                     <li>
                       <span>{meta.label}</span>
                       <div className="flex flex-col gap-1 m-4">
-                      {renderItems(meta, key, programaKey)}
+                        {renderItems('vbmapp', meta, key, programaKey, metaKey)}
                       </div>
                     </li>
                   ))
@@ -363,24 +434,34 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
       </div>
     );
   }
+
+  const renderHeaderPrograma = (item: any) => {
+    return (
+      <>
+      {/* { <div className="font-bold my-2" > { item.procedimentoEnsino?.nome || '' }</div>} */}
+                   
+        <div className=" grid grid-cols-3 gap-1">
+          {item.estimuloDiscriminativo &&  renderFiledSet('SD (estímulo discriminativo)', item.estimuloDiscriminativo)}
+          { item.resposta && renderFiledSet('Resposta', item.resposta)}
+          { item.estimuloReforcadorPositivo && renderFiledSet('SR+ (estímulo reforçador positivo)', item.estimuloReforcadorPositivo)}
+        </div>
+      </>
+    )
+  }
   
-  const renderItems = (items: any, progKey: number, metaKey: number, childrenKey?: number): any => {
+  const renderItems = (type: TipoProtocolo, items: any, progKey: number, metaKey: number, childrenKey?: number): any => {
     const validChildren = items?.children ? items?.children[0]?.label  : false
 
     if (validChildren) {
       return  (
         <div>
-          <div className=" grid grid-cols-3 gap-1 mb-2">
-            { renderFiledSet('SD (estímulo discriminativo)', items?.estimuloDiscriminativo || '')}
-            { renderFiledSet('Resposta', items?.resposta || '')}
-            { renderFiledSet('SR+ (estímulo reforçador positivo))', items?.estimuloReforcadorPositivo || '')}
-          </div>
+          {type === PORTAGE && renderHeaderPrograma(items)}
           {items?.children.map((itm: any, checkKey: any) => {
         return (
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
             <div className="flex flex-col gap-1">
-              {renderItems(itm.children, progKey, metaKey, checkKey)}
+              {renderItems(type, itm.children, progKey, metaKey, checkKey)}
             </div>
           </div>
         )
@@ -389,12 +470,12 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
         </div>
         )
     }else if (items?.label && items?.children.length === 10) {
-      return renderItems(items.children, progKey, metaKey)
+      return renderItems(type, items.children, progKey, metaKey)
     }
     else if (items.length === 10) {
       return (
         <div className="flex gap-1">
-          {items.map((_item: any, idx: any) => renderedCheckboxesPortage(progKey, metaKey, childrenKey || 0, idx))}
+          {items.map((_item: any, idx: any) => type === PORTAGE ?  renderedCheckboxesPortage(type, progKey, metaKey, childrenKey || 0, idx) : renderedCheckboxesVbMapp(type, progKey, metaKey, childrenKey || 0, idx))}
         </div>
       )
     }else if (items[0]?.children) {
@@ -403,7 +484,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
           <div key={checkKey} className="flex flex-col ml-2">
             <span>- {itm.label}</span>
             <div className="flex flex-col gap-1">
-              {renderItems(itm.children, progKey, metaKey)}
+              {renderItems(type, itm.children, progKey, metaKey)}
             </div>
           </div>
         )
@@ -480,7 +561,7 @@ const formatarDado = async (data: any, type: string = ACTIVITY, tipoProtocolo = 
                   <li className="my-2 grid gap-2 items-center" key={meta.key}>
                     <span>{meta.label}</span>
                     <div className="flex flex-col gap-1">
-                      {renderItems(meta, key, metaKey)}
+                      {renderItems('portage', meta, key, metaKey)}
                     </div>
                   </li>
                 ))}
