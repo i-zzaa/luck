@@ -87,6 +87,7 @@ export const SessionVBMapp = ({ listVBMapp, vbmapp, isEdit, setVBMapp }: Props) 
             <AccordionTab
               key={nivel.key}
               tabIndex={key}
+              className="w-[100%]"
               header={<div className="flex items-center w-full"><span>{nivel.label}</span></div>}
             >
               <Accordion style={{ padding: "0.25rem !important" }}>
@@ -94,12 +95,14 @@ export const SessionVBMapp = ({ listVBMapp, vbmapp, isEdit, setVBMapp }: Props) 
                   <AccordionTab
                     key={programa.key}
                     tabIndex={programaKey}
-                    className="w-[90%]"
+                    className="w-[95%] ml-[-1rem]"
                     header={<div className="flex items-center w-full"><span>{programa.label}</span></div>}
                   >
-                    {renderHeaderPrograma(programa)} 
+                    <div className='mb-4'>
+                      {renderHeaderPrograma(programa)} 
+                    </div>
                     {programa.children.map((meta: any, metaKey: any) => (
-                      <li key={meta.key}>
+                      <li key={meta.key} >
                         <span>{meta.label}</span>
                         <div className="flex flex-col gap-1 m-4">
                           {renderItems(meta, key, programaKey, metaKey)}
