@@ -1,3 +1,4 @@
+// src/components/CheckboxTree.tsx
 import React from "react";
 import CheckboxDTT from "../../components/DTT";
 
@@ -5,7 +6,7 @@ interface CheckboxTreeProps {
   node: any;
   path: number[];
   isEdit: boolean;
-  setStateFn: (updater: (prev: any) => any) => void;
+  setStateFn: (updater: (prev: any[]) => any[]) => void;
   repeatCount: number;
 }
 
@@ -18,17 +19,17 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
 }) => {
   if (!Array.isArray(node.children)) return null;
 
-  // detecta se é leaf: filhos são slots (null/primitivo)
+  // detecta leaf: filhos são slots (null ou primitivos)
   const first = node.children[0];
   const isLeaf =
     first == null || typeof first !== "object" || !("label" in first);
 
   if (isLeaf) {
     return (
-      <div key={node.key} className="my-2">
-        {/* mostra o label do subitem antes dos checkboxes */}
-        <span className="block font-medium mb-2">- {node.label}</span>
-        <div className="flex flex-wrap gap-1 ml-[-1rem]">
+      <div key={node.key} className="mb-4">
+        {/* aqui: renderiza o label do subitem/meta */}
+        <span className="block font-medium mb-2">{node.label}</span>
+        <div className="flex flex-wrap gap-2">
           {node.children.map((val: any, idx: number) => {
             const slot = idx;
             const key = [...path, slot].join(".");
@@ -38,13 +39,13 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
                 value={val}
                 disabled={isEdit}
                 onChange={(newValue: any) =>
-                  setStateFn((prev: any[]) => {
-                    const next: any[] = JSON.parse(JSON.stringify(prev));
-                    // navega até o array de slots
+                  setStateFn(prev => {
+                    const next = JSON.parse(JSON.stringify(prev));
                     let target: any = next;
-                    for (let i = 0; i < path.length; i++) {
-                      target = target[path[i]].children;
-                    }
+                    // navega pelo path até chegar no array de slots
+                    path.forEach(i => {
+                      target = target[i].children;
+                    });
                     target[slot] = newValue;
                     return next;
                   })
@@ -57,7 +58,7 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
     );
   }
 
-  // se não for leaf, desce mais um nível
+  // ainda não leaf: desce para cada child
   return (
     <div key={node.key} className="ml-4">
       {node.children.map((child: any, i: number) => (

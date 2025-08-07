@@ -72,10 +72,13 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
     // se leaf, renderiza checkboxes direto
     if (isLeaf) {
       return (
-        <div key={node.key} className="flex gap-1 my-2">
-          {node.children.map((v: any, slot: number) =>
-            renderCheckbox(path, slot, v)
-          )}
+        <div key={node.key} >
+          <span className="block font-medium mb-1">{node.label}</span>
+          <div className="flex gap-1 my-2">
+            {node.children.map((v: any, slot: number) =>
+              renderCheckbox(path, slot, v)
+            )}
+          </div>
         </div>
       );
     }
@@ -106,6 +109,7 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
             <AccordionTab
               tabIndex={pIdx}
               key={programa.key}
+              className="p-accordion-content-padding-zero"
               header={<div className="flex items-center w-full"><span>{programa.label}</span></div>}
             >
               {programa.children.map((meta: any, mIdx: number) => (
