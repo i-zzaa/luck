@@ -19,7 +19,7 @@ export const SessionVBMapp: React.FC<Props> = ({
   setVBMapp,
 }) => {
   if (!vbmapp.length && !listVBMapp.length) return null;
-  if (listVBMapp.length) vbmapp = listVBMapp
+  if (!vbmapp.length && listVBMapp.length) vbmapp = listVBMapp
 
   return (
     <div className="mt-8">
