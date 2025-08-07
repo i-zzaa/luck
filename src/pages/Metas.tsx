@@ -99,6 +99,7 @@ export default function Metas() {
           })
   
           metaCurrent.length && metas.push({
+            ...programa,
             key: programa.id,
             label: programa.programa.nome,
             data: programa.id,
