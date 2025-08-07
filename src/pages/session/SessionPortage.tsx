@@ -72,7 +72,7 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
     // se leaf, renderiza checkboxes direto
     if (isLeaf) {
       return (
-        <div key={node.key} className="flex gap-1">
+        <div key={node.key} className="flex gap-1 my-2">
           {node.children.map((v: any, slot: number) =>
             renderCheckbox(path, slot, v)
           )}
@@ -82,7 +82,7 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
 
     // senão, desce mais um nível (interno)
     return (
-      <div key={node.key} className="ml-4 mb-2">
+      <div key={node.key} className="my-2">
         <span>- {node.label}</span>
         {node.children.map((child: any, idx: number) =>
           renderItems(child, [...path, idx])
@@ -110,7 +110,6 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
             >
               {programa.children.map((meta: any, mIdx: number) => (
                 <div key={meta.key} className="my-2 grid gap-2 items-center">
-                  <span>{meta.label}</span>
                   <div className="flex flex-col gap-1">
                   {renderHeaderPrograma(meta)}  
 
