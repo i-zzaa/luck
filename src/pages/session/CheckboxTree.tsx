@@ -28,8 +28,8 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
     return (
       <div key={node.key} className="mb-4">
         {/* aqui: renderiza o label do subitem/meta */}
-        <span className="block font-medium mb-2">{node.label}</span>
-        <div className="flex flex-wrap gap-2">
+        <span className="block font-medium mb-2">- {node.label}</span>
+        <div className="flex flex-wrap gap-1 ml-[-1rem]">
           {node.children.map((val: any, idx: number) => {
             const slot = idx;
             const key = [...path, slot].join(".");
@@ -60,7 +60,7 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
 
   // ainda não leaf: desce para cada child
   return (
-    <div key={node.key} className="ml-4">
+    <div key={node.key} className="ml-2">
       {node.children.map((child: any, i: number) => (
         <CheckboxTree
           key={child.key}
