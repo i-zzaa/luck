@@ -17,95 +17,112 @@ interface HeaderProgramaProps {
 }
 
 export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Props) => {
-  const renderCheckboxes = (programaId: number, metaId: number, checkKey: number, itemIndex: number, value: any) => (
-    <CheckboxDTT
-      key={itemIndex}
-      value={value}
-      disabled={isEdit}
-      onChange={(newValue: any) => {
-        const current = portage.length ? [...portage] : [...listPortage];
-        const programa = { ...current[programaId] };
-        const meta = { ...programa.children[metaId] };
+  const renderCheckbox = (
+    path: number[],   // [programaId, metaId, subItemId?]
+    slot: number,
+    value: any
+  ) => {
+      const [programaId, metaId, checkKey = 0] = path;
+    return (
+      <CheckboxDTT
+        key={`${checkKey}-${slot}`}
+        value={value}
+        disabled={isEdit}
+        onChange={(newValue: any) => {
+          // mesma lógica de update que você já tem
+          const src = portage.length ? portage : listPortage;
+          const updated = [...src];
+          const programa = { ...updated[programaId] };
+          const meta = { ...programa.children[metaId] };
 
-        if (meta.children[checkKey]?.children) {
-          const subItem = { ...meta.children[checkKey] };
-          const updatedChildren = [...subItem.children];
-          updatedChildren[itemIndex] = newValue;
-          subItem.children = updatedChildren;
-          meta.children[checkKey] = subItem;
-        } else {
-          const updatedChildren = [...meta.children];
-          updatedChildren[itemIndex] = newValue;
-          meta.children = updatedChildren;
-        }
+          // alcançou leaf: array de slots
+          if (Array.isArray(meta.children[checkKey]?.children)) {
+            const sub = { ...meta.children[checkKey] };
+            sub.children = sub.children.map((v: any, i: number) =>
+              i === slot ? newValue : v
+            );
+            meta.children[checkKey] = sub;
+          } else {
+            meta.children = meta.children.map((v: any, i: number) =>
+              i === slot ? newValue : v
+            );
+          }
 
-        programa.children[metaId] = meta;
-        current[programaId] = programa;
-        setPortage([...current]);
-      }}
-    />
-  );
+          programa.children[metaId] = meta;
+          updated[programaId] = programa;
+          setPortage(updated);
+        }}
+      />
+    );
+  };
+
+  // path acumula índices [programaIdx, metaIdx, subItemIdx?]
+  const renderItems = (
+    node: any,
+    path: number[] = []
+  ): JSX.Element | null => {
+    if (!Array.isArray(node.children)) {
+      return null;
+    }
+
+    // detecta último nível: primeiro filho NÃO tem label
+    const firstChild = node.children[0];
+    const isLeaf = firstChild == null || typeof firstChild !== 'object' || !('label' in firstChild);
+
+    // se leaf, renderiza checkboxes direto
+    if (isLeaf) {
+      return (
+        <div key={node.key} className="flex gap-1">
+          {node.children.map((v: any, slot: number) =>
+            renderCheckbox(path, slot, v)
+          )}
+        </div>
+      );
+    }
+
+    // senão, desce mais um nível (interno)
+    return (
+      <div key={node.key} className="ml-4 mb-2">
+        <span>- {node.label}</span>
+        {node.children.map((child: any, idx: number) =>
+          renderItems(child, [...path, idx])
+        )}
+      </div>
+    );
+  };
 
   const renderHeaderPrograma = ({estimuloDiscriminativo = '', resposta = '', estimuloReforcadorPositivo= ''}: any) => {
     return <HeaderPrograma estimuloDiscriminativo={estimuloDiscriminativo}  resposta={resposta} estimuloReforcadorPositivo={estimuloReforcadorPositivo} />
   }
 
-  const renderItems = (meta: any, programaId: number, metaId: number) => {
-    if (!meta?.children) return null;
-
-    return meta.children.map((item: any, checkKey: number) => {
-      if (item?.label && item.children) {
-        return (
-          <div key={checkKey} className="flex flex-col ml-2">
-            <span>- {item.label}</span>
-            <div className="flex gap-1">
-              {item.children.map((_: any, itemIndex: number) =>
-                renderCheckboxes(programaId, metaId, checkKey, itemIndex, item.children[itemIndex])
-              )}
-            </div>
-          </div>
-        );
-      }
-      if (Array.isArray(item)) {
-        return (
-          <div key={checkKey} className="flex gap-1">
-            {item.map((val: any, idx: number) =>
-              renderCheckboxes(programaId, metaId, checkKey, idx, val)
-            )}
-          </div>
-        );
-      }
-      return null;
-    });
-  };
-
-  return !!listPortage.length ? (
+  return (
     <div className="mt-8">
       <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
         <span className="font-bold">Portage</span>
-      </div>
+      </div>      
       <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
         <Accordion>
-          {listPortage.map((programa: any, key: number) => (
+          {listPortage.map((programa, pIdx) => (
             <AccordionTab
+              tabIndex={pIdx}
               key={programa.key}
-              tabIndex={key}
               header={<div className="flex items-center w-full"><span>{programa.label}</span></div>}
             >
-              {programa.children.map((meta: any, metaKey: number) => (
-                <li className="my-2 grid gap-2 items-center" key={meta.key}>
+              {programa.children.map((meta: any, mIdx: number) => (
+                <div key={meta.key} className="my-2 grid gap-2 items-center">
                   <span>{meta.label}</span>
                   <div className="flex flex-col gap-1">
-                    {renderHeaderPrograma(meta)}  
+                  {renderHeaderPrograma(meta)}  
 
-                    {renderItems(meta, key, metaKey)}
+                  {/* recursão parte daqui, path = [programa, meta] */}
+                  {renderItems(meta, [pIdx, mIdx])}
                   </div>
-                </li>
+                </div>
               ))}
             </AccordionTab>
           ))}
         </Accordion>
       </Card>
     </div>
-  ): <></>
+  )
 };
