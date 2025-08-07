@@ -50,7 +50,8 @@ export const SessionVBMapp: React.FC<Props> = ({
                     <ul className="list-none">
                       {programa.children.map((meta: any, mIdx: number) => (
                         <li key={meta.key} className="mb-6">
-                          <span className="font-medium">- {meta.label}</span>
+                          <span className="font-bold font-inter">Meta {mIdx + 1}: </span>
+                          <span className="font-base font-inter">{meta.label}</span>
                           {/* dispara o CheckboxTree a partir da meta */}
                           <CheckboxTree
                             node={meta}
