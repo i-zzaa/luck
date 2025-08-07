@@ -6170,3 +6170,7 @@ textarea {
 .p-chart{
   max-width: 95% !important;
 }
+
+.p-accordion-content-padding-zero > .p-accordion-content{
+  padding: 0.5rem !important;
+}
