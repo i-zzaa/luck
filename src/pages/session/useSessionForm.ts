@@ -72,7 +72,7 @@ const transformGenericNode = useCallback(
     // 2) NÓ INTERNO NORMAL: recursão para descer na árvore
     else if (Array.isArray(node.children) && node.children.length > 0) {
       out.children = await Promise.all(
-        node.children.map(ch => transformGenericNode(ch, type))
+        node.children.map((ch: any) => transformGenericNode(ch, type))
       );
     }
     // 3) FOLHA PURA (não tinha children original): também geramos slots
