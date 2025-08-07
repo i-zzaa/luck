@@ -1,5 +1,5 @@
 // SessionVBMapp.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import { Card } from "../../components/card";
 import { HeaderPrograma } from "../../components/fielSetHeader/HeaderProgram";
@@ -18,7 +18,8 @@ export const SessionVBMapp: React.FC<Props> = ({
   isEdit,
   setVBMapp,
 }) => {
-  if (!vbmapp.length) return null;
+  if (!vbmapp.length && !listVBMapp.length) return null;
+  if (listVBMapp.length) vbmapp = listVBMapp
 
   return (
     <div className="mt-8">
