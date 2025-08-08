@@ -11,6 +11,8 @@ interface Props {
 }
 
 export const SessionActivity = ({ list, dtt, isEdit, setDTT }: Props) => {
+  if (!list.length) return null;
+
   const renderedCheckboxes = (programaId: number, metaId: number, activityId: number, checkKey: number, value?: any) => {
     return (
       <CheckboxDTT

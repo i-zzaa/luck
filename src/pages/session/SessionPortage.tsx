@@ -99,6 +99,8 @@ export const SessionPortage = ({ listPortage, portage, isEdit, setPortage }: Pro
     return <HeaderPrograma estimuloDiscriminativo={estimuloDiscriminativo}  resposta={resposta} estimuloReforcadorPositivo={estimuloReforcadorPositivo} />
   }
 
+  if (!listPortage.length && !portage.length) return null;
+
   return (
     <div className="mt-8">
       <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
