@@ -65,7 +65,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
         procedimentoEnsinoId,
       } = state.item;
 
-      const programaObj = typeof programa !== 'object' ? drop?.programa?.find((item: any) => item.nome.toLowerCase() === programa) : programa;
+      const programaObj = typeof programa !== 'object' ? drop?.programa?.find((item: any) => item.nome === programa) : programa;
       const procedimentoEnsinoObj = typeof procedimentoEnsinoId !== 'object' ? drop?.procedimentoEnsino?.find((item: any) => item.id === procedimentoEnsinoId) : procedimentoEnsinoId;
 
       setValue('pacienteId', paciente);
@@ -84,7 +84,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
       const { paciente, metas } = param.item;
 
       const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
-      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa || item.nome === metas[0].programa );
+      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa.id || item.nome === metas[0].programa.nome );
 
       setMetas(metas);
       setValue(metas[0].id, metas[0].value);
