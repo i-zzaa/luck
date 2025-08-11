@@ -41,6 +41,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
               control={control}
               options={item.type === 'select' ? dropDownList[item.name] : undefined}
               buttonAdd={item.buttonAdd}
+              disabled={tipoProtocolo !== TIPO_PROTOCOLO.pei && item.name === 'programa'}
             />
           </div>
         ))}
