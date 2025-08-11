@@ -12,6 +12,7 @@ export function InputTextarea({ id, value, className, disabled, validate, contro
           {...field}
           id={field.id}
           value={value || field.value}
+          style={{ minHeight: '7rem'}}
           className={className}
           disabled={disabled}
           rows={8}

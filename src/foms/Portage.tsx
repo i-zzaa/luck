@@ -150,7 +150,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
           <Accordion>
             {Object.keys(list[type]).map((faixaEtaria: any) => (
               <AccordionTab tabIndex={faixaEtaria} key={faixaEtaria} header={<div>{faixaEtaria}</div>}>
-                <DataTable value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
+                <DataTable className="custom-data-table" value={list[type][faixaEtaria]} selection={selectedItems} responsiveLayout="scroll" dataKey="id">
                   <Column body={(row: any) => renderedCheckboxesPostage(type, faixaEtaria, row)} bodyStyle={{ padding: '.1rem' }} />
                 </DataTable>
               </AccordionTab>

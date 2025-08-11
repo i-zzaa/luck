@@ -29,7 +29,8 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
 
   return (
     <div className="mt-8 space-y-6" >
-      <div className='h-[90vh] flex flex-col overflow-y-auto'>
+      {/* <div className='h-[90vh] flex flex-col overflow-y-auto'> */}
+      <div className='flex flex-col overflow-y-auto'>
         {PEICadastroFields.map((item: any) => (
           <div key={item.id}>
           <Input

@@ -11,7 +11,7 @@ export function InputDropdown({ id, value, options, disabled, validate, control,
       render={({ field }: any) => (
         <Dropdown
           value={value || field.value}
-          virtualScrollerOptions={{ itemSize: 38 }}
+          // virtualScrollerOptions={{ itemSize: 38 }}
           options={options}
           onChange={(e: any) => {
             onChange?.(e.value);
