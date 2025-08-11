@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab, Column, DataTable, TabPanel, TabView } from 'primereact';
 import CheckboxPortage from '../components/checkboxPortage';
-import { create, dropDown, filter } from '../server';
+import { create, filter } from '../server';
 import { TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
-
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
 import { NotFound } from '../components/notFound';
@@ -57,76 +56,69 @@ export default function VBMapp({ paciente }: any) {
         protocoloId: TIPO_PROTOCOLO.vbMapp,
         nivel: nivelCurrent,
       });
-      // setList(data.data);
 
-      getMetaEdit(data.data)
+      getMetaEdit(data.data);
       setExiste(data.existeResposta);
     },
     [nivel, paciente.id]
   );
 
- const pegarNumeroDepoisDeMeta = (str: string) => {
+  const pegarNumeroDepoisDeMeta = (str: string) => {
     const match = str.match(/-meta-(\d+)$/);
     return match ? parseInt(match[1], 10) : null;
-}
+  };
 
-const getMetaEdit = (currentList: any) => {
-  if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
-    setList(currentList);
-    return;
-  }
+  const getMetaEdit = (currentList: any) => {
+    if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
+      setList(currentList);
+      return;
+    }
 
-  const savedList = sessionStorage.getItem('prePEIListVBMapp');
-  const previousList = savedList ? JSON.parse(savedList) : currentList;
+    const savedList = sessionStorage.getItem('prePEIListVBMapp');
+    const previousList = savedList ? JSON.parse(savedList) : currentList;
 
-  const copyList = JSON.parse(JSON.stringify(previousList));
-  const programa = state.metaEdit.programa;
+    const copyList = JSON.parse(JSON.stringify(previousList));
+    const programa = state.metaEdit.programa;
 
-  if (!copyList[programa]) {
-    console.error("Programa não encontrado em copyList:", programa);
-    return;
-  }
+    if (!copyList[programa]) {
+      console.error('Programa não encontrado em copyList:', programa);
+      return;
+    }
 
-  const metasEditadasMap = new Map(
-    state.metaEdit.metas.map((meta: any) => [pegarNumeroDepoisDeMeta(meta.id), meta])
-  );
+    const metasEditadasMap = new Map(
+      state.metaEdit.metas.map((meta: any) => [pegarNumeroDepoisDeMeta(meta.id), meta])
+    );
 
-  // Remove metas excluídas no PEI
-  copyList[programa] = copyList[programa].filter((meta: any) =>
-    metasEditadasMap.has(meta.id)
-  );
+    // Remove metas excluídas no PEI
+    copyList[programa] = copyList[programa].filter((meta: any) => metasEditadasMap.has(meta.id));
 
-  // Mescla alterações de metas e subitens
-  copyList[programa] = copyList[programa].map((meta: any) => {
-    const metaEditada: any = metasEditadasMap.get(meta.id);
-    if (!metaEditada) return meta;
+    // Mescla alterações de metas e subitens
+    copyList[programa] = copyList[programa].map((meta: any) => {
+      const metaEditada: any = metasEditadasMap.get(meta.id);
+      if (!metaEditada) return meta;
 
-    const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
-      const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
+      const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
+        const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
+
+        return {
+          ...OBJ_ITEM,
+          ...backendSub,
+          ...edit,
+          selected: edit.selected !== undefined ? edit.selected : backendSub?.selected ?? false,
+        };
+      });
 
       return {
-        ...OBJ_ITEM,
-        ...backendSub,
-        ...edit,
-        selected: edit.selected !== undefined
-          ? edit.selected
-          : backendSub?.selected ?? false,
+        ...meta,
+        ...metaEditada,
+        subitems: updatedSubitems,
+        selected: metaEditada?.selected ?? meta.selected,
+        id: meta.id,
       };
     });
 
-    return {
-      ...meta,
-      ...metaEditada,
-      subitems: updatedSubitems,
-      selected: metaEditada?.selected ?? meta.selected,
-      id: meta.id,
-    };
-  });
-
-  setList(copyList);
-};
-
-
+    setList(copyList);
+  };
 
   const onSubmit = useCallback(async () => {
     setLoading(true);
@@ -166,13 +158,13 @@ const getMetaEdit = (currentList: any) => {
   const onCheckboxChange = (programa: string, itemId: string, newValue: boolean) => {
     setList((prevList: any) => {
       const updatedList = { ...prevList };
-  
+
       // Percorre os itens dentro do programa para encontrar o item pelo ID
       updatedList[programa] = updatedList[programa].map((item: any) => {
         if (item.id === itemId) {
           return { ...item, selected: newValue };
         }
-        
+
         // Se houver subitems, percorre e atualiza o estado do checkbox neles
         if (item.subitems) {
           const updatedSubitems = item.subitems.map((subitem: any) =>
@@ -180,163 +172,165 @@ const getMetaEdit = (currentList: any) => {
           );
           return { ...item, subitems: updatedSubitems };
         }
-  
+
         return item;
       });
-  
+
       return updatedList;
     });
-  }
+  };
 
-  const validItensPermiteSubitens= (programaList: any) => {
-    const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens)
+  const validItensPermiteSubitens = (programaList: any) => {
+    const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens);
+    return !!itensPermiteSubitens.length;
+  };
 
-    return !!itensPermiteSubitens.length
-  }
+  const onClickAddSubItem = async (programaList: any, index: number, programa: string) => {
+    const itensPermiteSubitens = programaList.filter((item: any) =>{
+      return  item.subitems && item.subitems.length || item.permiteSubitens
+    });
 
-
- const onClickAddSubItem = async (programaList: any, index: number, programa: string) => {
-  const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens)
-    
-
-  const {
-    estimuloDiscriminativo, 
-    estimuloReforcadorPositivo, 
-    procedimentoEnsinoId, 
-    resposta
-   } = itensPermiteSubitens[0]
-    
-
+    const { estimuloDiscriminativo, estimuloReforcadorPositivo, procedimentoEnsinoId, resposta } =
+      itensPermiteSubitens[0];
 
     const meta = itensPermiteSubitens.map((item: any, key: any) => {
-  const id = `${index}-meta-${item.id}`
+      const id = `${index}-meta-${item.id}`;
 
-      const objeto = {
+      const objeto: any = {
         ...OBJ_META,
         value: item.nome,
         ...item,
-        
         respostaSessao: item?.respostaSessao,
-        
         id,
-
-      }
+      };
 
       if (item?.subitems) {
         const subitems = item?.subitems.map((subitem: any) => {
-          const selected = subitem?.selected ? {selected: subitem.selected} : {}
+          const selected = subitem?.selected ? { selected: subitem.selected } : {};
           return {
             ...OBJ_ITEM,
             id: subitem.id,
             value: subitem.nome,
-            ...selected
-          }
-        })
-  
-        objeto.subitems = subitems
+            ...selected,
+          };
+        });
+
+        objeto.subitems = subitems;
       }
 
-      return objeto
-    })
+      return objeto;
+    });
 
+    sessionStorage.setItem('prePEIListVBMapp', JSON.stringify(list));
 
-sessionStorage.setItem('prePEIListVBMapp', JSON.stringify(list));
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+      state: {
+        edit: true,
+        item: {
+          metas: meta,
+          paciente,
+          estimuloDiscriminativo,
+          estimuloReforcadorPositivo,
+          procedimentoEnsinoId,
+          programa,
+          resposta,
+        },
+        tipoProtocolo: TIPO_PROTOCOLO.vbMapp,
+      },
+    });
+  };
 
-    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { edit: true, item: { 
-      metas: meta, paciente, 
-      estimuloDiscriminativo,
-      estimuloReforcadorPositivo,
-      procedimentoEnsinoId,
-      programa, resposta
-    },  tipoProtocolo: TIPO_PROTOCOLO.vbMapp } })
-  }
-
-  const renderedCheckboxes = useCallback((rowData: any, programa: any) => {
-    const value = rowData.selected || null;
-    return (
-      // <CheckboxPortage
-      //   key={rowData.id}
-      //   value={value}
-      //   onChange={(newValue: any) => {
-      //     rowData.selected = newValue;
-      //   }}
-      // />
-
-      <div >
-        <div  className='flex items-center gap-2'>
-          <div className='w-8 h-8'>
-          <CheckboxPortage
-            key={rowData.id}
-            value={value}
-            onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
-          />
-          </div>
-          { rowData.nome }
-        </div>
-        <div className='grid ml-8 mt-2'>
-        {
-          rowData?.subitems && (
-            rowData.subitems.map((subItem: any)=> renderedCheckboxes(subItem, programa))
-          )
-        }
-        </div>
-      </div>
-    );
-  }, []);
-
-  const renderTable = useCallback(() => (
-    <div className="mt-8">
-      {Object.keys(list).length > 0 ? (
-        <Accordion>
-          {Object.keys(list).map((programa, keys) => (
-            <AccordionTab className="mb-2" key={keys} tabIndex={keys} header={
-            <div className="flex items-center w-full gap-2">
-              <span>{programa.toLocaleUpperCase()}</span>
-              { validItensPermiteSubitens(list[programa]) && <i className="pi pi-pencil" onClick={()=> onClickAddSubItem(list[programa], keys, programa)} /> }
+  const renderedCheckboxes = useCallback(
+    (rowData: any, programa: any) => {
+      const value = rowData.selected || null;
+      return (
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8">
+              <CheckboxPortage
+                key={rowData.id}
+                value={value}
+                onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
+              />
             </div>
-            
-            }>
-              <DataTable
-                id="vbmapp-page"
-                value={list[programa]}
-                selection={selectedItems}
-                responsiveLayout="scroll"
-                dataKey="id"
-                tableStyle={{ minWidth: 'none' }}
+            {rowData.nome}
+          </div>
+          <div className="grid ml-8 mt-2">
+            {rowData?.subitems && rowData.subitems.map((subItem: any) => renderedCheckboxes(subItem, programa))}
+          </div>
+        </div>
+      );
+    },
+    [] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  const renderTable = useCallback(
+    () => (
+      <div className="mt-8">
+        {Object.keys(list).length > 0 ? (
+          <Accordion>
+            {Object.keys(list).map((programa, keys) => (
+              <AccordionTab
+                className="mb-2"
+                key={keys}
+                tabIndex={keys}
+                header={
+                  <div className="flex items-center w-full gap-2">
+                    <span>{programa.toLocaleUpperCase()}</span>
+                    {validItensPermiteSubitens(list[programa]) && (
+                      <i className="pi pi-pencil" onClick={() => onClickAddSubItem(list[programa], keys, programa)} />
+                    )}
+                  </div>
+                }
               >
-                <Column body={(row: any) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
-                {/* <Column field="nome" header="" bodyStyle={{ wordBreak: 'break-word', padding: '.1rem' }} /> */}
-              </DataTable>
-            </AccordionTab>
-          ))}
-        </Accordion>
-      ) : (
-        <NotFound />
-      )}
-    </div>
-  ), [list, renderedCheckboxes]);
-
-  const renderExport = useCallback(() => (
-    existe && (
-      <div className="mt-auto">
-        <ButtonHeron
-          text="Gerar Relatório"
-          type="primary"
-          size="full"
-          icon="pi pi-file-pdf"
-          onClick={exportPDF}
-          loading={loading}
-          typeButton="button"
-        />
+                <DataTable
+                  id="vbmapp-page"
+                  className="custom-data-table"
+                  value={list[programa]}
+                  selection={selectedItems}
+                  responsiveLayout="scroll"
+                  dataKey="id"
+                  tableStyle={{ minWidth: 'none' }}
+                >
+                  <Column body={(row: any) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
+                </DataTable>
+              </AccordionTab>
+            ))}
+          </Accordion>
+        ) : (
+          <NotFound />
+        )}
       </div>
-    )
-  ), [existe, exportPDF, loading]);
+    ),
+    [list, renderedCheckboxes, selectedItems]
+  );
 
-  const renderFooter = useCallback(() => (
-    <div className="mt-auto">
-      <ButtonHeron text="Salvar" type="primary" size="full" onClick={onSubmit} loading={loading} />
-    </div>
-  ), [onSubmit, loading]);
+  const renderExport = useCallback(
+    () =>
+      existe && (
+        <div className="mt-auto">
+          <ButtonHeron
+            text="Gerar Relatório"
+            type="primary"
+            size="full"
+            icon="pi pi-file-pdf"
+            onClick={exportPDF}
+            loading={loading}
+            typeButton="button"
+          />
+        </div>
+      ),
+    [existe, exportPDF, loading]
+  );
+
+  const renderFooter = useCallback(
+    () => (
+      <div className="mt-auto">
+        <ButtonHeron text="Salvar" type="primary" size="full" onClick={onSubmit} loading={loading} />
+      </div>
+    ),
+    [onSubmit, loading]
+  );
 
   useEffect(() => {
     getVBMapp();
