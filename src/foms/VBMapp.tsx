@@ -120,6 +120,21 @@ export default function VBMapp({ paciente }: any) {
     setList(copyList);
   };
 
+  const clearMetaEdit = () => {
+      // --- limpa somente state.metaEdit ---
+    const st = (state as any) || {};
+    if ('metaEdit' in st) {
+      const { metaEdit, ...rest } = st; // remove metaEdit
+      navigate(
+        location.pathname + location.search + location.hash,
+        {
+          replace: true,
+          state: Object.keys(rest).length ? rest : null, // mantém eventuais outras chaves
+        }
+      );
+    }
+  }
+
   const onSubmit = useCallback(async () => {
     setLoading(true);
     const payload = { pacienteId: paciente.id, vbmapp: list };
@@ -127,6 +142,7 @@ export default function VBMapp({ paciente }: any) {
     try {
       await create('protocolo/vbmapp', payload);
       setExiste(true);
+      clearMetaEdit()
       renderToast({
         type: 'success',
         title: 'Sucesso!',
