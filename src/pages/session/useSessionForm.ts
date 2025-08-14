@@ -223,8 +223,8 @@ const transformPortageNode = useCallback(
   }, [state, dtt, listMaintenance, maintenance, content, portage, vbmapp, session, isEdit, navigate, renderToast]);
 
   useEffect(() => {
-    handleSubmitSumary()
-    // getSumaryContent();
+    // handleSubmitSumary()
+    getSumaryContent();
   }, [getSumaryContent]);
 
   return {
