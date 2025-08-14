@@ -69,7 +69,7 @@ export default function VBMapp({ paciente }: any) {
   };
 
   const getMetaEdit = (currentList: any) => {
-    if (!state?.metaEdit || state.pacienteId.id !== paciente.id) {
+    if (!state?.metaEdit || state.pacienteId.id !== paciente.id || state.protocoloId !== TIPO_PROTOCOLO.vbMapp) {
       setList(currentList);
       return;
     }

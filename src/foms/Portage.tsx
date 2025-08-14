@@ -176,7 +176,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
   );
 
   useEffect(() => {
-    if (state?.metaEdit) {
+    if (state?.metaEdit && state.protocoloId === TIPO_PROTOCOLO.portage && state.pacienteId.id == paciente.id) {
       const drafts = JSON.parse(sessionStorage.getItem('draftSubitems') || '[]');
       const id = state.metaEdit.id;
       const index = drafts.findIndex((m: any) => m.id === id);
@@ -226,7 +226,7 @@ export default function PortageCadastro({ paciente }: { paciente: { id: number; 
         }
       }
 
-      if (state?.metaEdit) {
+    if (state?.metaEdit && state.protocoloId === TIPO_PROTOCOLO.portage && state.pacienteId.id == paciente.id) {
         const idMetaEdit = parseInt(state.metaEdit.id.replace(/^0-meta-/, ""), 10);
         const programa = state.metaEdit.programa;
         const faixaEtaria = state.metaEdit.faixaEtaria;
