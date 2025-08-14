@@ -55,7 +55,7 @@ export function formatVBMapp(formvalue: any, dropDownList: any) {
   }));
 
   return {
-    programa: programaObj.nome.toLowerCase(),
+    programa: programaObj.nome,
     metas: formated,
   };
 }

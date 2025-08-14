@@ -216,14 +216,15 @@ const transformPortageNode = useCallback(
       if (isEdit) await update('/sessao', payload);
       else await create('/sessao', payload);
       renderToast({ type: 'success', message: 'Sessão atualizada!', open: true, title: '' });
-      navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
+      // navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
     } catch (error) {
       renderToast({ type: 'failure', message: 'Sessão não atualizada!', open: true, title: '401' });
     }
   }, [state, dtt, listMaintenance, maintenance, content, portage, vbmapp, session, isEdit, navigate, renderToast]);
 
   useEffect(() => {
-    getSumaryContent();
+    handleSubmitSumary()
+    // getSumaryContent();
   }, [getSumaryContent]);
 
   return {
