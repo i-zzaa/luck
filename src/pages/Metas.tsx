@@ -9,191 +9,248 @@ import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { NotFound } from '../components/notFound';
 import { TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
 
+// -------------------- Helpers --------------------
+type SelectionKeys = Record<string, boolean | { checked?: boolean; partialChecked?: boolean }>;
+type MaintenanceObject = {
+  manual?: any[];
+  vbmapp?: any[];
+  portage?: any[];
+};
 
+const extractCheckedKeys = (selection: SelectionKeys | undefined) => {
+  if (!selection || typeof selection !== 'object') return [];
+  return Object.entries(selection).reduce((acc: string[], [key, value]: any) => {
+    const isChecked = value === true || (typeof value === 'object' && value?.checked);
+    if (isChecked) acc.push(String(key));
+    return acc;
+  }, []);
+};
+
+const buildFilteredTreeNodes = (baseNodes: any[] = [], excludedKeys: Set<string> = new Set()) => {
+  return (baseNodes || [])
+    .map((programa: any) => {
+      const metasFiltradas = (programa.children || [])
+        .map((meta: any) => {
+          const childrenFiltrados = (meta.children || []).filter(
+            (sub: any) => !excludedKeys.has(String(sub.key))
+          );
+          return { ...meta, children: childrenFiltrados };
+        })
+        .filter((m: any) => (m.children || []).length > 0);
+
+      return { ...programa, children: metasFiltradas };
+    })
+    .filter((p: any) => (p.children || []).length > 0);
+};
+
+const hasNodes = (arr?: any[]) => Array.isArray(arr) && arr.length > 0;
+
+const normalizeMaintenanceObject = (raw: any): MaintenanceObject => {
+  const safeArray = (v: any) => (Array.isArray(v) ? v : []);
+  if (!raw || typeof raw !== 'object') return { manual: [], vbmapp: [], portage: [] };
+  return {
+    manual: safeArray(raw.manual),
+    vbmapp: safeArray(raw.vbmapp),
+    portage: safeArray(raw.portage),
+  };
+};
+
+// -------------------- Componente --------------------
 export default function Metas() {
   const { renderToast } = useToast();
-  
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = location;
+  const { state } = location as any;
 
   const [loading, setLoading] = useState<boolean>(false);
-
-  const [nodes, setNodes] = useState([]);
   const [isEdit, seIsEdit] = useState(false);
-  const [keys, setKeys] = useState([] as any);
-  const [selectedKeys, setSelectedKeys] = useState({} as any);
 
-  //manutencao
-  const [nodesMaintenance, setNodesMaintenance] = useState({} as any);
-  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({});
+  // Manual (PEI)
+  const [nodesBaseManual, setNodesBaseManual] = useState<any[]>([]);
+  const [nodesManual, setNodesManual] = useState<any[]>([]);
+  const [selectedKeysManual, setSelectedKeysManual] = useState<SelectionKeys>({});
+  const [manualKeysFlat, setManualKeysFlat] = useState<string[]>([]); // apenas para montar payload de subitens marcados
 
-  //portage 
-  const [nodesPortage, setNodesPortage] = useState([]);
-  const [selectedPortageKeys, setSelectedPortageKeys] = useState({});
-  
-  
-  //vbMapp 
-  const [nodesVbMapp, setNodesVbMapp] = useState([]);
-  const [selectedVbMappKeys, setSelectedVbMappKeys] = useState({});
+  // Portage
+  const [nodesBasePortage, setNodesBasePortage] = useState<any[]>([]);
+  const [nodesPortage, setNodesPortage] = useState<any[]>([]);
+  const [selectedPortageKeys, setSelectedPortageKeys] = useState<SelectionKeys>({});
 
-  const getAllKeys = (arr: any) =>{
-    let current: string[] = [];
-  
-    arr.forEach((item: any) => {
-      current.push(item.key); // Pega a chave do item atual
-  
-      // Se o item tiver children, faz a recursão
-      if (item.children) {
-        current = keys.concat(getAllKeys(item.children));
-      }
-    });
-  
-    return current;
-  }
+  // VB-Mapp
+  const [nodesBaseVbMapp, setNodesBaseVbMapp] = useState<any[]>([]);
+  const [nodesVbMapp, setNodesVbMapp] = useState<any[]>([]);
+  const [selectedVbMappKeys, setSelectedVbMappKeys] = useState<SelectionKeys>({});
 
-  const getPEI = useCallback(async() => {
-    setLoading(true)
+  // Manutenção (objeto com 3 árvores)
+  const [nodesMaintenance, setNodesMaintenance] = useState<MaintenanceObject>({
+    manual: [],
+    vbmapp: [],
+    portage: [],
+  });
+  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState<{
+    manual?: SelectionKeys;
+    vbmapp?: SelectionKeys;
+    portage?: SelectionKeys;
+  }>({
+    manual: {},
+    vbmapp: {},
+    portage: {},
+  });
+
+  const getPEI = useCallback(async () => {
+    setLoading(true);
     try {
-      const paciente = state.paciente
+      const paciente = state.paciente;
 
       const [peiData, vbMappData, portageData, atividadesSessao] = await Promise.all([
-        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei}),
+        filter('pei', { paciente, protocoloId: TIPO_PROTOCOLO.pei }),
         filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.vbMapp }),
-        filter('protocolo/meta', { pacienteId: paciente.id, protocoloId: TIPO_PROTOCOLO.portage, notSelected: [VALOR_PORTAGE.sim] }),
-        getList(`pei/activity-session/${state.id}`)
-      ])
+        filter('protocolo/meta', {
+          pacienteId: paciente.id,
+          protocoloId: TIPO_PROTOCOLO.portage,
+          notSelected: [VALOR_PORTAGE.sim],
+        }),
+        getList(`pei/activity-session/${state.id}`),
+      ]);
 
-      const pei = peiData.data
-      const portage = portageData.data
-      const vbMapp = vbMappData.data
+      const pei = peiData.data;
+      const vbmapp = vbMappData.data;
+      const portage = portageData.data;
 
-      seIsEdit(!!pei.length || !!portage.length || !!vbMapp.length)
+      seIsEdit(!!pei?.length || !!portage?.length || !!vbmapp?.length);
 
-      // const allKeysMaintenance = Boolean(atividadesSessao?.maintenance) &&  typeof atividadesSessao?.maintenance === 'object' ? getAllKeys(atividadesSessao.maintenance) : []
+      // ------- Monta Manual (PEI) base -------
+      if (Array.isArray(pei) && pei.length > 0) {
+        const manualBase: any[] = [];
 
-      if (pei && pei.length > 0) {
-      const metas: any = []
+        pei.forEach((programa: any) => {
+          const metas: any[] = [];
 
-        pei.map((programa: any) => {
-          const metaCurrent: any = []
-          programa.metas.map((meta: any)=> {
-            const children = meta.subitems.reduce((acc: any[], subitem: any) => {
-              // Add o  PEI se nao tiver em manutencao
-              // if (!allKeysMaintenance.includes(subitem.id)) {
-                acc.push({
-                  key: subitem.id,
-                  label: subitem.value,
-                  data: subitem.id,
-                });
-              // }
-              return acc;
-            }, []);
-  
-            children.length && metaCurrent.push({
-              key: meta.id,
-              label: meta.value,
-              data:  meta.id,
-              children
-            })
-          })
-  
-          metaCurrent.length && metas.push({
-            ...programa,
-            key: programa.id,
-            label: programa.programa.nome,
-            data: programa.id,
-            children: metaCurrent
-          })
-        })
+          (programa.metas || []).forEach((meta: any) => {
+            const children = (meta.subitems || []).map((subitem: any) => ({
+              key: subitem.id,
+              label: subitem.value,
+              data: subitem.id,
+            }));
 
-      setNodes(metas)
-        
+            if (children.length) {
+              metas.push({
+                key: meta.id,
+                label: meta.value,
+                data: meta.id,
+                children,
+              });
+            }
+          });
+
+          if (metas.length) {
+            manualBase.push({
+              ...programa,
+              key: programa.id,
+              label: programa.programa?.nome ?? programa.label ?? 'Programa',
+              data: programa.id,
+              children: metas,
+            });
+          }
+        });
+
+        setNodesBaseManual(manualBase);
       }
 
-      if (portage && portage.length > 0) {
-        setNodesPortage(portage)
-        setSelectedPortageKeys(atividadesSessao?.selectedPortageKeys)
+      // ------- VB-Mapp base -------
+      if (Array.isArray(vbmapp) && vbmapp.length > 0) {
+        setNodesBaseVbMapp(vbmapp);
+        setSelectedVbMappKeys(atividadesSessao?.selectedVbMappKeys || {});
       }
 
-      if (vbMapp && vbMapp.length > 0) {
-        setNodesVbMapp(vbMapp)
-        setSelectedVbMappKeys(atividadesSessao?.selectedVbMappKeys)
+      // ------- Portage base -------
+      if (Array.isArray(portage) && portage.length > 0) {
+        setNodesBasePortage(portage);
+        setSelectedPortageKeys(atividadesSessao?.selectedPortageKeys || {});
       }
 
-      if (atividadesSessao.selectedKeys && Object.values(atividadesSessao.selectedKeys).length > 0) {
-        const obj = atividadesSessao.selectedKeys
-        const allKeys = Object.keys(obj);
-
-        setSelectedKeys(obj)
-        setKeys(allKeys)
-
-        if (atividadesSessao.maintenance) {
-          setNodesMaintenance(atividadesSessao.maintenance)
-        }
-
-        if (Object.values(atividadesSessao.selectedMaintenanceKeys).length) {
-          setSelectedMaintenanceKeys(atividadesSessao?.selectedMaintenanceKeys) 
-        }
+      // ------- Seleções anteriores (Manual) -------
+      if (atividadesSessao?.selectedKeys && Object.values(atividadesSessao.selectedKeys).length > 0) {
+        const sel = atividadesSessao.selectedKeys;
+        setSelectedKeysManual(sel);
+        setManualKeysFlat(Object.keys(sel));
       }
 
+      // ------- Manutenção (objeto) -------
+      const maintObj = normalizeMaintenanceObject(atividadesSessao?.maintenance);
+      setNodesMaintenance(maintObj);
+
+      const prevMaintSel = atividadesSessao?.selectedMaintenanceKeys || {};
+      setSelectedMaintenanceKeys({
+        manual: prevMaintSel?.manual || {},
+        vbmapp: prevMaintSel?.vbmapp || {},
+        portage: prevMaintSel?.portage || {},
+      });
     } catch (error) {
-      // renderToast({
-      //   type: 'failure',
-      //   title: '401',
-      //   message: 'PEI não encontrado!',
-      //   open: true,
-      // });
+      // opcional: toast
     } finally {
       setLoading(false);
     }
-  }, [renderToast])
+  }, [state]);
 
-  const onSubmit = async() => {
-    setLoading(true)
+  // Recalcula árvores visíveis quando base muda ou quando os selecionados de manutenção mudam
+  useEffect(() => {
+    const excludedManual = new Set(extractCheckedKeys(selectedMaintenanceKeys.manual));
+    setNodesManual(buildFilteredTreeNodes(nodesBaseManual, excludedManual));
+
+    const excludedVbmapp = new Set(extractCheckedKeys(selectedMaintenanceKeys.vbmapp));
+    setNodesVbMapp(buildFilteredTreeNodes(nodesBaseVbMapp, excludedVbmapp));
+
+    const excludedPortage = new Set(extractCheckedKeys(selectedMaintenanceKeys.portage));
+    setNodesPortage(buildFilteredTreeNodes(nodesBasePortage, excludedPortage));
+  }, [nodesBaseManual, nodesBaseVbMapp, nodesBasePortage, selectedMaintenanceKeys]);
+
+  const onSubmit = async () => {
+    setLoading(true);
     try {
-      const atividades: any =  []
-      nodes.map((programas: any, programaKey: number) => {
-        const programaCurrent: any = []
-        programas.children.map((meta: any) => {
-          const subitemsCurrent = meta.children.filter((subitem: any) => keys.includes(subitem.key))
+      const atividades: any[] = [];
 
+      // Manual: usa a árvore já filtrada (nodesManual) e selectedKeysManual para montar payload
+      nodesManual.forEach((programas: any) => {
+        const programaCurrent: any[] = [];
+        (programas.children || []).forEach((meta: any) => {
+          const subitemsCurrent = (meta.children || []).filter((subitem: any) =>
+            manualKeysFlat.includes(subitem.key)
+          );
           if (subitemsCurrent.length) {
-            programaCurrent.push({
-              ...meta, 
-              children: subitemsCurrent
-            })
+            programaCurrent.push({ ...meta, children: subitemsCurrent });
           }
-        })
+        });
 
         if (programaCurrent.length) {
-          atividades.push({
-            ...programas,
-            children: programaCurrent
-          })
+          atividades.push({ ...programas, children: programaCurrent });
         }
-      })
+      });
 
-      const peisIds: any = atividades.map((item: any) => item.key)
+      const peisIds: any = atividades.map((item: any) => item.key);
 
       const payload: any = {
         calendarioId: state.id,
         peisIds,
         pacienteId: state.paciente.id,
-        atividades,
-        selectedKeys,
+        atividades, // Manual selecionado
+        selectedKeys: selectedKeysManual,
+
+        // Manutenção: objeto e seleções por sessão
         maintenance: nodesMaintenance,
         selectedMaintenanceKeys,
-        selectedPortageKeys: selectedPortageKeys,
+
+        // Portage e VB-Mapp (árvores filtradas pela manutenção + seleções por sessão)
         portage: nodesPortage,
-        selectedVbMappKeys: selectedVbMappKeys,
-        vbmapp: nodesVbMapp        
-      }
+        selectedPortageKeys,
+        vbmapp: nodesVbMapp,
+        selectedVbMappKeys,
+      };
 
       if (isEdit) {
-        payload.id = state.id
+        payload.id = state.id;
         await update('pei/activity-session', payload);
-      }else {
+      } else {
         await create('pei/activity-session', payload);
       }
 
@@ -204,8 +261,7 @@ export default function Metas() {
         open: true,
       });
 
-      navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`)
-
+      navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
     } catch (error) {
       renderToast({
         type: 'failure',
@@ -214,16 +270,11 @@ export default function Metas() {
         open: true,
       });
     }
-    setLoading(false)
-
-  }
-
-  const setSelectedMaintenanceKeysType = (value: any, tipoProtocolo: number) => {
-
-  }
+    setLoading(false);
+  };
 
   const renderHeader = useMemo(() => {
-    return  (
+    return (
       <ChoiceItemSchedule
         start={state.data.start}
         end={state.data.end}
@@ -237,136 +288,197 @@ export default function Metas() {
         dataFim={state.dataFim}
         dataAtual={state.dataAtual}
       />
-    )
-  }, [])
-  
-  const renderContent = (manualList = nodes) => {
-    return  !!manualList.length && (
-      <div className='grid gap-2 mt-4'>
-       <div>
-          <div className='text-gray-400'> Manual</div>
-          <Tree value={manualList} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
-            setSelectedKeys(e.value)
-            const _keys =  await  Object.keys(e.value)
-            setKeys(_keys)
+    );
+  }, [state]);
 
-          }} className="w-full md:w-30rem" />
+  const renderContentManual = () => {
+    return (
+      hasNodes(nodesManual) && (
+        <div className="grid gap-2 mt-4">
+          <div>
+            <div className="text-gray-400"> Manual</div>
+            <Tree
+              value={nodesManual}
+              selectionMode="checkbox"
+              selectionKeys={selectedKeysManual}
+              onSelectionChange={(e: any) => {
+                setSelectedKeysManual(e.value);
+                setManualKeysFlat(Object.keys(e.value));
+              }}
+              className="w-full md:w-30rem"
+            />
+          </div>
         </div>
-     </div>
-    )
-  }
+      )
+    );
+  };
+
+  const renderContentPortage = () => {
+    return (
+      hasNodes(nodesPortage) && (
+        <div className="grid gap-2 mt-8">
+          <div className="text-gray-400"> Portage </div>
+          <Tree
+            value={nodesPortage}
+            selectionMode="checkbox"
+            selectionKeys={selectedPortageKeys}
+            onSelectionChange={(e: any) => setSelectedPortageKeys(e.value)}
+            className="w-full md:w-30rem"
+          />
+        </div>
+      )
+    );
+  };
+
+  const renderContentVbMapp = () => {
+    return (
+      hasNodes(nodesVbMapp) && (
+        <div className="grid gap-2 mt-8">
+          <div className="text-gray-400"> Vb Mapp </div>
+          <Tree
+            value={nodesVbMapp}
+            selectionMode="checkbox"
+            selectionKeys={selectedVbMappKeys}
+            onSelectionChange={(e: any) => setSelectedVbMappKeys(e.value)}
+            className="w-full md:w-30rem"
+          />
+        </div>
+      )
+    );
+  };
 
   const renderContentMaintenance = () => {
-    return  !!Object.values(nodesMaintenance).length &&  (
-      <div className='grid gap-2 my-8'>
-        <div className='text-gray-400'> Manutenção </div>
+    const maint = nodesMaintenance;
+    const hasAny =
+      hasNodes(maint.manual) || hasNodes(maint.vbmapp) || hasNodes(maint.portage);
 
-        <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
-          {
-          !!nodesMaintenance?.manual.length  && (
-            <div className='grid gap-2 mt-4'>
-              <div>
-                  <div className='text-gray-400'> Manual</div>
-                  <Tree value={nodesMaintenance?.manual} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
-                    setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.pei)
-                    const _keys =  await  Object.keys(e.value)
-                    setKeys(_keys)
+    if (!hasAny) return null;
 
-                  }} className="w-full md:w-30rem" />
-                </div>
-            </div>
-          )
-        }
-        {
-          !!nodesMaintenance?.portage.length  && (<>
-          <div className='text-gray-400 mt-8'> Portage </div>
-            <Tree value={nodesMaintenance?.portage} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
-              setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.vbMapp)
-            }} className="w-full md:w-30rem" />
-          </>)
-        }
-        {
-          !!nodesMaintenance?.vbmapp.length  && (
-            <div className='grid gap-2 mt-8'>
-              <div className='text-gray-400'> Vb Mapp </div>
-              <Tree value={nodesMaintenance?.vbmapp} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
-                setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.vbMapp)
-              }} className="w-full md:w-30rem" />
+    return (
+      <div className="grid gap-6 my-8">
+        <div className="text-gray-400"> Manutenção </div>
+
+      <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
+
+        {hasNodes(maint.manual) && (
+          <div>
+            <div className="text-gray-400">Manual (em manutenção)</div>
+            <Tree
+              value={maint.manual}
+              selectionMode="checkbox"
+              selectionKeys={selectedMaintenanceKeys.manual || {}}
+              onSelectionChange={(e: any) =>
+                setSelectedMaintenanceKeys((prev) => ({ ...prev, manual: e.value }))
+              }
+              className="w-full md:w-30rem"
+            />
           </div>
-          )
-        }
+        )}
+
+        {hasNodes(maint.vbmapp) && (
+          <div>
+            <div className="text-gray-400 mt-4">VB-Mapp (em manutenção)</div>
+            <Tree
+              value={maint.vbmapp}
+              selectionMode="checkbox"
+              selectionKeys={selectedMaintenanceKeys.vbmapp || {}}
+              onSelectionChange={(e: any) =>
+                setSelectedMaintenanceKeys((prev) => ({ ...prev, vbmapp: e.value }))
+              }
+              className="w-full md:w-30rem"
+            />
+          </div>
+        )}
+
+        {hasNodes(maint.portage) && (
+          <div>
+            <div className="text-gray-400 mt-4">Portage (em manutenção)</div>
+            <Tree
+              value={maint.portage}
+              selectionMode="checkbox"
+              selectionKeys={selectedMaintenanceKeys.portage || {}}
+              onSelectionChange={(e: any) =>
+                setSelectedMaintenanceKeys((prev) => ({ ...prev, portage: e.value }))
+              }
+              className="w-full md:w-30rem"
+            />
+          </div>
+        )}
         </Card>
-    </div>
-    )
-  }
-
-  const renderContentPortage = (portageList = nodesPortage) => {
-    return  !!portageList.length &&  (
-      <div className='grid gap-2 mt-8'>
-        <div className='text-gray-400'> Portage </div>
-        <Tree value={portageList} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
-          setSelectedPortageKeys(e.value)
-        }} className="w-full md:w-30rem" />
-    </div>
-    )
-  }
-
-  const renderContentVbMapp = (vbMappList = nodesVbMapp) => {
-    return  !!vbMappList.length &&  (
-      <div className='grid gap-2 mt-8'>
-        <div className='text-gray-400'> Vb Mapp </div>
-        <Tree value={vbMappList} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
-          setSelectedVbMappKeys(e.value)
-        }} className="w-full md:w-30rem" />
-    </div>
-    )
-  }
+      </div>
+    );
+  };
 
   const renderNotFound = () => {
-    return  !nodesVbMapp.length && !nodesPortage.length && !nodesMaintenance.length && !nodes.length && <div className='grid gap-4 justify-center'>
-    <NotFound />
-     <ButtonHeron
-       text="Cadastrar Protocolo"
-       icon="pi pi-book"
-       type="primary"
-       color='white'
-       size="sm"
-       onClick={()=>  navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { item: { paciente: state.paciente }}})}
-     />
- </div>
-  }
+    return (
+      !hasNodes(nodesVbMapp) &&
+      !hasNodes(nodesPortage) &&
+      !hasNodes(nodesMaintenance.manual) &&
+      !hasNodes(nodesMaintenance.vbmapp) &&
+      !hasNodes(nodesMaintenance.portage) &&
+      !hasNodes(nodesManual) && (
+        <div className="grid gap-4 justify-center">
+          <NotFound />
+          <ButtonHeron
+            text="Cadastrar Protocolo"
+            icon="pi pi-book"
+            type="primary"
+            color="white"
+            size="sm"
+            onClick={() =>
+              navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+                state: { item: { paciente: state.paciente } },
+              })
+            }
+          />
+        </div>
+      )
+    );
+  };
 
   const renderFooter = () => {
-    return (!!nodesVbMapp.length || !!nodesPortage.length || !!nodesMaintenance.length || !!nodes.length ) &&  (
-      <div className=' mt-8'>
-        <ButtonHeron
-          text="Salvar"
-          type="primary"
-          size="full"
-          onClick={()=>onSubmit()}
-          loading={loading}
-          typeButton="button"
-        />
-      </div>
-    )
-  }
+    const anyContent =
+      hasNodes(nodesVbMapp) ||
+      hasNodes(nodesPortage) ||
+      hasNodes(nodesMaintenance.manual) ||
+      hasNodes(nodesMaintenance.vbmapp) ||
+      hasNodes(nodesMaintenance.portage) ||
+      hasNodes(nodesManual);
+
+    return (
+      anyContent && (
+        <div className=" mt-8">
+          <ButtonHeron
+            text="Salvar"
+            type="primary"
+            size="full"
+            onClick={() => onSubmit()}
+            loading={loading}
+            typeButton="button"
+          />
+        </div>
+      )
+    );
+  };
 
   useEffect(() => {
-    getPEI()
-  }, [])
+    getPEI();
+  }, [getPEI]);
 
   return (
-    <div className='h-[90vh] flex flex-col overflow-y-auto'>
-      { renderHeader}
+    <div className="h-[90vh] flex flex-col overflow-y-auto">
+      {renderHeader}
 
-      <div className='text-gray-400 mt-8 text-center'> Selecione os programas para sessão</div>
+      <div className="text-gray-400 mt-8 text-center">
+        Selecione os programas para sessão
+      </div>
 
-      { renderContent() }
-      { renderContentPortage() }
-      { renderContentVbMapp() }
-      { renderContentMaintenance() }
-      { renderNotFound() }
-      { renderFooter() }
+      {renderContentManual()}
+      {renderContentPortage()}
+      {renderContentVbMapp()}
+      {renderContentMaintenance()}
+      {renderNotFound()}
+      {renderFooter()}
     </div>
   );
 }
