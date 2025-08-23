@@ -1,10 +1,9 @@
 // src/components/session/maintenance/SessionMaintenancePortage.tsx
 import React from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Card } from 'primereact';
+import { Card } from '../../../components/card'; // <-- seu Card
 import CheckboxSN from '../../../components/checkboxSN';
 import { HeaderPrograma } from '../../../components/fielSetHeader/HeaderProgram';
-
 
 type Node = any;
 
@@ -30,12 +29,15 @@ export const SessionMaintenancePortage: React.FC<Props> = ({
       const metas = Array.isArray(programa.children) ? [...programa.children] : [];
       const meta = { ...(metas[mIdx] || {}) };
       const slots = Array.isArray(meta.children) ? [...meta.children] : [null];
+
       if (slots[0] === newValue) return prev;
+
       slots[0] = newValue;
       meta.children = slots;
       metas[mIdx] = meta;
       programa.children = metas;
-      updated[pIdx] = programa;
+      updated[pIdx] = programa;            // <- reatribui no topo
+
       return updated;
     });
 
@@ -48,14 +50,17 @@ export const SessionMaintenancePortage: React.FC<Props> = ({
       const acts = Array.isArray(meta.children) ? [...meta.children] : [];
       const act = { ...(acts[aIdx] || {}) };
       const slots = Array.isArray(act.children) ? [...act.children] : [null];
+
       if (slots[0] === newValue) return prev;
+
       slots[0] = newValue;
       act.children = slots;
       acts[aIdx] = act;
       meta.children = acts;
       metas[mIdx] = meta;
       programa.children = metas;
-      updated[pIdx] = programa;
+      updated[pIdx] = programa;            // <- reatribui no topo
+
       return updated;
     });
 
@@ -83,12 +88,14 @@ export const SessionMaintenancePortage: React.FC<Props> = ({
             >
               {(programa?.children || []).map((meta: any, mIdx: number) => {
                 const hasActs = Array.isArray(meta?.children) && meta.children.some((c: any) => isObj(c));
+
                 return (
                   <div key={String(meta?.key ?? `${pIdx}-${mIdx}`)} className="my-6">
                     {renderHeaderPrograma(meta)}
                     <span className="font-bold font-inter">Meta {mIdx + 1}: </span>
                     <span className="font-base font-inter">{meta?.label ?? '—'}</span>
 
+                    {/* Meta folha: 1 checkbox */}
                     {!hasActs && (
                       <ul className="list-disc mt-2 font-inter ml-4">
                         <li className="my-2 flex gap-2 -ml-4 items-center">
@@ -102,6 +109,7 @@ export const SessionMaintenancePortage: React.FC<Props> = ({
                       </ul>
                     )}
 
+                    {/* Meta com atos: 1 checkbox por ato */}
                     {hasActs && (
                       <ul className="list-disc mt-2 font-inter ml-4">
                         {(meta.children || [])

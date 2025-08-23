@@ -89,6 +89,11 @@ export const Session = () => {
     <div className="grid overflox-y-auto">
       {renderHeader()}
       <div className="">
+        <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-8">
+          <span className="text-md">
+            Interrompa o treino da atividade ao atingir 4 tentativas corretas consecutivas.
+          </span>
+        </div>
         <SessionActivity list={list} dtt={dtt} isEdit={isEdit} setDTT={setDTT} />
         <SessionPortage listPortage={listPortage}  portage={portage} isEdit={isEdit} setPortage={setPortage}/>
         <SessionVBMapp listVBMapp={listVBMapp} vbmapp={vbmapp} isEdit={isEdit} setVBMapp={setVBMapp} />
