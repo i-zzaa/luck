@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
-import { Tree } from 'primereact/tree';
+import { Tree, TreeCheckboxSelectionKeys } from 'primereact/tree';
 import { ButtonHeron, Card } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
@@ -17,7 +17,7 @@ type MaintenanceObject = {
   portage?: any[];
 };
 
-const extractCheckedKeys = (selection: SelectionKeys | undefined) => {
+const extractCheckedKeys = (selection: any | undefined) => {
   if (!selection || typeof selection !== 'object') return [];
   return Object.entries(selection).reduce((acc: string[], [key, value]: any) => {
     const isChecked = value === true || (typeof value === 'object' && value?.checked);
@@ -68,18 +68,18 @@ export default function Metas() {
   // Manual (PEI)
   const [nodesBaseManual, setNodesBaseManual] = useState<any[]>([]);
   const [nodesManual, setNodesManual] = useState<any[]>([]);
-  const [selectedKeysManual, setSelectedKeysManual] = useState<SelectionKeys>({});
+  const [selectedKeysManual, setSelectedKeysManual] = useState<any>({});
   const [manualKeysFlat, setManualKeysFlat] = useState<string[]>([]); // apenas para montar payload de subitens marcados
 
   // Portage
   const [nodesBasePortage, setNodesBasePortage] = useState<any[]>([]);
   const [nodesPortage, setNodesPortage] = useState<any[]>([]);
-  const [selectedPortageKeys, setSelectedPortageKeys] = useState<SelectionKeys>({});
+  const [selectedPortageKeys, setSelectedPortageKeys] = useState<any>({});
 
   // VB-Mapp
   const [nodesBaseVbMapp, setNodesBaseVbMapp] = useState<any[]>([]);
   const [nodesVbMapp, setNodesVbMapp] = useState<any[]>([]);
-  const [selectedVbMappKeys, setSelectedVbMappKeys] = useState<SelectionKeys>({});
+  const [selectedVbMappKeys, setSelectedVbMappKeys] = useState<any>({});
 
   // Manutenção (objeto com 3 árvores)
   const [nodesMaintenance, setNodesMaintenance] = useState<MaintenanceObject>({
@@ -87,11 +87,7 @@ export default function Metas() {
     vbmapp: [],
     portage: [],
   });
-  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState<{
-    manual?: SelectionKeys;
-    vbmapp?: SelectionKeys;
-    portage?: SelectionKeys;
-  }>({
+  const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState<any>({
     manual: {},
     vbmapp: {},
     portage: {},
@@ -368,7 +364,7 @@ export default function Metas() {
               selectionMode="checkbox"
               selectionKeys={selectedMaintenanceKeys.manual || {}}
               onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev) => ({ ...prev, manual: e.value }))
+                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, manual: e.value }))
               }
               className="w-full md:w-30rem"
             />
@@ -383,7 +379,7 @@ export default function Metas() {
               selectionMode="checkbox"
               selectionKeys={selectedMaintenanceKeys.vbmapp || {}}
               onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev) => ({ ...prev, vbmapp: e.value }))
+                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, vbmapp: e.value }))
               }
               className="w-full md:w-30rem"
             />
@@ -398,7 +394,7 @@ export default function Metas() {
               selectionMode="checkbox"
               selectionKeys={selectedMaintenanceKeys.portage || {}}
               onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev) => ({ ...prev, portage: e.value }))
+                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, portage: e.value }))
               }
               className="w-full md:w-30rem"
             />
