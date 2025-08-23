@@ -28,7 +28,7 @@ export default function CheckboxDTT({ value, onChange, disabled }: CheckboxDTTPr
       optionLabel="value"
       optionValue="value"
       iconTemplate={iconTemplate}
-      className="w-6 h-6"
+      // className="w-6 h-6"
       disabled={disabled}
     />
   );

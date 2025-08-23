@@ -92,7 +92,8 @@ export const Session = () => {
         <SessionActivity list={list} dtt={dtt} isEdit={isEdit} setDTT={setDTT} />
         <SessionPortage listPortage={listPortage}  portage={portage} isEdit={isEdit} setPortage={setPortage}/>
         <SessionVBMapp listVBMapp={listVBMapp} vbmapp={vbmapp} isEdit={isEdit} setVBMapp={setVBMapp} />
-        <SessionMaintenance listMaintenance={listMaintenance} maintenance={maintenance} isEdit={isEdit} setMaintenance={setMaintenance}/>       
+        {/* <SessionMaintenance listMaintenance={listMaintenance} maintenance={maintenance} isEdit={isEdit} setMaintenance={setMaintenance}/> */}
+        <SessionMaintenance listMaintenance={listMaintenance} isEdit={isEdit} setMaintenance={setMaintenance} />       
         {renderSumary()}
       </div>
       {renderFooter()}
