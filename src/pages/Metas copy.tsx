@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
 import { Tree } from 'primereact/tree';
-import { ButtonHeron, Card } from '../components';
+import { ButtonHeron } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { NotFound } from '../components/notFound';
@@ -25,7 +25,7 @@ export default function Metas() {
   const [selectedKeys, setSelectedKeys] = useState({} as any);
 
   //manutencao
-  const [nodesMaintenance, setNodesMaintenance] = useState({} as any);
+  const [nodesMaintenance, setNodesMaintenance] = useState([]);
   const [selectedMaintenanceKeys, setSelectedMaintenanceKeys] = useState({});
 
   //portage 
@@ -218,10 +218,6 @@ export default function Metas() {
 
   }
 
-  const setSelectedMaintenanceKeysType = (value: any, tipoProtocolo: number) => {
-
-  }
-
   const renderHeader = useMemo(() => {
     return  (
       <ChoiceItemSchedule
@@ -240,12 +236,12 @@ export default function Metas() {
     )
   }, [])
   
-  const renderContent = (manualList = nodes) => {
-    return  !!manualList.length && (
+  const renderContent = () => {
+    return  !!nodes.length && (
       <div className='grid gap-2 mt-4'>
        <div>
           <div className='text-gray-400'> Manual</div>
-          <Tree value={manualList} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
+          <Tree value={nodes} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
             setSelectedKeys(e.value)
             const _keys =  await  Object.keys(e.value)
             setKeys(_keys)
@@ -257,65 +253,33 @@ export default function Metas() {
   }
 
   const renderContentMaintenance = () => {
-    return  !!Object.values(nodesMaintenance).length &&  (
+    return  !!nodesMaintenance.length &&  (
       <div className='grid gap-2 my-8'>
         <div className='text-gray-400'> Manutenção </div>
-
-        <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
-          {
-          !!nodesMaintenance?.manual.length  && (
-            <div className='grid gap-2 mt-4'>
-              <div>
-                  <div className='text-gray-400'> Manual</div>
-                  <Tree value={nodesMaintenance?.manual} selectionMode="checkbox" selectionKeys={selectedKeys} onSelectionChange={async (e: any) => {
-                    setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.pei)
-                    const _keys =  await  Object.keys(e.value)
-                    setKeys(_keys)
-
-                  }} className="w-full md:w-30rem" />
-                </div>
-            </div>
-          )
-        }
-        {
-          !!nodesMaintenance?.portage.length  && (<>
-          <div className='text-gray-400 mt-8'> Portage </div>
-            <Tree value={nodesMaintenance?.portage} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
-              setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.vbMapp)
-            }} className="w-full md:w-30rem" />
-          </>)
-        }
-        {
-          !!nodesMaintenance?.vbmapp.length  && (
-            <div className='grid gap-2 mt-8'>
-              <div className='text-gray-400'> Vb Mapp </div>
-              <Tree value={nodesMaintenance?.vbmapp} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
-                setSelectedMaintenanceKeysType(e.value, TIPO_PROTOCOLO.vbMapp)
-              }} className="w-full md:w-30rem" />
-          </div>
-          )
-        }
-        </Card>
+        <Tree value={nodesMaintenance} selectionMode="checkbox" selectionKeys={selectedMaintenanceKeys} onSelectionChange={async (e: any) => {
+          setSelectedMaintenanceKeys(e.value)
+        }} className="w-full md:w-30rem" />
     </div>
     )
   }
 
-  const renderContentPortage = (portageList = nodesPortage) => {
-    return  !!portageList.length &&  (
+
+  const renderContentPortage = () => {
+    return  !!nodesPortage.length &&  (
       <div className='grid gap-2 mt-8'>
         <div className='text-gray-400'> Portage </div>
-        <Tree value={portageList} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
+        <Tree value={nodesPortage} selectionMode="checkbox" selectionKeys={selectedPortageKeys} onSelectionChange={async (e: any) => {
           setSelectedPortageKeys(e.value)
         }} className="w-full md:w-30rem" />
     </div>
     )
   }
 
-  const renderContentVbMapp = (vbMappList = nodesVbMapp) => {
-    return  !!vbMappList.length &&  (
+  const renderContentVbMapp = () => {
+    return  !!nodesVbMapp.length &&  (
       <div className='grid gap-2 mt-8'>
         <div className='text-gray-400'> Vb Mapp </div>
-        <Tree value={vbMappList} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
+        <Tree value={nodesVbMapp} selectionMode="checkbox" selectionKeys={selectedVbMappKeys} onSelectionChange={async (e: any) => {
           setSelectedVbMappKeys(e.value)
         }} className="w-full md:w-30rem" />
     </div>
