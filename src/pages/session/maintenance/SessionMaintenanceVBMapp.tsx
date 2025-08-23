@@ -1,10 +1,9 @@
 // src/components/session/maintenance/SessionMaintenanceVBMapp.tsx
 import React from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Card } from 'primereact';
+import { Card } from '../../../components/card';
 import CheckboxSN from '../../../components/checkboxSN';
 import { HeaderPrograma } from '../../../components/fielSetHeader/HeaderProgram';
-
 
 type Node = any;
 
@@ -23,7 +22,7 @@ export const SessionMaintenanceVBMapp: React.FC<Props> = ({
 }) => {
   if (!Array.isArray(data) || !data.length) return null;
 
-  // path = [nivelIdx, programaIdx, metaIdx, (opcional) actIdx]
+  // path = [nivelIdx, programaIdx, metaIdx]
   const updateMetaSlot = (nIdx: number, pIdx: number, mIdx: number, newValue: any) =>
     setCategory(prev => {
       const updated = [...prev];
@@ -41,10 +40,15 @@ export const SessionMaintenanceVBMapp: React.FC<Props> = ({
       metas[mIdx] = meta;
       programa.children = metas;
       programas[pIdx] = programa;
+
+      // 🔴 Faltava reatribuir os filhos no nível
+      nivel.children = programas;
       updated[nIdx] = nivel;
+
       return updated;
     });
 
+  // path = [nivelIdx, programaIdx, metaIdx, actIdx]
   const updateActSlot = (nIdx: number, pIdx: number, mIdx: number, aIdx: number, newValue: any) =>
     setCategory(prev => {
       const updated = [...prev];
@@ -66,7 +70,11 @@ export const SessionMaintenanceVBMapp: React.FC<Props> = ({
       metas[mIdx] = meta;
       programa.children = metas;
       programas[pIdx] = programa;
+
+      // 🔴 Faltava reatribuir os filhos no nível
+      nivel.children = programas;
       updated[nIdx] = nivel;
+
       return updated;
     });
 
