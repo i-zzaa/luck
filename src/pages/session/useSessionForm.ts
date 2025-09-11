@@ -1,12 +1,12 @@
 // src/hooks/useSessionForm.ts
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { TIPO_PROTOCOLO } from "../../constants/protocolo";
-import { CONSTANTES_ROUTERS } from "../../routes/OtherRoutes";
-import { useToast } from "../../contexts/toast";
-import { create, getList, update } from "../../server";
-import moment from "moment";
-import { STATUS_EVENTS } from "../../constants/schedule";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { TIPO_PROTOCOLO } from '../../constants/protocolo';
+import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
+import { useToast } from '../../contexts/toast';
+import { create, getList, update } from '../../server';
+import moment from 'moment';
+import { STATUS_EVENTS } from '../../constants/schedule';
 
 const ACTIVITY = 'activity';
 const MAINTENANCE = 'maintenance';
@@ -26,12 +26,20 @@ export const useSessionForm = () => {
   const [repeatMaintenance] = useState(1);
   const [content, setContent] = useState('');
   const [list, setList] = useState<any[]>([]);
-  const [listMaintenance, setListMaintenance] = useState<any>({ manual: [], vbmapp: [], portage: [] });
+  const [listMaintenance, setListMaintenance] = useState<any>({
+    manual: [],
+    vbmapp: [],
+    portage: [],
+  });
   const [listPortage, setListPortage] = useState<any[]>([]);
   const [listVBMapp, setListVBMapp] = useState<any[]>([]);
   const [dtt, setDTT] = useState<any[]>([]);
   // selectedMaintenanceKeys (por categoria)
-  const [maintenance, setMaintenance] = useState<any>({ manual: {}, vbmapp: {}, portage: {} });
+  const [maintenance, setMaintenance] = useState<any>({
+    manual: {},
+    vbmapp: {},
+    portage: {},
+  });
   const [session, setSession] = useState<any>({});
   const [portage, setPortage] = useState<any[]>([]);
   const [vbmapp, setVBMapp] = useState<any[]>([]);
@@ -58,7 +66,8 @@ export const useSessionForm = () => {
 
       // Normaliza possíveis filhos
       const kids: any[] = (() => {
-        if (Array.isArray(node?.children) && node.children.length) return node.children;
+        if (Array.isArray(node?.children) && node.children.length)
+          return node.children;
         if (Array.isArray(node?.subitems) && node.subitems.length) {
           return node.subitems.map((si: any) => ({
             ...si,
@@ -122,9 +131,18 @@ export const useSessionForm = () => {
   // Transforma o OBJETO de manutenção { manual, vbmapp, portage }
   const transformMaintenanceObject = useCallback(
     async (maintenanceObj: any = {}) => {
-      const manual  = await transformGenericTree(maintenanceObj?.manual  || [], MAINTENANCE);
-      const vbmapp  = await transformGenericTree(maintenanceObj?.vbmapp  || [], MAINTENANCE);
-      const portage = await transformGenericTree(maintenanceObj?.portage || [], MAINTENANCE);
+      const manual = await transformGenericTree(
+        maintenanceObj?.manual || [],
+        MAINTENANCE
+      );
+      const vbmapp = await transformGenericTree(
+        maintenanceObj?.vbmapp || [],
+        MAINTENANCE
+      );
+      const portage = await transformGenericTree(
+        maintenanceObj?.portage || [],
+        MAINTENANCE
+      );
       return { manual, vbmapp, portage };
     },
     [transformGenericTree]
@@ -142,64 +160,134 @@ export const useSessionForm = () => {
       const out: any = {
         key: String(node?.key ?? node?.id ?? ''),
         label: node?.label ?? node?.nome ?? '',
-        estimuloDiscriminativo: node?.estimuloDiscriminativo ?? "",
-        estimuloReforcadorPositivo: node?.estimuloReforcadorPositivo ?? "",
-        resposta: node?.resposta ?? "",
+        estimuloDiscriminativo: node?.estimuloDiscriminativo ?? '',
+        estimuloReforcadorPositivo: node?.estimuloReforcadorPositivo ?? '',
+        resposta: node?.resposta ?? '',
       };
 
-      if (
-        Array.isArray(node.children) &&
-        node.children.length > 0 &&
-        node.children[0].children === undefined
-      ) {
-        out.children = node.children.map((sub: any) => ({
-          key: String(sub?.key ?? sub?.id ?? ''),
-          label: sub?.label ?? sub?.nome ?? '',
-          permiteSubitens: !!sub?.permiteSubitens,
-          children: Array.from({ length: repeatActivity }).map(() => null),
-        }));
-      } else if (Array.isArray(node.children) && node.children.length > 0) {
+      const isPlainObject = (v: any) =>
+        v !== null && typeof v === 'object' && !Array.isArray(v);
+
+      const isPrimitiveOrNull = (v: any) => v === null || !isPlainObject(v);
+
+      const padToRepeat = (arr: any[]) => {
+        const base = Array.isArray(arr) ? arr.slice(0, repeatActivity) : [];
+        if (base.length < repeatActivity) {
+          base.push(
+            ...Array.from({ length: repeatActivity - base.length }, () => null)
+          );
+        }
+        return base;
+      };
+
+      const ch = node?.children;
+
+      if (Array.isArray(ch) && ch.length > 0) {
+        // Caso 1: folha com array de valores (primitivos/null)
+        if (ch.every(isPrimitiveOrNull)) {
+          out.children = padToRepeat(ch);
+          return out;
+        }
+
+        // Caso 2: array de objetos (pode ser subitens ou nós internos)
+        const first = ch[0];
+
+        // 2.a) Subitens: objetos sem "children" (ou "children" não-array)
+        if (isPlainObject(first) && !Array.isArray(first.children)) {
+          out.children = ch.map((sub: any) => {
+            const subOut: any = {
+              key: String(sub?.key ?? sub?.id ?? ''),
+              label: sub?.label ?? sub?.nome ?? '',
+              permiteSubitens: !!sub?.permiteSubitens,
+            };
+
+            // Se o subitem já vier com children de primitivos, normaliza; senão, preenche com null
+            if (
+              Array.isArray(sub?.children) &&
+              sub.children.length > 0 &&
+              sub.children.every(isPrimitiveOrNull)
+            ) {
+              subOut.children = padToRepeat(sub.children);
+            } else {
+              subOut.children = Array.from({ length: repeatActivity }).map(
+                () => null
+              );
+            }
+
+            return subOut;
+          });
+          return out;
+        }
+
+        // 2.b) Nós internos com filhos-objetos (recursão)
         out.children = await Promise.all(
-          node.children.map((ch: any) => transformVBMappNode(ch))
+          ch.map((child: any) => transformVBMappNode(child))
         );
-      } else {
-        out.children = Array.from({ length: repeatActivity }).map(() => null);
+        return out;
       }
 
+      // Sem filhos: criar slots vazios
+      out.children = Array.from({ length: repeatActivity }).map(() => null);
       return out;
     },
     [repeatActivity]
   );
 
   const formatarDado = useCallback(
-    async (data: any, type = ACTIVITY, protocolo: any = TIPO_PROTOCOLO.portage) => {
+    async (
+      data: any,
+      type = ACTIVITY,
+      protocolo: any = TIPO_PROTOCOLO.portage
+    ) => {
       // Maintenance agora é OBJETO
-      if (type === MAINTENANCE && data && typeof data === 'object' && !Array.isArray(data)) {
+      if (
+        type === MAINTENANCE &&
+        data &&
+        typeof data === 'object' &&
+        !Array.isArray(data)
+      ) {
         return transformMaintenanceObject(data);
       }
 
       if (protocolo === TIPO_PROTOCOLO.vbMapp) {
-        return Promise.all((data || []).map((node: any) => transformVBMappNode(node)));
+        return Promise.all(
+          (data || []).map((node: any) => transformVBMappNode(node))
+        );
       }
       if (type === PORTAGE) {
-        return Promise.all((data || []).map((node: any) => transformPortageNode(node)));
+        return Promise.all(
+          (data || []).map((node: any) => transformPortageNode(node))
+        );
       }
       // atividade/maintenance genérico em ÁRVORE (array)
-      return Promise.all((data || []).map((node: any) => transformManualNode(node, type)));
+      return Promise.all(
+        (data || []).map((node: any) => transformManualNode(node, type))
+      );
     },
-    [transformMaintenanceObject, transformManualNode, transformPortageNode, transformVBMappNode]
+    [
+      transformMaintenanceObject,
+      transformManualNode,
+      transformPortageNode,
+      transformVBMappNode,
+    ]
   );
 
   const getActivity = useCallback(async () => {
     try {
-      const result = await getList(`/pei/activity/session/${state.item.paciente.id}`);
+      const result = await getList(
+        `/pei/activity/session/${state.item.paciente.id}`
+      );
 
-      const [atividades, maintenanceObj, portageTree, vbmappTree]: any = await Promise.all([
-        formatarDado(result?.atividades || [], ACTIVITY),
-        formatarDado(result?.maintenance || { manual: [], vbmapp: [], portage: [] }, MAINTENANCE),
-        formatarDado(result?.portage || [], PORTAGE, TIPO_PROTOCOLO.portage),
-        formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
-      ]);
+      const [atividades, maintenanceObj, portageTree, vbmappTree]: any =
+        await Promise.all([
+          formatarDado(result?.atividades || [], ACTIVITY),
+          formatarDado(
+            result?.maintenance || { manual: [], vbmapp: [], portage: [] },
+            MAINTENANCE
+          ),
+          formatarDado(result?.portage || [], PORTAGE, TIPO_PROTOCOLO.portage),
+          formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
+        ]);
 
       setList(atividades);
       setListMaintenance(maintenanceObj); // objeto { manual, vbmapp, portage }
@@ -215,10 +303,13 @@ export const useSessionForm = () => {
   const getSumaryContent = useCallback(async () => {
     try {
       const dateSession = state?.item?.date; // ex.: 'YYYY-MM-DD' ou ISO
-      const isAttended = state?.item?.statusEventos === STATUS_EVENTS.atendido;
+      const isAttended =
+        state?.item?.statusEventos.nome === STATUS_EVENTS.atendido;
 
       // hoje > data da sessão (comparação por dia, ignorando horas)
-      const isPast = moment().startOf('day').isAfter(moment(dateSession).startOf('day'));
+      const isPast = moment()
+        .startOf('day')
+        .isAfter(moment(dateSession).startOf('day'));
 
       if (isAttended || isPast) {
         const result: any = await getList(`/sessao/${state.item.id}`);
@@ -228,12 +319,20 @@ export const useSessionForm = () => {
           setSession(result);
           setIsEdit(true);
 
-          const [atividades, maintenanceObj, portageTree, vbmappTree]: any = await Promise.all([
-            formatarDado(result?.sessao || [], ACTIVITY),
-            formatarDado(result?.maintenance || { manual: [], vbmapp: [], portage: [] }, MAINTENANCE),
-            formatarDado(result?.portage || [], PORTAGE, TIPO_PROTOCOLO.portage),
-            formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
-          ]);
+          const [atividades, maintenanceObj, portageTree, vbmappTree]: any =
+            await Promise.all([
+              formatarDado(result?.sessao || [], ACTIVITY),
+              formatarDado(
+                result?.maintenance || { manual: [], vbmapp: [], portage: [] },
+                MAINTENANCE
+              ),
+              formatarDado(
+                result?.portage || [],
+                PORTAGE,
+                TIPO_PROTOCOLO.portage
+              ),
+              formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
+            ]);
 
           setList(atividades);
           setListMaintenance(maintenanceObj); // objeto
@@ -273,12 +372,34 @@ export const useSessionForm = () => {
       };
       if (isEdit) await update('/sessao', payload);
       else await create('/sessao', payload);
-      renderToast({ type: 'success', message: 'Sessão atualizada!', open: true, title: '' });
-      // navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
+      renderToast({
+        type: 'success',
+        message: 'Sessão atualizada!',
+        open: true,
+        title: '',
+      });
+      navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
     } catch (error) {
-      renderToast({ type: 'failure', message: 'Sessão não atualizada!', open: true, title: '401' });
+      renderToast({
+        type: 'failure',
+        message: 'Sessão não atualizada!',
+        open: true,
+        title: '401',
+      });
     }
-  }, [state, dtt, listMaintenance, maintenance, content, portage, vbmapp, session, isEdit, navigate, renderToast]);
+  }, [
+    state,
+    dtt,
+    listMaintenance,
+    maintenance,
+    content,
+    portage,
+    vbmapp,
+    session,
+    isEdit,
+    navigate,
+    renderToast,
+  ]);
 
   useEffect(() => {
     getSumaryContent();
@@ -289,11 +410,11 @@ export const useSessionForm = () => {
     content,
     setContent,
     list,
-    listMaintenance,   // objeto { manual, vbmapp, portage }
+    listMaintenance, // objeto { manual, vbmapp, portage }
     listPortage,
     listVBMapp,
     dtt,
-    maintenance,       // selectedMaintenanceKeys { manual, vbmapp, portage }
+    maintenance, // selectedMaintenanceKeys { manual, vbmapp, portage }
     session,
     portage,
     vbmapp,
@@ -302,8 +423,8 @@ export const useSessionForm = () => {
     setPortage,
     setVBMapp,
     setDTT,
-    setMaintenance,    // setter para selectedMaintenanceKeys
+    setMaintenance, // setter para selectedMaintenanceKeys
     handleSubmitSumary,
-    state
+    state,
   };
 };
