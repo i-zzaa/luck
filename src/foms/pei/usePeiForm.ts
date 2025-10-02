@@ -9,7 +9,13 @@ import { dropDown, update, create } from '../../server';
 import { OBJ_ITEM, OBJ_META } from '../../util/util';
 import { formatPortage, formatVBMapp } from './peiFormat';
 
-export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) => {
+export const usePeiForm = ({
+  paciente,
+  param,
+}: {
+  paciente: any;
+  param?: any;
+}) => {
   const defaultValues = {
     pacienteId: '',
     procedimentoEnsinoId: '',
@@ -38,14 +44,15 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     control,
     reset,
     watch,
-    unregister, resetField
+    unregister,
+    resetField,
   } = useForm({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
     const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
       dropDown(`programa/${tipoProtocolo}`),
       dropDown('pei/procedimento-ensino'),
-      dropDown('protocolo')
+      dropDown('protocolo'),
     ]);
 
     const drop = { programa, procedimentoEnsino, protocolo };
@@ -54,7 +61,7 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   }, [setDropDownList]);
 
   const formatarDado = (drop: any) => {
-    if (Boolean(state?.item?.programa) || (tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
+    if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
       const {
         paciente,
         programa,
@@ -65,8 +72,16 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
         procedimentoEnsinoId,
       } = state.item;
 
-      const programaObj = typeof programa !== 'object' ? drop?.programa?.find((item: any) => item.nome === programa) : programa;
-      const procedimentoEnsinoObj = typeof procedimentoEnsinoId !== 'object' ? drop?.procedimentoEnsino?.find((item: any) => item.id === procedimentoEnsinoId) : procedimentoEnsinoId;
+      const programaObj =
+        typeof programa !== 'object'
+          ? drop?.programa?.find((item: any) => item.nome === programa)
+          : programa;
+      const procedimentoEnsinoObj =
+        typeof procedimentoEnsinoId !== 'object'
+          ? drop?.procedimentoEnsino?.find(
+              (item: any) => item.id === procedimentoEnsinoId
+            )
+          : procedimentoEnsinoId;
 
       setValue('pacienteId', paciente);
       setValue('programaId', programaObj);
@@ -78,13 +93,21 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
 
       metas.forEach((meta: any) => {
         setValue(meta.id, meta.value);
-        meta.subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
+        meta.subitems?.forEach((subitem: any) =>
+          setValue(subitem.id, subitem.value)
+        );
       });
     } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
       const { paciente, metas } = param.item;
 
-      const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
-      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa.id || item.nome === metas[0].programa.nome );
+      const procedimentoEnsino = drop.procedimentoEnsino?.find(
+        (item: any) => item.id === metas[0].procedimentoEnsino
+      );
+      const programa = drop?.programa?.find(
+        (item: any) =>
+          item.id === metas[0].programa.id ||
+          item.nome === metas[0].programa.nome
+      );
 
       setMetas(metas);
       setValue(metas[0].id, metas[0].value);
@@ -93,9 +116,14 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
       setValue('procedimentoEnsinoId', procedimentoEnsino);
       setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo);
       setValue('resposta', metas[0].resposta);
-      setValue('estimuloReforcadorPositivo', metas[0].estimuloReforcadorPositivo);
+      setValue(
+        'estimuloReforcadorPositivo',
+        metas[0].estimuloReforcadorPositivo
+      );
 
-      metas[0].subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
+      metas[0].subitems?.forEach((subitem: any) =>
+        setValue(subitem.id, subitem.value)
+      );
     }
   };
 
@@ -104,15 +132,22 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     setLoading(true);
 
     try {
-      const payload: any = { metas: [], programa: formvalue.programaId};
-      const [protocoloId] = dropDownList.protocolo.filter((item: any)=> item.id == tipoProtocolo)
+      const payload: any = { metas: [], programa: formvalue.programaId };
+      const [protocoloId] = dropDownList.protocolo.filter(
+        (item: any) => item.id == tipoProtocolo
+      );
 
-      if (Object.values(formvalue).some((valor) => valor === '' || valor === undefined)) {
+      if (
+        Object.values(formvalue).some(
+          (valor) => valor === '' || valor === undefined
+        )
+      ) {
         setLoading(false);
         renderToast({
           type: 'failure',
           title: 'Valores Vazios!',
-          message: 'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
+          message:
+            'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
           open: true,
         });
         return;
@@ -132,10 +167,19 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
             }
           });
 
-          payload.metas.push({ ...OBJ_META, id: key, subitems, value: formvalue[key] });
+          payload.metas.push({
+            ...OBJ_META,
+            id: key,
+            subitems,
+            value: formvalue[key],
+          });
         } else if (key.includes('Id')) {
           payload[key] = formvalue[key].id;
-        } else if (!key.includes('-meta-') && !key.includes('-sub-item-') && !key.includes('Id')) {
+        } else if (
+          !key.includes('-meta-') &&
+          !key.includes('-sub-item-') &&
+          !key.includes('Id')
+        ) {
           payload[key] = formvalue[key];
         }
       });
@@ -147,22 +191,46 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
           ? await update('pei', payload)
           : await create('pei', payload);
 
-        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId, protocoloId } });
+        navigate(`/${CONSTANTES_ROUTERS.PEI}`, {
+          state: { pacienteId: formvalue.pacienteId, protocoloId },
+        });
       } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
         const response = formatPortage(payload, metas);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          state: {
+            pacienteId: formvalue.pacienteId,
+            protocoloId: tipoProtocolo,
+            metaEdit: response,
+          },
+        });
       } else if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
         const response = formatVBMapp(payload, dropDownList);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          state: {
+            pacienteId: formvalue.pacienteId,
+            protocoloId: tipoProtocolo,
+            metaEdit: response,
+          },
+        });
       }
 
       reset();
       setLoading(false);
       setMetas([]);
-      renderToast({ type: 'success', title: 'Sucesso!', message: 'PEI Cadastrado.', open: true });
+      renderToast({
+        type: 'success',
+        title: 'Sucesso!',
+        message: 'PEI Cadastrado.',
+        open: true,
+      });
     } catch (error) {
       setLoading(false);
-      renderToast({ type: 'failure', title: 'Erro!', message: 'Falha na conexão', open: true });
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão',
+        open: true,
+      });
     }
   };
 
@@ -214,7 +282,6 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     novasMetas[metaIndex].subitems.splice(subIndex, 1);
     setMetas(novasMetas);
   };
-
 
   return {
     control,
