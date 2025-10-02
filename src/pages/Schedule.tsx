@@ -1,16 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import { diffWeek, formatdate, formatdateEuaAddDay, formatdateeua } from "../util/util";
-import { useAuth } from "../contexts/auth";
-import { getList, update } from "../server";
-import { ButtonHeron, Card, Filter } from "../components";
-import { LoadingHeron } from "../components/loading";
-import { NotFound } from "../components/notFound";
-import { useToast } from "../contexts/toast";
-import { STATUS_EVENTS, filterCalendarFields } from "../constants/schedule";
+import { useEffect, useMemo, useState } from 'react';
+import {
+  diffWeek,
+  formatdate,
+  formatdateEuaAddDay,
+  formatdateeua,
+} from '../util/util';
+import { useAuth } from '../contexts/auth';
+import { getList, update } from '../server';
+import { ButtonHeron, Card, Filter } from '../components';
+import { LoadingHeron } from '../components/loading';
+import { NotFound } from '../components/notFound';
+import { useToast } from '../contexts/toast';
+import { STATUS_EVENTS, filterCalendarFields } from '../constants/schedule';
 import { useNavigate } from 'react-router-dom';
-import { CONSTANTES_ROUTERS } from "../routes/OtherRoutes";
-import { ChoiceItemSchedule } from "../components/choiceItemSchedule";
-
+import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
+import moment from 'moment';
 
 const fieldsConst = filterCalendarFields;
 const fieldsState: any = {};
@@ -27,8 +32,8 @@ export const Schedule = () => {
   const { user } = useAuth();
 
   const current = new Date();
-  const start = formatdateeua(current)
-  const end = formatdateEuaAddDay(current)
+  const start = formatdateeua(current);
+  const end = formatdateEuaAddDay(current);
 
   // async function handleSubmitCheckEvent(item: any) {
   //   try {
@@ -56,17 +61,23 @@ export const Schedule = () => {
   // }
 
   const handleButtonDTTClick = (e: any, item: any) => {
-    e.stopPropagation(); 
-    navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: item})
+    e.stopPropagation();
+    navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: item });
   };
 
+  const getDayTerapeuta = async (
+    currentDateStart = start,
+    currentDateEnd = end
+  ) => {
+    // const getDayTerapeuta = async (currentDateStart = '2024-12-05',  currentDateEnd =  '2024-12-31') => {
 
-  const getDayTerapeuta = async (currentDateStart = start,  currentDateEnd = end) => {
-  // const getDayTerapeuta = async (currentDateStart = '2024-12-05',  currentDateEnd =  '2024-12-31') => {
-
-    setLoading(true)
+    setLoading(true);
     try {
-      const response: any = await getList(`/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`);
+      // evento/filtro/2025-09-10/2025-09-12?terapeutaId=25
+      const response: any = await getList(
+        `/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`
+        // `/evento/filtro/2025-09-10/2025-09-12?terapeutaId=${user.id}`
+      );
       let clavesOrdenadas = Object.keys(response).sort();
 
       setList(response);
@@ -80,97 +91,142 @@ export const Schedule = () => {
         open: true,
       });
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const cardFree = (item: any) => {
-    return <Card  key={item.id} type="free">
-        <div className="flex gap-2 w-full item-center"> 
-          <div className="grid text-center font-inter text-sm text-gray-400"> 
-            <span> {item.start}</span> -
-            <span>{item.end}</span>
+    return (
+      <Card key={item.id} type="free">
+        <div className="flex gap-2 w-full item-center">
+          <div className="grid text-center font-inter text-sm text-gray-400">
+            <span> {item.start}</span> -<span>{item.end}</span>
           </div>
-          <div className="text-gray-800 text-center flex items-center justify-center text-md">  { item.title }</div>
+          <div className="text-gray-800 text-center flex items-center justify-center text-md">
+            {' '}
+            {item.title}
+          </div>
         </div>
-    </Card>
-  }
+      </Card>
+    );
+  };
 
   const cardChoice = (item: any) => {
-    return <Card key={item.id} type={item.especialidade.nome} onClick={()=> navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })}>
-      <div className="flex">
-        <ChoiceItemSchedule
-        start={item?.data.start}
-        end={item?.data.end}
-        statusEventos={item?.statusEventos.nome}
-        title={item?.title}
-        localidade={item?.localidade.nome}
-        isExterno={item?.isExterno}
-        km={item?.km}
-        modalidade={item?.modalidade.nome}
-        dataInicio={item?.dataInicio}
-        dataFim={item?.dataFim}
-        dataAtual={item?.dataAtual}
-        />
-          {
-            item.statusEventos.nome  !== STATUS_EVENTS.atendido && <ButtonHeron
-            text="Pesquisar"
-            icon="pi pi-file-edit"
-            type="primary"
-            size="icon"
-            loading={loading}
-            onClick={(event: any) => handleButtonDTTClick(event, item)}
-          />
-          }
+    const dateSession = item?.dataAtual || item?.date;
+    const isPast = moment()
+      .startOf('day')
+      .isAfter(moment(dateSession).startOf('day'));
 
-          { item.statusEventos.nome  == STATUS_EVENTS.atendido  &&  <ButtonHeron
-          text="Atendido"
-          type="transparent"
-          icon="pi pi-check"
-          size="icon"
-          color="violet"
-        />}
-      </div>
-    </Card>
-  }
+    const notNavigate =
+      isPast && item.statusEventos.nome !== STATUS_EVENTS.atendido;
+
+    return (
+      <Card
+        key={item.id}
+        type={item.especialidade.nome}
+        onClick={() =>
+          !notNavigate &&
+          navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })
+        }
+      >
+        <div className="flex">
+          <ChoiceItemSchedule
+            start={item?.data.start}
+            end={item?.data.end}
+            statusEventos={item?.statusEventos.nome}
+            title={item?.title}
+            localidade={item?.localidade.nome}
+            isExterno={item?.isExterno}
+            km={item?.km}
+            modalidade={item?.modalidade.nome}
+            dataInicio={item?.dataInicio}
+            dataFim={item?.dataFim}
+            dataAtual={item?.dataAtual || item?.date}
+          />
+          {!isPast && item.statusEventos.nome !== STATUS_EVENTS.atendido && (
+            <ButtonHeron
+              text="Pesquisar"
+              icon="pi pi-file-edit"
+              type="primary"
+              size="icon"
+              loading={loading}
+              onClick={(event: any) => handleButtonDTTClick(event, item)}
+            />
+          )}
+
+          {item.statusEventos.nome == STATUS_EVENTS.atendido && (
+            <ButtonHeron
+              text="Atendido"
+              type="transparent"
+              icon="pi pi-check"
+              size="icon"
+              color="violet"
+            />
+          )}
+
+          {notNavigate && (
+            <>
+              <label htmlFor="" className="font-inter text-sm text-gray-400">
+                {' '}
+                Não Atendido{' '}
+              </label>
+              <ButtonHeron
+                text="Não Atendido"
+                type="transparent"
+                icon="pi pi-times"
+                size="icon"
+                color="red"
+              />
+            </>
+          )}
+        </div>
+      </Card>
+    );
+  };
 
   const formatItem = (item: any) => {
     switch (item.id) {
       case 0:
-        return cardFree(item)
+        return cardFree(item);
       default:
-        return cardChoice(item)
+        return cardChoice(item);
     }
-  }
+  };
 
   const renderContent = () => {
     if (!loading) {
-      return keys.length ? keys.map((key: string) => {
-        return (
-          <div key={key}>
-            <div className="font-inter m-2 text-gray-400">
-            { formatdate(key) }
+      return keys.length ? (
+        keys.map((key: string) => {
+          return (
+            <div key={key}>
+              <div className="font-inter m-2 text-gray-400">
+                {formatdate(key)}
+              </div>
+              {list[key].map((item: any) => formatItem(item))}
             </div>
-            {
-              list[key].map((item: any)=> formatItem(item))
-            }
-          </div>
-        )
-      }) : (
-       <Card> <NotFound /> </Card>
+          );
+        })
+      ) : (
+        <Card>
+          {' '}
+          <NotFound />{' '}
+        </Card>
       );
     } else {
       return <LoadingHeron />;
     }
-  }
+  };
 
   const renderHeader = useMemo(() => {
-    return  (
-      <div className="text-primary font-base grid justify-start m-2 leading-4"> 
-      <span className="font-bold"> Agenda </span>
-        <span className="text-gray-400 font-light text-sm font-inter"> {formatdate(new Date()) } </span>
+    return (
+      <div className="text-primary font-base grid justify-start m-2 leading-4">
+        <span className="font-bold"> Agenda </span>
+        <span className="text-gray-400 font-light text-sm font-inter">
+          {' '}
+          {formatdate(new Date())}{' '}
+        </span>
       </div>
-    )
-  }, [])
+    );
+  }, []);
 
   const renderFilter = useMemo(() => {
     return (
@@ -179,25 +235,26 @@ export const Schedule = () => {
         legend="Filtro"
         nameButton="Agendar"
         fields={fieldsConst}
-        onSubmit={({dataInicio, datatFim}: any) =>  getDayTerapeuta(dataInicio, datatFim)}
-        onReset={()=>  getDayTerapeuta()}
+        onSubmit={({ dataInicio, datatFim }: any) =>
+          getDayTerapeuta(dataInicio, datatFim)
+        }
+        onReset={() => getDayTerapeuta()}
         screen="AGENDA_CALENDARIO"
         loading={loading}
         dropdown={[]}
       />
-    )
-  }, [])
+    );
+  }, []);
 
-
-  useEffect(()=> {
-    getDayTerapeuta()
-  }, [])
+  useEffect(() => {
+    getDayTerapeuta();
+  }, []);
 
   return (
     <>
-    { renderFilter }
-    { renderHeader }
-    { renderContent() }
+      {renderFilter}
+      {renderHeader}
+      {renderContent()}
     </>
-  )
-}
+  );
+};
