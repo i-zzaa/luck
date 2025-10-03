@@ -15,6 +15,18 @@ const VBMAPP = 'vbmapp';
 
 type TipoProtocolo = 'vbmapp' | 'portage' | 'maintenance' | 'activity';
 
+// helpers
+const isObj = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
+const isPrimitiveOrNull = (v: any) => v === null || !isObj(v);
+
+const padSlots = (arr: any[], count: number) => {
+  const base = Array.isArray(arr) ? arr.slice(0, count) : [];
+  if (base.length < count) {
+    base.push(...Array.from({ length: count - base.length }, () => null));
+  }
+  return base;
+};
+
 export const useSessionForm = () => {
   const { renderToast } = useToast();
   const location = useLocation();
@@ -64,10 +76,11 @@ export const useSessionForm = () => {
         resposta: node?.resposta ?? '',
       };
 
-      // Normaliza possíveis filhos
+      // Normaliza possíveis filhos (children/subitems)
       const kids: any[] = (() => {
-        if (Array.isArray(node?.children) && node.children.length)
+        if (Array.isArray(node?.children) && node.children.length) {
           return node.children;
+        }
         if (Array.isArray(node?.subitems) && node.subitems.length) {
           return node.subitems.map((si: any) => ({
             ...si,
@@ -80,34 +93,44 @@ export const useSessionForm = () => {
         return [];
       })();
 
-      // Penúltimo nível: filhos existem e são folhas (sem children/subitems)
-      const isPenultimate =
-        kids.length > 0 &&
-        kids.every(
-          (k) => !Array.isArray(k?.children) && !Array.isArray(k?.subitems)
-        );
-
-      if (isPenultimate) {
-        out.children = kids.map((sub: any) => ({
-          key: String(sub?.key ?? sub?.id ?? ''),
-          label: sub?.label ?? sub?.nome ?? '',
-          estimuloDiscriminativo: sub?.estimuloDiscriminativo ?? '',
-          estimuloReforcadorPositivo: sub?.estimuloReforcadorPositivo ?? '',
-          resposta: sub?.resposta ?? '',
-          children: Array.from({ length: slotCount }, () => null),
-        }));
-        return out;
-      }
-
-      // Nó interno: recursão
       if (kids.length > 0) {
+        // CASO 1: folha com array de slots (primitivos/null) -> usa direto e padroniza
+        if (kids.every(isPrimitiveOrNull)) {
+          out.children = padSlots(kids, slotCount);
+          return out;
+        }
+
+        // CASO 2: array de objetos "folhas" (sem children/subitems -> penúltimo nível)
+        const isLeafObject = (k: any) =>
+          isObj(k) &&
+          !Array.isArray(k?.children) &&
+          !Array.isArray(k?.subitems);
+
+        if (kids.every(isLeafObject)) {
+          out.children = kids.map((sub: any) => ({
+            key: String(sub?.key ?? sub?.id ?? ''),
+            label: sub?.label ?? sub?.nome ?? '',
+            estimuloDiscriminativo: sub?.estimuloDiscriminativo ?? '',
+            estimuloReforcadorPositivo: sub?.estimuloReforcadorPositivo ?? '',
+            resposta: sub?.resposta ?? '',
+            // se o sub já trouxer um array de slots, preserva; senão cria
+            children:
+              Array.isArray(sub?.children) &&
+              sub.children.every(isPrimitiveOrNull)
+                ? padSlots(sub.children, slotCount)
+                : Array.from({ length: slotCount }, () => null),
+          }));
+          return out;
+        }
+
+        // CASO 3: nó interno -> recursão
         out.children = await Promise.all(
           kids.map((ch: any) => transformGenericNode(ch, type))
         );
         return out;
       }
 
-      // Folha pura: gera slots
+      // Sem filhos: folha pura -> cria slots vazios
       out.children = Array.from({ length: slotCount }, () => null);
       return out;
     },

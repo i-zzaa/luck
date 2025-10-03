@@ -1,6 +1,6 @@
 // src/components/CheckboxTree.tsx
-import React from "react";
-import CheckboxDTT from "../../components/DTT";
+import React from 'react';
+import CheckboxDTT from '../../components/DTT';
 
 interface CheckboxTreeProps {
   node: any;
@@ -22,28 +22,28 @@ export const CheckboxTree: React.FC<CheckboxTreeProps> = ({
   // detecta leaf: filhos são slots (null ou primitivos)
   const first = node.children[0];
   const isLeaf =
-    first == null || typeof first !== "object" || !("label" in first);
+    first == null || typeof first !== 'object' || !('label' in first);
 
   if (isLeaf) {
     return (
       <div key={node.key} className="mb-4">
         {/* aqui: renderiza o label do subitem/meta */}
         <span className="block font-medium mb-2">- {node.label}</span>
-        <div className="flex flex-wrap gap-1 ml-[-1rem]">
+        <div className="flex flex-wrap gap-1 ml-[-0.5rem]">
           {node.children.map((val: any, idx: number) => {
             const slot = idx;
-            const key = [...path, slot].join(".");
+            const key = [...path, slot].join('.');
             return (
               <CheckboxDTT
                 key={key}
                 value={val}
                 disabled={isEdit}
                 onChange={(newValue: any) =>
-                  setStateFn(prev => {
+                  setStateFn((prev) => {
                     const next = JSON.parse(JSON.stringify(prev));
                     let target: any = next;
                     // navega pelo path até chegar no array de slots
-                    path.forEach(i => {
+                    path.forEach((i) => {
                       target = target[i].children;
                     });
                     target[slot] = newValue;
