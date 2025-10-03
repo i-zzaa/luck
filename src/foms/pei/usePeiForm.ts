@@ -68,9 +68,10 @@ export const usePeiForm = ({
         estimuloDiscriminativo,
         resposta,
         estimuloReforcadorPositivo,
-        metas,
         procedimentoEnsinoId,
       } = state.item;
+
+      const metasState = state.item.metas || [];
 
       const programaObj =
         typeof programa !== 'object'
@@ -79,7 +80,9 @@ export const usePeiForm = ({
       const procedimentoEnsinoObj =
         typeof procedimentoEnsinoId !== 'object'
           ? drop?.procedimentoEnsino?.find(
-              (item: any) => item.id === procedimentoEnsinoId
+              (item: any) =>
+                item.id === procedimentoEnsinoId ||
+                item.id === procedimentoEnsinoId?.id
             )
           : procedimentoEnsinoId;
 
@@ -89,39 +92,72 @@ export const usePeiForm = ({
       setValue('estimuloDiscriminativo', estimuloDiscriminativo);
       setValue('resposta', resposta);
       setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
-      setMetas(metas);
+      setMetas(metasState);
 
-      metas.forEach((meta: any) => {
+      metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
         meta.subitems?.forEach((subitem: any) =>
           setValue(subitem.id, subitem.value)
         );
       });
     } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
-      const { paciente, metas } = param.item;
+      const { paciente, programa } = param.item || state?.item;
+      const metasState = state.item.metas || [];
 
       const procedimentoEnsino = drop.procedimentoEnsino?.find(
-        (item: any) => item.id === metas[0].procedimentoEnsino
+        (item: any) => item.id === metasState[0].procedimentoEnsino
       );
-      const programa = drop?.programa?.find(
+      const programaList = drop?.programa?.find(
         (item: any) =>
-          item.id === metas[0].programa.id ||
-          item.nome === metas[0].programa.nome
+          item.id === programa ||
+          item.nome === metasState[0].programa?.nome ||
+          item.nome === metasState[0].programa?.id
       );
 
-      setMetas(metas);
-      setValue(metas[0].id, metas[0].value);
+      setMetas(metasState);
+      setValue(metasState[0].id, metasState[0].value);
       setValue('pacienteId', paciente);
-      setValue('programaId', programa);
+      setValue('programaId', programaList);
       setValue('procedimentoEnsinoId', procedimentoEnsino);
-      setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo);
-      setValue('resposta', metas[0].resposta);
+      setValue('estimuloDiscriminativo', metasState[0].estimuloDiscriminativo);
+      setValue('resposta', metasState[0].resposta);
       setValue(
         'estimuloReforcadorPositivo',
-        metas[0].estimuloReforcadorPositivo
+        metasState[0].estimuloReforcadorPositivo
       );
 
-      metas[0].subitems?.forEach((subitem: any) =>
+      metasState[0].subitems?.forEach((subitem: any) =>
+        setValue(subitem.id, subitem.value)
+      );
+    } else if (tipoProtocolo === TIPO_PROTOCOLO.pei && state?.item) {
+      const {
+        paciente,
+        procedimentoEnsino,
+        programa,
+        resposta,
+        estimuloReforcadorPositivo,
+        estimuloDiscriminativo,
+      } = param?.item || state?.item;
+      const metasState = state.item.metas || [];
+
+      // const procedimentoEnsino = drop.procedimentoEnsino?.find(
+      //   (item: any) => item.id === metas[0].procedimentoEnsino
+      // );
+
+      const programaList = drop?.programa?.find(
+        (item: any) => item.id === programa || item.nome === programa?.nome
+      );
+
+      setMetas(metasState);
+      setValue(metasState[0].id, metasState[0].value);
+      setValue('pacienteId', paciente);
+      setValue('programaId', programaList);
+      setValue('procedimentoEnsinoId', procedimentoEnsino);
+      setValue('estimuloDiscriminativo', estimuloDiscriminativo);
+      setValue('resposta', resposta);
+      setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
+
+      metasState[0].subitems?.forEach((subitem: any) =>
         setValue(subitem.id, subitem.value)
       );
     }

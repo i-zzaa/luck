@@ -80,6 +80,7 @@ export default function PrimeiraResposta() {
         {sections.map((sec, idx) => (
           <AccordionTab
             key={`sec-${idx}-${sec.programa}`}
+            tabIndex={idx}
             header={
               <div className="flex items-center w-full">
                 <span>{sec.programa}</span>
@@ -113,8 +114,9 @@ export default function PrimeiraResposta() {
     // Accordion de níveis; dentro de cada nível, usamos o mesmo renderer de sections
     return (
       <Accordion multiple>
-        {levels.map((nivel) => (
+        {levels.map((nivel, key) => (
           <AccordionTab
+            tabIndex={key}
             key={`nivel-${nivel}`}
             header={
               <div className="flex items-center w-full">
