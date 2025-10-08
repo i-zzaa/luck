@@ -149,7 +149,7 @@ export const usePeiForm = ({
       );
 
       setMetas(metasState);
-      setValue(metasState[0].id, metasState[0].value);
+      // setValue(metasState[0].id, metasState[0].value);
       setValue('pacienteId', paciente);
       setValue('programaId', programaList);
       setValue('procedimentoEnsinoId', procedimentoEnsino);
@@ -157,9 +157,12 @@ export const usePeiForm = ({
       setValue('resposta', resposta);
       setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
 
-      metasState[0].subitems?.forEach((subitem: any) =>
-        setValue(subitem.id, subitem.value)
-      );
+      metasState.forEach((meta: any) => {
+        setValue(meta.id, meta.value);
+        meta.subitems?.forEach((subitem: any) =>
+          setValue(subitem.id, subitem.value)
+        );
+      });
     }
   };
 

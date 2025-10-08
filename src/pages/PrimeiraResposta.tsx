@@ -88,9 +88,10 @@ export default function PrimeiraResposta() {
             }
           >
             <DataTable value={sec.children} scrollable>
+              <Column field="meta" header="Meta" style={{ width: '25%' }} />
               <Column
-                field="programa"
-                header="Programa"
+                field="subItem"
+                header="Subitem"
                 style={{ width: '25%' }}
               />
               {Array.from({ length: sec.qtdColumns }).map((_, index) => (
