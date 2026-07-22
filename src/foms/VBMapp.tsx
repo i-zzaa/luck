@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Accordion, AccordionTab, Column, DataTable, TabPanel, TabView } from 'primereact';
+import {
+  Accordion,
+  AccordionTab,
+  Column,
+  DataTable,
+  TabPanel,
+  TabView,
+} from 'primereact';
 import CheckboxPortage from '../components/checkboxPortage';
 import { create, filter } from '../server';
 import { TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
@@ -69,7 +76,11 @@ export default function VBMapp({ paciente }: any) {
   };
 
   const getMetaEdit = (currentList: any) => {
-    if (!state?.metaEdit || state.pacienteId.id !== paciente.id || state.protocoloId !== TIPO_PROTOCOLO.vbMapp) {
+    if (
+      !state?.metaEdit ||
+      state.pacienteId.id !== paciente.id ||
+      state.protocoloId !== TIPO_PROTOCOLO.vbMapp
+    ) {
       setList(currentList);
       return;
     }
@@ -86,11 +97,16 @@ export default function VBMapp({ paciente }: any) {
     }
 
     const metasEditadasMap = new Map(
-      state.metaEdit.metas.map((meta: any) => [pegarNumeroDepoisDeMeta(meta.id), meta])
+      state.metaEdit.metas.map((meta: any) => [
+        pegarNumeroDepoisDeMeta(meta.id),
+        meta,
+      ])
     );
 
     // Remove metas excluídas no PEI
-    copyList[programa] = copyList[programa].filter((meta: any) => metasEditadasMap.has(meta.id));
+    copyList[programa] = copyList[programa].filter((meta: any) =>
+      metasEditadasMap.has(meta.id)
+    );
 
     // Mescla alterações de metas e subitens
     copyList[programa] = copyList[programa].map((meta: any) => {
@@ -98,13 +114,18 @@ export default function VBMapp({ paciente }: any) {
       if (!metaEditada) return meta;
 
       const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
-        const backendSub = (meta.subitems || []).find((s: any) => s.id === edit.id);
+        const backendSub = (meta.subitems || []).find(
+          (s: any) => s.id === edit.id
+        );
 
         return {
           ...OBJ_ITEM,
           ...backendSub,
           ...edit,
-          selected: edit.selected !== undefined ? edit.selected : backendSub?.selected ?? false,
+          selected:
+            edit.selected !== undefined
+              ? edit.selected
+              : (backendSub?.selected ?? false),
         };
       });
 
@@ -121,19 +142,16 @@ export default function VBMapp({ paciente }: any) {
   };
 
   const clearMetaEdit = () => {
-      // --- limpa somente state.metaEdit ---
+    // --- limpa somente state.metaEdit ---
     const st = (state as any) || {};
     if ('metaEdit' in st) {
       const { metaEdit, ...rest } = st; // remove metaEdit
-      navigate(
-        location.pathname + location.search + location.hash,
-        {
-          replace: true,
-          state: Object.keys(rest).length ? rest : null, // mantém eventuais outras chaves
-        }
-      );
+      navigate(location.pathname + location.search + location.hash, {
+        replace: true,
+        state: Object.keys(rest).length ? rest : null, // mantém eventuais outras chaves
+      });
     }
-  }
+  };
 
   const onSubmit = useCallback(async () => {
     setLoading(true);
@@ -142,13 +160,23 @@ export default function VBMapp({ paciente }: any) {
     try {
       await create('protocolo/vbmapp', payload);
       setExiste(true);
-      clearMetaEdit()
+      clearMetaEdit();
       renderToast({
         type: 'success',
         title: 'Sucesso!',
         message: 'VB Mapp Cadastrado.',
         open: true,
       });
+
+      navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+        replace: true, // evita empilhar
+        state: {
+          pacienteId: paciente, // mantém paciente
+          // resetProtocolo: true, // flag para o pai limpar protocolo
+        },
+      });
+
+      sessionStorage.setItem('removeProtocolo', 'true');
     } catch (error) {
       console.error('Error saving form data', error);
       renderToast({
@@ -171,7 +199,11 @@ export default function VBMapp({ paciente }: any) {
     [getVBMapp]
   );
 
-  const onCheckboxChange = (programa: string, itemId: string, newValue: boolean) => {
+  const onCheckboxChange = (
+    programa: string,
+    itemId: string,
+    newValue: boolean
+  ) => {
     setList((prevList: any) => {
       const updatedList = { ...prevList };
 
@@ -197,17 +229,27 @@ export default function VBMapp({ paciente }: any) {
   };
 
   const validItensPermiteSubitens = (programaList: any) => {
-    const itensPermiteSubitens = programaList.filter((item: any) => item.permiteSubitens);
+    const itensPermiteSubitens = programaList.filter(
+      (item: any) => item.permiteSubitens
+    );
     return !!itensPermiteSubitens.length;
   };
 
-  const onClickAddSubItem = async (programaList: any, index: number, programa: string) => {
-    const itensPermiteSubitens = programaList.filter((item: any) =>{
-      return  item.subitems && item.subitems.length || item.permiteSubitens
+  const onClickAddSubItem = async (
+    programaList: any,
+    index: number,
+    programa: string
+  ) => {
+    const itensPermiteSubitens = programaList.filter((item: any) => {
+      return (item.subitems && item.subitems.length) || item.permiteSubitens;
     });
 
-    const { estimuloDiscriminativo, estimuloReforcadorPositivo, procedimentoEnsinoId, resposta } =
-      itensPermiteSubitens[0];
+    const {
+      estimuloDiscriminativo,
+      estimuloReforcadorPositivo,
+      procedimentoEnsinoId,
+      resposta,
+    } = itensPermiteSubitens[0];
 
     const meta = itensPermiteSubitens.map((item: any, key: any) => {
       const id = `${index}-meta-${item.id}`;
@@ -222,7 +264,9 @@ export default function VBMapp({ paciente }: any) {
 
       if (item?.subitems) {
         const subitems = item?.subitems.map((subitem: any) => {
-          const selected = subitem?.selected ? { selected: subitem.selected } : {};
+          const selected = subitem?.selected
+            ? { selected: subitem.selected }
+            : {};
           return {
             ...OBJ_ITEM,
             id: subitem.id,
@@ -251,6 +295,7 @@ export default function VBMapp({ paciente }: any) {
           programa,
           resposta,
         },
+        programa,
         tipoProtocolo: TIPO_PROTOCOLO.vbMapp,
       },
     });
@@ -266,13 +311,18 @@ export default function VBMapp({ paciente }: any) {
               <CheckboxPortage
                 key={rowData.id}
                 value={value}
-                onChange={(newValue: any) => onCheckboxChange(programa, rowData.id, newValue)}
+                onChange={(newValue: any) =>
+                  onCheckboxChange(programa, rowData.id, newValue)
+                }
               />
             </div>
             {rowData.nome}
           </div>
           <div className="grid ml-8 mt-2">
-            {rowData?.subitems && rowData.subitems.map((subItem: any) => renderedCheckboxes(subItem, programa))}
+            {rowData?.subitems &&
+              rowData.subitems.map((subItem: any) =>
+                renderedCheckboxes(subItem, programa)
+              )}
           </div>
         </div>
       );
@@ -294,7 +344,12 @@ export default function VBMapp({ paciente }: any) {
                   <div className="flex items-center w-full gap-2">
                     <span>{programa.toLocaleUpperCase()}</span>
                     {validItensPermiteSubitens(list[programa]) && (
-                      <i className="pi pi-pencil" onClick={() => onClickAddSubItem(list[programa], keys, programa)} />
+                      <i
+                        className="pi pi-pencil"
+                        onClick={() =>
+                          onClickAddSubItem(list[programa], keys, programa)
+                        }
+                      />
                     )}
                   </div>
                 }
@@ -308,7 +363,10 @@ export default function VBMapp({ paciente }: any) {
                   dataKey="id"
                   tableStyle={{ minWidth: 'none' }}
                 >
-                  <Column body={(row: any) => renderedCheckboxes(row, programa)} bodyStyle={{ padding: '.1rem' }} />
+                  <Column
+                    body={(row: any) => renderedCheckboxes(row, programa)}
+                    bodyStyle={{ padding: '.1rem' }}
+                  />
                 </DataTable>
               </AccordionTab>
             ))}
@@ -342,7 +400,13 @@ export default function VBMapp({ paciente }: any) {
   const renderFooter = useCallback(
     () => (
       <div className="mt-auto">
-        <ButtonHeron text="Salvar" type="primary" size="full" onClick={onSubmit} loading={loading} />
+        <ButtonHeron
+          text="Salvar"
+          type="primary"
+          size="full"
+          onClick={onSubmit}
+          loading={loading}
+        />
       </div>
     ),
     [onSubmit, loading]

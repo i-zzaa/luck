@@ -9,7 +9,13 @@ import { dropDown, update, create } from '../../server';
 import { OBJ_ITEM, OBJ_META } from '../../util/util';
 import { formatPortage, formatVBMapp } from './peiFormat';
 
-export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) => {
+export const usePeiForm = ({
+  paciente,
+  param,
+}: {
+  paciente: any;
+  param?: any;
+}) => {
   const defaultValues = {
     pacienteId: '',
     procedimentoEnsinoId: '',
@@ -38,14 +44,15 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     control,
     reset,
     watch,
-    unregister, resetField
+    unregister,
+    resetField,
   } = useForm({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
     const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
       dropDown(`programa/${tipoProtocolo}`),
       dropDown('pei/procedimento-ensino'),
-      dropDown('protocolo')
+      dropDown('protocolo'),
     ]);
 
     const drop = { programa, procedimentoEnsino, protocolo };
@@ -54,19 +61,30 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
   }, [setDropDownList]);
 
   const formatarDado = (drop: any) => {
-    if (Boolean(state?.item?.programa) || (tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
+    if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
       const {
         paciente,
         programa,
         estimuloDiscriminativo,
         resposta,
         estimuloReforcadorPositivo,
-        metas,
         procedimentoEnsinoId,
       } = state.item;
 
-      const programaObj = typeof programa !== 'object' ? drop?.programa?.find((item: any) => item.nome === programa) : programa;
-      const procedimentoEnsinoObj = typeof procedimentoEnsinoId !== 'object' ? drop?.procedimentoEnsino?.find((item: any) => item.id === procedimentoEnsinoId) : procedimentoEnsinoId;
+      const metasState = state.item.metas || [];
+
+      const programaObj =
+        typeof programa !== 'object'
+          ? drop?.programa?.find((item: any) => item.nome === programa)
+          : programa;
+      const procedimentoEnsinoObj =
+        typeof procedimentoEnsinoId !== 'object'
+          ? drop?.procedimentoEnsino?.find(
+              (item: any) =>
+                item.id === procedimentoEnsinoId ||
+                item.id === procedimentoEnsinoId?.id
+            )
+          : procedimentoEnsinoId;
 
       setValue('pacienteId', paciente);
       setValue('programaId', programaObj);
@@ -74,28 +92,77 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
       setValue('estimuloDiscriminativo', estimuloDiscriminativo);
       setValue('resposta', resposta);
       setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
-      setMetas(metas);
+      setMetas(metasState);
 
-      metas.forEach((meta: any) => {
+      metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
-        meta.subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
+        meta.subitems?.forEach((subitem: any) =>
+          setValue(subitem.id, subitem.value)
+        );
       });
     } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
-      const { paciente, metas } = param.item;
+      const { paciente, programa } = param.item || state?.item;
+      const metasState = state.item.metas || [];
 
-      const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
-      const programa = drop?.programa?.find((item: any) => item.id === metas[0].programa.id || item.nome === metas[0].programa.nome );
+      const procedimentoEnsino = drop.procedimentoEnsino?.find(
+        (item: any) => item.id === metasState[0].procedimentoEnsino
+      );
+      const programaList = drop?.programa?.find(
+        (item: any) =>
+          item.id === programa ||
+          item.nome === metasState[0].programa?.nome ||
+          item.nome === metasState[0].programa?.id
+      );
 
-      setMetas(metas);
-      setValue(metas[0].id, metas[0].value);
+      setMetas(metasState);
+      setValue(metasState[0].id, metasState[0].value);
       setValue('pacienteId', paciente);
-      setValue('programaId', programa);
+      setValue('programaId', programaList);
       setValue('procedimentoEnsinoId', procedimentoEnsino);
-      setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo);
-      setValue('resposta', metas[0].resposta);
-      setValue('estimuloReforcadorPositivo', metas[0].estimuloReforcadorPositivo);
+      setValue('estimuloDiscriminativo', metasState[0].estimuloDiscriminativo);
+      setValue('resposta', metasState[0].resposta);
+      setValue(
+        'estimuloReforcadorPositivo',
+        metasState[0].estimuloReforcadorPositivo
+      );
 
-      metas[0].subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
+      metasState[0].subitems?.forEach((subitem: any) =>
+        setValue(subitem.id, subitem.value)
+      );
+    } else if (tipoProtocolo === TIPO_PROTOCOLO.pei && state?.item) {
+      const {
+        paciente,
+        procedimentoEnsino,
+        programa,
+        resposta,
+        estimuloReforcadorPositivo,
+        estimuloDiscriminativo,
+      } = param?.item || state?.item;
+      const metasState = state.item.metas || [];
+
+      // const procedimentoEnsino = drop.procedimentoEnsino?.find(
+      //   (item: any) => item.id === metas[0].procedimentoEnsino
+      // );
+
+      const programaList = drop?.programa?.find(
+        (item: any) => item.id === programa || item.nome === programa?.nome
+      );
+
+      setMetas(metasState);
+      // setValue(metasState[0].id, metasState[0].value);
+      setValue('pacienteId', paciente);
+      setValue('programaId', programaList);
+      setValue('procedimentoEnsinoId', procedimentoEnsino);
+      setValue('estimuloDiscriminativo', estimuloDiscriminativo);
+      setValue('resposta', resposta);
+      setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
+
+      metasState.forEach((meta: any) => {
+        setValue(meta.id, meta.value);
+        meta.subitems?.forEach((subitem: any) =>
+          setValue(subitem.id, subitem.value)
+        );
+      });
     }
   };
 
@@ -104,15 +171,22 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     setLoading(true);
 
     try {
-      const payload: any = { metas: [], programa: formvalue.programaId};
-      const [protocoloId] = dropDownList.protocolo.filter((item: any)=> item.id == tipoProtocolo)
+      const payload: any = { metas: [], programa: formvalue.programaId };
+      const [protocoloId] = dropDownList.protocolo.filter(
+        (item: any) => item.id == tipoProtocolo
+      );
 
-      if (Object.values(formvalue).some((valor) => valor === '' || valor === undefined)) {
+      if (
+        Object.values(formvalue).some(
+          (valor) => valor === '' || valor === undefined
+        )
+      ) {
         setLoading(false);
         renderToast({
           type: 'failure',
           title: 'Valores Vazios!',
-          message: 'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
+          message:
+            'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
           open: true,
         });
         return;
@@ -132,10 +206,19 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
             }
           });
 
-          payload.metas.push({ ...OBJ_META, id: key, subitems, value: formvalue[key] });
+          payload.metas.push({
+            ...OBJ_META,
+            id: key,
+            subitems,
+            value: formvalue[key],
+          });
         } else if (key.includes('Id')) {
           payload[key] = formvalue[key].id;
-        } else if (!key.includes('-meta-') && !key.includes('-sub-item-') && !key.includes('Id')) {
+        } else if (
+          !key.includes('-meta-') &&
+          !key.includes('-sub-item-') &&
+          !key.includes('Id')
+        ) {
           payload[key] = formvalue[key];
         }
       });
@@ -147,22 +230,46 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
           ? await update('pei', payload)
           : await create('pei', payload);
 
-        navigate(`/${CONSTANTES_ROUTERS.PEI}`, { state: { pacienteId: formvalue.pacienteId, protocoloId } });
+        navigate(`/${CONSTANTES_ROUTERS.PEI}`, {
+          state: { pacienteId: formvalue.pacienteId, protocoloId },
+        });
       } else if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
         const response = formatPortage(payload, metas);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          state: {
+            pacienteId: formvalue.pacienteId,
+            protocoloId: tipoProtocolo,
+            metaEdit: response,
+          },
+        });
       } else if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
         const response = formatVBMapp(payload, dropDownList);
-        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, { state: { pacienteId: formvalue.pacienteId, protocoloId: tipoProtocolo, metaEdit: response } });
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          state: {
+            pacienteId: formvalue.pacienteId,
+            protocoloId: tipoProtocolo,
+            metaEdit: response,
+          },
+        });
       }
 
       reset();
       setLoading(false);
       setMetas([]);
-      renderToast({ type: 'success', title: 'Sucesso!', message: 'PEI Cadastrado.', open: true });
+      renderToast({
+        type: 'success',
+        title: 'Sucesso!',
+        message: 'PEI Cadastrado.',
+        open: true,
+      });
     } catch (error) {
       setLoading(false);
-      renderToast({ type: 'failure', title: 'Erro!', message: 'Falha na conexão', open: true });
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Falha na conexão',
+        open: true,
+      });
     }
   };
 
@@ -214,7 +321,6 @@ export const usePeiForm = ({ paciente, param }: { paciente: any; param?: any }) 
     novasMetas[metaIndex].subitems.splice(subIndex, 1);
     setMetas(novasMetas);
   };
-
 
   return {
     control,
