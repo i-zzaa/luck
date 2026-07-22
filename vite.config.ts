@@ -4,7 +4,7 @@ import reactRefresh from '@vitejs/plugin-react-refresh';
 import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa';
 
 const manifestForPlugin: Partial<VitePWAOptions> = {
-  includeAssets: ['favicon.ico'],
+  includeAssets: ['favicon.ico', 'logo-mini.png', 'logo-md-write.png'],
   registerType: 'autoUpdate',
   manifest: {
     name: 'ABA | Multi Alcance',
@@ -25,12 +25,6 @@ const manifestForPlugin: Partial<VitePWAOptions> = {
       },
       {
         src: '/logo-mini.png',
-        sizes: '180x180',
-        type: 'image/png',
-        purpose: 'apple',
-      },
-      {
-        src: '/logo-mini.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any maskable',
@@ -40,7 +34,7 @@ const manifestForPlugin: Partial<VitePWAOptions> = {
     background_color: '#662977',
     display: 'standalone',
     scope: '/',
-    start_url: "/?v=2",
+    start_url: '/?v=2',
     orientation: 'portrait',
   },
 };
