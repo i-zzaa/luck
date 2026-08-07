@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useRef } from 'react';
 
 const container =
   'absolute animate-bounce min-w-[24rem] top-2 right-0 block flex p-4 mb-4 text-sm rounded-lg items-center gap-2 z-[70] ';
@@ -31,6 +31,7 @@ export const ToastProvider = ({ children }: Props) => {
     message: '',
     open: false,
   });
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const renderType = (type: any): void => {
     switch (type) {
@@ -85,7 +86,15 @@ export const ToastProvider = ({ children }: Props) => {
 
     const _open = open ? 'block' : 'hidden';
     setIsShow(_open);
-    setTimeout(() => {
+
+    // Sem isso, dois toasts em sequência rápida (ex: erro de login seguido
+    // de outro alerta) tinham cada um seu próprio setTimeout de 3s — o do
+    // primeiro toast podia disparar depois do segundo já estar visível e
+    // escondê-lo antes da hora.
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+    }
+    hideTimerRef.current = setTimeout(() => {
       setIsShow('hidden');
     }, 3000);
   };

@@ -1,7 +1,9 @@
 // código completo e final atualizado com fluxo de prioridade ajustado
 import { useCallback, useEffect, useState } from 'react';
-import { Accordion, AccordionTab, Column, DataTable } from 'primereact';
-import CheckboxPortage from '../components/checkboxPortage';
+import { Accordion, AccordionTab } from 'primereact/accordion';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import CheckboxPortage from '../components/CheckboxPortage';
 import { create, dropDown, filter } from '../server';
 import {
   TIPO_PORTAGE,
@@ -435,7 +437,11 @@ export default function PortageCadastro({
     };
 
     init();
-  }, [paciente]);
+    // Depender do objeto `paciente` inteiro (em vez do id) refazia o POST
+    // /protocolo/filtro sempre que o componente pai (Protocolo.tsx, que usa
+    // watch() no topo do form) entregava uma nova referência de `paciente`
+    // — mesmo sendo o mesmo paciente.id. Mesma causa do fix em VBMapp.tsx.
+  }, [paciente?.id]);
 
   return (
     <div className="mt-8 space-y-6">

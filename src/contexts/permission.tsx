@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { getList } from '../server';
 import { useAuth } from './auth';
 
@@ -33,24 +33,44 @@ export const PermissionProvider = ({ children }: Props) => {
     setPermissions(permissionsList);
   };
 
-  const getPermissions = useMemo(async () => {
-    const sessionUser = sessionStorage.getItem('auth');
-    const user = sessionUser ? JSON.parse(sessionUser) : [];
-
-    const list =  user.permissoes || await getList('permissao');
-    setPermissions(list);
-  }, []);
-
+  // Antes: useMemo(async () => {...}, []) — o corpo async de um useMemo
+  // roda na hora, durante o render (useMemo não serve pra side effect, só
+  // pra memoizar um valor síncrono). Isso disparava GET /permissao a cada
+  // render do provider, e o StrictMode do React 18 dobra exatamente esse
+  // tipo de chamada em dev pra flagrar efeito colateral impuro no render.
+  // O useEffect logo abaixo também era morto: "getPermissions;" só
+  // referenciava a Promise, nunca a executava.
   useEffect(() => {
-    if (!permissions.length) {
-      getPermissions;
+    if (permissions.length) return;
+
+    const sessionUser = sessionStorage.getItem('auth');
+    const user = sessionUser ? JSON.parse(sessionUser) : {};
+
+    if (user.permissoes) {
+      setPermissions(user.permissoes);
+      return;
     }
+
+    let ignore = false;
+    getList('permissao').then((list) => {
+      if (!ignore) setPermissions(list);
+    });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const hasPermition = (rule: string = '') => {
     switch (true) {
+      // Antes isso jogava um throw — hasPermition é chamada direto no corpo
+      // do render em telas por todo o app (Filter, itemList, etc.), e como
+      // o projeto não tem nenhum Error Boundary, esse throw derrubava a
+      // aplicação inteira pra tela em branco sempre que algo renderizasse
+      // antes de `perfil` estar populado. Negar o acesso é o resultado
+      // seguro — some com o botão/campo em vez de quebrar a página.
       case !perfil:
-        throw new Error('Voce não tem permissao');
+        return false;
       case rule === '*':
         return true;
       default:

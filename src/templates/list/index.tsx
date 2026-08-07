@@ -7,7 +7,7 @@ import { formatdate } from '../../util/util';
 import { LoadingHeron } from '../../components/loading';
 import { STATUS_PACIENT_COD } from '../../constants/patient';
 import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact';
+import { Column } from 'primereact/column';
 
 export interface ListProps {
   onSubmit?: (e: any) => any;

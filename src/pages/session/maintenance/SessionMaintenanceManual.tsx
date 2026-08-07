@@ -2,8 +2,8 @@
 import React from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { HeaderPrograma } from '../../../components/fielSetHeader/HeaderProgram';
-import { Card } from 'primereact';
-import CheckboxSN from '../../../components/checkboxSN';
+import { Card } from 'primereact/card';
+import CheckboxSN from '../../../components/CheckboxSN';
 
 
 type Node = any;

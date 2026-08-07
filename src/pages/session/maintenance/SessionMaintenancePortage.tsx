@@ -2,7 +2,7 @@
 import React from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from '../../../components/card'; // <-- seu Card
-import CheckboxSN from '../../../components/checkboxSN';
+import CheckboxSN from '../../../components/CheckboxSN';
 import { HeaderPrograma } from '../../../components/fielSetHeader/HeaderProgram';
 
 type Node = any;

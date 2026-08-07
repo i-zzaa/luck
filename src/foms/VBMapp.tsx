@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Accordion,
-  AccordionTab,
-  Column,
-  DataTable,
-  TabPanel,
-  TabView,
-} from 'primereact';
-import CheckboxPortage from '../components/checkboxPortage';
+import { Accordion, AccordionTab } from 'primereact/accordion';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import { TabPanel, TabView } from 'primereact/tabview';
+import CheckboxPortage from '../components/CheckboxPortage';
 import { create, filter } from '../server';
 import { TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
 import { ButtonHeron } from '../components';
@@ -412,9 +408,15 @@ export default function VBMapp({ paciente }: any) {
     [onSubmit, loading]
   );
 
+  // getVBMapp já é memoizado a partir de [nivel, paciente.id] — depender
+  // também do objeto `paciente` aqui era redundante e perigoso: o
+  // componente pai (Protocolo.tsx) usa watch() no topo do form e
+  // re-renderiza a cada campo alterado, o que pode entregar uma referência
+  // nova de `paciente` mesmo sendo o mesmo paciente.id, refazendo o
+  // POST /protocolo/filtro à toa a cada re-render.
   useEffect(() => {
     getVBMapp();
-  }, [paciente, getVBMapp]);
+  }, [getVBMapp]);
 
   return (
     <div className="mt-8 space-y-6">

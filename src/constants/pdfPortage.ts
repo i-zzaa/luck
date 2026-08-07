@@ -7,7 +7,9 @@ const gerarPdf = (data: any) => {
 
   // Cabeçalho com logotipo e contato
   const logoURL = logoLg; // Se tiver o logo, insira o URL ou base64 aqui
-  doc.addImage(logoURL, 'PNG', 15, 10, 50, 20); // Ajuste a posição e o tamanho do logotipo
+  // logo-lg.jpg é JPEG, não PNG — formato errado aqui podia corromper a
+  // decodificação da imagem embutida no PDF.
+  doc.addImage(logoURL, 'JPEG', 15, 10, 50, 20); // Ajuste a posição e o tamanho do logotipo
 
   doc.setFontSize(9);
   doc.text('Cel: (11) 97271-6993 • E-mail: alcance.nt@yahoo.com', 15, 35);

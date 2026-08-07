@@ -34,17 +34,17 @@ export const Session = () => {
 
   const renderHeader = () => (
     <ChoiceItemSchedule
-      start={state.item?.data.start}
-      end={state.item?.data.end}
-      statusEventos={state.item?.statusEventos.nome}
-      title={state.item?.title}
-      localidade={state.item?.localidade.nome}
-      isExterno={state.item?.isExterno}
-      km={state.item?.km}
-      modalidade={state.item?.modalidade.nome}
-      dataInicio={state.item?.dataInicio}
-      dataFim={state.item?.dataFim}
-      dataAtual={state.item?.dataAtual}
+      start={state?.item?.data?.start}
+      end={state?.item?.data?.end}
+      statusEventos={state?.item?.statusEventos?.nome}
+      title={state?.item?.title}
+      localidade={state?.item?.localidade?.nome}
+      isExterno={state?.item?.isExterno}
+      km={state?.item?.km}
+      modalidade={state?.item?.modalidade?.nome}
+      dataInicio={state?.item?.dataInicio}
+      dataFim={state?.item?.dataFim}
+      dataAtual={state?.item?.dataAtual}
     />
   );
 

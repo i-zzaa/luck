@@ -117,7 +117,7 @@ export const Schedule = () => {
       .isAfter(moment(dateSession).startOf('day'));
 
     const notNavigate =
-      isPast && item.statusEventos.nome !== STATUS_EVENTS.atendido;
+      isPast && item?.statusEventos?.nome !== STATUS_EVENTS.atendido;
 
     return (
       <Card
@@ -130,19 +130,19 @@ export const Schedule = () => {
       >
         <div className="flex">
           <ChoiceItemSchedule
-            start={item?.data.start}
-            end={item?.data.end}
-            statusEventos={item?.statusEventos.nome}
+            start={item?.data?.start}
+            end={item?.data?.end}
+            statusEventos={item?.statusEventos?.nome}
             title={item?.title}
-            localidade={item?.localidade.nome}
+            localidade={item?.localidade?.nome}
             isExterno={item?.isExterno}
             km={item?.km}
-            modalidade={item?.modalidade.nome}
+            modalidade={item?.modalidade?.nome}
             dataInicio={item?.dataInicio}
             dataFim={item?.dataFim}
             dataAtual={item?.dataAtual || item?.date}
           />
-          {!isPast && item.statusEventos.nome !== STATUS_EVENTS.atendido && (
+          {!isPast && item?.statusEventos?.nome !== STATUS_EVENTS.atendido && (
             <ButtonHeron
               text="Pesquisar"
               icon="pi pi-file-edit"
@@ -153,7 +153,7 @@ export const Schedule = () => {
             />
           )}
 
-          {item.statusEventos.nome == STATUS_EVENTS.atendido && (
+          {item?.statusEventos?.nome === STATUS_EVENTS.atendido && (
             <ButtonHeron
               text="Atendido"
               type="transparent"

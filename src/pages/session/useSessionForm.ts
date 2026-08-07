@@ -320,8 +320,14 @@ export const useSessionForm = () => {
       setDTT(result?.sessao || []);
     } catch (e) {
       console.error('Erro ao buscar atividades', e);
+      renderToast({
+        type: 'failure',
+        title: 'Erro',
+        message: 'Não foi possível carregar as atividades.',
+        open: true,
+      });
     }
-  }, [formatarDado, state]);
+  }, [formatarDado, state, renderToast]);
 
   const getSumaryContent = useCallback(async () => {
     try {
@@ -372,14 +378,29 @@ export const useSessionForm = () => {
       await getActivity();
     } catch (e) {
       console.error('Erro ao buscar conteúdo da sessão', e);
+      renderToast({
+        type: 'failure',
+        title: 'Erro',
+        message: 'Não foi possível carregar a sessão.',
+        open: true,
+      });
       // fallback para garantir que algo é carregado
       await getActivity();
     }
-  }, [formatarDado, getActivity, state]);
+  }, [formatarDado, getActivity, state, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
     try {
       const payload = {
+        // ...session precisa vir PRIMEIRO: session guarda o registro cru
+        // que veio do GET inicial (mesmas chaves: sessao, maintenance,
+        // resumo, portage, vbmapp — confira em getSumaryContent). Com o
+        // spread depois dos campos frescos, ele sobrescrevia toda edição
+        // do usuário com os valores originais pré-edição na hora de
+        // salvar. Hoje isEdit desabilita o botão Salvar, então esse
+        // caminho não é alcançável pela UI — mas é uma bomba-relógio pra
+        // quando a edição for reativada.
+        ...session,
         calendarioId: state.item.id,
         pacienteId: state.item.paciente.id,
         sessao: dtt,
@@ -391,7 +412,6 @@ export const useSessionForm = () => {
         date: state.item.date,
         portage,
         vbmapp,
-        ...session,
       };
       if (isEdit) await update('/sessao', payload);
       else await create('/sessao', payload);
@@ -425,8 +445,25 @@ export const useSessionForm = () => {
   ]);
 
   useEffect(() => {
+    // location.state some ao dar F5, abrir o link direto ou em aba nova
+    // (react-router guarda state em memória, não na URL). Sem esse guard,
+    // renderHeader (em Session.tsx) e getSumaryContent/getActivity tentam
+    // ler state.item.* de um state null/undefined e derrubam a página
+    // inteira — não existe Error Boundary no projeto, então a tela fica em
+    // branco sem explicação nem forma de sair de lá.
+    if (!state?.item) {
+      renderToast({
+        type: 'failure',
+        title: 'Erro',
+        message: 'Sessão não encontrada. Acesse pela agenda.',
+        open: true,
+      });
+      navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`);
+      return;
+    }
+
     getSumaryContent();
-  }, [getSumaryContent]);
+  }, [getSumaryContent, state, navigate, renderToast]);
 
   return {
     editor,

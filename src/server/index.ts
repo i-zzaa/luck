@@ -10,14 +10,25 @@ export interface ResponseSuccessProps {
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
     device: DEVICE.mobile,
   },
 });
 
+// Id do interceptor de request atualmente registrado. intercepttRoute roda
+// tanto na restauração de sessão (mount) quanto após cada Login() — sem
+// controlar isso, cada chamada empilhava um interceptor novo sem nunca
+// remover o anterior (api.interceptors.request.use nunca é ejetado
+// sozinho), então um login/logout repetido na mesma aba deixava N
+// interceptors idênticos rodando em cada requisição.
+let requestInterceptorId: number | null = null;
+
 export const intercepttRoute = (token: string, login: string, id: any) => {
-  api.interceptors.request.use(
+  if (requestInterceptorId !== null) {
+    api.interceptors.request.eject(requestInterceptorId);
+  }
+
+  requestInterceptorId = api.interceptors.request.use(
     async (config: any) => {
       if (!config.url.endsWith('login')) {
         const userTokenExpiration = new Date(token);

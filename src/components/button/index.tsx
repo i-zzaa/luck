@@ -1,4 +1,4 @@
-import { Button } from 'primereact';
+import { Button } from 'primereact/button';
 import { ButtonProps } from './types';
 import { useButtonStyles } from './useButtonStyles';
 

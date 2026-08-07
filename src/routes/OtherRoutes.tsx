@@ -1,16 +1,23 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { LayoutDefault } from '../components/layoutDefault';
-import { Nav } from '../components/nav';
-import Home from '../pages/Home';
-import { Schedule } from '../pages/Schedule';
-// import { Session } from '../pages/Session';
-import DTT from '../components/DTT';
-import PEI from '../pages/PEI';
-import PrimeiraResposta from '../pages/PrimeiraResposta';
-import PROTOCOLO from '../foms/Protocolo';
-import Metas from '../pages/Metas';
-import PEICADASTRO from '../foms/pei';
-import { Session } from '../pages/session/Session';
+import { Nav } from '../components/Nav';
+import { LoadingHeron } from '../components/loading';
+
+// Cada rota antes era importada de forma estática, então navegar pra
+// QUALQUER tela baixava o JS de TODAS elas de uma vez — incluindo libs
+// pesadas usadas só numa página (ex: jodit-react, ~228KB gzip, só é usado
+// no editor de resumo da Sessão). lazy() faz cada rota virar um chunk
+// separado, baixado só quando o usuário navega até ela.
+const Home = lazy(() => import('../pages/Home'));
+const Schedule = lazy(() => import('../pages/Schedule').then((m) => ({ default: m.Schedule })));
+const Session = lazy(() => import('../pages/session/Session').then((m) => ({ default: m.Session })));
+const DTT = lazy(() => import('../components/DTT'));
+const PEI = lazy(() => import('../pages/PEI'));
+const PrimeiraResposta = lazy(() => import('../pages/PrimeiraResposta'));
+const PROTOCOLO = lazy(() => import('../foms/Protocolo'));
+const Metas = lazy(() => import('../pages/Metas'));
+const PEICADASTRO = lazy(() => import('../foms/pei'));
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -52,19 +59,21 @@ const OtherRoutes = () => {
     <div className="min-h-full overflow-hidden bg-background h-screen w-full">
       <Nav />
       <main  className='mt-14'>
-        <Routes>
-          {routes.map((route: RoutesProps, index: number) => (
-            <Route
-              key={index}
-              path={route.path}
-              element={
-                <LayoutDefault>
-                  <route.componentRoute />
-                </LayoutDefault>
-              }
-            />
-          ))}
-        </Routes>
+        <Suspense fallback={<LoadingHeron />}>
+          <Routes>
+            {routes.map((route: RoutesProps, index: number) => (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <LayoutDefault>
+                    <route.componentRoute />
+                  </LayoutDefault>
+                }
+              />
+            ))}
+          </Routes>
+        </Suspense>
       </main>
     </div>
   );

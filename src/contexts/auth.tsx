@@ -1,8 +1,15 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useRef, useContext } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
 import { clearCache } from '../localStorage/sessionStorage';
+import { buildErrorToast } from '../util/error';
+
+// Duração fixa da sessão antes do logout automático (~2h13min). Não é
+// inatividade real (não há listeners de atividade do usuário aqui) — é só
+// um teto de tempo desde o login. Nomeado e centralizado pra não repetir o
+// mesmo "8000000" mágico em outro lugar.
+const SESSION_DURATION_MS = 8_000_000;
 
 interface AuthContextData {
   signed: boolean;
@@ -24,6 +31,20 @@ export const AuthProvider = ({ children }: Props) => {
   const [perfil, setPerfil] = useState<string>('');
   const { setPermissionsLogin } = permissionAuth();
   const { renderToast } = useToast();
+  const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Evita que um timer de uma sessão anterior (ex: login -> logout -> login
+  // de novo, tudo na mesma aba) sobreviva e derrube a sessão nova antes da
+  // hora. Sem isso, cada chamada a Login() empilhava um setTimeout próprio
+  // e o mais antigo deles vencia primeiro.
+  const clearSessionTimer = () => {
+    if (sessionTimerRef.current) {
+      clearTimeout(sessionTimerRef.current);
+      sessionTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => clearSessionTimer, []);
 
   useEffect(() => {
     const storagedToken = sessionStorage.getItem('token');
@@ -40,17 +61,14 @@ export const AuthProvider = ({ children }: Props) => {
 
   const Login = async (loginState: { username: string, password: string}) => {
     try {
-      const response = await api.post('/login', {
-        ...loginState,
-        password: parseInt(loginState.password)
-      });
-      
+      const response = await api.post('/login', loginState);
+
       const auth = response.data;
 
-      setTimeout(() => {
-         Logout()
-      //  },  import.meta.env.VITE_API_URL_EXPIRES_IN_SECONDS);
-       },  8000000);
+      clearSessionTimer();
+      sessionTimerRef.current = setTimeout(() => {
+        Logout();
+      }, SESSION_DURATION_MS);
 
       const user = auth?.user || auth.data;
       const accessToken = auth?.accessToken || auth.data.accessToken;
@@ -78,24 +96,17 @@ export const AuthProvider = ({ children }: Props) => {
         open: true,
       });
     } catch (error) {
-      msgError(error);
+      // getErrorInfo/buildErrorToast lê error.response.{status,data} (forma
+      // real de um erro do axios) — o msgError anterior lia error.data e
+      // error.status, que não existem nesse objeto, então sempre caía no
+      // fallback genérico e escondia a mensagem real do backend.
+      renderToast(buildErrorToast(error, 'Usuário não encontrado!'));
     }
   };
 
-  const msgError = (data: any) => {
-    const message = data?.data
-      ? data?.data.message
-      : 'Usuário não encontrado!';
-    renderToast({
-      type: 'failure',
-      title: data.status || 'Erro no Login!',
-      message: message,
-      open: true,
-    });
-  };
-
-  const Logout = async() => {
-    clearCache();
+  const Logout = async () => {
+    clearSessionTimer();
+    await clearCache();
     setUser(undefined);
 
     try {

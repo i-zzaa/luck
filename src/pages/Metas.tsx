@@ -272,17 +272,17 @@ export default function Metas() {
   const renderHeader = useMemo(() => {
     return (
       <ChoiceItemSchedule
-        start={state.data.start}
-        end={state.data.end}
-        statusEventos={state.statusEventos.nome}
-        title={state.title}
-        localidade={state.localidade.nome}
-        isExterno={state.isExterno}
-        km={state.km}
-        modalidade={state.modalidade.nome}
-        dataInicio={state.dataInicio}
-        dataFim={state.dataFim}
-        dataAtual={state.dataAtual}
+        start={state?.data?.start}
+        end={state?.data?.end}
+        statusEventos={state?.statusEventos?.nome}
+        title={state?.title}
+        localidade={state?.localidade?.nome}
+        isExterno={state?.isExterno}
+        km={state?.km}
+        modalidade={state?.modalidade?.nome}
+        dataInicio={state?.dataInicio}
+        dataFim={state?.dataFim}
+        dataAtual={state?.dataAtual}
       />
     );
   }, [state]);
@@ -458,6 +458,21 @@ export default function Metas() {
   };
 
   useEffect(() => {
+    // Mesmo caso do Session: location.state some ao dar F5/abrir link
+    // direto, e sem esse guard renderHeader e getPEI liam state.paciente/
+    // state.id de um state ausente e derrubavam a página inteira (sem
+    // Error Boundary no projeto).
+    if (!state?.paciente) {
+      renderToast({
+        type: 'failure',
+        title: 'Erro',
+        message: 'Paciente não encontrado. Acesse pelo PEI.',
+        open: true,
+      });
+      navigate(`/${CONSTANTES_ROUTERS.PEI}`);
+      return;
+    }
+
     getPEI();
   }, [getPEI]);
 

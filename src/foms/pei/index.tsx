@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Fieldset } from 'primereact';
+import { Fieldset } from 'primereact/fieldset';
 import { Input, ButtonHeron } from '../../components';
 import { PEICadastroFields } from '../../constants/formFields';
 import { TIPO_PROTOCOLO } from '../../constants/protocolo';

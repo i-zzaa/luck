@@ -9,9 +9,9 @@ export function Tag({ onClick, type, disabled }: TagProps) {
     <button
       onClick={onClick}
       className={clsx(BASE_CLASS, bgClass, {
-        'opacity-25 cursor-not-allowed': !disabled,
+        'opacity-25 cursor-not-allowed': disabled,
       })}
-      disabled={!disabled}
+      disabled={disabled}
     >
       {typeKey}
     </button>

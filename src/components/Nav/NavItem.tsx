@@ -9,7 +9,15 @@ interface NavItemProps {
 
 export function NavItem({ route }: NavItemProps) {
   const location = useLocation();
-  const isActive = location.pathname.startsWith(route.path);
+  // route.path nunca tem barra inicial (ex: "pei"), mas location.pathname
+  // sempre tem (ex: "/pei") — startsWith(route.path) comparava strings que
+  // nunca podiam bater, então o item ativo do menu nunca acendia. Compara
+  // com a barra e delimita por fim-de-segmento pra "/pei" não "acender"
+  // também em "/pei-cadastro".
+  const routePath = `/${route.path}`;
+  const isActive =
+    location.pathname === routePath ||
+    location.pathname.startsWith(`${routePath}/`);
 
   return (
     <li

@@ -1,7 +1,7 @@
 // src/components/session/SessionMaintenance.tsx
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from '../../components/card';
-import CheckboxSN from '../../components/checkboxSN';
+import CheckboxSN from '../../components/CheckboxSN';
 
 type MaintenanceNode = {
   key: string | number;

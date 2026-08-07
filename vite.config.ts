@@ -44,20 +44,11 @@ export default ({ mode }: any) => {
 
   return defineConfig({
     plugins: [react(), reactRefresh(), VitePWA(manifestForPlugin)],
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              return id
-                .toString()
-                .split('node_modules/')[1]
-                .split('/')[0]
-                .toString();
-            }
-          },
-        },
-      },
-    },
+    // manualChunks agrupava cada pacote de node_modules num chunk próprio,
+    // mas isso quebrava o code-splitting das rotas lazy (ex: jspdf ficava
+    // sendo baixado eager em toda página mesmo só sendo usado dentro da
+    // rota /protocolo-av). O chunking automático do Rollup já respeita os
+    // limites de import() dinâmico corretamente sem essa configuração.
+    build: {},
   });
 };
