@@ -66,10 +66,12 @@
   },
   "overrides": {
     "@types/node": "20.5.0",
-    "@types/react": "18.0.17"
+    "@types/react": "18.0.17",
+    "workbox-build": "6.5.4"
   },
   "resolutions": {
     "@types/node": "20.5.0",
-    "@types/react": "18.0.17"
+    "@types/react": "18.0.17",
+    "workbox-build": "6.5.4"
   }
 }

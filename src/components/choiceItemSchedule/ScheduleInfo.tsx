@@ -5,6 +5,7 @@ interface ScheduleInfoProps {
   title: string;
   status: string;
   localidade: string;
+  localExternoDescricao?: string;
   isExterno: boolean;
   km?: number;
   modalidadeInfo: string;
@@ -23,6 +24,7 @@ export const ScheduleInfo: FC<ScheduleInfoProps> = ({
   title,
   status,
   localidade,
+  localExternoDescricao,
   isExterno,
   km,
   modalidadeInfo,
@@ -45,7 +47,7 @@ export const ScheduleInfo: FC<ScheduleInfoProps> = ({
     </p>
 
     <p className="flex gap-2 items-center justify-center">
-      {localidade}
+      {isExterno ? localExternoDescricao : localidade}
       {isExterno && (
         <span className="font-bold font-inter">{`- ${km}km`}</span>
       )}

@@ -19,6 +19,15 @@ type TipoProtocolo = 'vbmapp' | 'portage' | 'maintenance' | 'activity';
 const isObj = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 const isPrimitiveOrNull = (v: any) => v === null || !isObj(v);
 
+// `content` é HTML vindo do RichTextEditor (Tiptap) — um editor "vazio"
+// não é string vazia, é algo como "<p></p>". Precisa tirar as tags e os
+// espaços/&nbsp; pra saber se o resumo tem texto de verdade.
+const isResumoVazio = (html: string) =>
+  (html || '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim().length === 0;
+
 const padSlots = (arr: any[], count: number) => {
   const base = Array.isArray(arr) ? arr.slice(0, count) : [];
   if (base.length < count) {
@@ -390,6 +399,16 @@ export const useSessionForm = () => {
   }, [formatarDado, getActivity, state, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
+    if (isResumoVazio(content)) {
+      renderToast({
+        type: 'failure',
+        title: 'Resumo obrigatório',
+        message: 'Escreva o resumo da sessão antes de salvar.',
+        open: true,
+      });
+      return;
+    }
+
     try {
       const payload = {
         // ...session precisa vir PRIMEIRO: session guarda o registro cru

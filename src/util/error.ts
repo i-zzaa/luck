@@ -1,5 +1,24 @@
+import { notifyMustChangePasswordRequired } from './mustChangePasswordBus';
+
 const DEFAULT_ERROR_MESSAGE =
   'Não foi possível concluir a operação. Tente novamente.';
+
+// Mensagem fixa que o backend devolve em qualquer rota com tag de permissão
+// enquanto mustChangePassword estiver true para o usuário do token. Casado
+// por substring (case-insensitive) em vez de string exata pra não quebrar
+// se o backend ajustar pontuação/sufixo.
+const MUST_CHANGE_PASSWORD_MESSAGE_HINT = 'troca de senha obrigat';
+
+const isMustChangePasswordError = (error: any): boolean => {
+  const status = error?.response?.status;
+  const message = error?.response?.data?.message;
+
+  return (
+    status === 403 &&
+    typeof message === 'string' &&
+    message.toLowerCase().includes(MUST_CHANGE_PASSWORD_MESSAGE_HINT)
+  );
+};
 
 export interface ErrorInfo {
   code: string;
@@ -39,14 +58,28 @@ export const getErrorInfo = (
 // Monta diretamente o payload esperado por renderToast, já com o código de
 // erro do backend como título e a mensagem do backend como corpo.
 //
-// Versão simplificada da equivalente em heron-list-web: aqui não existe o
-// caso especial de 403 "troca de senha obrigatória" (esse fluxo não foi
-// portado para o luck — ver relatório de port do login, opção A).
+// Caso especial: se o erro for o 403 de troca de senha obrigatória pendente,
+// não mostra o toast genérico de "sem permissão" — em vez disso, avisa o
+// AuthProvider (via mustChangePasswordBus) para exibir a tela de troca de
+// senha, que já deixa claro o motivo. O toast retornado fica com open:false
+// para que os call sites (que sempre fazem `renderToast(buildErrorToast(...))`)
+// não precisem de nenhuma mudança. Portado de heron-list-web.
 export const buildErrorToast = (
   error: any,
   fallbackMessage?: string
 ): { type: 'failure'; title: string; message: string; open: boolean } => {
   const { code, message } = getErrorInfo(error, fallbackMessage);
+
+  if (isMustChangePasswordError(error)) {
+    notifyMustChangePasswordRequired();
+
+    return {
+      type: 'failure',
+      title: code || 'Erro',
+      message,
+      open: false,
+    };
+  }
 
   return {
     type: 'failure',

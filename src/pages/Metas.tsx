@@ -293,6 +293,7 @@ export default function Metas() {
         statusEventos={state?.statusEventos?.nome}
         title={state?.title}
         localidade={state?.localidade?.nome}
+        localExternoDescricao={state?.localExternoDescricao}
         isExterno={state?.isExterno}
         km={state?.km}
         modalidade={state?.modalidade?.nome}

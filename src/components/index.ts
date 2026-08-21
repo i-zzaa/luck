@@ -6,6 +6,7 @@ export { Card } from './card';
 export { CollapsibleSection } from './collapsibleSection';
 export { Modal } from './modal';
 export { Confirm } from './confirm';
+export { MustChangePasswordModal } from './mustChangePasswordModal';
 
 export { Filter } from '../templates/filter';
 export { List } from '../templates/list';

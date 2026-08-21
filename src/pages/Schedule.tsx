@@ -195,6 +195,7 @@ export const Schedule = () => {
             statusEventos={item?.statusEventos?.nome}
             title={item?.title}
             localidade={item?.localidade?.nome}
+            localExternoDescricao={item?.localExternoDescricao}
             isExterno={item?.isExterno}
             km={item?.km}
             modalidade={item?.modalidade?.nome}

@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { LayoutDefault } from '../components/layoutDefault';
 import { Nav } from '../components/Nav';
 import { LoadingHeron } from '../components/loading';
+import { MustChangePasswordModal } from '../components/mustChangePasswordModal';
+import { useAuth } from '../contexts/auth';
 
 // Cada rota antes era importada de forma estática, então navegar pra
 // QUALQUER tela baixava o JS de TODAS elas de uma vez — incluindo libs
@@ -59,27 +61,36 @@ export const ROUTES = [
 const OtherRoutes = () => {
 
   const routes: RoutesProps[] = ROUTES;
+  const { mustChangePassword } = useAuth();
 
   return (
     <div className="min-h-full overflow-hidden bg-background h-screen w-full">
       <Nav />
       <main  className='mt-14'>
-        <Suspense fallback={<LoadingHeron />}>
-          <Routes>
-            {routes.map((route: RoutesProps, index: number) => (
-              <Route
-                key={index}
-                path={route.path}
-                element={
-                  <LayoutDefault>
-                    <route.componentRoute />
-                  </LayoutDefault>
-                }
-              />
-            ))}
-          </Routes>
-        </Suspense>
+        {/* Enquanto a troca de senha obrigatória estiver pendente, as
+            páginas não são montadas: evita que telas por trás do modal
+            disparem requisições que o backend vai bloquear (e encher a
+            tela de toasts de erro) antes do usuário conseguir trocar a
+            senha. */}
+        {!mustChangePassword && (
+          <Suspense fallback={<LoadingHeron />}>
+            <Routes>
+              {routes.map((route: RoutesProps, index: number) => (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={
+                    <LayoutDefault>
+                      <route.componentRoute />
+                    </LayoutDefault>
+                  }
+                />
+              ))}
+            </Routes>
+          </Suspense>
+        )}
       </main>
+      <MustChangePasswordModal />
     </div>
   );
 };

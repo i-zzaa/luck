@@ -39,6 +39,7 @@ export const Session = () => {
       statusEventos={state?.item?.statusEventos?.nome}
       title={state?.item?.title}
       localidade={state?.item?.localidade?.nome}
+      localExternoDescricao={state?.item?.localExternoDescricao}
       isExterno={state?.item?.isExterno}
       km={state?.item?.km}
       modalidade={state?.item?.modalidade?.nome}
@@ -53,6 +54,7 @@ export const Session = () => {
       <div className="flex items-center justify-between mx-2 mt-6">
         <span className="text-gray-800 font-inter font-bold leading-4">
           Resumo
+          {!isEdit && <span className="text-red-400"> *</span>}
         </span>
         {isEdit && (
           <span className="text-gray-800 font-inter leading-4 bg-gray-300 rounded-full px-2 py-0.5">

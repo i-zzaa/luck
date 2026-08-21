@@ -9,6 +9,7 @@ export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
   title,
   statusEventos,
   localidade,
+  localExternoDescricao,
   isExterno,
   km,
   modalidade,
@@ -28,6 +29,7 @@ export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
         title={title}
         status={statusEventos}
         localidade={localidade}
+        localExternoDescricao={localExternoDescricao}
         isExterno={isExterno}
         km={km}
         modalidadeInfo={modalidadeInfo}
