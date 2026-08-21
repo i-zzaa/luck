@@ -195,31 +195,38 @@ export default function VBMapp({ paciente }: any) {
     [getVBMapp]
   );
 
+  // Antes isso achava o item por `.id`, procurando em TODO item de topo e,
+  // se não batesse, em TODOS os subitems dele também. Se um subitem
+  // compartilhar `.id` com algum item de topo (comum quando vêm de
+  // tabelas/sequências diferentes no backend), o clique podia acabar
+  // resolvendo pro item errado — mesma causa do bug em Portage.tsx.
+  // metaIndex/subItemIndex vêm direto de onde o item está sendo
+  // renderizado (posição real na árvore), não dependem do `.id`.
   const onCheckboxChange = (
     programa: string,
-    itemId: string,
+    metaIndex: number,
+    subItemIndex: number | undefined,
     newValue: boolean
   ) => {
     setList((prevList: any) => {
       const updatedList = { ...prevList };
+      const items = [...(updatedList[programa] || [])];
+      const item = items[metaIndex];
+      if (!item) return prevList;
 
-      // Percorre os itens dentro do programa para encontrar o item pelo ID
-      updatedList[programa] = updatedList[programa].map((item: any) => {
-        if (item.id === itemId) {
-          return { ...item, selected: newValue };
-        }
+      if (subItemIndex !== undefined && subItemIndex !== null) {
+        const subitems = [...(item.subitems || [])];
+        if (!subitems[subItemIndex]) return prevList;
+        subitems[subItemIndex] = {
+          ...subitems[subItemIndex],
+          selected: newValue,
+        };
+        items[metaIndex] = { ...item, subitems };
+      } else {
+        items[metaIndex] = { ...item, selected: newValue };
+      }
 
-        // Se houver subitems, percorre e atualiza o estado do checkbox neles
-        if (item.subitems) {
-          const updatedSubitems = item.subitems.map((subitem: any) =>
-            subitem.id === itemId ? { ...subitem, selected: newValue } : subitem
-          );
-          return { ...item, subitems: updatedSubitems };
-        }
-
-        return item;
-      });
-
+      updatedList[programa] = items;
       return updatedList;
     });
   };
@@ -297,18 +304,29 @@ export default function VBMapp({ paciente }: any) {
     });
   };
 
+  // metaIndex vem sempre preenchido (posição do item de topo em
+  // list[programa]); subItemIndex só existe quando rowData é um subitem.
   const renderedCheckboxes = useCallback(
-    (rowData: any, programa: any) => {
+    (
+      rowData: any,
+      programa: any,
+      metaIndex: number,
+      subItemIndex?: number
+    ) => {
       const value = rowData.selected || null;
       return (
-        <div>
+        <div key={rowData.id ?? `${metaIndex}-${subItemIndex}`}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8">
               <CheckboxPortage
-                key={rowData.id}
                 value={value}
                 onChange={(newValue: any) =>
-                  onCheckboxChange(programa, rowData.id, newValue)
+                  onCheckboxChange(
+                    programa,
+                    metaIndex,
+                    subItemIndex,
+                    newValue
+                  )
                 }
               />
             </div>
@@ -316,8 +334,8 @@ export default function VBMapp({ paciente }: any) {
           </div>
           <div className="grid ml-8 mt-2">
             {rowData?.subitems &&
-              rowData.subitems.map((subItem: any) =>
-                renderedCheckboxes(subItem, programa)
+              rowData.subitems.map((subItem: any, subIndex: number) =>
+                renderedCheckboxes(subItem, programa, metaIndex, subIndex)
               )}
           </div>
         </div>
@@ -360,7 +378,9 @@ export default function VBMapp({ paciente }: any) {
                   tableStyle={{ minWidth: 'none' }}
                 >
                   <Column
-                    body={(row: any) => renderedCheckboxes(row, programa)}
+                    body={(row: any, options: any) =>
+                      renderedCheckboxes(row, programa, options.rowIndex)
+                    }
                     bodyStyle={{ padding: '.1rem' }}
                   />
                 </DataTable>

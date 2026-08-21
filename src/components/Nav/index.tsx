@@ -5,6 +5,7 @@ import { LayoutContext } from '../../contexts/layout.context';
 import { ButtonHeron } from '../button';
 import { NavItem } from './NavItem';
 import { useSidebarMenu } from './useSidebarMenu';
+import { usePageTitle } from './usePageTitle';
 
 export const Nav = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export const Nav = () => {
   const { user, perfil } = useContext(AuthContext);
   const { open, setOpen } = useContext(LayoutContext);
   const menuSidebar = useSidebarMenu();
+  const pageTitle = usePageTitle();
 
   const renderOpen = () => (
     <aside
@@ -48,6 +50,9 @@ export const Nav = () => {
             onClick={() => navigate(-1)}
           />
         </div>
+        <span className="flex-1 text-center font-inter font-semibold text-primary-text truncate px-2">
+          {pageTitle}
+        </span>
         <div className="w-12 h-12 mt-[1vh] rounded-3xl bg-primary" onClick={() => setOpen(true)}>
           <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700" />
         </div>

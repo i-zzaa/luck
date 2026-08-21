@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useRef } from 'react';
+import { createContext, useState, useContext, useRef, useCallback, useMemo } from 'react';
 
 const container =
   'absolute animate-bounce min-w-[24rem] top-2 right-0 block flex p-4 mb-4 text-sm rounded-lg items-center gap-2 z-[70] ';
@@ -73,34 +73,51 @@ export const ToastProvider = ({ children }: Props) => {
     }
   };
 
-  const renderToast = ({ type, message, title, open }: ToastState) => {
-    renderType(type);
-    renderColor(type);
+  // useCallback com deps fixas (só mexe em setters e num ref, ambos
+  // estáveis) porque renderToast entra na lista de dependências de
+  // useEffect/useCallback em telas por todo o app (ex.: useSessionForm).
+  // Sem isso, essa função nascia com identidade nova a cada render do
+  // ToastProvider — e como ele fica na raiz da árvore, qualquer toast
+  // disparado em qualquer lugar recriava `renderToast`, o que reexecutava
+  // os efeitos de busca de dados que dependem dela (parecendo "a tela
+  // renderiza/busca os dados duas vezes").
+  const renderToast = useCallback(
+    ({ type, message, title, open }: ToastState) => {
+      renderType(type);
+      renderColor(type);
 
-    setAlertInfo({
-      type,
-      message,
-      title,
-      open,
-    });
+      setAlertInfo({
+        type,
+        message,
+        title,
+        open,
+      });
 
-    const _open = open ? 'block' : 'hidden';
-    setIsShow(_open);
+      const _open = open ? 'block' : 'hidden';
+      setIsShow(_open);
 
-    // Sem isso, dois toasts em sequência rápida (ex: erro de login seguido
-    // de outro alerta) tinham cada um seu próprio setTimeout de 3s — o do
-    // primeiro toast podia disparar depois do segundo já estar visível e
-    // escondê-lo antes da hora.
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
-    }
-    hideTimerRef.current = setTimeout(() => {
-      setIsShow('hidden');
-    }, 3000);
-  };
+      // Sem isso, dois toasts em sequência rápida (ex: erro de login seguido
+      // de outro alerta) tinham cada um seu próprio setTimeout de 3s — o do
+      // primeiro toast podia disparar depois do segundo já estar visível e
+      // escondê-lo antes da hora.
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+      hideTimerRef.current = setTimeout(() => {
+        setIsShow('hidden');
+      }, 3000);
+    },
+    []
+  );
+
+  // value memoizado: como renderToast agora é estável, esse objeto só
+  // muda de identidade quando renderToast realmente mudar (nunca, na
+  // prática) — evita recriar o context value (e disparar re-render em
+  // todo consumidor) a cada render do provider.
+  const value = useMemo(() => ({ renderToast }), [renderToast]);
 
   return (
-    <ToastContext.Provider value={{ renderToast }}>
+    <ToastContext.Provider value={value}>
       <>
         {children}
         <div className={`${container} ${isShow} ${color}`} role="alert">

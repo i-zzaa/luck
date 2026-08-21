@@ -19,7 +19,7 @@ export const ChoiceItemSchedule: FC<ChoiceItemScheduleProps> = ({
   const modalidadeInfo = useModalidadeInfo(modalidade, dataInicio, dataFim, dataAtual);
 
   return (
-    <div className="flex gap-2 w-full items-center">
+    <div className="flex gap-2 w-full items-start">
       <div className="grid text-center font-inter text-sm text-gray-400">
         <span>{start}</span> - <span>{end}</span>
       </div>

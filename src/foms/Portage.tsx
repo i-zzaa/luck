@@ -65,45 +65,39 @@ export default function PortageCadastro({
     return VALOR_PORTAGE.sim;
   };
 
+  // Antes isso reencontrava o item por `.id` (e, pra subitem, tentava
+  // re-derivar o id do pai fazendo parse de "0-meta-N-sub-item-M" na
+  // marra). Isso quebra silenciosamente sempre que o id real não segue
+  // esse formato composto (aí cai no ramo de item de topo) ou quando dois
+  // itens em pontos diferentes da árvore compartilham o mesmo `.id` (bem
+  // comum quando meta e subitem vêm de tabelas/sequências diferentes no
+  // backend) — o clique acaba resolvendo pro primeiro item com aquele id,
+  // não pro que foi realmente clicado. Índice de verdade (metaIndex/
+  // subItemIndex), vindo direto de onde o item está sendo renderizado,
+  // não depende de nenhuma suposição sobre o formato do id.
   const onCheckboxChange = (
     portageType: string,
     faixaEtaria: string,
-    itemId: any,
-    value = undefined
+    metaIndex: number,
+    subItemIndex: number | undefined,
+    value: any = undefined
   ) => {
     setList((prevList: any) => {
       const updatedSelection = JSON.parse(JSON.stringify(prevList));
       const activities = updatedSelection?.[portageType]?.[faixaEtaria];
-      if (!activities) return prevList;
-      const isSubItem = itemId.toString().includes('-sub-item-');
-      if (isSubItem) {
-        const [subItemId] = itemId.split('-sub-item-');
-        const [, metaId] = subItemId.split('0-meta-');
-        const parentIndex = activities.findIndex(
-          (a: any) => a.id === parseInt(metaId) || a.id === subItemId
-        );
-        if (parentIndex !== -1) {
-          const subItemIndex = activities[parentIndex].subitems.findIndex(
-            (s: any) => s.id === itemId
-          );
-          if (subItemIndex !== -1) {
-            activities[parentIndex].subitems[subItemIndex].selected =
-              value !== undefined
-                ? value
-                : getNextState(
-                    activities[parentIndex].subitems[subItemIndex].selected
-                  );
-          }
-        }
+      const meta = activities?.[metaIndex];
+      if (!meta) return prevList;
+
+      if (subItemIndex !== undefined && subItemIndex !== null) {
+        const sub = meta.subitems?.[subItemIndex];
+        if (!sub) return prevList;
+        sub.selected =
+          value !== undefined ? value : getNextState(sub.selected);
       } else {
-        const index = activities.findIndex((a: any) => a.id === itemId);
-        if (index !== -1) {
-          activities[index].selected =
-            value !== undefined
-              ? value
-              : getNextState(activities[index].selected);
-        }
+        meta.selected =
+          value !== undefined ? value : getNextState(meta.selected);
       }
+
       return updatedSelection;
     });
   };
@@ -189,20 +183,30 @@ export default function PortageCadastro({
     });
   };
 
+  // metaIndex vem sempre preenchido (posição do item de topo em
+  // activities); subItemIndex só existe quando rowData é um subitem —
+  // é isso que diz pro onCheckboxChange qual dos dois ramos usar.
   const renderedCheckboxesPostage = (
     portageType: string,
     faixaEtaria: string,
-    rowData: any
+    rowData: any,
+    metaIndex: number,
+    subItemIndex?: number
   ) => {
     const value = rowData.selected || null;
     return (
-      <div>
+      <div key={rowData.id ?? `${metaIndex}-${subItemIndex}`}>
         <div className="flex items-center gap-2">
           <CheckboxPortage
-            key={rowData.id}
             value={value}
             onChange={(val: any) =>
-              onCheckboxChange(portageType, faixaEtaria, rowData.id, val)
+              onCheckboxChange(
+                portageType,
+                faixaEtaria,
+                metaIndex,
+                subItemIndex,
+                val
+              )
             }
           />
           {rowData.nome}
@@ -214,8 +218,14 @@ export default function PortageCadastro({
           )}
         </div>
         <div className="grid ml-8 mt-2">
-          {rowData?.subitems?.map((sub: any) =>
-            renderedCheckboxesPostage(portageType, faixaEtaria, sub)
+          {rowData?.subitems?.map((sub: any, subIndex: number) =>
+            renderedCheckboxesPostage(
+              portageType,
+              faixaEtaria,
+              sub,
+              metaIndex,
+              subIndex
+            )
           )}
         </div>
       </div>
@@ -242,8 +252,13 @@ export default function PortageCadastro({
                   dataKey="id"
                 >
                   <Column
-                    body={(row: any) =>
-                      renderedCheckboxesPostage(type, faixaEtaria, row)
+                    body={(row: any, options: any) =>
+                      renderedCheckboxesPostage(
+                        type,
+                        faixaEtaria,
+                        row,
+                        options.rowIndex
+                      )
                     }
                     bodyStyle={{ padding: '.1rem' }}
                   />

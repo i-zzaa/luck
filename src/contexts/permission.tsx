@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { getList } from '../server';
 import { useAuth } from './auth';
 
@@ -29,9 +29,13 @@ export const PermissionProvider = ({ children }: Props) => {
   const { perfil } = useAuth();
   const [permissions, setPermissions] = useState<string[]>([]);
 
-  const setPermissionsLogin = (permissionsList: string[]) => {
+  // hasPermition/setPermissionsLogin/value memoizados pelo mesmo motivo
+  // do renderToast em toast.tsx: PermissionProvider embrulha as rotas
+  // inteiras (routes/index.tsx), então um value recriado a cada render
+  // derrubava em cascata todo consumidor de permissionAuth().
+  const setPermissionsLogin = useCallback((permissionsList: string[]) => {
     setPermissions(permissionsList);
-  };
+  }, []);
 
   // Antes: useMemo(async () => {...}, []) — o corpo async de um useMemo
   // roda na hora, durante o render (useMemo não serve pra side effect, só
@@ -61,33 +65,40 @@ export const PermissionProvider = ({ children }: Props) => {
     };
   }, []);
 
-  const hasPermition = (rule: string = '') => {
-    switch (true) {
-      // Antes isso jogava um throw — hasPermition é chamada direto no corpo
-      // do render em telas por todo o app (Filter, itemList, etc.), e como
-      // o projeto não tem nenhum Error Boundary, esse throw derrubava a
-      // aplicação inteira pra tela em branco sempre que algo renderizasse
-      // antes de `perfil` estar populado. Negar o acesso é o resultado
-      // seguro — some com o botão/campo em vez de quebrar a página.
-      case !perfil:
-        return false;
-      case rule === '*':
-        return true;
-      default:
-        if (
-          (permissions.length && permissions.includes(rule.toUpperCase())) ||
-          perfil === DESENVOLVEDOR
-        ) {
+  const hasPermition = useCallback(
+    (rule: string = '') => {
+      switch (true) {
+        // Antes isso jogava um throw — hasPermition é chamada direto no
+        // corpo do render em telas por todo o app (Filter, itemList,
+        // etc.), e como o projeto não tem nenhum Error Boundary, esse
+        // throw derrubava a aplicação inteira pra tela em branco sempre
+        // que algo renderizasse antes de `perfil` estar populado. Negar o
+        // acesso é o resultado seguro — some com o botão/campo em vez de
+        // quebrar a página.
+        case !perfil:
+          return false;
+        case rule === '*':
           return true;
-        }
-        return false;
-    }
-  };
+        default:
+          if (
+            (permissions.length && permissions.includes(rule.toUpperCase())) ||
+            perfil === DESENVOLVEDOR
+          ) {
+            return true;
+          }
+          return false;
+      }
+    },
+    [perfil, permissions]
+  );
+
+  const value = useMemo(
+    () => ({ hasPermition, perfil, permissions, setPermissionsLogin }),
+    [hasPermition, perfil, permissions, setPermissionsLogin]
+  );
 
   return (
-    <PermissionContext.Provider
-      value={{ hasPermition, perfil, permissions, setPermissionsLogin }}
-    >
+    <PermissionContext.Provider value={value}>
       {children}
     </PermissionContext.Provider>
   );

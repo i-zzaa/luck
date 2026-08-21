@@ -36,19 +36,24 @@ export interface RoutesProps {
   componentRoute: any;
   icon: string;
   menu?: boolean;
+  // Nome exibido no header fixo (Nav) e, quando menu:true, no item do
+  // menu lateral. Existe separado do path porque formatName(path) não dá
+  // conta de nomes com acento/preposição ("protocolo-av" -> "Protocolo de
+  // Avaliação") nem de siglas ("pei" -> "PEI").
+  title: string;
 }
 
 export const ROUTES = [
-  { path: '*', componentRoute: Home, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true },
-  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true },
-  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true },
-  { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false },
-  { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true },
-  { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true },
+  { path: '*', componentRoute: Home, icon: '', menu: false, title: 'Início' },
+  { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false, title: 'Sessão' },
+  { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false, title: 'DTT' },
+  { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false, title: 'Metas' },
+  { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true, title: 'Início' },
+  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true, title: 'PEI' },
+  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true, title: 'Protocolo de Avaliação' },
+  { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false, title: 'Cadastro de PEI' },
+  { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true, title: 'Agenda' },
+  { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true, title: 'Primeira Resposta' },
 ]
 
 const OtherRoutes = () => {

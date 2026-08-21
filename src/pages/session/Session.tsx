@@ -1,5 +1,6 @@
-import JoditEditor from 'jodit-react';
+import clsx from 'clsx';
 import { Card } from '../../components/card';
+import { RichTextEditor } from '../../components/richTextEditor';
 import { ButtonHeron } from '../../components/button';
 import { ChoiceItemSchedule } from '../../components/choiceItemSchedule';
 import { useSessionForm } from './useSessionForm';
@@ -11,7 +12,6 @@ import { useMemo } from 'react';
 
 export const Session = () => {
   const {
-    editor,
     content,
     setContent,
     list,
@@ -50,22 +50,27 @@ export const Session = () => {
 
   const renderSumary = () => (
     <>
-      <div className="text-gray-400 font-inter grid justify-start mx-2  mt-8 leading-4">
-        <span className="font-bold">Resumo</span>
+      <div className="flex items-center justify-between mx-2 mt-6">
+        <span className="text-gray-800 font-inter font-bold leading-4">
+          Resumo
+        </span>
+        {isEdit && (
+          <span className="text-gray-800 font-inter leading-4 bg-gray-300 rounded-full px-2 py-0.5">
+            Somente leitura
+          </span>
+        )}
       </div>
-      <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
-        <JoditEditor
-          ref={editor}
+      <Card
+        className={clsx(
+          'rounded-lg w-full border border-gray-300',
+          isEdit && 'cursor-not-allowed bg-gray-200'
+        )}
+      >
+        <RichTextEditor
           value={content}
-          config={{
-            readonly: isEdit,
-            language: 'pt_br',
-            buttons:
-              'bold,italic,underline,strikethrough,font,fontsize,paragraph,copyformat,table,fullsize,preview',
-            saveModeInStorage: true,
-          }}
+          readOnly={isEdit}
+          placeholder="Descreva como foi a sessão, a evolução do paciente e observações relevantes."
           onBlur={(newContent) => setContent(newContent)}
-          onChange={() => {}}
         />
       </Card>
     </>
@@ -73,7 +78,7 @@ export const Session = () => {
 
   const renderFooter = () =>
     !isEdit && (
-      <div className="mt-auto">
+      <div className="fixed inset-x-0 bottom-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <ButtonHeron
           text="Salvar"
           icon="pi pi-check"
@@ -108,9 +113,9 @@ export const Session = () => {
   }, [list, listPortage, listVBMapp, listMaintenance]);
 
   return (
-    <div className="grid overflox-y-auto">
+    <div className="grid overflow-x-hidden bg-background">
       {renderHeader()}
-      <div className="">
+      <div className={clsx(!isEdit && 'pb-24')}>
         {renderHeaderSession}
         <SessionActivity
           list={list}

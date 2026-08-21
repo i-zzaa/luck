@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef, useContext } from 'react';
+import React, { createContext, useState, useEffect, useRef, useContext, useCallback, useMemo } from 'react';
 import { api, intercepttRoute } from '../server';
 import { permissionAuth } from './permission';
 import { useToast } from './toast';
@@ -37,12 +37,12 @@ export const AuthProvider = ({ children }: Props) => {
   // de novo, tudo na mesma aba) sobreviva e derrube a sessão nova antes da
   // hora. Sem isso, cada chamada a Login() empilhava um setTimeout próprio
   // e o mais antigo deles vencia primeiro.
-  const clearSessionTimer = () => {
+  const clearSessionTimer = useCallback(() => {
     if (sessionTimerRef.current) {
       clearTimeout(sessionTimerRef.current);
       sessionTimerRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => clearSessionTimer, []);
 
@@ -59,52 +59,12 @@ export const AuthProvider = ({ children }: Props) => {
     }
   }, []);
 
-  const Login = async (loginState: { username: string, password: string}) => {
-    try {
-      const response = await api.post('/login', loginState);
-
-      const auth = response.data;
-
-      clearSessionTimer();
-      sessionTimerRef.current = setTimeout(() => {
-        Logout();
-      }, SESSION_DURATION_MS);
-
-      const user = auth?.user || auth.data;
-      const accessToken = auth?.accessToken || auth.data.accessToken;
-
-      const perfilName = user.perfil?.nome
-        ? user.perfil.nome.toLowerCase()
-        : user.perfil.toLowerCase();
-
-      sessionStorage.setItem('token', accessToken);
-      sessionStorage.setItem('auth', JSON.stringify(user));
-      sessionStorage.setItem('perfil', perfilName);
-
-      if (user.permissoes.length && setPermissionsLogin)
-        setPermissionsLogin(user.permissoes);
-
-      setPerfil(perfilName);
-      setUser(user);
-
-      await intercepttRoute(accessToken, user.login, user.id);
-
-      renderToast({
-        type: 'success',
-        title: ' ',
-        message: 'Bem vindo!',
-        open: true,
-      });
-    } catch (error) {
-      // getErrorInfo/buildErrorToast lê error.response.{status,data} (forma
-      // real de um erro do axios) — o msgError anterior lia error.data e
-      // error.status, que não existem nesse objeto, então sempre caía no
-      // fallback genérico e escondia a mensagem real do backend.
-      renderToast(buildErrorToast(error, 'Usuário não encontrado!'));
-    }
-  };
-
-  const Logout = async () => {
+  // Login/Logout/value memoizados pelo mesmo motivo do renderToast em
+  // toast.tsx: AuthProvider fica perto da raiz (App.tsx), então um value
+  // recriado a cada render derrubava em cascata todo consumidor de
+  // useAuth() — inclusive efeitos de busca que dependem dessas funções.
+  // Logout vem primeiro porque Login referencia ela nas deps.
+  const Logout = useCallback(async () => {
     clearSessionTimer();
     await clearCache();
     setUser(undefined);
@@ -114,12 +74,63 @@ export const AuthProvider = ({ children }: Props) => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [clearSessionTimer]);
+
+  const Login = useCallback(
+    async (loginState: { username: string, password: string}) => {
+      try {
+        const response = await api.post('/login', loginState);
+
+        const auth = response.data;
+
+        clearSessionTimer();
+        sessionTimerRef.current = setTimeout(() => {
+          Logout();
+        }, SESSION_DURATION_MS);
+
+        const user = auth?.user || auth.data;
+        const accessToken = auth?.accessToken || auth.data.accessToken;
+
+        const perfilName = user.perfil?.nome
+          ? user.perfil.nome.toLowerCase()
+          : user.perfil.toLowerCase();
+
+        sessionStorage.setItem('token', accessToken);
+        sessionStorage.setItem('auth', JSON.stringify(user));
+        sessionStorage.setItem('perfil', perfilName);
+
+        if (user.permissoes.length && setPermissionsLogin)
+          setPermissionsLogin(user.permissoes);
+
+        setPerfil(perfilName);
+        setUser(user);
+
+        await intercepttRoute(accessToken, user.login, user.id);
+
+        renderToast({
+          type: 'success',
+          title: ' ',
+          message: 'Bem vindo!',
+          open: true,
+        });
+      } catch (error) {
+        // getErrorInfo/buildErrorToast lê error.response.{status,data} (forma
+        // real de um erro do axios) — o msgError anterior lia error.data e
+        // error.status, que não existem nesse objeto, então sempre caía no
+        // fallback genérico e escondia a mensagem real do backend.
+        renderToast(buildErrorToast(error, 'Usuário não encontrado!'));
+      }
+    },
+    [clearSessionTimer, Logout, setPermissionsLogin, renderToast]
+  );
+
+  const value = useMemo(
+    () => ({ signed: Boolean(user), user, Login, Logout, perfil }),
+    [user, Login, Logout, perfil]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{ signed: Boolean(user), user, Login, Logout, perfil }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

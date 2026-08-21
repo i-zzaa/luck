@@ -1,7 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { RoutesProps } from '../../routes/OtherRoutes';
-import { formatName } from './format';
 
 interface NavItemProps {
   route: RoutesProps;
@@ -29,7 +28,7 @@ export function NavItem({ route }: NavItemProps) {
     >
       <NavLink to={route.path} className="grid grid-cols-2 gap-8 items-center text-sm px-4 py-4 cursor-pointer">
         <i className={clsx('text-end', route.icon)} />
-        <span className="duration-700">{formatName(route.path)}</span>
+        <span className="duration-700">{route.title}</span>
       </NavLink>
     </li>
   );

@@ -57,23 +57,27 @@ export default function Login() {
 
     sessionStorage.setItem('rememberCheck', checked ? 'true' : 'false');
     if (checked) {
-      // Só o login fica salvo — nunca a senha em texto puro no
-      // sessionStorage. Web storage é legível por qualquer script no
-      // domínio (XSS, extensão maliciosa), então guardar a senha ali
-      // expõe a credencial inteira, não só o token de sessão.
-      sessionStorage.setItem('rememberLogin', watch('username') ?? '');
+      sessionStorage.setItem(
+        'rememberLogin',
+        JSON.stringify({
+          username: watch('username') ?? '',
+          password: watch('password') ?? '',
+        })
+      );
     } else {
       sessionStorage.removeItem('rememberLogin');
     }
   };
 
   useEffect(() => {
-    const rememberedUsername = sessionStorage.getItem('rememberLogin');
+    const rememberLogin = sessionStorage.getItem('rememberLogin');
     const rememberCheck = sessionStorage.getItem('rememberCheck') === 'true';
 
-    if (rememberedUsername) {
+    if (rememberLogin) {
+      const { username, password } = JSON.parse(rememberLogin);
       setCheck(rememberCheck);
-      setValue('username', rememberedUsername);
+      setValue('username', username);
+      setValue('password', password);
     } else {
       setCheck(false);
     }

@@ -83,3 +83,14 @@ tr {
   -webkit-text-fill-color: var(--gray-800);
   transition: background-color 9999s ease-in-out 0s;
 }
+
+/* Placeholder do editor de resumo (Tiptap): a extensão só marca o
+   parágrafo vazio com a classe/atributo abaixo, quem desenha o texto
+   fantasma é este CSS. */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--gray-400);
+}

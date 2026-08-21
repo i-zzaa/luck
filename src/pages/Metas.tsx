@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { create, filter, getList, update } from '../server';
 import { useToast } from '../contexts/toast';
 import { Tree, TreeCheckboxSelectionKeys } from 'primereact/tree';
-import { ButtonHeron, Card } from '../components';
+import { ButtonHeron, Card, CollapsibleSection } from '../components';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { NotFound } from '../components/notFound';
@@ -26,24 +27,39 @@ const extractCheckedKeys = (selection: any | undefined) => {
   }, []);
 };
 
+// Remove recursivamente os nós cuja key está em excludedKeys, podando
+// qualquer galho que fique sem filhos. Funciona pra árvore de qualquer
+// profundidade (o Manual vem em 3 níveis - programa > meta > subitem -
+// mas VB-Mapp e Portage vêm em 2 níveis - meta > subitem direto -,
+// então não dá pra assumir uma profundidade fixa aqui).
+const filterExcludedNode = (node: any, excludedKeys: Set<string>): any | null => {
+  const isLeaf = !Array.isArray(node?.children) || node.children.length === 0;
+
+  if (isLeaf) {
+    return excludedKeys.has(String(node?.key)) ? null : node;
+  }
+
+  const childrenFiltrados = node.children
+    .map((child: any) => filterExcludedNode(child, excludedKeys))
+    .filter(Boolean);
+
+  return childrenFiltrados.length
+    ? { ...node, children: childrenFiltrados }
+    : null;
+};
+
 const buildFilteredTreeNodes = (baseNodes: any[] = [], excludedKeys: Set<string> = new Set()) => {
   return (baseNodes || [])
-    .map((programa: any) => {
-      const metasFiltradas = (programa.children || [])
-        .map((meta: any) => {
-          const childrenFiltrados = (meta.children || []).filter(
-            (sub: any) => !excludedKeys.has(String(sub.key))
-          );
-          return { ...meta, children: childrenFiltrados };
-        })
-        .filter((m: any) => (m.children || []).length > 0);
-
-      return { ...programa, children: metasFiltradas };
-    })
-    .filter((p: any) => (p.children || []).length > 0);
+    .map((node: any) => filterExcludedNode(node, excludedKeys))
+    .filter(Boolean);
 };
 
 const hasNodes = (arr?: any[]) => Array.isArray(arr) && arr.length > 0;
+
+// conta quantos nós estão marcados numa seleção de Tree (checkbox) —
+// serve só pro contador visual da seção, não precisa distinguir
+// folha/pai: cada chave marcada = 1 no contador.
+const countSelected = (selection: any) => extractCheckedKeys(selection).length;
 
 const normalizeMaintenanceObject = (raw: any): MaintenanceObject => {
   const safeArray = (v: any) => (Array.isArray(v) ? v : []);
@@ -290,21 +306,18 @@ export default function Metas() {
   const renderContentManual = () => {
     return (
       hasNodes(nodesManual) && (
-        <div className="grid gap-2 mt-4">
-          <div>
-            <div className="text-gray-400"> Manual</div>
-            <Tree
-              value={nodesManual}
-              selectionMode="checkbox"
-              selectionKeys={selectedKeysManual}
-              onSelectionChange={(e: any) => {
-                setSelectedKeysManual(e.value);
-                setManualKeysFlat(Object.keys(e.value));
-              }}
-              className="w-full md:w-30rem"
-            />
-          </div>
-        </div>
+        <CollapsibleSection title="Manual" count={countSelected(selectedKeysManual)}>
+          <Tree
+            value={nodesManual}
+            selectionMode="checkbox"
+            selectionKeys={selectedKeysManual}
+            onSelectionChange={(e: any) => {
+              setSelectedKeysManual(e.value);
+              setManualKeysFlat(Object.keys(e.value));
+            }}
+            className="w-full md:w-30rem"
+          />
+        </CollapsibleSection>
       )
     );
   };
@@ -312,8 +325,7 @@ export default function Metas() {
   const renderContentPortage = () => {
     return (
       hasNodes(nodesPortage) && (
-        <div className="grid gap-2 mt-8">
-          <div className="text-gray-400"> Portage </div>
+        <CollapsibleSection title="Portage" count={countSelected(selectedPortageKeys)}>
           <Tree
             value={nodesPortage}
             selectionMode="checkbox"
@@ -321,7 +333,7 @@ export default function Metas() {
             onSelectionChange={(e: any) => setSelectedPortageKeys(e.value)}
             className="w-full md:w-30rem"
           />
-        </div>
+        </CollapsibleSection>
       )
     );
   };
@@ -329,8 +341,7 @@ export default function Metas() {
   const renderContentVbMapp = () => {
     return (
       hasNodes(nodesVbMapp) && (
-        <div className="grid gap-2 mt-8">
-          <div className="text-gray-400"> Vb Mapp </div>
+        <CollapsibleSection title="VB-Mapp" count={countSelected(selectedVbMappKeys)}>
           <Tree
             value={nodesVbMapp}
             selectionMode="checkbox"
@@ -338,7 +349,7 @@ export default function Metas() {
             onSelectionChange={(e: any) => setSelectedVbMappKeys(e.value)}
             className="w-full md:w-30rem"
           />
-        </div>
+        </CollapsibleSection>
       )
     );
   };
@@ -350,58 +361,64 @@ export default function Metas() {
 
     if (!hasAny) return null;
 
+    const maintenanceCount =
+      countSelected(selectedMaintenanceKeys.manual) +
+      countSelected(selectedMaintenanceKeys.vbmapp) +
+      countSelected(selectedMaintenanceKeys.portage);
+
     return (
-      <div className="grid gap-6 my-8">
-        <div className="text-gray-400"> Manutenção </div>
+      <CollapsibleSection
+        title="Manutenção"
+        count={maintenanceCount}
+        defaultOpen={false}
+      >
+        <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
+          {hasNodes(maint.manual) && (
+            <div>
+              <div className="text-gray-400">Manual (em manutenção)</div>
+              <Tree
+                value={maint.manual}
+                selectionMode="checkbox"
+                selectionKeys={selectedMaintenanceKeys.manual || {}}
+                onSelectionChange={(e: any) =>
+                  setSelectedMaintenanceKeys((prev: any) => ({ ...prev, manual: e.value }))
+                }
+                className="w-full md:w-30rem"
+              />
+            </div>
+          )}
 
-      <Card className="rounded-lg cursor-not-allowed max-w-[100%]">
+          {hasNodes(maint.vbmapp) && (
+            <div>
+              <div className="text-gray-400 mt-4">VB-Mapp (em manutenção)</div>
+              <Tree
+                value={maint.vbmapp}
+                selectionMode="checkbox"
+                selectionKeys={selectedMaintenanceKeys.vbmapp || {}}
+                onSelectionChange={(e: any) =>
+                  setSelectedMaintenanceKeys((prev: any) => ({ ...prev, vbmapp: e.value }))
+                }
+                className="w-full md:w-30rem"
+              />
+            </div>
+          )}
 
-        {hasNodes(maint.manual) && (
-          <div>
-            <div className="text-gray-400">Manual (em manutenção)</div>
-            <Tree
-              value={maint.manual}
-              selectionMode="checkbox"
-              selectionKeys={selectedMaintenanceKeys.manual || {}}
-              onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, manual: e.value }))
-              }
-              className="w-full md:w-30rem"
-            />
-          </div>
-        )}
-
-        {hasNodes(maint.vbmapp) && (
-          <div>
-            <div className="text-gray-400 mt-4">VB-Mapp (em manutenção)</div>
-            <Tree
-              value={maint.vbmapp}
-              selectionMode="checkbox"
-              selectionKeys={selectedMaintenanceKeys.vbmapp || {}}
-              onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, vbmapp: e.value }))
-              }
-              className="w-full md:w-30rem"
-            />
-          </div>
-        )}
-
-        {hasNodes(maint.portage) && (
-          <div>
-            <div className="text-gray-400 mt-4">Portage (em manutenção)</div>
-            <Tree
-              value={maint.portage}
-              selectionMode="checkbox"
-              selectionKeys={selectedMaintenanceKeys.portage || {}}
-              onSelectionChange={(e: any) =>
-                setSelectedMaintenanceKeys((prev: any) => ({ ...prev, portage: e.value }))
-              }
-              className="w-full md:w-30rem"
-            />
-          </div>
-        )}
+          {hasNodes(maint.portage) && (
+            <div>
+              <div className="text-gray-400 mt-4">Portage (em manutenção)</div>
+              <Tree
+                value={maint.portage}
+                selectionMode="checkbox"
+                selectionKeys={selectedMaintenanceKeys.portage || {}}
+                onSelectionChange={(e: any) =>
+                  setSelectedMaintenanceKeys((prev: any) => ({ ...prev, portage: e.value }))
+                }
+                className="w-full md:w-30rem"
+              />
+            </div>
+          )}
         </Card>
-      </div>
+      </CollapsibleSection>
     );
   };
 
@@ -432,18 +449,18 @@ export default function Metas() {
     );
   };
 
-  const renderFooter = () => {
-    const anyContent =
-      hasNodes(nodesVbMapp) ||
-      hasNodes(nodesPortage) ||
-      hasNodes(nodesMaintenance.manual) ||
-      hasNodes(nodesMaintenance.vbmapp) ||
-      hasNodes(nodesMaintenance.portage) ||
-      hasNodes(nodesManual);
+  const hasAnyContent = () =>
+    hasNodes(nodesVbMapp) ||
+    hasNodes(nodesPortage) ||
+    hasNodes(nodesMaintenance.manual) ||
+    hasNodes(nodesMaintenance.vbmapp) ||
+    hasNodes(nodesMaintenance.portage) ||
+    hasNodes(nodesManual);
 
+  const renderFooter = () => {
     return (
-      anyContent && (
-        <div className=" mt-8">
+      hasAnyContent() && (
+        <div className="fixed inset-x-0 bottom-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           <ButtonHeron
             text="Salvar"
             type="primary"
@@ -477,11 +494,16 @@ export default function Metas() {
   }, [getPEI]);
 
   return (
-    <div className="h-[90vh] flex flex-col overflow-y-auto">
+    <div
+      className={clsx(
+        'h-[90vh] flex flex-col overflow-y-auto',
+        hasAnyContent() && 'pb-24'
+      )}
+    >
       {renderHeader}
 
-      <div className="text-gray-400 mt-8 text-center">
-        Selecione os programas para sessão
+      <div className="text-gray-400 text-xs mt-4 mx-2">
+        Selecione os programas para a sessão
       </div>
 
       {renderContentManual()}
