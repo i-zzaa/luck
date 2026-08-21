@@ -165,7 +165,10 @@ export function List({
 
       const tags = item?.vaga.especialidades.map((especialidade: any) => {
         return {
-          type: especialidade.especialidade.nome,
+          // FALLBACK TEMPORÁRIO: prefere um código estável se o backend
+          // mandar (ver docs/pedido-backend-formatacao.md); Tag já sabe
+          // cair pro matching por nome livre sozinho.
+          type: especialidade?.especialidade?.codigo || especialidade.especialidade.nome,
           disabled: especialidade.agendado,
         };
       });

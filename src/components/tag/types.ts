@@ -1,7 +1,9 @@
+import { CodigoEspecialidade } from '../../util/especialidade';
+
 export const BASE_CLASS =
   'text-sm items-center flex text-white py-2 px-2 rounded-full cursor-pointer disabled:opacity-100';
 
-export const bgClassMap: Record<string, string> = {
+export const bgClassMap: Record<CodigoEspecialidade, string> = {
   TO: 'bg-to',
   FONO: 'bg-fono',
   PSICO: 'bg-psico',
@@ -12,6 +14,10 @@ export const bgClassMap: Record<string, string> = {
 
 export interface TagProps {
   onClick?: () => void;
-  type: 'to' | 'fono' | 'psico' | 'PsicoPEDAG' | 'motricidade' | 'musicoterapia';
+  // Aceita a sigla ou o nome completo da especialidade — a resolução
+  // (com fallback por substring) fica em resolveEspecialidadeCodigo.
+  // Antes só casava com a sigla exata, então um nome completo vindo da
+  // API sempre caía no cinza padrão, silenciosamente.
+  type: string;
   disabled: boolean;
 }

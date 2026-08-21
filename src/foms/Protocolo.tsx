@@ -74,10 +74,14 @@ export default function Protocolo() {
     }
   }, []);
 
+  // state vem de useLocation().state e muda quando o usuário navega pra
+  // essa mesma rota com dados diferentes (ex: PEI.tsx chamando navigate
+  // com outro item pra editar), sem desmontar o componente — por isso
+  // precisa estar na dependência: com [] o formulário ficaria com os
+  // valores da edição anterior ao trocar de item sem sair da tela.
   useEffect(() => {
     renderDropdown();
   }, [state, resetField]);
-  // }, []);
 
   return (
     <form className="mt-8" onSubmit={() => {}}>

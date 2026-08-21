@@ -52,6 +52,13 @@ export default function Login() {
     }
   };
 
+  // "Lembrar login" guardava usuário E senha em texto plano no
+  // sessionStorage — legível por qualquer script rodando na mesma
+  // origem (um XSS, uma extensão de navegador maliciosa, etc. leriam a
+  // senha em claro sem esforço nenhum). Continua lembrando o usuário
+  // (não é dado sensível), mas a senha não é mais persistida — o
+  // usuário digita a senha normalmente a cada login, só o campo de
+  // usuário vem preenchido.
   const handleRememberPassword = async (checked: boolean) => {
     setCheck(checked);
 
@@ -59,10 +66,7 @@ export default function Login() {
     if (checked) {
       sessionStorage.setItem(
         'rememberLogin',
-        JSON.stringify({
-          username: watch('username') ?? '',
-          password: watch('password') ?? '',
-        })
+        JSON.stringify({ username: watch('username') ?? '' })
       );
     } else {
       sessionStorage.removeItem('rememberLogin');
@@ -74,10 +78,9 @@ export default function Login() {
     const rememberCheck = sessionStorage.getItem('rememberCheck') === 'true';
 
     if (rememberLogin) {
-      const { username, password } = JSON.parse(rememberLogin);
+      const { username } = JSON.parse(rememberLogin);
       setCheck(rememberCheck);
       setValue('username', username);
-      setValue('password', password);
     } else {
       setCheck(false);
     }

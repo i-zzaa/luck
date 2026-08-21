@@ -14,12 +14,14 @@ interface Props {
 
 const getLabel = (n: any) => n?.label ?? n?.value ?? n?.nome ?? "—";
 
-export const SessionVBMapp: React.FC<Props> = ({
+// Ver comentário equivalente em SessionActivity.tsx: evita re-render dessa
+// árvore quando o que mudou foi estado de outra seção da tela de Sessão.
+export const SessionVBMapp: React.FC<Props> = React.memo(function SessionVBMapp({
   listVBMapp = [],
   vbmapp = [],
   isEdit,
   setVBMapp,
-}) => {
+}) {
   const source = (Array.isArray(vbmapp) && vbmapp.length) ? vbmapp : (listVBMapp || []);
   if (!Array.isArray(source) || !source.length) return null;
 
@@ -89,4 +91,4 @@ export const SessionVBMapp: React.FC<Props> = ({
       </Card>
     </div>
   );
-};
+});

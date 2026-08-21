@@ -7,6 +7,7 @@ import { useToast } from '../../contexts/toast';
 import { create, getList, update } from '../../server';
 import moment from 'moment';
 import { STATUS_EVENTS } from '../../constants/schedule';
+import { temSessaoRegistrada } from '../../util/evento';
 
 const ACTIVITY = 'activity';
 const MAINTENANCE = 'maintenance';
@@ -186,7 +187,11 @@ export const useSessionForm = () => {
     [transformGenericNode]
   );
 
-  // VBMapp: conserva sua especialização (mas poderia usar o genérico também)
+  // VBMapp: formato de saída próprio (permiteSubitens, sem subitems) — não
+  // dá pra reaproveitar transformGenericNode direto, mas os helpers de
+  // primitivo/padding já existem no escopo do módulo (isObj,
+  // isPrimitiveOrNull, padSlots), então não precisam ser reimplementados
+  // aqui como antes.
   const transformVBMappNode = useCallback(
     async (node: any): Promise<any> => {
       const out: any = {
@@ -197,27 +202,12 @@ export const useSessionForm = () => {
         resposta: node?.resposta ?? '',
       };
 
-      const isPlainObject = (v: any) =>
-        v !== null && typeof v === 'object' && !Array.isArray(v);
-
-      const isPrimitiveOrNull = (v: any) => v === null || !isPlainObject(v);
-
-      const padToRepeat = (arr: any[]) => {
-        const base = Array.isArray(arr) ? arr.slice(0, repeatActivity) : [];
-        if (base.length < repeatActivity) {
-          base.push(
-            ...Array.from({ length: repeatActivity - base.length }, () => null)
-          );
-        }
-        return base;
-      };
-
       const ch = node?.children;
 
       if (Array.isArray(ch) && ch.length > 0) {
         // Caso 1: folha com array de valores (primitivos/null)
         if (ch.every(isPrimitiveOrNull)) {
-          out.children = padToRepeat(ch);
+          out.children = padSlots(ch, repeatActivity);
           return out;
         }
 
@@ -225,7 +215,7 @@ export const useSessionForm = () => {
         const first = ch[0];
 
         // 2.a) Subitens: objetos sem "children" (ou "children" não-array)
-        if (isPlainObject(first) && !Array.isArray(first.children)) {
+        if (isObj(first) && !Array.isArray(first.children)) {
           out.children = ch.map((sub: any) => {
             const subOut: any = {
               key: String(sub?.key ?? sub?.id ?? ''),
@@ -239,7 +229,7 @@ export const useSessionForm = () => {
               sub.children.length > 0 &&
               sub.children.every(isPrimitiveOrNull)
             ) {
-              subOut.children = padToRepeat(sub.children);
+              subOut.children = padSlots(sub.children, repeatActivity);
             } else {
               subOut.children = Array.from({ length: repeatActivity }).map(
                 () => null
@@ -349,7 +339,7 @@ export const useSessionForm = () => {
         .startOf('day')
         .isAfter(moment(dateSession).startOf('day'));
 
-      if (isAttended || isPast) {
+      if (temSessaoRegistrada(state?.item, isAttended || isPast)) {
         const result: any = await getList(`/sessao/${state.item.id}`);
 
         if (result) {

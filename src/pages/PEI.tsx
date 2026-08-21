@@ -104,23 +104,11 @@ const PEI = () => {
     if (!loading) {
       return list.length ? (
         <Card>
-          {/* <div className="flex my-2 items-center  w-full">
-            <div className="ml-auto" >
-                <ButtonHeron
-                    text="Revisar Metas"
-                    type="primary"
-                    size="sm"
-                    icon="pi pi-check-circle"
-                    onClick={()=>{}}
-                    loading={loading}
-                  />
-              </div>
-           </div> */}
           <Accordion>
             {list.map((item: any, key: number) => {
               return (
                 <AccordionTab
-                  key={key}
+                  key={item?.id ?? key}
                   header={
                     <div className="flex items-center  w-full">
                       <span>{item.programa.nome}</span>
@@ -158,7 +146,7 @@ const PEI = () => {
                       {item.metas.map((meta: any, indexMeta: number) => {
                         return (
                           <div
-                            key={indexMeta}
+                            key={meta?.id ?? indexMeta}
                             className={meta?.procedimentoEnsino && 'mb-8'}
                           >
                             {tipoProtocolo === TIPO_PROTOCOLO.portage &&
@@ -171,9 +159,11 @@ const PEI = () => {
                               {meta.subitems &&
                                 meta.subitems.map(
                                   (subitem: any, index: number) => {
-                                    //  return <li key={index} className="flex items-center gap-2"> <i className="pi pi-check-circle text-green-400"></i>{subitem.value} </li>
                                     return (
-                                      <li key={index}> {subitem.value} </li>
+                                      <li key={subitem?.id ?? index}>
+                                        {' '}
+                                        {subitem.value}{' '}
+                                      </li>
                                     );
                                   }
                                 )}

@@ -1,4 +1,5 @@
 // src/components/session/SessionMaintenance.tsx
+import { memo } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from '../../components/card';
 import CheckboxSN from '../../components/CheckboxSN';
@@ -32,11 +33,13 @@ const isObjNode = (n: any) => n && typeof n === 'object' && !Array.isArray(n);
 const hasActs = (children: any[] | undefined) =>
   Array.isArray(children) && children.some((c) => isObjNode(c));
 
-export const SessionMaintenance = ({
+// Ver comentário equivalente em SessionActivity.tsx: evita re-render dessa
+// árvore quando o que mudou foi estado de outra seção da tela de Sessão.
+export const SessionMaintenance = memo(function SessionMaintenance({
   listMaintenance,
   isEdit,
   setMaintenance,
-}: Props) => {
+}: Props) {
   const hasAny =
     (Array.isArray(listMaintenance?.manual) && listMaintenance.manual!.length > 0) ||
     (Array.isArray(listMaintenance?.vbmapp) && listMaintenance.vbmapp!.length > 0) ||
@@ -212,4 +215,4 @@ export const SessionMaintenance = ({
       {renderCategory('portage', 'Manutenção — Portage')}
     </>
   );
-};
+});

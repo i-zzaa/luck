@@ -8,20 +8,12 @@ import { getList } from '../server';
 import { formatdateeua } from '../util/util';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { getMockSessoesSemResumo } from './home/mockDashboard';
+import { classificarStatus } from '../util/status';
+import { isSlotLivre } from '../util/evento';
 
 type ViewMode = 'dia' | 'semana';
 
 const getInicioSemana = (date: Date) => moment(date).startOf('isoWeek').toDate();
-
-// mesma lógica de cor/leitura de status já usada em ScheduleInfo — aqui só
-// classifica pra contagem, não precisa do className
-const classificarStatus = (nome?: string) => {
-  const normalized = (nome || '').toLowerCase();
-  if (normalized.includes('falta')) return 'falta';
-  if (normalized.includes('atestado')) return 'atestado';
-  if (normalized.includes('atendido')) return 'atendido';
-  return 'outro';
-};
 
 export default function Home() {
   const [user, setUser] = useState() as any;
@@ -37,22 +29,28 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>('dia');
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [list, setList] = useState<any>({});
+  // FALLBACK TEMPORÁRIO: endpoint agregado ainda não existe no backend
+  // (ver docs/pedido-backend-dashboard.md) — enquanto não vier, os números
+  // continuam sendo calculados a partir de /evento/filtro, como hoje.
+  const [resumoBackend, setResumoBackend] = useState<any>(null);
 
   useEffect(() => {
     if (!authUser?.id) return;
 
+    const hoje = new Date();
+    const inicio = viewMode === 'semana' ? getInicioSemana(hoje) : hoje;
+    const fim =
+      viewMode === 'semana' ? moment(inicio).add(6, 'days').toDate() : hoje;
+    const dataInicio = formatdateeua(inicio);
+    const dataFim = formatdateeua(fim);
+
     const buscar = async () => {
       setDashboardLoading(true);
       try {
-        const hoje = new Date();
-        const inicio = viewMode === 'semana' ? getInicioSemana(hoje) : hoje;
-        const fim =
-          viewMode === 'semana' ? moment(inicio).add(6, 'days').toDate() : hoje;
-
         // mesmo endpoint que a Agenda já usa (evento/filtro), com
         // intervalo inclusivo nas duas pontas — ver Schedule.tsx
         const response: any = await getList(
-          `/evento/filtro/${formatdateeua(inicio)}/${formatdateeua(fim)}?terapeutaId=${authUser.id}`
+          `/evento/filtro/${dataInicio}/${dataFim}?terapeutaId=${authUser.id}`
         );
         setList(response || {});
       } catch (error) {
@@ -62,21 +60,33 @@ export default function Home() {
       }
     };
 
+    const buscarResumo = async () => {
+      try {
+        const response = await getList(
+          `/terapeuta/dashboard?terapeutaId=${authUser.id}&dataInicio=${dataInicio}&dataFim=${dataFim}`
+        );
+        setResumoBackend(response || null);
+      } catch (error) {
+        // endpoint ainda não existe no backend — cai no cálculo local
+        setResumoBackend(null);
+      }
+    };
+
     buscar();
+    buscarResumo();
   }, [viewMode, authUser?.id]);
 
   // achata a resposta (agrupada por dia) numa lista só de sessões reais,
-  // excluindo os slots "livres" (id === 0, mesmo padrão do formatItem da
-  // Agenda)
+  // excluindo os slots "livres" (mesmo padrão do formatItem da Agenda)
   const sessoes = useMemo(() => {
     return Object.values(list || {})
       .flat()
-      .filter((item: any) => item?.id !== 0);
+      .filter((item: any) => !isSlotLivre(item));
   }, [list]);
 
-  const totalSessoes = sessoes.length;
+  const totalSessoesCalculado = sessoes.length;
 
-  const totalPacientes = useMemo(() => {
+  const totalPacientesCalculado = useMemo(() => {
     const chaves = new Set(
       sessoes.map((item: any) => item?.paciente?.id ?? item?.title)
     );
@@ -86,19 +96,19 @@ export default function Home() {
   const comparecimento = useMemo(() => {
     const contagem = { atendido: 0, falta: 0, atestado: 0, outro: 0 };
     sessoes.forEach((item: any) => {
-      contagem[classificarStatus(item?.statusEventos?.nome)]++;
+      contagem[classificarStatus(item?.statusEventos)]++;
     });
     return contagem;
   }, [sessoes]);
 
-  const taxaComparecimento =
-    totalSessoes > 0
-      ? Math.round((comparecimento.atendido / totalSessoes) * 100)
+  const taxaComparecimentoCalculada =
+    totalSessoesCalculado > 0
+      ? Math.round((comparecimento.atendido / totalSessoesCalculado) * 100)
       : null;
 
   // soma a duração (data.start -> data.end) de cada sessão do período —
   // dado real, dá pra calcular com o que o evento/filtro já devolve hoje
-  const horasAtendidas = useMemo(() => {
+  const horasAtendidasCalculada = useMemo(() => {
     const minutos = sessoes.reduce((acc: number, item: any) => {
       const start = item?.data?.start;
       const end = item?.data?.end;
@@ -111,6 +121,14 @@ export default function Home() {
     const m = minutos % 60;
     return m > 0 ? `${h}h${m}` : `${h}h`;
   }, [sessoes]);
+
+  // Prefere o agregado do backend quando ele existir; até lá, usa o
+  // cálculo local a partir de /evento/filtro (ver useEffect acima).
+  const totalSessoes = resumoBackend?.totalSessoes ?? totalSessoesCalculado;
+  const totalPacientes = resumoBackend?.totalPacientes ?? totalPacientesCalculado;
+  const taxaComparecimento =
+    resumoBackend?.taxaComparecimento ?? taxaComparecimentoCalculada;
+  const horasAtendidas = resumoBackend?.horasAtendidas ?? horasAtendidasCalculada;
 
   // próximas sessões de hoje: só faz sentido na aba "Hoje" — na aba
   // "Semana" a lista já mistura outros dias, então o "próximas" perderia
@@ -130,7 +148,11 @@ export default function Home() {
       .slice(0, 3);
   }, [sessoes, viewMode]);
 
-  const resumosPendentes = useMemo(() => getMockSessoesSemResumo(), []);
+  const resumosPendentes = useMemo(
+    () => resumoBackend?.resumosPendentes ?? getMockSessoesSemResumo(),
+    [resumoBackend]
+  );
+  const resumosPendentesSaoMock = !resumoBackend?.resumosPendentes;
 
   const renderTabs = (
     <div className="bg-gray-200 rounded-full p-1 flex gap-1">
@@ -191,7 +213,7 @@ export default function Home() {
         O resumo da sessão agora é obrigatório. Finalize os pendentes abaixo.
       </p>
       <div className="grid gap-3">
-        {resumosPendentes.map((item) => (
+        {resumosPendentes.map((item: any) => (
           <div key={item.id} className="flex items-center gap-2">
             <i className="pi pi-exclamation-triangle text-red-400" />
             <span className="font-inter text-sm text-gray-800 flex-1">
@@ -203,10 +225,12 @@ export default function Home() {
           </div>
         ))}
       </div>
-      <span className="text-[10px] font-inter text-gray-400 mt-2 block">
-        Dado de exemplo — ainda depende de um ajuste no backend (ver
-        docs/pedido-backend-dashboard.md).
-      </span>
+      {resumosPendentesSaoMock && (
+        <span className="text-[10px] font-inter text-gray-400 mt-2 block">
+          Dado de exemplo — ainda depende de um ajuste no backend (ver
+          docs/pedido-backend-dashboard.md).
+        </span>
+      )}
     </Card>
   );
 

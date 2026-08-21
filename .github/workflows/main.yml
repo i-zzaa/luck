@@ -11,7 +11,7 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
 
-      - run: npm i
+      - run: npm ci
       - run: npm run build
 
       - name: 📂 Sync files
@@ -38,4 +38,4 @@ jobs:
             **/tailwind.config.cjs
             **/tsconfig.json
             **/vite.config.ts
-            **/yarn.lock
+            **/package-lock.json

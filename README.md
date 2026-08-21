@@ -8,7 +8,7 @@
 ### Pré-requisitos
 
 Antes de começar, você vai precisar ter instalado em sua máquina as seguintes ferramentas:
-[Git](https://git-scm.com/), [Node.js](https://nodejs.org/en/), ReactJs18, Yarn.
+[Git](https://git-scm.com/), [Node.js](https://nodejs.org/en/), ReactJs18, npm.
 Além disto é bom ter um editor para trabalhar com o código como [VSCode](https://code.visualstudio.com/)
 
 ### 🎲 Rodando o Front
@@ -21,10 +21,10 @@ $ git https://github.com/i-zzaa/heron-list-web.git
 $ cd heron-list-we
 
 # Instale as dependências 
-$ yarn install
+$ npm install
 
 # Execute a aplicação em modo de desenvolvimento
-$ yarn dev
+$ npm run dev
 
 # O servidor inciará na porta:5173 - acesse <http://127.0.0.1:5173/>
 

@@ -1,4 +1,5 @@
 // src/components/session/SessionPortage.tsx
+import { memo } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from '../../components/card';
 import CheckboxDTT from '../../components/DTT';
@@ -18,12 +19,17 @@ const ensureSlots = (arr: any[] | undefined, count = 10) =>
     ? arr
     : Array.from({ length: count }, () => null);
 
-export const SessionPortage = ({
+// Ver comentário equivalente em SessionActivity.tsx: sem memo, essa árvore
+// (a mais pesada das quatro — Programa->Meta->Ato->10 slots) re-renderiza
+// inteira toda vez que QUALQUER outra seção da tela de Sessão muda de
+// estado, mesmo com as próprias props (listPortage/portage/isEdit/
+// setPortage) idênticas.
+export const SessionPortage = memo(function SessionPortage({
   listPortage = [],
   portage = [],
   isEdit,
   setPortage,
-}: Props) => {
+}: Props) {
   const source =
     Array.isArray(portage) && portage.length ? portage : listPortage || [];
   if (!Array.isArray(source) || !source.length) return null;
@@ -160,4 +166,4 @@ export const SessionPortage = ({
       </Card>
     </div>
   );
-};
+});

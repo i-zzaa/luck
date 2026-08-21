@@ -1,3 +1,5 @@
+import { resolveEspecialidadeCodigo } from '../../util/especialidade';
+
 const BASE =
   'rounded-lg cursor-pointer hover:scale-[101%] duration-700 ease-in-out border-solid border-l-4';
 
@@ -19,42 +21,12 @@ const COLORS: Record<string, string> = {
 const DEFAULT = 'rounded-lg';
 const FREE = 'border-solid border-l-4 border-l-green-400 rounded-lg cursor-not-allowed';
 
-// Ordem importa, do mais específico pro mais genérico: "psicopedagogia" E
-// "psicomotricidade" também contêm "psico" como substring, então
-// PSICOPEDAG e MOTRICIDADE precisam ser checados antes de PSICO, senão
-// os dois caem incorretamente em PSICO. "TO" sozinho (2 letras) daria
-// falso positivo em qualquer palavra que contivesse "to" — por isso o
-// fallback usa "OCUPACIONAL" (de "Terapia Ocupacional") em vez da sigla.
-const MATCH_ORDER: Array<[string, keyof typeof COLORS]> = [
-  ['PSICOPEDAG', 'PSICOPEDAG'],
-  ['MOTRICIDADE', 'MOTRICIDADE'],
-  ['PSICO', 'PSICO'],
-  ['FONO', 'FONO'],
-  ['MUSICOTERAPIA', 'MUSICOTERAPIA'],
-  ['OCUPACIONAL', 'TO'],
-];
-
-const normalize = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // remove os acentos (marcas de combinacao, pos normalize('NFD'))
-    .toUpperCase()
-    .trim();
-
 export function useBorderColorClass(type: string = 'DEFAULT'): string {
-  const normalized = normalize(type);
+  const normalized = type.trim().toUpperCase();
 
   if (normalized === 'FREE') return FREE;
   if (normalized === 'DEFAULT' || !normalized) return DEFAULT;
 
-  // Match exato primeiro (cobre os códigos curtos: "TO", "FONO", "PSICO"...).
-  if (COLORS[normalized]) return COLORS[normalized];
-
-  // Fallback por substring: cobre o nome completo da especialidade vindo
-  // da API (ex.: "Fonoaudiologia", "Psicologia", "Terapia Ocupacional"),
-  // que nunca bateria com uma chave exata do mapa acima. Sem isso, toda
-  // especialidade cujo `.nome` não seja literalmente a sigla cai no
-  // DEFAULT e o card nunca ganha a borda colorida.
-  const match = MATCH_ORDER.find(([substring]) => normalized.includes(substring));
-  return match ? COLORS[match[1]] : DEFAULT;
+  const codigo = resolveEspecialidadeCodigo(type);
+  return codigo ? COLORS[codigo] : DEFAULT;
 }

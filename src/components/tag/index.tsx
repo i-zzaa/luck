@@ -1,9 +1,10 @@
 import { clsx } from 'clsx';
 import { BASE_CLASS, bgClassMap, TagProps } from './types';
+import { resolveEspecialidadeCodigo } from '../../util/especialidade';
 
 export function Tag({ onClick, type, disabled }: TagProps) {
-  const typeKey = type.toUpperCase();
-  const bgClass = bgClassMap[typeKey] || 'bg-gray-400';
+  const codigo = resolveEspecialidadeCodigo(type);
+  const bgClass = codigo ? bgClassMap[codigo] : 'bg-gray-400';
 
   return (
     <button
@@ -13,7 +14,7 @@ export function Tag({ onClick, type, disabled }: TagProps) {
       })}
       disabled={disabled}
     >
-      {typeKey}
+      {codigo ?? type.toUpperCase()}
     </button>
   );
 }

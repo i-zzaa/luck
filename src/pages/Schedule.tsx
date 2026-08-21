@@ -18,6 +18,7 @@ import { STATUS_EVENTS } from '../constants/schedule';
 import { useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
+import { isSlotLivre, sessaoBloqueada } from '../util/evento';
 
 type ViewMode = 'dia' | 'semana' | 'mes' | 'periodo';
 
@@ -177,12 +178,19 @@ export const Schedule = () => {
     // registrar sessão (diferente de "não atendido" — é sobre o tipo do
     // evento, não sobre a sessão já ter passado), então bloqueia o clique
     // sem reaproveitar o rótulo "Não Atendido".
-    const notNavigate = naoAtendido || item?.statusEventos?.atender === false;
+    const notNavigate = sessaoBloqueada(
+      item,
+      naoAtendido || item?.statusEventos?.atender === false
+    );
 
     return (
       <Card
         key={item.id}
-        type={item.especialidade.nome}
+        // FALLBACK TEMPORÁRIO: prefere um código estável (ex.: "TO",
+        // "FONO") se o backend mandar; sem ele, useBorderColorClass cai
+        // no matching por substring do nome livre, como hoje (ver
+        // docs/pedido-backend-formatacao.md).
+        type={item?.especialidade?.codigo || item.especialidade.nome}
         onClick={() =>
           !notNavigate &&
           navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })
@@ -192,10 +200,11 @@ export const Schedule = () => {
           <ChoiceItemSchedule
             start={item?.data?.start}
             end={item?.data?.end}
-            statusEventos={item?.statusEventos?.nome}
+            statusEventos={item?.statusEventos}
             title={item?.title}
             localidade={item?.localidade?.nome}
             localExternoDescricao={item?.localExternoDescricao}
+            localExibicao={item?.localExibicao}
             isExterno={item?.isExterno}
             km={item?.km}
             modalidade={item?.modalidade?.nome}
@@ -244,19 +253,13 @@ export const Schedule = () => {
     );
   };
 
-  const formatItem = (item: any) => {
-    switch (item.id) {
-      case 0:
-        return cardFree(item);
-      default:
-        return cardChoice(item);
-    }
-  };
+  const formatItem = (item: any) =>
+    isSlotLivre(item) ? cardFree(item) : cardChoice(item);
 
-  // total de sessões reais (exclui os slots "livres", que usam id 0) —
-  // usado no card de resumo e no cabeçalho de cada dia
+  // total de sessões reais (exclui os slots "livres") — usado no card de
+  // resumo e no cabeçalho de cada dia
   const countSessoes = (items: any[]) =>
-    (items || []).filter((item: any) => item.id !== 0).length;
+    (items || []).filter((item: any) => !isSlotLivre(item)).length;
 
   const totalSessoesPeriodo = useMemo(
     () => keys.reduce((acc: number, key: string) => acc + countSessoes(list[key]), 0),

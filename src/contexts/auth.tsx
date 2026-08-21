@@ -88,8 +88,13 @@ export const AuthProvider = ({ children }: Props) => {
 
     try {
       await api.get('/logout');
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      // Nunca logar o erro do axios inteiro: error.config.headers carrega
+      // o "Authorization: Bearer <token>" que o interceptor injeta em toda
+      // requisição (ver server/index.ts) — cair no console do navegador
+      // expõe o token em devtools, serviços de log de erro do browser, ou
+      // print de tela num relatório de bug.
+      console.log(error?.response?.status, error?.message);
     }
   }, [clearSessionTimer]);
 

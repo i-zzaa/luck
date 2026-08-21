@@ -1,4 +1,5 @@
 // src/components/session/SessionActivity.tsx
+import { memo } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from '../../components/card';
 import CheckboxDTT from '../../components/DTT';
@@ -28,7 +29,20 @@ const metaIsRenderable = (meta: any) => {
   return getLabel(meta) !== '—';
 };
 
-export const SessionActivity = ({ list = [], dtt = [], isEdit, setDTT }: Props) => {
+// Session.tsx renderiza SessionActivity/SessionPortage/SessionVBMapp/
+// SessionMaintenance como irmãos que compartilham o mesmo hook de estado
+// (useSessionForm) — sem memo, clicar num checkbox de QUALQUER uma das
+// outras três seções re-renderiza essa árvore inteira também (o Session
+// pai re-renderiza e passa de novo pra todo mundo), mesmo com list/dtt/
+// isEdit/setDTT idênticos. Os props aqui já são referências estáveis
+// (state/setters direto do hook, sem literal inline), então o memo
+// funciona sem precisar de comparador customizado.
+export const SessionActivity = memo(function SessionActivity({
+  list = [],
+  dtt = [],
+  isEdit,
+  setDTT,
+}: Props) {
   // usa o estado DTT se existir; senão, a lista inicial
   const source = (Array.isArray(dtt) && dtt.length) ? dtt : (list || []);
   if (!Array.isArray(source) || !source.length) return null;
@@ -187,4 +201,4 @@ export const SessionActivity = ({ list = [], dtt = [], isEdit, setDTT }: Props) 
       </Card>
     </div>
   );
-};
+});

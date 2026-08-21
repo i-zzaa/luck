@@ -75,9 +75,9 @@ const OtherRoutes = () => {
         {!mustChangePassword && (
           <Suspense fallback={<LoadingHeron />}>
             <Routes>
-              {routes.map((route: RoutesProps, index: number) => (
+              {routes.map((route: RoutesProps) => (
                 <Route
-                  key={index}
+                  key={route.path}
                   path={route.path}
                   element={
                     <LayoutDefault>

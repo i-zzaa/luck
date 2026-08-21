@@ -36,10 +36,11 @@ export const Session = () => {
     <ChoiceItemSchedule
       start={state?.item?.data?.start}
       end={state?.item?.data?.end}
-      statusEventos={state?.item?.statusEventos?.nome}
+      statusEventos={state?.item?.statusEventos}
       title={state?.item?.title}
       localidade={state?.item?.localidade?.nome}
       localExternoDescricao={state?.item?.localExternoDescricao}
+      localExibicao={state?.item?.localExibicao}
       isExterno={state?.item?.isExterno}
       km={state?.item?.km}
       modalidade={state?.item?.modalidade?.nome}
