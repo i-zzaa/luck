@@ -8,6 +8,7 @@ import { create, getList, update } from '../../server';
 import moment from 'moment';
 import { STATUS_EVENTS } from '../../constants/schedule';
 import { temSessaoRegistrada } from '../../util/evento';
+import { isObj, isPrimitiveOrNull, isResumoVazio, padSlots } from '../../util/sessionTree';
 
 const ACTIVITY = 'activity';
 const MAINTENANCE = 'maintenance';
@@ -15,27 +16,6 @@ const PORTAGE = 'portage';
 const VBMAPP = 'vbmapp';
 
 type TipoProtocolo = 'vbmapp' | 'portage' | 'maintenance' | 'activity';
-
-// helpers
-const isObj = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
-const isPrimitiveOrNull = (v: any) => v === null || !isObj(v);
-
-// `content` é HTML vindo do RichTextEditor (Tiptap) — um editor "vazio"
-// não é string vazia, é algo como "<p></p>". Precisa tirar as tags e os
-// espaços/&nbsp; pra saber se o resumo tem texto de verdade.
-const isResumoVazio = (html: string) =>
-  (html || '')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .trim().length === 0;
-
-const padSlots = (arr: any[], count: number) => {
-  const base = Array.isArray(arr) ? arr.slice(0, count) : [];
-  if (base.length < count) {
-    base.push(...Array.from({ length: count - base.length }, () => null));
-  }
-  return base;
-};
 
 export const useSessionForm = () => {
   const { renderToast } = useToast();

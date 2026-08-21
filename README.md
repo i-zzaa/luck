@@ -40,6 +40,26 @@ $ npm run dev
 VITE_API_URL=http://localhost:3333
 ```
 
+### ✅ Testes
+
+Unitário (Vitest — funções puras de `util/`, `useBorderColorClass`, e
+componentes simples via Testing Library):
+
+```
+npm test              # roda uma vez
+npm run test:watch    # modo watch
+npm run test:ui       # UI do Vitest no navegador
+```
+
+E2E (Playwright — sobe o próprio dev server numa porta separada e mocka
+as chamadas de API, não depende de backend real disponível):
+
+```
+npx playwright install chromium   # só na primeira vez
+npm run test:e2e
+npm run test:e2e:ui   # modo UI, passo a passo
+```
+
 ### 🛠 Tecnologias
 
 As seguintes ferramentas foram usadas na construção do projeto:

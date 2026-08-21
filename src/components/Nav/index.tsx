@@ -54,7 +54,7 @@ export const Nav = () => {
           {pageTitle}
         </span>
         <div className="w-12 h-12 mt-[1vh] rounded-3xl bg-primary" onClick={() => setOpen(true)}>
-          <div className="bg-logo-mini bg-no-repeat bg-cover h-12 w-12 duration-700" />
+          <div className="bg-logo-mini bg-no-repeat bg-cover rounded-full h-12 w-12 duration-700" />
         </div>
       </div>
     </aside>

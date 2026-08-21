@@ -10,10 +10,11 @@ baseado numa flag, calcula agregados de produtividade, etc.
 
 Fizemos um levantamento completo do projeto (formatação de data,
 classificação de status/especialidade, cálculos de agregação, regras
-condicionais de exibição, e reestruturação de dado — inclusive as
-árvores de protocolo, que também entram na mesma regra) e migramos tudo
-o que deu pra mover com segurança. Este documento lista exatamente o que
-precisamos do backend pra cada item.
+condicionais de exibição, reestruturação de dado — inclusive as árvores
+de protocolo, que também entram na mesma regra — e, à parte, um ponto de
+segurança na autenticação) e migramos tudo o que deu pra mover com
+segurança. Este documento lista exatamente o que precisamos do backend
+pra cada item.
 
 **Como o frontend está lidando com a transição:** todo item abaixo já
 foi tratado no frontend de um jeito que não depende do backend entregar
@@ -252,6 +253,39 @@ cliente continua existindo (é sobre UX, dar feedback imediato antes de
 gastar uma requisição) — o pedido é o backend rejeitar
 (400/422) uma tentativa de salvar sessão com `resumo` vazio/nulo, como
 segunda camada.
+
+### 10. Token de autenticação em cookie `HttpOnly`, não no corpo da resposta
+
+Fora do escopo de "formatação/reestruturação de dado", mas é um pedido
+que só o backend resolve: hoje o login devolve o `accessToken` no corpo
+da resposta JSON, e o frontend guarda em `sessionStorage` pra reenviar
+como `Authorization: Bearer <token>` em cada requisição
+(`src/contexts/auth.tsx`). Qualquer script injetado na página (XSS em
+qualquer dependência, extensão de navegador maliciosa, etc.) consegue
+ler esse token direto do `sessionStorage` — não existe isolamento
+nenhum. Já mitigamos o que dava pra mitigar só no frontend nessa rodada
+(parar de guardar senha em texto plano, parar de logar o header
+`Authorization` em erro), mas essa é estrutural e depende do backend.
+
+**Pedido:** no login (e refresh de token, se existir), o backend setar
+o token num cookie `HttpOnly; Secure; SameSite=Strict` (ou `Lax`, se o
+fluxo de navegação exigir) em vez de devolver no corpo. O navegador
+passa a mandar o cookie sozinho em toda requisição pro mesmo domínio —
+JS nunca chega a ver o valor do token.
+
+**O que muda no frontend quando isso existir:** o axios deixa de
+precisar montar o header `Authorization` manualmente (passa
+`withCredentials: true` e o cookie já vai sozinho), e para de guardar
+token em `sessionStorage`. Isso é uma mudança maior de fluxo de auth —
+quando o backend confirmar o formato do cookie, faço a migração do
+frontend numa rodada dedicada, com teste manual completo do fluxo de
+login/logout/expiração antes de subir.
+
+**Consideração de infra:** exige que frontend e backend estejam no
+mesmo domínio (ou subdomínios do mesmo domínio-pai, com
+`Domain=.multialcance...`) pra `SameSite=Strict/Lax` funcionar sem
+fricção — vale confirmar isso com quem cuida do deploy antes de
+implementar.
 
 ---
 

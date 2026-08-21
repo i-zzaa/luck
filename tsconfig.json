@@ -21,5 +21,22 @@
     "jsx": "react-jsx"
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  // vitest.config.ts/playwright.config.ts e os arquivos de teste ficam de
+  // fora do typecheck do build de produção (npm run build = tsc && vite
+  // build): vitest embute sua própria cópia interna do pacote "vite"
+  // (node_modules/vitest/node_modules/vite), com tipos que colidem
+  // estruturalmente com os do "vite" raiz do projeto quando os dois
+  // aparecem juntos num mesmo tsc — é só esse choque de versões, não um
+  // erro de código (vitest/playwright transpilam via esbuild por conta
+  // própria e rodam normalmente independente disso). O typecheck de teste
+  // acontece plugado no CI de teste (npm test / npm run test:e2e), não no
+  // typecheck do bundle de produção.
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "e2e/**"
+  ]
 }

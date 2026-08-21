@@ -26,3 +26,10 @@ dist-ssr
 *.sw?
 
 src/server/*
+
+# artefatos de teste (Vitest coverage, Playwright report/traces)
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
