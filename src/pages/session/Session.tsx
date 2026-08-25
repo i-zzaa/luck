@@ -9,6 +9,7 @@ import { SessionPortage } from './SessionPortage';
 import { SessionVBMapp } from './SessionVBMapp';
 import { SessionMaintenance } from './SessionMaintenance';
 import { useMemo } from 'react';
+import { MIN_RESUMO_LENGTH } from '../../util/sessionTree';
 
 export const Session = () => {
   const {
@@ -56,6 +57,12 @@ export const Session = () => {
         <span className="text-gray-800 font-inter font-bold leading-4">
           Resumo
           {!isEdit && <span className="text-red-400"> *</span>}
+          {!isEdit && (
+            <span className="text-gray-400 font-normal text-xs">
+              {' '}
+              (mínimo {MIN_RESUMO_LENGTH} caracteres)
+            </span>
+          )}
         </span>
         {isEdit && (
           <span className="text-gray-800 font-inter leading-4 bg-gray-300 rounded-full px-2 py-0.5">
@@ -74,6 +81,7 @@ export const Session = () => {
           readOnly={isEdit}
           placeholder="Descreva como foi a sessão, a evolução do paciente e observações relevantes."
           onBlur={(newContent) => setContent(newContent)}
+          minLength={MIN_RESUMO_LENGTH}
         />
       </Card>
     </>

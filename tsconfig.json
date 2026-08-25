@@ -37,6 +37,11 @@
     "playwright.config.ts",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "e2e/**"
+    "e2e/**",
+    // contexto de Service Worker (self: ServiceWorkerGlobalScope) é
+    // incompatível com "lib": ["DOM", ...] do resto do app (self: Window)
+    // — vite-plugin-pwa/esbuild compila esse arquivo por conta própria,
+    // não passa pelo tsc do build.
+    "src/sw.ts"
   ]
 }

@@ -3,13 +3,18 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import clsx from 'clsx';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface RichTextEditorProps {
   value: string;
   onBlur: (html: string) => void;
   readOnly?: boolean;
   placeholder?: string;
+  // Contador de caracteres exibido abaixo do editor, com aviso enquanto
+  // não atinge esse mínimo. Fica de fora quando não informado — a regra
+  // de "quantos caracteres precisa" é do formulário que usa o editor
+  // (ex.: Resumo da Sessão), não do editor em si.
+  minLength?: number;
 }
 
 interface ToolbarButtonProps {
@@ -18,6 +23,12 @@ interface ToolbarButtonProps {
   onClick: () => void;
   children: React.ReactNode;
 }
+
+// Conta só o texto visível, sem tag HTML — usado apenas pro valor
+// inicial do contador (antes do editor montar); depois disso, o
+// contador segue editor.getText(), que já vem sem tags.
+const htmlTextLength = (html: string) =>
+  html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length;
 
 const ToolbarButton = ({
   label,
@@ -46,7 +57,14 @@ export function RichTextEditor({
   onBlur,
   readOnly,
   placeholder,
+  minLength,
 }: RichTextEditorProps) {
+  // Contador próprio (não sobe pro `content` do formulário, que só
+  // sincroniza no onBlur) — atualizar a cada tecla aqui não reflete lá
+  // em cima, então não recria a árvore de Sessão inteira a cada
+  // caractere digitado, só o próprio contador embaixo do editor.
+  const [charCount, setCharCount] = useState(() => value ? htmlTextLength(value) : 0);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: false }),
@@ -62,6 +80,7 @@ export function RichTextEditor({
       },
     },
     onBlur: ({ editor: current }) => onBlur(current.getHTML()),
+    onUpdate: ({ editor: current }) => setCharCount(current.getText().trim().length),
   });
 
   // mantém o campo desabilitado em sincronia caso o carregamento
@@ -77,6 +96,7 @@ export function RichTextEditor({
   useEffect(() => {
     if (editor && !editor.isFocused && value !== editor.getHTML()) {
       editor.commands.setContent(value || '', false);
+      setCharCount(editor.getText().trim().length);
     }
   }, [value, editor]);
 
@@ -132,6 +152,24 @@ export function RichTextEditor({
         </div>
       )}
       <EditorContent editor={editor} />
+      {!readOnly && minLength !== undefined && (
+        <div
+          className={clsx(
+            'text-xs font-inter text-right mt-2',
+            charCount < minLength ? 'text-red-400' : 'text-gray-400'
+          )}
+        >
+          {charCount < minLength ? (
+            <span>
+              {charCount} / {minLength} caracteres (mínimo {minLength})
+            </span>
+          ) : (
+            <span>
+              <i className="pi pi-check" /> {charCount} caracteres
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

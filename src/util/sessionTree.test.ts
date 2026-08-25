@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { isObj, isPrimitiveOrNull, isResumoVazio, padSlots } from './sessionTree';
+import {
+  isObj,
+  isPrimitiveOrNull,
+  isResumoVazio,
+  MIN_RESUMO_LENGTH,
+  padSlots,
+  resumoTextLength,
+} from './sessionTree';
 
 describe('isResumoVazio', () => {
   it('considera vazio: string vazia, null, undefined', () => {
@@ -16,6 +23,32 @@ describe('isResumoVazio', () => {
 
   it('não considera vazio quando há texto de verdade', () => {
     expect(isResumoVazio('<p>Sessão tranquila, paciente participou bem.</p>')).toBe(false);
+  });
+});
+
+describe('resumoTextLength', () => {
+  it('conta só o texto visível, sem as tags', () => {
+    expect(resumoTextLength('<p>abc</p>')).toBe(3);
+  });
+
+  it('conta &nbsp; como 1 caractere (espaço), não zero', () => {
+    expect(resumoTextLength('<p>a&nbsp;b</p>')).toBe(3); // "a b"
+  });
+
+  it('é 0 pra editor vazio, null ou undefined', () => {
+    expect(resumoTextLength('<p></p>')).toBe(0);
+    expect(resumoTextLength(null as any)).toBe(0);
+    expect(resumoTextLength(undefined as any)).toBe(0);
+  });
+
+  it('não conta espaços nas pontas (trim)', () => {
+    expect(resumoTextLength('<p>   abc   </p>')).toBe(3);
+  });
+});
+
+describe('MIN_RESUMO_LENGTH', () => {
+  it('é 200 (regra de negócio do prontuário)', () => {
+    expect(MIN_RESUMO_LENGTH).toBe(200);
   });
 });
 

@@ -10,6 +10,12 @@ import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { getMockSessoesSemResumo } from './home/mockDashboard';
 import { classificarStatus } from '../util/status';
 import { isSlotLivre } from '../util/evento';
+import { ButtonHeron } from '../components/button';
+import {
+  getPushPermissionState,
+  isPushSupported,
+  subscribeToPush,
+} from '../util/pushNotifications';
 
 type ViewMode = 'dia' | 'semana';
 
@@ -24,6 +30,31 @@ export default function Home() {
     const auth: any = sessionStorage.getItem('auth');
     setUser(JSON.parse(auth));
   }, []);
+
+  // -------------------- Push notification --------------------
+  // "default" = navegador nunca perguntou nada ainda (candidato a
+  // mostrar o banner). "granted"/"denied" = usuário já decidiu — nesses
+  // casos não tem o que oferecer de novo (negado só muda via config do
+  // próprio navegador, não tem prompt programático pra isso).
+  const [pushPermission, setPushPermission] = useState(getPushPermissionState());
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushDismissed, setPushDismissed] = useState(
+    () => localStorage.getItem('pushBannerDismissed') === 'true'
+  );
+
+  const handleAtivarPush = async () => {
+    if (!authUser?.id) return;
+    setPushLoading(true);
+    const result = await subscribeToPush(authUser.id);
+    setPushLoading(false);
+    setPushPermission(getPushPermissionState());
+    if (result.ok) setPushDismissed(true);
+  };
+
+  const handleDispensarPush = () => {
+    localStorage.setItem('pushBannerDismissed', 'true');
+    setPushDismissed(true);
+  };
 
   // -------------------- Dashboard de produtividade --------------------
   const [viewMode, setViewMode] = useState<ViewMode>('dia');
@@ -234,6 +265,50 @@ export default function Home() {
     </Card>
   );
 
+  // Só mostra se: o navegador suporta push, o backend já expôs a chave
+  // VAPID (isPushSupported não checa isso — subscribeToPush que devolve
+  // reason: 'no-vapid-key' se faltar; aqui a gente já filtra isso ANTES
+  // de mostrar o banner, checando a env var direto, senão ofereceria um
+  // botão que sempre falha silenciosamente), o usuário não decidiu ainda
+  // (permission === 'default') e não dispensou o banner antes.
+  const podeOferecerPush =
+    isPushSupported() &&
+    Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY) &&
+    pushPermission === 'default' &&
+    !pushDismissed;
+
+  const renderPushBanner = podeOferecerPush && (
+    <Card className="rounded-lg border border-violet-300 mb-4">
+      <div className="flex items-start gap-2">
+        <i className="pi pi-bell text-primary mt-0.5" />
+        <div className="flex-1">
+          <span className="font-inter font-bold text-gray-800 block">
+            Ativar notificações
+          </span>
+          <p className="text-xs font-inter text-gray-600 mt-1">
+            Receba um aviso quando uma sessão for cancelada ou quando o
+            paciente chegar na recepção.
+          </p>
+          <div className="flex gap-2 mt-3">
+            <ButtonHeron
+              text="Ativar"
+              type="primary"
+              size="sm"
+              loading={pushLoading}
+              onClick={handleAtivarPush}
+            />
+            <ButtonHeron
+              text="Agora não"
+              type="transparent"
+              size="sm"
+              onClick={handleDispensarPush}
+            />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+
   const renderProximasHoje = viewMode === 'dia' &&
     !dashboardLoading &&
     proximasHoje.length > 0 && (
@@ -268,6 +343,7 @@ export default function Home() {
   return (
     <>
       {renderResumosPendentes}
+      {renderPushBanner}
       {renderTabs}
       {renderStats}
       {renderProximasHoje}

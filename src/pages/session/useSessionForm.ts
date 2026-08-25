@@ -8,7 +8,13 @@ import { create, getList, update } from '../../server';
 import moment from 'moment';
 import { STATUS_EVENTS } from '../../constants/schedule';
 import { temSessaoRegistrada } from '../../util/evento';
-import { isObj, isPrimitiveOrNull, isResumoVazio, padSlots } from '../../util/sessionTree';
+import {
+  isObj,
+  isPrimitiveOrNull,
+  MIN_RESUMO_LENGTH,
+  padSlots,
+  resumoTextLength,
+} from '../../util/sessionTree';
 
 const ACTIVITY = 'activity';
 const MAINTENANCE = 'maintenance';
@@ -369,11 +375,17 @@ export const useSessionForm = () => {
   }, [formatarDado, getActivity, state, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
-    if (isResumoVazio(content)) {
+    const tamanhoResumo = resumoTextLength(content);
+    if (tamanhoResumo < MIN_RESUMO_LENGTH) {
       renderToast({
         type: 'failure',
         title: 'Resumo obrigatório',
-        message: 'Escreva o resumo da sessão antes de salvar.',
+        message:
+          tamanhoResumo === 0
+            ? 'Escreva o resumo da sessão antes de salvar.'
+            : `O resumo precisa de pelo menos ${MIN_RESUMO_LENGTH} caracteres (faltam ${
+                MIN_RESUMO_LENGTH - tamanhoResumo
+              }).`,
         open: true,
       });
       return;

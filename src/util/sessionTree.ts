@@ -9,14 +9,21 @@
 export const isObj = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 export const isPrimitiveOrNull = (v: any) => v === null || !isObj(v);
 
-// `content` é HTML vindo do RichTextEditor (Tiptap) — um editor "vazio"
-// não é string vazia, é algo como "<p></p>". Precisa tirar as tags e os
-// espaços/&nbsp; pra saber se o resumo tem texto de verdade.
-export const isResumoVazio = (html: string) =>
+// `html` é o conteúdo vindo do RichTextEditor (Tiptap) — um editor
+// "vazio" não é string vazia, é algo como "<p></p>". Precisa tirar as
+// tags e os espaços/&nbsp; pra contar só o texto de verdade.
+export const resumoTextLength = (html: string): number =>
   (html || '')
     .replace(/<[^>]*>/g, '')
     .replace(/&nbsp;/g, ' ')
-    .trim().length === 0;
+    .trim().length;
+
+export const isResumoVazio = (html: string) => resumoTextLength(html) === 0;
+
+// Resumo da sessão precisa de pelo menos esse tanto de caractere de
+// texto de verdade (sem contar tags HTML) — regra de negócio do
+// prontuário, não é limite técnico de nenhum campo.
+export const MIN_RESUMO_LENGTH = 200;
 
 export const padSlots = (arr: any[], count: number) => {
   const base = Array.isArray(arr) ? arr.slice(0, count) : [];
