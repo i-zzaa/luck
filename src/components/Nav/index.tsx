@@ -1,64 +1,70 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/auth';
-import { LayoutContext } from '../../contexts/layout.context';
 import { ButtonHeron } from '../button';
-import { NavItem } from './NavItem';
-import { useSidebarMenu } from './useSidebarMenu';
+import { Confirm } from '../confirm';
 import { usePageTitle } from './usePageTitle';
+import { useIsTabRoute } from './useIsTabRoute';
+import { BottomTabBar } from './BottomTabBar';
 
 export const Nav = () => {
   const navigate = useNavigate();
   const { Logout } = useContext(AuthContext);
-  const { user, perfil } = useContext(AuthContext);
-  const { open, setOpen } = useContext(LayoutContext);
-  const menuSidebar = useSidebarMenu();
   const pageTitle = usePageTitle();
+  const isTabRoute = useIsTabRoute();
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
-  const renderOpen = () => (
-    <aside
-      onClick={() => setOpen(false)}
-      className="fixed border-box shadow-3xl w-full h-screen z-20 bg-primary duration-700 ease-in-out justify-center"
-    >
-      <div className="bg-logo-md-write bg-no-repeat bg-cover h-[13rem] w-[20rem] mx-auto" />
-      <div className="border-y border-primary-text duration-1000 p-4 mt-2">
-        <h3 className="text-primary-text text-center font-light text-sm">{user.nome}</h3>
-        <h3 className="text-gray-200 text-center font-light text-xs">{perfil}</h3>
-      </div>
-      <ul className="list-none p-0 mt-8">
-        {menuSidebar.map((route) => (
-          <NavItem key={route.path} route={route} />
-        ))}
-      </ul>
-      <i
-        onClick={Logout}
-        className="pi pi-sign-out duration-700 text-primary-text hover:scale-125 cursor-pointer w-4 col-span-1 fixed bottom-8 left-[50%]"
+  return (
+    <>
+      <nav className="fixed h-12 w-full bg-primary mb-8 z-20">
+        <aside className="fixed w-full right-2 shadow-3xl h-12 z-20 bg-primary duration-700 ease-in-out">
+          <div className="flex justify-between items-center">
+            <div className="sm:text-end ml-2">
+              {/* Nas 5 telas principais (isTabRoute) não tem "voltar":
+                  são a raiz de cada seção, navegável só pela tab bar do
+                  rodapé — mostrar a seta ali sugeria uma hierarquia que
+                  não existe. Só aparece nas telas de detalhe/edição
+                  (Sessão, DTT, Metas, Cadastro de PEI). */}
+              {!isTabRoute && (
+                <ButtonHeron
+                  text=""
+                  icon="pi pi-arrow-left"
+                  type="primary"
+                  color="white"
+                  size="icon"
+                  onClick={() => navigate(-1)}
+                />
+              )}
+            </div>
+            <span className="flex-1 text-center font-inter font-semibold text-primary-text truncate px-2">
+              {pageTitle}
+            </span>
+            {/* Avatar = acesso ao logout (a sidebar antiga não existe
+                mais, era a única outra coisa que ela oferecia) — mas
+                deslogar direto no clique era perigoso demais pra um
+                toque sem querer, então pede confirmação antes. */}
+            <div
+              className="w-12 h-12 mt-[1vh] rounded-3xl bg-primary cursor-pointer"
+              onClick={() => setConfirmLogoutOpen(true)}
+              title="Sair"
+            >
+              <div className="bg-logo-mini bg-no-repeat bg-cover rounded-full h-12 w-12 duration-700" />
+            </div>
+          </div>
+        </aside>
+      </nav>
+      {isTabRoute && <BottomTabBar />}
+      <Confirm
+        open={confirmLogoutOpen}
+        title="Sair"
+        message="Deseja realmente sair da sua conta?"
+        icon="pi pi-sign-out"
+        acceptLabel="Sair"
+        rejectLabel="Cancelar"
+        onAccept={Logout}
+        onReject={() => setConfirmLogoutOpen(false)}
+        onClose={() => setConfirmLogoutOpen(false)}
       />
-    </aside>
+    </>
   );
-
-  const renderClose = () => (
-    <aside className="fixed w-full right-2 shadow-3xl h-12 z-20 bg-primary duration-700 ease-in-out cursor-pointer">
-      <div className="flex justify-between items-center">
-        <div className="sm:text-end ml-2">
-          <ButtonHeron
-            text=""
-            icon="pi pi-arrow-left"
-            type="primary"
-            color="white"
-            size="icon"
-            onClick={() => navigate(-1)}
-          />
-        </div>
-        <span className="flex-1 text-center font-inter font-semibold text-primary-text truncate px-2">
-          {pageTitle}
-        </span>
-        <div className="w-12 h-12 mt-[1vh] rounded-3xl bg-primary" onClick={() => setOpen(true)}>
-          <div className="bg-logo-mini bg-no-repeat bg-cover rounded-full h-12 w-12 duration-700" />
-        </div>
-      </div>
-    </aside>
-  );
-
-  return open ? renderOpen() : <nav className="fixed h-12 w-full bg-primary mb-8">{renderClose()}</nav>;
 };

@@ -1,10 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import clsx from 'clsx';
 import { LayoutDefault } from '../components/layoutDefault';
 import { Nav } from '../components/Nav';
 import { LoadingHeron } from '../components/loading';
 import { MustChangePasswordModal } from '../components/mustChangePasswordModal';
 import { useAuth } from '../contexts/auth';
+import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
 
 // Cada rota antes era importada de forma estática, então navegar pra
 // QUALQUER tela baixava o JS de TODAS elas de uma vez — incluindo libs
@@ -52,7 +54,11 @@ export const ROUTES = [
   { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false, title: 'Metas' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true, title: 'Início' },
   { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true, title: 'PEI' },
-  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-book', menu: true, title: 'Protocolo de Avaliação' },
+  // pi-verified (não pi-book) de propósito: com os 5 itens lado a lado
+  // na tab bar flutuante, ter o mesmo ícone do PEI ali ao lado ficava
+  // ambíguo — dá pra distinguir só pelo rótulo embaixo, mas melhor não
+  // depender só disso.
+  { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-verified', menu: true, title: 'Protocolo de Avaliação' },
   { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false, title: 'Cadastro de PEI' },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true, title: 'Agenda' },
   { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true, title: 'Primeira Resposta' },
@@ -62,11 +68,16 @@ const OtherRoutes = () => {
 
   const routes: RoutesProps[] = ROUTES;
   const { mustChangePassword } = useAuth();
+  const isTabRoute = useIsTabRoute();
 
   return (
     <div className="min-h-full overflow-hidden bg-background h-screen w-full">
       <Nav />
-      <main  className='mt-14'>
+      {/* pb-24 extra só nas rotas de topo, onde a tab bar flutuante do
+          rodapé aparece (ver Nav/index.tsx) — nas telas de detalhe
+          (Sessão, DTT, Metas, Cadastro de PEI) ela não existe, então não
+          precisa da reserva de espaço. */}
+      <main className={clsx('mt-14', isTabRoute && 'pb-24')}>
         {/* Enquanto a troca de senha obrigatória estiver pendente, as
             páginas não são montadas: evita que telas por trás do modal
             disparem requisições que o backend vai bloquear (e encher a

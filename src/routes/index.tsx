@@ -4,7 +4,6 @@ import OtherRoutes from './OtherRoutes';
 import { BrowserRouter } from 'react-router-dom';
 import { PermissionProvider } from '../contexts/permission';
 import { DropdownProvider } from '../contexts/dropDown';
-import LayoutProvider from '../contexts/layout.context';
 
 function Routes() {
   const { signed } = useAuth();
@@ -12,9 +11,7 @@ function Routes() {
   return signed ? (
     <BrowserRouter>
       <PermissionProvider>
-          <LayoutProvider>
-            <OtherRoutes />
-          </LayoutProvider>
+        <OtherRoutes />
       </PermissionProvider>
     </BrowserRouter>
   ) : (

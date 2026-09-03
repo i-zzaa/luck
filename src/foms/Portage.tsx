@@ -1,4 +1,5 @@
 // código completo e final atualizado com fluxo de prioridade ajustado
+import clsx from 'clsx';
 import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Column } from 'primereact/column';
@@ -16,6 +17,8 @@ import gerarPdf from '../constants/pdfPortage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { OBJ_ITEM, OBJ_META } from '../util/util';
+import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
+import { ABOVE_TAB_BAR } from '../components/Nav/bottomTabBarLayout';
 
 export default function PortageCadastro({
   paciente,
@@ -30,6 +33,7 @@ export default function PortageCadastro({
   const location = useLocation();
   const { state } = location;
   const [existePortage, setExistePortage] = useState(false);
+  const isTabRoute = useIsTabRoute();
 
   const exportPDF = async () => {
     const { data }: any = await filter('protocolo', {
@@ -287,7 +291,14 @@ export default function PortageCadastro({
     );
 
   const renderFooter = () => (
-    <div className="mt-auto">
+    <div
+      className={clsx(
+        'fixed inset-x-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
+        // acima da tab bar flutuante quando ela está visível na mesma
+        // tela (rota /protocolo-av) — ver Nav/bottomTabBarLayout.ts
+        isTabRoute ? ABOVE_TAB_BAR : 'bottom-0'
+      )}
+    >
       <ButtonHeron
         text="Salvar"
         type="primary"
@@ -459,7 +470,7 @@ export default function PortageCadastro({
   }, [paciente?.id]);
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-8 space-y-6 pb-24">
       {renderExport()}
       {renderTable(TIPO_PORTAGE.socializacao)}
       {renderTable(TIPO_PORTAGE.cognicao)}

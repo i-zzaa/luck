@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useCallback, useEffect, useState } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Column } from 'primereact/column';
@@ -13,6 +14,8 @@ import { NotFound } from '../components/notFound';
 import { OBJ_ITEM, OBJ_META } from '../util/util';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
+import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
+import { ABOVE_TAB_BAR } from '../components/Nav/bottomTabBarLayout';
 
 export default function VBMapp({ paciente }: any) {
   const [loading, setLoading] = useState(false);
@@ -23,6 +26,7 @@ export default function VBMapp({ paciente }: any) {
   const [nivel, setNivel] = useState(VBMAPP.um);
   const [nivelIndex, setNivelIndex] = useState(VBMAPP.um - 1);
   const [existe, setExiste] = useState(false);
+  const isTabRoute = useIsTabRoute();
 
   const location = useLocation();
   const { state } = location;
@@ -415,7 +419,14 @@ export default function VBMapp({ paciente }: any) {
 
   const renderFooter = useCallback(
     () => (
-      <div className="mt-auto">
+      <div
+        className={clsx(
+          'fixed inset-x-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
+          // acima da tab bar flutuante quando ela está visível na mesma
+          // tela (rota /protocolo-av) — ver Nav/bottomTabBarLayout.ts
+          isTabRoute ? ABOVE_TAB_BAR : 'bottom-0'
+        )}
+      >
         <ButtonHeron
           text="Salvar"
           type="primary"
@@ -425,7 +436,7 @@ export default function VBMapp({ paciente }: any) {
         />
       </div>
     ),
-    [onSubmit, loading]
+    [onSubmit, loading, isTabRoute]
   );
 
   // getVBMapp já é memoizado a partir de [nivel, paciente.id] — depender
@@ -439,7 +450,7 @@ export default function VBMapp({ paciente }: any) {
   }, [getVBMapp]);
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-8 space-y-6 pb-24">
       {renderExport()}
       <TabView activeIndex={nivelIndex} onTabChange={updateNivel}>
         <TabPanel header="Nível 1">{renderTable()}</TabPanel>

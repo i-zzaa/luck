@@ -1,11 +1,15 @@
 import { useEffect } from 'react';
+import clsx from 'clsx';
 import { Fieldset } from 'primereact/fieldset';
 import { Input, ButtonHeron } from '../../components';
 import { PEICadastroFields } from '../../constants/formFields';
 import { TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { usePeiForm } from './usePeiForm';
+import { useIsTabRoute } from '../../components/Nav/useIsTabRoute';
+import { ABOVE_TAB_BAR } from '../../components/Nav/bottomTabBarLayout';
 
-export default function PEICADASTRO({ paciente, param }: { paciente: { id: number; nome: string }; param?: any}) {  
+export default function PEICADASTRO({ paciente, param }: { paciente: { id: number; nome: string }; param?: any}) {
+  const isTabRoute = useIsTabRoute();
   const {
     control,
     errors,
@@ -28,7 +32,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
   }, [renderDropdown]);
 
   return (
-    <div className="mt-8 space-y-6" >
+    <div className="mt-8 space-y-6 pb-24">
       {/* <div className='h-[90vh] flex flex-col overflow-y-auto'> */}
       <div className='flex flex-col overflow-y-auto'>
         {PEICadastroFields.map((item: any) => (
@@ -99,16 +103,23 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
           ))}
         </div>
 
-        <div className='mt-auto'>
-          <ButtonHeron
-            text="Salvar"
-            type="primary"
-            size="full"
-            typeButton="button"
-            onClick={handleSubmit(onSubmit)}
-            loading={loading}
-          />
-        </div>
+      </div>
+      <div
+        className={clsx(
+          'fixed inset-x-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
+          // acima da tab bar flutuante quando ela está visível na mesma
+          // tela (rota /protocolo-av) — ver Nav/bottomTabBarLayout.ts
+          isTabRoute ? ABOVE_TAB_BAR : 'bottom-0'
+        )}
+      >
+        <ButtonHeron
+          text="Salvar"
+          type="primary"
+          size="full"
+          typeButton="button"
+          onClick={handleSubmit(onSubmit)}
+          loading={loading}
+        />
       </div>
     </div>
   );
