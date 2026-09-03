@@ -6,8 +6,8 @@ import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
 import { useToast } from '../../contexts/toast';
 import { create, getList, update } from '../../server';
 import moment from 'moment';
-import { STATUS_EVENTS } from '../../constants/schedule';
 import { temSessaoRegistrada } from '../../util/evento';
+import { classificarStatus } from '../../util/status';
 import {
   isObj,
   isPrimitiveOrNull,
@@ -280,6 +280,35 @@ export const useSessionForm = () => {
     ]
   );
 
+  // Aplica o resultado de GET /sessao/:id nas árvores (list/maintenance/
+  // portage/vbmapp/dtt) — usado tanto pela carga inicial (getSumaryContent)
+  // quanto pelo refresh isolado depois de adicionar metas pelo bottom
+  // sheet (refreshMetas). Deliberadamente NÃO mexe em content/session/
+  // isEdit: refreshMetas precisa recarregar só as árvores sem tocar no
+  // resumo que a terapeuta pode estar digitando.
+  const loadTreesFromResult = useCallback(
+    async (result: any) => {
+      const [atividades, maintenanceObj, portageTree, vbmappTree]: any =
+        await Promise.all([
+          formatarDado(result?.sessao || [], ACTIVITY),
+          formatarDado(
+            result?.maintenance || { manual: [], vbmapp: [], portage: [] },
+            MAINTENANCE
+          ),
+          formatarDado(result?.portage || [], PORTAGE, TIPO_PROTOCOLO.portage),
+          formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
+        ]);
+
+      setList(atividades);
+      setListMaintenance(maintenanceObj);
+      setListPortage(portageTree);
+      setListVBMapp(vbmappTree);
+      setVBMapp(vbmappTree);
+      setDTT(result?.sessao || []);
+    },
+    [formatarDado]
+  );
+
   const getActivity = useCallback(async () => {
     try {
       const result = await getList(
@@ -317,8 +346,13 @@ export const useSessionForm = () => {
   const getSumaryContent = useCallback(async () => {
     try {
       const dateSession = state?.item?.date; // ex.: 'YYYY-MM-DD' ou ISO
+      // classificarStatus (não comparação estrita de string) — mesma
+      // correção aplicada em Schedule.tsx: statusEventos.nome é texto
+      // livre do backend ("Atendido"/"atendida"/etc, com concordância de
+      // gênero em português), comparar com um texto fixo deixava passar
+      // sessões que deveriam abrir em modo leitura.
       const isAttended =
-        state?.item?.statusEventos.nome === STATUS_EVENTS.atendido;
+        classificarStatus(state?.item?.statusEventos) === 'atendido';
 
       // hoje > data da sessão (comparação por dia, ignorando horas)
       const isPast = moment()
@@ -332,28 +366,7 @@ export const useSessionForm = () => {
           setContent(result.resumo);
           setSession(result);
           setIsEdit(true);
-
-          const [atividades, maintenanceObj, portageTree, vbmappTree]: any =
-            await Promise.all([
-              formatarDado(result?.sessao || [], ACTIVITY),
-              formatarDado(
-                result?.maintenance || { manual: [], vbmapp: [], portage: [] },
-                MAINTENANCE
-              ),
-              formatarDado(
-                result?.portage || [],
-                PORTAGE,
-                TIPO_PROTOCOLO.portage
-              ),
-              formatarDado(result?.vbmapp || [], VBMAPP, TIPO_PROTOCOLO.vbMapp),
-            ]);
-
-          setList(atividades);
-          setListMaintenance(maintenanceObj); // objeto
-          setListPortage(portageTree);
-          setListVBMapp(vbmappTree);
-          setVBMapp(vbmappTree);
-          setDTT(result?.sessao || []);
+          await loadTreesFromResult(result);
           return; // encerra aqui se deu certo
         }
         // se não veio sessão válida, cai pro fluxo padrão
@@ -372,7 +385,32 @@ export const useSessionForm = () => {
       // fallback para garantir que algo é carregado
       await getActivity();
     }
-  }, [formatarDado, getActivity, state, renderToast]);
+  }, [formatarDado, getActivity, loadTreesFromResult, state, renderToast]);
+
+  // Recarrega só as árvores de metas (list/maintenance/portage/vbmapp),
+  // sem tocar em content/session — chamado depois de salvar metas pelo
+  // bottom sheet (MetasBottomSheet), pra "carregar as novas metas sem
+  // perder o conteúdo da tela" (o resumo que a terapeuta já escreveu).
+  const refreshMetas = useCallback(async () => {
+    try {
+      if (isEdit && state?.item?.id) {
+        const result: any = await getList(`/sessao/${state.item.id}`);
+        if (result) {
+          await loadTreesFromResult(result);
+          return;
+        }
+      }
+      await getActivity();
+    } catch (e) {
+      console.error('Erro ao atualizar metas', e);
+      renderToast({
+        type: 'failure',
+        title: 'Erro',
+        message: 'Não foi possível atualizar as metas.',
+        open: true,
+      });
+    }
+  }, [isEdit, state, loadTreesFromResult, getActivity, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
     const tamanhoResumo = resumoTextLength(content);
@@ -486,6 +524,7 @@ export const useSessionForm = () => {
     setDTT,
     setMaintenance, // setter para selectedMaintenanceKeys
     handleSubmitSumary,
+    refreshMetas,
     state,
   };
 };

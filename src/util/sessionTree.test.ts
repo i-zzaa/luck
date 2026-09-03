@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  extractTrainedSelectionKeys,
   isObj,
   isPrimitiveOrNull,
   isResumoVazio,
@@ -67,6 +68,58 @@ describe('padSlots', () => {
 
   it('não mexe num array que já tem exatamente o tamanho certo', () => {
     expect(padSlots(['+', '-', null], 3)).toEqual(['+', '-', null]);
+  });
+});
+
+describe('extractTrainedSelectionKeys', () => {
+  it('marca uma folha como treinada se tiver pelo menos um slot preenchido', () => {
+    const nodes = [{ key: 'meta-1', children: [null, '+', null] }];
+    expect(extractTrainedSelectionKeys(nodes)).toEqual({
+      'meta-1': { checked: true, partialChecked: false },
+    });
+  });
+
+  it('não marca uma folha com todos os slots vazios', () => {
+    const nodes = [{ key: 'meta-1', children: [null, null, null] }];
+    expect(extractTrainedSelectionKeys(nodes)).toEqual({});
+  });
+
+  it('propaga pro nó pai quando um filho é treinado (3 níveis)', () => {
+    const nodes = [
+      {
+        key: 'programa-1',
+        children: [
+          { key: 'meta-1', children: ['+', null] },
+          { key: 'meta-2', children: [null, null] },
+        ],
+      },
+    ];
+    const result = extractTrainedSelectionKeys(nodes);
+    expect(result['meta-1']).toEqual({ checked: true, partialChecked: false });
+    expect(result['meta-2']).toBeUndefined();
+    // só 1 dos 2 filhos treinado -> pai fica parcial, não totalmente marcado
+    expect(result['programa-1']).toEqual({ checked: false, partialChecked: true });
+  });
+
+  it('marca o pai como totalmente selecionado quando TODOS os filhos são treinados', () => {
+    const nodes = [
+      {
+        key: 'programa-1',
+        children: [
+          { key: 'meta-1', children: ['+'] },
+          { key: 'meta-2', children: ['-'] },
+        ],
+      },
+    ];
+    expect(extractTrainedSelectionKeys(nodes)['programa-1']).toEqual({
+      checked: true,
+      partialChecked: false,
+    });
+  });
+
+  it('devolve objeto vazio pra árvore vazia/indefinida', () => {
+    expect(extractTrainedSelectionKeys([])).toEqual({});
+    expect(extractTrainedSelectionKeys(undefined as any)).toEqual({});
   });
 });
 

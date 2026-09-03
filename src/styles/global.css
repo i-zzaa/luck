@@ -22,26 +22,34 @@ body {
   letter-spacing: 1px;
 }
 
-/* width */
+/* Scroll continua funcionando normalmente (mouse, toque, teclado) — só a
+   barra em si não é desenhada. Precisa das 3 formas (Firefox, IE/Edge
+   antigo, Chrome/Safari/Edge novo via ::-webkit-scrollbar) pra cobrir os
+   navegadores que o app realmente roda (é mobile-first: celular/tablet). */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Entrada suave do toast fixo de aviso (ver Session.tsx) — um leve
+   deslizar + esmaecer em vez de simplesmente "estalar" na tela. */
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-toast-slide-in {
+  animation: toast-slide-in 300ms ease-out;
+}
+
 ::-webkit-scrollbar {
-  width: 5px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: var(--violet-800);
-  border-radius: 1rem;
-
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: var(--violet-800);
+  display: none;
 }
 
 @media screen and (max-width: 960px) {

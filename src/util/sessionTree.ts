@@ -32,3 +32,49 @@ export const padSlots = (arr: any[], count: number) => {
   }
   return base;
 };
+
+// Chave de seleção no formato que o Tree do PrimeReact espera
+// (selectionKeys), usado pelo bottom sheet de metas.
+export type SelectionKeys = Record<string, { checked: boolean; partialChecked: boolean }>;
+
+// Deriva quais metas "já foram treinadas" numa árvore de sessão (a
+// mesma árvore com slots que useSessionForm monta pra
+// SessionActivity/SessionPortage/SessionVBMapp — não é a árvore de
+// seleção por checkbox da tela de Metas, é outro formato). Usado como
+// fallback pro bottom sheet de "Adicionar metas": pra sessão já
+// registrada, pei/activity-session/:id (o "planejamento prévio") pode
+// não ter mais nada salvo — mas a própria sessão registrada ainda tem
+// os slots preenchidos, e é isso que essa função lê.
+//
+// Um nó-folha (children = array de slots primitivos/null) conta como
+// "treinado" se tiver pelo menos um slot preenchido (não-null). Um nó
+// interno conta como treinado se algum filho contar — com
+// partialChecked quando só PARTE dos filhos contam, igual ao tri-state
+// nativo do Tree.
+export const extractTrainedSelectionKeys = (nodes: any[]): SelectionKeys => {
+  const result: SelectionKeys = {};
+
+  const visit = (node: any): boolean => {
+    const children = node?.children;
+    if (!Array.isArray(children) || children.length === 0) return false;
+
+    if (children.every(isPrimitiveOrNull)) {
+      const trained = children.some((v) => v !== null && v !== undefined);
+      if (trained && node?.key !== undefined) {
+        result[String(node.key)] = { checked: true, partialChecked: false };
+      }
+      return trained;
+    }
+
+    const childrenTrained = children.map((child: any) => visit(child));
+    const anyTrained = childrenTrained.some(Boolean);
+    const allTrained = childrenTrained.length > 0 && childrenTrained.every(Boolean);
+    if (anyTrained && node?.key !== undefined) {
+      result[String(node.key)] = { checked: allTrained, partialChecked: !allTrained };
+    }
+    return anyTrained;
+  };
+
+  (nodes || []).forEach((node) => visit(node));
+  return result;
+};

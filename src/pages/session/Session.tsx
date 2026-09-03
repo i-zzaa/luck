@@ -8,8 +8,16 @@ import { SessionActivity } from './SessionActivity';
 import { SessionPortage } from './SessionPortage';
 import { SessionVBMapp } from './SessionVBMapp';
 import { SessionMaintenance } from './SessionMaintenance';
-import { useMemo } from 'react';
-import { MIN_RESUMO_LENGTH } from '../../util/sessionTree';
+import { useMemo, useState } from 'react';
+import { extractTrainedSelectionKeys, MIN_RESUMO_LENGTH } from '../../util/sessionTree';
+import { MetasBottomSheet } from '../../components/metasBottomSheet';
+import { classificarStatus } from '../../util/status';
+
+// Espaço reservado pro toast fixo de aviso (ver renderHeaderSession) —
+// ele não empurra ninguém sozinho (é fixed), então o resto da tela
+// (cabeçalho + conteúdo) precisa desse respiro pra não ficar por baixo
+// dele.
+const ATIVIDADE_ALERTA_SPACER = 'h-16';
 
 export const Session = () => {
   const {
@@ -30,8 +38,11 @@ export const Session = () => {
     setDTT,
     setMaintenance,
     handleSubmitSumary,
+    refreshMetas,
     state,
   } = useSessionForm();
+
+  const [metasSheetOpen, setMetasSheetOpen] = useState(false);
 
   const renderHeader = () => (
     <ChoiceItemSchedule
@@ -102,32 +113,75 @@ export const Session = () => {
       </div>
     );
 
-  const renderHeaderSession = useMemo(() => {
-    if (
-      !list.length &&
-      !listPortage.length &&
-      !listVBMapp.length &&
-      !listMaintenance.manual.length &&
-      !listMaintenance.portage.length &&
-      !listMaintenance.vbmapp.length
-    )
-      return;
+  // Sessão já atendida: fim do treino de verdade — nem o aviso "interrompa
+  // ao atingir 4 tentativas" nem o atalho de complementar metas fazem
+  // sentido mais (a sessão já está registrada e é só leitura).
+  const isAtendido = classificarStatus(state?.item?.statusEventos) === 'atendido';
 
-    return (
-      <div className="text-red-400 font-inter grid justify-start mx-2 leading-4 mt-8">
-        <span className="text-md">
-          Interrompa o treino da atividade ao atingir 4 tentativas corretas
-          consecutivas.
-        </span>
-      </div>
-    );
-  }, [list, listPortage, listVBMapp, listMaintenance]);
+  const hasAtividadeAlerta =
+    !isAtendido &&
+    (!!list.length ||
+      !!listPortage.length ||
+      !!listVBMapp.length ||
+      !!listMaintenance.manual.length ||
+      !!listMaintenance.portage.length ||
+      !!listMaintenance.vbmapp.length);
+
+  // Toast fixo (não rola com a página — fica sempre visível enquanto tem
+  // atividade/protocolo carregado) em vez de um bloco de texto solto no
+  // meio do conteúdo, que sumia de vista ao rolar a tela.
+  const renderHeaderSession = hasAtividadeAlerta && (
+    <div className="fixed top-12 inset-x-0 z-10 flex items-start gap-2 border-l-4 border-red-300 bg-white px-4 py-2.5 shadow-md animate-toast-slide-in">
+      <span className="flex shrink-0 items-center justify-center w-5 h-5 rounded-full bg-red-50">
+        <i className="pi pi-exclamation-triangle text-red-400 text-[10px]" />
+      </span>
+      <span className="font-inter text-xs leading-snug text-red-400">
+        Interrompa o treino da atividade ao atingir 4 tentativas corretas
+        consecutivas.
+      </span>
+    </div>
+  );
+
+  // Fallback pro bottom sheet de "Adicionar metas": deriva quais metas já
+  // foram treinadas a partir da própria árvore da sessão — mesma fonte
+  // que SessionActivity/SessionPortage/SessionVBMapp usam pra exibir
+  // (estado editável se já tiver algo, senão a árvore carregada). Só
+  // entra em uso quando o backend não tem mais o "planejamento prévio"
+  // (ver useMetasSelection). Memoizado pelas mesmas árvores — não muda a
+  // cada render, senão o bottom sheet buscaria de novo à toa.
+  const metasFallbackSelection = useMemo(
+    () => ({
+      manual: extractTrainedSelectionKeys(dtt.length ? dtt : list),
+      portage: extractTrainedSelectionKeys(portage.length ? portage : listPortage),
+      vbmapp: extractTrainedSelectionKeys(vbmapp.length ? vbmapp : listVBMapp),
+    }),
+    [dtt, list, portage, listPortage, vbmapp, listVBMapp]
+  );
 
   return (
     <div className="grid overflow-x-hidden bg-background">
+      {renderHeaderSession}
+      {/* Espaçador do tamanho exato do toast fixo — ele não empurra
+          ninguém sozinho (é fixed), então sem isso o cabeçalho (nome do
+          paciente) ficava por baixo dele, colado no Nav. */}
+      {hasAtividadeAlerta && <div className={ATIVIDADE_ALERTA_SPACER} />}
       {renderHeader()}
       <div className={clsx(!isEdit && 'pb-24')}>
-        {renderHeaderSession}
+        {/* Opção discreta — não é a ação principal da tela, só um atalho
+            pra quem precisa complementar as metas sem sair da Sessão.
+            Some quando a sessão já está atendida (fim do treino). */}
+        {!isAtendido && (
+          <div className="flex justify-end mx-2 mt-2">
+            <button
+              type="button"
+              onClick={() => setMetasSheetOpen(true)}
+              className="flex items-center gap-1 text-xs font-inter text-primary"
+            >
+              <i className="pi pi-plus text-[10px]" />
+              Adicionar metas
+            </button>
+          </div>
+        )}
         <SessionActivity
           list={list}
           dtt={dtt}
@@ -154,6 +208,14 @@ export const Session = () => {
         {renderSumary()}
       </div>
       {renderFooter()}
+      <MetasBottomSheet
+        open={metasSheetOpen}
+        onClose={() => setMetasSheetOpen(false)}
+        paciente={state?.item?.paciente}
+        calendarioId={state?.item?.id}
+        onSaved={refreshMetas}
+        fallbackSelection={metasFallbackSelection}
+      />
     </div>
   );
 };
