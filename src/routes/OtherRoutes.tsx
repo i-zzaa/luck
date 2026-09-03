@@ -53,14 +53,14 @@ export const ROUTES = [
   { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false, title: 'DTT' },
   { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false, title: 'Metas' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true, title: 'Início' },
-  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true, title: 'PEI' },
-  // pi-verified (não pi-book) de propósito: com os 5 itens lado a lado
-  // na tab bar flutuante, ter o mesmo ícone do PEI ali ao lado ficava
-  // ambíguo — dá pra distinguir só pelo rótulo embaixo, mas melhor não
-  // depender só disso.
+  // pi-verified (não pi-book, o mesmo do PEI) de propósito: com os 5
+  // itens lado a lado na tab bar flutuante, ter o mesmo ícone do PEI
+  // ficava ambíguo — dá pra distinguir só pelo rótulo embaixo, mas
+  // melhor não depender só disso.
   { path: CONSTANTES_ROUTERS.PROTOCOLO, componentRoute: PROTOCOLO, icon: 'pi pi-verified', menu: true, title: 'Protocolo de Avaliação' },
   { path: CONSTANTES_ROUTERS.PEICADASTRO, componentRoute: PEICADASTRO, icon: '', menu: false, title: 'Cadastro de PEI' },
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true, title: 'Agenda' },
+  { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true, title: 'PEI' },
   { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true, title: 'Primeira Resposta' },
 ]
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Filter } from '../templates/filter';
 import { PEIFields } from '../constants/formFields';
-import { dropDown, filter } from '../server';
+import { deleteItem, dropDown, filter } from '../server';
 import { useToast } from '../contexts/toast';
 import { Card } from '../components/card';
 import { NotFound } from '../components/notFound';
@@ -11,6 +11,7 @@ import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Fieldset } from 'primereact/fieldset';
 import { ButtonHeron } from '../components/button';
+import { Confirm } from '../components/confirm';
 import { TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
 import { useForm } from 'react-hook-form';
 
@@ -30,6 +31,11 @@ const PEI = () => {
 
   const [tipoProtocolo, setTipoProtocolo] = useState();
   const [pacienteCurrent, setPacienteCurrent] = useState();
+  // Programa (grupo) aguardando confirmação de exclusão — null = nenhum
+  // diálogo aberto. Excluir aqui apaga TODOS os registros Pei mesclados
+  // naquele programa (item.peiIds), não só um; por isso passa por
+  // confirmação, diferente da edição.
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState<any>(null);
 
   const handleEditPrograma = (item: any) => {
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
@@ -40,6 +46,38 @@ const PEI = () => {
         tipoProtocolo: TIPO_PROTOCOLO.pei,
       },
     });
+  };
+
+  // Edição em nível de protocolo já cobre "salvar" (consolida tudo no
+  // registro canônico via peiIds — ver usePeiForm.ts), mas faltava a
+  // exclusão do grupo inteiro: apaga cada registro original mesclado
+  // naquele programa (item.peiIds — cai pra [item.id] se o backend não
+  // mandar essa lista, por segurança).
+  const handleRemovePrograma = async (item: any) => {
+    setLoading(true);
+    try {
+      const ids: any[] = item?.peiIds?.length ? item.peiIds : [item.id];
+      await Promise.all(ids.map((id: any) => deleteItem(`pei/${id}`)));
+
+      onSubmitFilter({
+        pacienteId: state?.pacienteId || pacienteCurrent,
+        protocoloId: { id: tipoProtocolo },
+      });
+      renderToast({
+        type: 'success',
+        title: 'Sucesso!',
+        message: 'PEI removido!',
+        open: true,
+      });
+    } catch (error) {
+      renderToast({
+        type: 'failure',
+        title: '401',
+        message: 'PEI não encontrado!',
+        open: true,
+      });
+    }
+    setLoading(false);
   };
 
   const renderFiledSet = (title: string, text: string) => (
@@ -76,17 +114,83 @@ const PEI = () => {
     );
   };
 
+  // Uma meta com `procedimentoEnsino` marca o início de um novo grupo
+  // (registro Pei original que foi mesclado nesse programa — cada um tem
+  // seu próprio procedimento/estímulos; ver comentário no header do
+  // Accordion). As metas seguintes, sem esse campo, pertencem ao mesmo
+  // grupo. Agrupa aqui pra desenhar cada um como um card visualmente
+  // separado, em vez de um `mb-8` solto entre elas.
+  const agruparMetasPorProcedimento = (metas: any[]) => {
+    const grupos: any[][] = [];
+    (metas || []).forEach((meta) => {
+      if (meta?.procedimentoEnsino || grupos.length === 0) {
+        grupos.push([meta]);
+      } else {
+        grupos[grupos.length - 1].push(meta);
+      }
+    });
+    return grupos;
+  };
+
+  const renderMetaItem = (meta: any, indexMeta: number) => (
+    <div key={meta?.id ?? indexMeta}>
+      <span className="flex align-items-center gap-2 w-full font-inter">
+        Meta {indexMeta + 1}: {meta.value}
+      </span>
+      <ul className="list-disc ml-8 font-inter">
+        {meta.subitems &&
+          meta.subitems.map((subitem: any, index: number) => (
+            <li key={subitem?.id ?? index}> {subitem.value} </li>
+          ))}
+      </ul>
+    </div>
+  );
+
+  // Manual (pei): cada grupo (procedimento de ensino) vira seu próprio
+  // card com borda — antes tudo ficava na mesma coluna com só um
+  // respiro (mb-8) entre procedimentos, difícil de distinguir onde um
+  // terminava e o outro começava.
+  const renderMetasManual = (metas: any[]) => (
+    <div className="my-2 space-y-3">
+      {agruparMetasPorProcedimento(metas).map((grupo, indexGrupo) => (
+        <div
+          key={grupo[0]?.id ?? indexGrupo}
+          className="rounded-lg border border-gray-200 p-3"
+        >
+          {renderHeader(grupo[0])}
+          {grupo.map((meta, indexMeta) => renderMetaItem(meta, indexMeta))}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderMetasOutroProtocolo = (metas: any[]) => (
+    <div className="my-2">
+      {(metas || []).map((meta: any, indexMeta: number) => (
+        <div
+          key={meta?.id ?? indexMeta}
+          className={meta?.procedimentoEnsino && 'mb-8'}
+        >
+          {tipoProtocolo === TIPO_PROTOCOLO.portage && renderHeader(meta)}
+          {renderMetaItem(meta, indexMeta)}
+        </div>
+      ))}
+    </div>
+  );
+
   const renderContent = () => {
     if (!loading) {
       return list.length ? (
         <Card>
           <Accordion>
             {list.map((item: any, key: number) => {
+              const isManual = tipoProtocolo === TIPO_PROTOCOLO.pei;
+
               return (
                 <AccordionTab
                   key={item?.id ?? key}
                   header={
-                    <div className="flex items-center  w-full">
+                    <div className="flex items-center w-full gap-1">
                       <span>{item.programa.nome}</span>
 
                       {/* Protocolo Manual: um item da lista já é o programa
@@ -94,10 +198,11 @@ const PEI = () => {
                           registros daquele programa — ver
                           PeiService.agruparPeiPorPrograma). Editar abre o
                           formulário com o grupo completo; salvar consolida
-                          tudo no registro canônico (peiIds). Sem exclusão
-                          aqui — edição em nível de protocolo cobre isso. */}
-                      {tipoProtocolo === TIPO_PROTOCOLO.pei && (
-                        <div className="ml-auto">
+                          tudo no registro canônico (peiIds). Excluir apaga
+                          todos os registros mesclados nesse programa de
+                          uma vez (peiIds), por isso pede confirmação. */}
+                      {isManual && (
+                        <div className="ml-auto flex items-center">
                           <ButtonHeron
                             text="editar"
                             type="transparent"
@@ -107,6 +212,15 @@ const PEI = () => {
                             onClick={() => handleEditPrograma(item)}
                             loading={loading}
                           />
+                          <ButtonHeron
+                            text="remove"
+                            type="transparent"
+                            size="icon"
+                            icon="pi pi-trash"
+                            color="red"
+                            onClick={() => setConfirmDeleteItem(item)}
+                            loading={loading}
+                          />
                         </div>
                       )}
                     </div>
@@ -114,38 +228,11 @@ const PEI = () => {
                   tabIndex={key}
                 >
                   <div className="w-full overflow-y-auto">
-                    {tipoProtocolo !== TIPO_PROTOCOLO.portage &&
+                    {tipoProtocolo === TIPO_PROTOCOLO.vbMapp &&
                       renderHeader(item)}
-                    <div className="my-2">
-                      {item.metas.map((meta: any, indexMeta: number) => {
-                        return (
-                          <div
-                            key={meta?.id ?? indexMeta}
-                            className={meta?.procedimentoEnsino && 'mb-8'}
-                          >
-                            {tipoProtocolo === TIPO_PROTOCOLO.portage &&
-                              renderHeader(meta)}
-
-                            <span className="flex align-items-center gap-2 w-full font-inter">
-                              Meta {indexMeta + 1}: {meta.value}
-                            </span>
-                            <ul className="list-disc	ml-8 font-inter">
-                              {meta.subitems &&
-                                meta.subitems.map(
-                                  (subitem: any, index: number) => {
-                                    return (
-                                      <li key={subitem?.id ?? index}>
-                                        {' '}
-                                        {subitem.value}{' '}
-                                      </li>
-                                    );
-                                  }
-                                )}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {isManual
+                      ? renderMetasManual(item.metas)
+                      : renderMetasOutroProtocolo(item.metas)}
                   </div>
                 </AccordionTab>
               );
@@ -241,6 +328,21 @@ const PEI = () => {
     <div>
       {renderFilter()}
       {renderContent()}
+      <Confirm
+        open={!!confirmDeleteItem}
+        title="Excluir programa"
+        message={`Excluir todos os registros de "${confirmDeleteItem?.programa?.nome}"? Essa ação não pode ser desfeita.`}
+        icon="pi pi-trash"
+        acceptLabel="Excluir"
+        rejectLabel="Cancelar"
+        onAccept={() => {
+          const item = confirmDeleteItem;
+          setConfirmDeleteItem(null);
+          handleRemovePrograma(item);
+        }}
+        onReject={() => setConfirmDeleteItem(null)}
+        onClose={() => setConfirmDeleteItem(null)}
+      />
     </div>
   );
 };

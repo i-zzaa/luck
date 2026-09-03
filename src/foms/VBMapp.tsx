@@ -70,10 +70,30 @@ export default function VBMapp({ paciente }: any) {
     [nivel, paciente.id]
   );
 
-  const pegarNumeroDepoisDeMeta = (str: string) => {
-    const match = str.match(/-meta-(\d+)$/);
-    return match ? parseInt(match[1], 10) : null;
+  // Recupera o id original do item a partir do id composto que
+  // onClickAddSubItem monta (`${index}-meta-${item.id}`). Antes exigia
+  // que o trecho depois de "-meta-" fosse só dígitos (regex \d+) — o id
+  // de um item do VB-MAPP nem sempre é puramente numérico (pode vir
+  // como código, ex. "M1"), e nesse caso a extração falhava (retornava
+  // null) SILENCIOSAMENTE pra TODOS os itens editáveis do programa.
+  // Resultado: metasEditadasMap.has(...) nunca batia, o filtro abaixo
+  // removia a lista inteira do programa, e o lápis (que só aparece se
+  // sobrar algum item com permiteSubitens) sumia — exatamente o bug
+  // relatado em Mando/Tato/Ouvinte. Captura tudo depois do último
+  // "-meta-", não só dígitos.
+  const pegarIdDepoisDeMeta = (str: string) => {
+    const match = String(str).match(/-meta-(.+)$/);
+    return match ? match[1] : null;
   };
+
+  // Um item só entra no fluxo de edição do PEI se tiver subitens ou
+  // permiteSubitens (mesmo critério de onClickAddSubItem) — os demais
+  // itens do programa nunca são enviados pro formulário, então não tem
+  // como vir de volta em state.metaEdit.metas. Precisa desse mesmo
+  // critério aqui pra não confundir "não editável, nem deveria estar
+  // na resposta" com "editável e removido de propósito no PEI".
+  const itemEEditavel = (item: any) =>
+    (item.subitems && item.subitems.length) || item.permiteSubitens;
 
   const getMetaEdit = (currentList: any) => {
     if (
@@ -96,47 +116,57 @@ export default function VBMapp({ paciente }: any) {
       return;
     }
 
+    // Chave sempre em string (tanto aqui quanto nos .get/.has abaixo) —
+    // meta.id no dado vindo do backend pode ser number, e o id extraído
+    // do composto por pegarIdDepoisDeMeta é sempre string; comparar sem
+    // normalizar os dois lados pro mesmo tipo faz o Map nunca bater.
     const metasEditadasMap = new Map(
       state.metaEdit.metas.map((meta: any) => [
-        pegarNumeroDepoisDeMeta(meta.id),
+        pegarIdDepoisDeMeta(meta.id),
         meta,
       ])
     );
 
-    // Remove metas excluídas no PEI
-    copyList[programa] = copyList[programa].filter((meta: any) =>
-      metasEditadasMap.has(meta.id)
-    );
+    // Só mexe nos itens que passaram pelo formulário do PEI (editáveis).
+    // Um editável que sumiu do retorno foi removido de propósito lá
+    // dentro — esse sim é excluído daqui. Os não-editáveis (nunca
+    // enviados, então nunca estariam no Map) ficam intactos, preservando
+    // a ordem original do programa.
+    copyList[programa] = copyList[programa]
+      .filter(
+        (meta: any) =>
+          !itemEEditavel(meta) || metasEditadasMap.has(String(meta.id))
+      )
+      .map((meta: any) => {
+        if (!itemEEditavel(meta)) return meta;
 
-    // Mescla alterações de metas e subitens
-    copyList[programa] = copyList[programa].map((meta: any) => {
-      const metaEditada: any = metasEditadasMap.get(meta.id);
-      if (!metaEditada) return meta;
+        const metaEditada: any = metasEditadasMap.get(String(meta.id));
+        if (!metaEditada) return meta;
 
-      const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
-        const backendSub = (meta.subitems || []).find(
-          (s: any) => s.id === edit.id
-        );
+        const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
+          const backendSub = (meta.subitems || []).find(
+            (s: any) => s.id === edit.id
+          );
+
+          return {
+            ...OBJ_ITEM,
+            ...backendSub,
+            ...edit,
+            selected:
+              edit.selected !== undefined
+                ? edit.selected
+                : (backendSub?.selected ?? false),
+          };
+        });
 
         return {
-          ...OBJ_ITEM,
-          ...backendSub,
-          ...edit,
-          selected:
-            edit.selected !== undefined
-              ? edit.selected
-              : (backendSub?.selected ?? false),
+          ...meta,
+          ...metaEditada,
+          subitems: updatedSubitems,
+          selected: metaEditada?.selected ?? meta.selected,
+          id: meta.id,
         };
       });
-
-      return {
-        ...meta,
-        ...metaEditada,
-        subitems: updatedSubitems,
-        selected: metaEditada?.selected ?? meta.selected,
-        id: meta.id,
-      };
-    });
 
     setList(copyList);
   };

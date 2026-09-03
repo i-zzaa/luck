@@ -298,6 +298,35 @@ mesmo domínio (ou subdomínios do mesmo domínio-pai, com
 fricção — vale confirmar isso com quem cuida do deploy antes de
 implementar.
 
+### 11. Incidente: itens do VB-MAPP perdidos (Mando/Tato/Ouvinte, Nível 1)
+
+**Não é pedido de formatação — é pedido de recuperação de dado.**
+Achado em produção enquanto investigava o bug "lápis de editar sumiu no
+VB-MAPP": o merge que o frontend fazia depois de editar um programa
+(`VBMapp.tsx: getMetaEdit`) usava uma regex que só reconhecia id de item
+puramente numérico pra remontar a lista. Pra id de item não-numérico
+(bem comum no VB-MAPP, que usa códigos), a extração falhava
+silenciosamente e o merge entendia que **nenhum item do programa
+sobreviveu à edição** — esvaziando a lista inteira no estado local.
+
+Isso já foi corrigido no frontend (o merge agora não depende de id ser
+numérico, e só remove um item se ele realmente foi apagado de propósito
+no formulário do PEI — os demais ficam intactos). **Mas** o usuário
+confirmou ter clicado em "Salvar" no VB-MAPP enquanto os programas
+Mando, Tato e Ouvinte (Nível 1) já estavam com a lista esvaziada por
+esse bug — ou seja, o `POST /protocolo/vbmapp` foi enviado com esses
+três programas sem os itens editáveis (sem `permiteSubitens`/subitens),
+e é bem provável que isso tenha sobrescrito o dado correto que existia
+antes no banco.
+
+**Pedido:** verificar se existe alguma forma de recuperar o estado
+anterior de Mando/Tato/Ouvinte (Nível 1) desse paciente — log de
+auditoria, versionamento de registro, backup — e restaurar. Se não
+houver como recuperar automaticamente, os itens provavelmente precisam
+ser recriados manualmente (por quem tiver acesso direto ao banco/admin,
+já que a tela hoje só edita item já existente, não cria o primeiro item
+de um programa vazio).
+
 ---
 
 Não sobrou nenhum item de "Fase 2" pendente por enquanto — os que

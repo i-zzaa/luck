@@ -857,10 +857,19 @@ textarea {
 .p-dropdown-panel .p-dropdown-header .p-dropdown-clearable-filter .p-dropdown-filter-clear-icon {
   right: 2.5rem;
 }
+/* height fixa (30px) + line-height quase zero forçava cada opção a ficar
+   numa linha só, cortada (o CSS base do PrimeReact já deixa o item
+   white-space: nowrap; overflow: hidden) — pra opção com texto longo
+   (frase inteira, não uma palavra), a única forma de ler era rolar o
+   painel pro lado. Deixa a altura crescer com o conteúdo e o texto
+   quebrar linha normalmente.
+   Ver docs/pedido-backend-formatacao.md se algum dia vier um rótulo
+   curto pro Procedimento de Ensino — por ora o texto é mesmo comprido. */
 .p-dropdown-item {
   font-size: .8rem;
-  line-height: .2rem;
-  height: 30px !important;
+  line-height: 1.2;
+  height: auto !important;
+  min-height: 30px;
 }
 
 .p-dropdown-panel .p-dropdown-items {
@@ -874,6 +883,9 @@ textarea {
   background: transparent;
   transition: box-shadow 0.2s;
   border-radius: 0;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
 }
 .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
   color: var(--violet-800);

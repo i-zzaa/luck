@@ -31,6 +31,43 @@ type ProgramaGroup = {
 // --------- Estado inicial ----------
 const fieldsConst = PrimeirasRespostasFields;
 
+// Faixas de cor pra "% de acertos" — leitura rápida sem precisar ler o
+// número: verde (domínio), amarelo (em progresso), vermelho (atenção).
+const corPorcentagem = (porcentagem: string) => {
+  const valor = parseFloat(porcentagem);
+  if (Number.isNaN(valor)) return 'text-gray-400';
+  if (valor >= 80) return 'text-green-500';
+  if (valor >= 50) return 'text-yellow-500';
+  return 'text-red-400';
+};
+
+// Só as 3 sessões mais recentes cabem na tela — mais que isso e a
+// tabela fica ilegível de tanto scroll horizontal.
+const MAX_DIAS = 3;
+
+// Média das porcentagens dos dias exibidos (só os MAX_DIAS primeiros),
+// de todas as tarefas de um grupo — mostrado no cabeçalho do Accordion
+// pra dar o resumo do programa sem precisar abrir. Considera só os dias
+// que aparecem na tabela, senão a média não bateria com o que a
+// terapeuta está vendo.
+const mediaGrupo = (children: ChildRow[]) => {
+  const valores = children
+    .flatMap((c) => c.dias.slice(0, MAX_DIAS))
+    .map((d) => parseFloat(d.porcentagem))
+    .filter((v) => !Number.isNaN(v));
+  if (!valores.length) return null;
+  const media = valores.reduce((acc, v) => acc + v, 0) / valores.length;
+  return media.toFixed(0);
+};
+
+// A data de uma coluna de dia é a mesma pra todas as tarefas do grupo
+// (é a data da sessão, não da tarefa) — usa a primeira que aparecer
+// nesse índice como rótulo da coluna, com "Dia N" de fallback caso
+// nenhuma tarefa tenha dado nesse índice.
+const dataColuna = (children: ChildRow[], index: number) =>
+  children.find((c) => c.dias?.[index]?.data)?.dias?.[index]?.data ||
+  `Dia ${index + 1}`;
+
 export default function PrimeiraResposta() {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>({});
@@ -41,34 +78,34 @@ export default function PrimeiraResposta() {
   // ------------------ Helpers de UI ------------------
   const renderBodyTemplate = (row: ChildRow, index: number) => {
     const dia = row?.dias?.[index];
-    if (!dia) return '-';
+    if (!dia) return <span className="text-gray-300">—</span>;
 
     return (
-      <div className="grid grid-rows-3 justify-center">
-        <div className="flex justify-center">{dia.data}</div>
-
-        <div className="flex gap-2 justify-center">
-          <div
-            className={clsx(
-              'flex justify-center items-center font-inter font-light rounded-full w-4 h-4',
-              { 'bg-green-400 text-white': dia.primeiraResposta }
-            )}
-            title="Sim"
-          >
-            S
-          </div>
-          <div
-            className={clsx(
-              'flex justify-center items-center font-inter font-light rounded-full w-4 h-4',
-              { 'bg-red-400 text-white': !dia.primeiraResposta }
-            )}
-            title="Não"
-          >
-            N
-          </div>
-        </div>
-
-        <div className="flex justify-center">{dia.porcentagem}%</div>
+      <div className="flex items-center justify-center gap-1 py-1">
+        <i
+          className={clsx('pi text-xs', {
+            'pi-check-circle text-green-400': dia.primeiraResposta,
+            'pi-times-circle text-red-300': !dia.primeiraResposta,
+          })}
+          title={
+            dia.primeiraResposta
+              ? 'Acertou de primeira'
+              : 'Não acertou de primeira'
+          }
+        />
+        <span
+          className={clsx(
+            'font-inter text-xs font-semibold',
+            corPorcentagem(dia.porcentagem)
+          )}
+        >
+          {/* O backend manda "-" quando não há porcentagem apurada
+              (sessão sem tentativa registrada nesse dia, etc.) — "%"
+              grudado nesse "-" não faz sentido ("-%"), só quando o
+              valor é numérico de verdade. */}
+          {dia.porcentagem}
+          {!Number.isNaN(parseFloat(dia.porcentagem)) && '%'}
+        </span>
       </div>
     );
   };
@@ -78,39 +115,62 @@ export default function PrimeiraResposta() {
 
     return (
       <Accordion multiple>
-        {sections.map((sec, idx) => (
-          <AccordionTab
-            key={`sec-${idx}-${sec.programa}`}
-            tabIndex={idx}
-            header={
-              <div className="flex items-center w-full">
-                <span>{sec.programa}</span>
-              </div>
-            }
-          >
-            <DataTable value={sec.children} scrollable>
-              {/* field="programa" — bate com ChildRow.programa (o único
-                  campo de identificação que o tipo declara, e que a API
-                  sessao/atividade/:pacienteId realmente manda). Um commit
-                  recente trocou isso pra field="meta"/"subItem", campos
-                  que não existem no objeto — as colunas ficavam sempre
-                  em branco (os dias continuavam aparecendo, já que usam
-                  `body` lendo row.dias[index], não `field`). */}
-              <Column
-                field="programa"
-                header="Programa"
-                style={{ width: '25%' }}
-              />
-              {Array.from({ length: sec.qtdColumns }).map((_, index) => (
+        {sections.map((sec, idx) => {
+          const media = mediaGrupo(sec.children);
+
+          return (
+            <AccordionTab
+              key={`sec-${idx}-${sec.programa}`}
+              tabIndex={idx}
+              header={
+                <div className="flex items-center justify-between w-full pr-2">
+                  <span className="font-inter font-semibold">
+                    {sec.programa}
+                  </span>
+                  {media !== null && (
+                    <span
+                      className={clsx(
+                        'font-inter text-xs font-semibold',
+                        corPorcentagem(media)
+                      )}
+                    >
+                      {media}% de acerto
+                    </span>
+                  )}
+                </div>
+              }
+            >
+              <DataTable
+                value={sec.children}
+                scrollable
+                stripedRows
+                className="text-sm"
+              >
+                {/* field="programa" — bate com ChildRow.programa (o único
+                    campo de identificação que o tipo declara, e que a API
+                    sessao/atividade/:pacienteId realmente manda). Rotulado
+                    "Tarefa" (não "Programa") pra não repetir o nome do
+                    cabeçalho do Accordion, que já representa o programa. */}
                 <Column
-                  key={`col-${index}`}
-                  header={`Dia ${index + 1}`}
-                  body={(row: ChildRow) => renderBodyTemplate(row, index)}
+                  field="programa"
+                  header="Tarefa"
+                  style={{ width: '35%' }}
+                  className="font-inter"
                 />
-              ))}
-            </DataTable>
-          </AccordionTab>
-        ))}
+                {Array.from({
+                  length: Math.min(sec.qtdColumns, MAX_DIAS),
+                }).map((_, index) => (
+                  <Column
+                    key={`col-${index}`}
+                    header={dataColuna(sec.children, index)}
+                    headerClassName="font-inter whitespace-nowrap"
+                    body={(row: ChildRow) => renderBodyTemplate(row, index)}
+                  />
+                ))}
+              </DataTable>
+            </AccordionTab>
+          );
+        })}
       </Accordion>
     );
   };
@@ -149,6 +209,24 @@ export default function PrimeiraResposta() {
     />
   );
 
+  // ------------------ Legenda ------------------
+  // Dois indicadores diferentes convivem na mesma célula (ícone = acertou
+  // de primeira; número = % de acertos na sessão inteira) — sem isso fica
+  // fácil confundir um com o outro.
+  const renderLegenda = () => (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 py-2 font-inter text-[11px] text-gray-400">
+      <span className="flex items-center gap-1 whitespace-nowrap">
+        <i className="pi pi-check-circle text-green-400 text-xs" />
+        Acertou de primeira
+      </span>
+      <span className="flex items-center gap-1 whitespace-nowrap">
+        <i className="pi pi-times-circle text-red-300 text-xs" />
+        Não acertou de primeira
+      </span>
+      <span className="whitespace-nowrap">% = acertos na sessão</span>
+    </div>
+  );
+
   // ------------------ Conteúdo ------------------
   const renderContent = () => {
     if (loading) return <LoadingHeron />;
@@ -161,7 +239,12 @@ export default function PrimeiraResposta() {
       );
     }
 
-    return <Card>{renderSections(list)}</Card>;
+    return (
+      <>
+        {renderLegenda()}
+        <Card>{renderSections(list)}</Card>
+      </>
+    );
   };
 
   // ------------------ Dropdowns ------------------
