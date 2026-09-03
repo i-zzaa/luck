@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Filter } from '../templates/filter';
 import { PEIFields } from '../constants/formFields';
-import { deleteItem, dropDown, filter } from '../server';
+import { dropDown, filter } from '../server';
 import { useToast } from '../contexts/toast';
 import { Card } from '../components/card';
 import { NotFound } from '../components/notFound';
@@ -42,30 +42,6 @@ const PEI = () => {
     });
   };
 
-  const handleRemovePrograma = async (item: any) => {
-    setLoading(true);
-    try {
-      const pacienteId = item.paciente;
-      await deleteItem(`pei/${item.id}`);
-
-      onSubmitFilter({ pacienteId, protocoloId: tipoProtocolo });
-      renderToast({
-        type: 'success',
-        title: 'Sucesso!',
-        message: 'PEI removido!',
-        open: true,
-      });
-    } catch (error) {
-      renderToast({
-        type: 'failure',
-        title: '401',
-        message: 'PEI não encontrado!',
-        open: true,
-      });
-    }
-    setLoading(false);
-  };
-
   const renderFiledSet = (title: string, text: string) => (
     <Fieldset className="text-[8px]">
       <div className="font-bold text-wrap"> {title} </div>
@@ -100,104 +76,77 @@ const PEI = () => {
     );
   };
 
-  // Protocolo Manual (pei): o backend agora agrupa por programa — cada
-  // item da lista carrega `entries`, um por registro Pei original que
-  // compõe aquele programa (podem ser vários, cada um com suas próprias
-  // metas). Editar/excluir agem sobre o `entry`, não sobre o grupo
-  // inteiro, pra não apagar as metas dos outros registros do mesmo
-  // programa. Os outros protocolos (VB-MAPP/Portage) continuam com o
-  // formato antigo (metas direto no item).
-  const renderMetas = (metas: any[]) => (
-    <div className="my-2">
-      {(metas || []).map((meta: any, indexMeta: number) => (
-        <div
-          key={meta?.id ?? indexMeta}
-          className={meta?.procedimentoEnsino && 'mb-8'}
-        >
-          {tipoProtocolo === TIPO_PROTOCOLO.portage && renderHeader(meta)}
-
-          <span className="flex align-items-center gap-2 w-full font-inter">
-            Meta {indexMeta + 1}: {meta.value}
-          </span>
-          <ul className="list-disc	ml-8 font-inter">
-            {meta.subitems &&
-              meta.subitems.map((subitem: any, index: number) => (
-                <li key={subitem?.id ?? index}> {subitem.value} </li>
-              ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderEntryActions = (entry: any) => (
-    <div className="ml-auto">
-      <ButtonHeron
-        text="editar"
-        type="transparent"
-        size="icon"
-        icon="pi pi-pencil"
-        color="violet"
-        onClick={() => handleEditPrograma(entry)}
-        loading={loading}
-      />
-      <ButtonHeron
-        text="remove"
-        icon="pi pi-trash"
-        type="transparent"
-        color="red"
-        size="icon"
-        onClick={() => handleRemovePrograma(entry)}
-        loading={loading}
-      />
-    </div>
-  );
-
-  const renderManualEntries = (item: any) => (
-    <div className="w-full overflow-y-auto">
-      {(item.entries || []).map((entry: any, indexEntry: number) => (
-        <div
-          key={entry?.id ?? indexEntry}
-          className={indexEntry > 0 ? 'mt-6 pt-4 border-t' : ''}
-        >
-          <div className="flex items-center w-full">
-            <div className="flex-1">{renderHeader(entry)}</div>
-            {renderEntryActions(entry)}
-          </div>
-          {renderMetas(entry.metas)}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderOutroProtocolo = (item: any) => (
-    <div className="w-full overflow-y-auto">
-      {tipoProtocolo !== TIPO_PROTOCOLO.portage && renderHeader(item)}
-      {renderMetas(item.metas)}
-    </div>
-  );
-
   const renderContent = () => {
     if (!loading) {
       return list.length ? (
         <Card>
           <Accordion>
             {list.map((item: any, key: number) => {
-              const isManual = tipoProtocolo === TIPO_PROTOCOLO.pei;
-
               return (
                 <AccordionTab
                   key={item?.id ?? key}
                   header={
                     <div className="flex items-center  w-full">
                       <span>{item.programa.nome}</span>
+
+                      {/* Protocolo Manual: um item da lista já é o programa
+                          inteiro (backend mescla todas as metas dos
+                          registros daquele programa — ver
+                          PeiService.agruparPeiPorPrograma). Editar abre o
+                          formulário com o grupo completo; salvar consolida
+                          tudo no registro canônico (peiIds). Sem exclusão
+                          aqui — edição em nível de protocolo cobre isso. */}
+                      {tipoProtocolo === TIPO_PROTOCOLO.pei && (
+                        <div className="ml-auto">
+                          <ButtonHeron
+                            text="editar"
+                            type="transparent"
+                            size="icon"
+                            icon="pi pi-pencil"
+                            color="violet"
+                            onClick={() => handleEditPrograma(item)}
+                            loading={loading}
+                          />
+                        </div>
+                      )}
                     </div>
                   }
                   tabIndex={key}
                 >
-                  {isManual
-                    ? renderManualEntries(item)
-                    : renderOutroProtocolo(item)}
+                  <div className="w-full overflow-y-auto">
+                    {tipoProtocolo !== TIPO_PROTOCOLO.portage &&
+                      renderHeader(item)}
+                    <div className="my-2">
+                      {item.metas.map((meta: any, indexMeta: number) => {
+                        return (
+                          <div
+                            key={meta?.id ?? indexMeta}
+                            className={meta?.procedimentoEnsino && 'mb-8'}
+                          >
+                            {tipoProtocolo === TIPO_PROTOCOLO.portage &&
+                              renderHeader(meta)}
+
+                            <span className="flex align-items-center gap-2 w-full font-inter">
+                              Meta {indexMeta + 1}: {meta.value}
+                            </span>
+                            <ul className="list-disc	ml-8 font-inter">
+                              {meta.subitems &&
+                                meta.subitems.map(
+                                  (subitem: any, index: number) => {
+                                    return (
+                                      <li key={subitem?.id ?? index}>
+                                        {' '}
+                                        {subitem.value}{' '}
+                                      </li>
+                                    );
+                                  }
+                                )}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </AccordionTab>
               );
             })}

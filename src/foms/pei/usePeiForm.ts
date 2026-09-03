@@ -225,6 +225,15 @@ export const usePeiForm = ({
 
       if (Boolean(state?.item?.id)) payload.id = state.item.id;
 
+      // Edição em nível de protocolo (Manual): o item editado é o grupo
+      // inteiro de um programa, que pode ter nascido de vários registros
+      // Pei mesclados na listagem (ver PeiService.agruparPeiPorPrograma).
+      // `peiIds` carrega todos eles — o backend consolida no registro
+      // canônico (payload.id) e apaga os outros ao salvar.
+      if (tipoProtocolo === TIPO_PROTOCOLO.pei && state?.item?.peiIds) {
+        payload.peiIds = state.item.peiIds;
+      }
+
       if (tipoProtocolo === TIPO_PROTOCOLO.pei) {
         Boolean(state?.item?.id)
           ? await update('pei', payload)
