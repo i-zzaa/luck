@@ -12,19 +12,20 @@ import { Column } from 'primereact/column';
 import clsx from 'clsx';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 
-// --------- Tipos do novo shape ---------
-type Dia = { primeiraResposta: boolean; data: string; porcentagem: number };
+// --------- Tipos do shape real ---------
+// Conferido contra o payload de verdade de GET sessao/atividade/:pacienteId:
+// é um array solto (ProgramaGroup[]), sem nenhum wrapper {manual, portage,
+// vbmapp} por fora — essa suposição de estrutura (mantida até aqui) nunca
+// bateu com o que o backend manda, então a tela sempre caía no "não há
+// itens" independente do dado existir. "atividade" no nome do endpoint é
+// a mesma convenção do resto do projeto pra Manual (ver ACTIVITY em
+// useSessionForm.ts) — não tem evidência de Portage/VB-MAPP virem daqui.
+type Dia = { primeiraResposta: boolean; data: string; porcentagem: string };
 type ChildRow = { programa: string; dias: Dia[] };
 type ProgramaGroup = {
   programa: string;
   children: ChildRow[];
   qtdColumns: number;
-};
-
-type ApiResponse = {
-  manual: ProgramaGroup[];
-  portage: ProgramaGroup[];
-  vbmapp: Record<string, ProgramaGroup[]>; // nível -> array de groups
 };
 
 // --------- Estado inicial ----------
@@ -33,7 +34,7 @@ const fieldsConst = PrimeirasRespostasFields;
 export default function PrimeiraResposta() {
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>({});
-  const [list, setList] = useState<ApiResponse | null>(null);
+  const [list, setList] = useState<ProgramaGroup[] | null>(null);
 
   const { renderToast } = useToast();
 
@@ -88,10 +89,16 @@ export default function PrimeiraResposta() {
             }
           >
             <DataTable value={sec.children} scrollable>
-              <Column field="meta" header="Meta" style={{ width: '25%' }} />
+              {/* field="programa" — bate com ChildRow.programa (o único
+                  campo de identificação que o tipo declara, e que a API
+                  sessao/atividade/:pacienteId realmente manda). Um commit
+                  recente trocou isso pra field="meta"/"subItem", campos
+                  que não existem no objeto — as colunas ficavam sempre
+                  em branco (os dias continuavam aparecendo, já que usam
+                  `body` lendo row.dias[index], não `field`). */}
               <Column
-                field="subItem"
-                header="Subitem"
+                field="programa"
+                header="Programa"
                 style={{ width: '25%' }}
               />
               {Array.from({ length: sec.qtdColumns }).map((_, index) => (
@@ -108,35 +115,11 @@ export default function PrimeiraResposta() {
     );
   };
 
-  const renderVBMAPP = (vbmapp: Record<string, ProgramaGroup[]>) => {
-    const levels = Object.keys(vbmapp || {});
-    if (levels.length === 0) return <NotFound />;
-
-    // Accordion de níveis; dentro de cada nível, usamos o mesmo renderer de sections
-    return (
-      <Accordion multiple>
-        {levels.map((nivel, key) => (
-          <AccordionTab
-            tabIndex={key}
-            key={`nivel-${nivel}`}
-            header={
-              <div className="flex items-center w-full">
-                <span>{nivel}</span>
-              </div>
-            }
-          >
-            {renderSections(vbmapp[nivel] || [])}
-          </AccordionTab>
-        ))}
-      </Accordion>
-    );
-  };
-
   // ------------------ Filtro ------------------
   const onSubmitFilter = async ({ pacienteId }: any) => {
     setLoading(true);
     try {
-      const result: ApiResponse = await getList(
+      const result: ProgramaGroup[] = await getList(
         `sessao/atividade/${pacienteId.id}`
       );
       setList(result);
@@ -170,11 +153,7 @@ export default function PrimeiraResposta() {
   const renderContent = () => {
     if (loading) return <LoadingHeron />;
 
-    const hasManual = !!list?.manual?.length;
-    const hasPortage = !!list?.portage?.length;
-    const hasVbmapp = !!list?.vbmapp && Object.keys(list.vbmapp).length > 0;
-
-    if (!hasManual && !hasPortage && !hasVbmapp) {
+    if (!list?.length) {
       return (
         <Card>
           <NotFound />
@@ -182,56 +161,7 @@ export default function PrimeiraResposta() {
       );
     }
 
-    return (
-      <Card>
-        <Accordion multiple>
-          {/* MANUAL */}
-          {hasManual && (
-            <AccordionTab
-              tabIndex={0}
-              header={
-                <div className="flex items-center w-full">
-                  <span>Manual</span>
-                </div>
-              }
-              disabled={!hasManual}
-            >
-              {renderSections(list!.manual || [])}
-            </AccordionTab>
-          )}
-
-          {/* PORTAGE */}
-          {hasPortage && (
-            <AccordionTab
-              tabIndex={1}
-              header={
-                <div className="flex items-center w-full">
-                  <span>Portage</span>
-                </div>
-              }
-              disabled={!hasPortage}
-            >
-              {renderSections(list!.portage || [])}
-            </AccordionTab>
-          )}
-
-          {/* VB-MAPP */}
-          {hasVbmapp && (
-            <AccordionTab
-              tabIndex={2}
-              header={
-                <div className="flex items-center w-full">
-                  <span>VB-MAPP</span>
-                </div>
-              }
-              disabled={!hasVbmapp}
-            >
-              {renderVBMAPP(list!.vbmapp || {})}
-            </AccordionTab>
-          )}
-        </Accordion>
-      </Card>
-    );
+    return <Card>{renderSections(list)}</Card>;
   };
 
   // ------------------ Dropdowns ------------------
