@@ -14,11 +14,11 @@ import { ButtonHeron, Card } from '../components';
 import { LoadingHeron } from '../components/loading';
 import { NotFound } from '../components/notFound';
 import { useToast } from '../contexts/toast';
-import { STATUS_EVENTS } from '../constants/schedule';
 import { useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { isSlotLivre, sessaoBloqueada } from '../util/evento';
+import { classificarStatus } from '../util/status';
 
 type ViewMode = 'dia' | 'semana' | 'mes' | 'periodo';
 
@@ -171,17 +171,40 @@ export const Schedule = () => {
     const isPast = moment()
       .startOf('day')
       .isAfter(moment(dateSession).startOf('day'));
+    // classificarStatus (não comparação estrita de string) — é a mesma
+    // classificação que o badge da tela usa pra colorir "Atendido"
+    // (ScheduleInfo.tsx: getStatusClass). Com comparação estrita contra
+    // um texto fixo, uma variação de acentuação/capitalização no
+    // statusEventos.nome real do backend fazia o badge mostrar
+    // "Atendido" só visualmente, mas o clique continuava bloqueado —
+    // porque aqui achava que a sessão não estava realizada.
+    const isRealizada = classificarStatus(item?.statusEventos) === 'atendido';
 
-    const naoAtendido =
-      isPast && item?.statusEventos?.nome !== STATUS_EVENTS.atendido;
-    // statusEventos.atender === false: o evento não deve ser aberto pra
-    // registrar sessão (diferente de "não atendido" — é sobre o tipo do
-    // evento, não sobre a sessão já ter passado), então bloqueia o clique
-    // sem reaproveitar o rótulo "Não Atendido".
-    const notNavigate = sessaoBloqueada(
-      item,
-      naoAtendido || item?.statusEventos?.atender === false
-    );
+    const naoAtendido = isPast && !isRealizada;
+
+    // Sessão já realizada sempre pode ser reaberta, em modo leitura (quem
+    // decide "é leitura ou é nova" já é a própria tela de Sessão, via
+    // temSessaoRegistrada) — regra absoluta, sobrepõe até um eventual
+    // `sessaoBloqueada` vindo do backend (esse campo é calculado pra
+    // decidir se uma sessão ainda NÃO realizada pode ser aberta; não foi
+    // pensado pra revogar acesso a uma sessão que já aconteceu, mas como
+    // é booleano simples não tem como o backend expressar "bloqueada
+    // exceto se já realizada" nele — por isso `isRealizada` curto-circuita
+    // aqui em vez de só entrar como fallback do sessaoBloqueada). Pra
+    // sessão ainda não realizada, mantém o bloqueio de antes: passado sem
+    // ter sido atendida, ou tipo de evento que não registra sessão.
+    const podeAcessar =
+      isRealizada ||
+      !sessaoBloqueada(
+        item,
+        naoAtendido || item?.statusEventos?.atender === false
+      );
+
+    // Botão de metas (seleção do PEI pra essa sessão): só faz sentido
+    // pra sessão que o backend marcou como "atender" — antes aparecia
+    // pra qualquer sessão futura, mesmo tipos de evento que
+    // statusEventos.atender === false diz que não registram sessão.
+    const mostrarBotaoMetas = !isRealizada && item?.statusEventos?.atender === true;
 
     return (
       <Card
@@ -192,11 +215,11 @@ export const Schedule = () => {
         // docs/pedido-backend-formatacao.md).
         type={item?.especialidade?.codigo || item.especialidade.nome}
         onClick={() =>
-          !notNavigate &&
+          podeAcessar &&
           navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })
         }
       >
-        <div className="flex">
+        <div className="flex items-center">
           <ChoiceItemSchedule
             start={item?.data?.start}
             end={item?.data?.end}
@@ -212,7 +235,7 @@ export const Schedule = () => {
             dataFim={item?.dataFim}
             dataAtual={item?.dataAtual || item?.date}
           />
-          {!isPast && item?.statusEventos?.nome !== STATUS_EVENTS.atendido && (
+          {mostrarBotaoMetas && (
             <ButtonHeron
               text="Pesquisar"
               icon="pi pi-file-edit"
@@ -223,7 +246,7 @@ export const Schedule = () => {
             />
           )}
 
-          {item?.statusEventos?.nome === STATUS_EVENTS.atendido && (
+          {isRealizada && (
             <ButtonHeron
               text="Atendido"
               type="transparent"
@@ -247,6 +270,13 @@ export const Schedule = () => {
                 color="red"
               />
             </>
+          )}
+
+          {/* Indica que o item é clicável — some quando o card está
+              bloqueado (sessão futura fora do dia, tipo que não registra
+              sessão, etc.), já que aí o onClick não faz nada mesmo. */}
+          {podeAcessar && (
+            <i className="pi pi-chevron-right text-gray-400 text-xs ml-1" />
           )}
         </div>
       </Card>

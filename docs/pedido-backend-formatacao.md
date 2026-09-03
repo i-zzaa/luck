@@ -161,6 +161,17 @@ Ambos os campos já têm fallback implementado (`src/util/evento.ts`) — se
 não vierem, o frontend cai na heurística atual, idêntica à de antes
 dessa mudança.
 
+**Achado em produção:** existem eventos vindo com `sessaoBloqueada: true`
+mesmo já **realizados** (`statusEventos` = atendido) — provavelmente
+calculado numa lógica antiga que só olhava "passou e nunca foi
+atendido", sem saber que uma sessão já realizada deveria poder ser
+reaberta em modo leitura sempre, sem exceção. O frontend já ajustou pra
+tratar "sessão realizada" como regra absoluta que ignora esse campo
+nesse caso específico (`Schedule.tsx: cardChoice`) — mas do lado do
+backend vale revisar como `sessaoBloqueada` é calculado pra sessões já
+atendidas, pra não ficar um campo que só o frontend sabe que às vezes
+não vale.
+
 **Fora do escopo desses dois campos, propositalmente:** a escolha de
 qual BOTÃO mostrar no card ("Pesquisar" / "Atendido" / "Não Atendido")
 continua sendo calculada no cliente por enquanto — é decisão só de
