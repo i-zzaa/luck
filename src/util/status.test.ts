@@ -13,6 +13,17 @@ describe('classificarStatus', () => {
     expect(classificarStatus({ nome: 'Atendido com sucesso' })).toBe('atendido');
   });
 
+  it('reconhece a concordância de gênero em português (atendida/atestada)', () => {
+    // "sessão" é feminino — "sessão atendida"/"guia atestada" são formas
+    // plausíveis vindas do backend, e não continham a palavra masculina
+    // completa ("atendido"/"atestado") — regressão real: o badge de
+    // status mostrava "Atendido" (cor certa), mas o clique no card
+    // continuava bloqueado porque essa função classificava como "outro".
+    expect(classificarStatus({ nome: 'Sessão atendida com sucesso' })).toBe('atendido');
+    expect(classificarStatus({ nome: 'ATENDIDO' })).toBe('atendido');
+    expect(classificarStatus({ nome: 'Guia atestada pelo médico' })).toBe('atestado');
+  });
+
   it('retorna "outro" pra status desconhecido', () => {
     expect(classificarStatus({ nome: 'Confirmado' })).toBe('outro');
     expect(classificarStatus(undefined)).toBe('outro');

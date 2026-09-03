@@ -23,8 +23,13 @@ export const classificarStatus = (statusEventos?: {
 
   const normalized = (statusEventos?.nome || '').toLowerCase();
   if (normalized.includes('falta')) return 'falta';
-  if (normalized.includes('atestado')) return 'atestado';
-  if (normalized.includes('atendido')) return 'atendido';
+  // raiz da palavra, não a palavra completa: "atestado"/"atendido" tem
+  // concordância de gênero em português ("sessão atendida", "guia
+  // atestada") — comparar só com a forma masculina deixava a feminina
+  // (bem provável vindo do backend, já que "sessão" é feminino) sem
+  // bater com nada, caindo em "outro" mesmo sendo uma sessão atendida.
+  if (normalized.includes('atestad')) return 'atestado';
+  if (normalized.includes('atendid')) return 'atendido';
   return 'outro';
 };
 
