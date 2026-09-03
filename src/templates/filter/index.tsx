@@ -55,7 +55,9 @@ export function Filter({
   });
 
   return (
-    <Accordion>
+    // activeIndex={0}: sem isso, o Accordion do PrimeReact começa
+    // fechado por padrão — o filtro deve vir aberto ao entrar na tela.
+    <Accordion activeIndex={0}>
       <AccordionTab header={legend} tabIndex={0}>
         <form
           id={id}
