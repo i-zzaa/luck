@@ -234,20 +234,23 @@ const desenharCabecalho = (doc: any, paciente: any) => {
   doc.setFont('Helvetica', 'bold');
   doc.setTextColor(...BLACK);
   doc.text('DADOS DE IDENTIFICAÇÃO', MARGIN_LEFT, y);
-  y += 1.5;
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.2);
-  doc.line(MARGIN_LEFT, y, rightX, y);
-  y += 5.5;
+  y += 5;
 
+  // Nome/Data de Nascimento dentro de uma caixinha (mesmo tratamento da
+  // nota de confidencialidade) — antes era só texto solto colado no
+  // título da primeira seção (Portage) logo abaixo, sem separação
+  // nenhuma. Assim fica claro onde a identificação do paciente termina
+  // e o corpo do relatório começa.
+  doc.setFillColor(...NOTE_BG);
+  doc.roundedRect(MARGIN_LEFT, y - 4.5, rightX - MARGIN_LEFT, 9, 1, 1, 'F');
   doc.setFont('Helvetica', 'normal');
-  doc.text(`Nome: ${paciente?.nome || ''}`, MARGIN_LEFT, y);
+  doc.text(`Nome: ${paciente?.nome || ''}`, MARGIN_LEFT + 3, y);
   if (paciente?.dataNascimento) {
-    doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, rightX, y, {
+    doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, rightX - 3, y, {
       align: 'right',
     });
   }
-  y += 8;
+  y += 14;
 
   // Reseta cor/fonte antes de devolver o controle pras seções seguintes
   // (Portage/VB-MAPP/Manual) — sem isso elas herdariam o roxo/cinza
