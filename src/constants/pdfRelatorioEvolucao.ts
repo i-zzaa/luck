@@ -882,7 +882,10 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
           headStyles: { fillColor: GRAY_HEADER, textColor: BLACK, fontStyle: 'bold' },
           margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
         });
-        y = doc.lastAutoTable.finalY + 3;
+        // 6 (não 3) — a última linha da tabela e o "Meta 1:" ficavam
+        // colados, sem respiro nenhum entre o fim de uma coisa e o
+        // começo da outra.
+        y = doc.lastAutoTable.finalY + 6;
       }
 
       grupo.forEach((meta, indexMeta) => {
