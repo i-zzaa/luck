@@ -36,7 +36,10 @@ const SLOTS_POR_LINHA = 10;
 // CSS nenhum — a borda cai pro `currentColor` herdado (preto), bem
 // mais escura do que a cor clara pretendida. gray-300 é o tom claro
 // que REALMENTE existe (mesma cor da borda do Card/RichTextEditor no
-// resto da tela).
+// resto da tela) — usado tanto no contorno da tabela quanto em cada
+// quadrado/slot, pra marcar o limite de cada item mesmo sem
+// preenchimento (0% ou slot vazio — os dois ficam brancos, só a
+// borda demarca o quadrado).
 const corCelula = (percentual: number, corNivel: string) => {
   if (percentual === 100) return { backgroundColor: corNivel };
   if (percentual === 50) {
@@ -112,10 +115,10 @@ export function TabelaVBMapp({ dados }: Props) {
                                 return (
                                   <div
                                     key={atividade ?? `vazio-${index}`}
-                                    className="flex-1 h-4 rounded-sm"
+                                    className="flex-1 h-4 rounded border border-gray-300"
                                     style={
                                       percentual === null
-                                        ? { backgroundColor: '#f3f4f6' } // gray-100 — sem borda, só o preenchimento já marca o slot vazio
+                                        ? { backgroundColor: '#ffffff' }
                                         : corCelula(percentual, corNivel)
                                     }
                                   />
