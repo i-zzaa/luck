@@ -976,6 +976,68 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
   return y;
 };
 
+// Conduta Sugerida vem do RichTextEditor (mesmo componente do Resumo
+// da Sessão — ver Session.tsx/renderSumary), então chega aqui como
+// HTML do Tiptap, não texto puro. jsPDF não renderiza HTML nessa
+// função (não dá pra só jogar a tag pro doc.text), então converte pra
+// texto simples preservando parágrafo (</p> vira quebra dupla) e item
+// de lista (<li> vira "• ") — suficiente pro texto livre que esse
+// campo recebe, sem precisar de negrito/itálico no PDF.
+const htmlParaTextoPdf = (html: string): string => {
+  if (!html) return '';
+  const texto = html
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+  return texto.replace(/\n{3,}/g, '\n\n').trim();
+};
+
+// Última seção do relatório, por pedido explícito — vem depois de
+// Portage/VB-MAPP/Manual, nessa ordem fixa.
+const desenharCondutaSugerida = (
+  doc: any,
+  conteudoHtml: string,
+  startY: number
+) => {
+  const texto = htmlParaTextoPdf(conteudoHtml);
+  if (!texto) return startY;
+
+  let y = startY;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
+
+  y = ensureSpace(doc, y, 20);
+  doc.setFontSize(12);
+  doc.setFont('Helvetica', 'bold');
+  doc.setTextColor(...BLACK);
+  doc.text('Conduta Sugerida', MARGIN_LEFT, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setFont('Helvetica', 'normal');
+
+  texto.split('\n').forEach((paragrafo) => {
+    if (!paragrafo.trim()) {
+      y += 3;
+      return;
+    }
+    const linhas = doc.splitTextToSize(paragrafo, contentWidth);
+    y = ensureSpace(doc, y, linhas.length * 4.5 + 2);
+    doc.text(linhas, MARGIN_LEFT, y);
+    y += linhas.length * 4.5 + 2;
+  });
+
+  return y;
+};
+
 const desenharRodape = (doc: any) => {
   const pageHeight = doc.internal.pageSize.height;
   const totalPaginas = doc.internal.getNumberOfPages();
@@ -991,6 +1053,7 @@ const desenharRodape = (doc: any) => {
 
 export const gerarRelatorioEvolucao = async (
   paciente: { id: number; nome: string },
+  condutaSugerida: string,
   renderToast: (args: any) => void
 ) => {
   // Precisa terminar de carregar ANTES de desenhar a primeira página —
@@ -1023,7 +1086,12 @@ export const gerarRelatorioEvolucao = async (
   // filter('pei', ...)` já extrai o corpo inteiro como a lista.
   const peiData = peiRes.status === 'fulfilled' ? peiRes.value?.data : null;
 
-  if (!portageData && !vbmappBody?.data && !peiData?.length) {
+  if (
+    !portageData &&
+    !vbmappBody?.data &&
+    !peiData?.length &&
+    !htmlParaTextoPdf(condutaSugerida)
+  ) {
     renderToast({
       type: 'failure',
       title: 'Sem dados',
@@ -1050,6 +1118,11 @@ export const gerarRelatorioEvolucao = async (
   if (peiData?.length) {
     y = iniciarNovaSecao(doc, y);
     y = desenharPei(doc, peiData, y);
+  }
+
+  if (htmlParaTextoPdf(condutaSugerida)) {
+    y = iniciarNovaSecao(doc, y);
+    y = desenharCondutaSugerida(doc, condutaSugerida, y);
   }
 
   desenharRodape(doc);

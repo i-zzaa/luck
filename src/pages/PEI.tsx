@@ -21,6 +21,7 @@ import {
 import { useForm } from 'react-hook-form';
 import clsx from 'clsx';
 import { gerarRelatorioEvolucao } from '../constants/pdfRelatorioEvolucao';
+import { RichTextEditor } from '../components/richTextEditor';
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -50,12 +51,21 @@ const PEI = () => {
   // depender do Protocolo também estar escolhido.
   const [pacienteSelecionado, setPacienteSelecionado] = useState<any>(null);
   const [gerandoRelatorio, setGerandoRelatorio] = useState(false);
+  // Texto livre da terapeuta, digitado na hora — não é um dado do
+  // backend (não tem campo pra isso no PEI ainda), só entra no PDF
+  // como a última seção do Relatório de Evolução (ver
+  // pdfRelatorioEvolucao.ts/desenharCondutaSugerida).
+  const [condutaSugerida, setCondutaSugerida] = useState('');
 
   const handleGerarRelatorioEvolucao = async () => {
     if (!pacienteSelecionado?.id) return;
     setGerandoRelatorio(true);
     try {
-      await gerarRelatorioEvolucao(pacienteSelecionado, renderToast);
+      await gerarRelatorioEvolucao(
+        pacienteSelecionado,
+        condutaSugerida,
+        renderToast
+      );
     } catch (error) {
       renderToast({
         type: 'failure',
@@ -361,6 +371,26 @@ const PEI = () => {
       </div>
     );
 
+  // Mesmo componente/estilo do campo "Resumo" da tela de Sessão (ver
+  // Session.tsx/renderSumary) — texto livre em rich text, sem mínimo de
+  // caractere aqui (não é obrigatório preencher pra gerar o relatório,
+  // diferente do resumo da sessão).
+  const renderCondutaSugerida = () =>
+    pacienteSelecionado?.id && (
+      <div className="mx-2 my-2">
+        <div className="text-gray-800 font-inter font-bold leading-4 mb-2">
+          Conduta Sugerida
+        </div>
+        <Card className="rounded-lg w-full border border-gray-300">
+          <RichTextEditor
+            value={condutaSugerida}
+            placeholder="Descreva a conduta sugerida para o paciente."
+            onBlur={(newContent) => setCondutaSugerida(newContent)}
+          />
+        </Card>
+      </div>
+    );
+
   const renderPrograma = useCallback(async () => {
     const [paciente, protocolo]: any = await Promise.all([
       dropDown('paciente'),
@@ -385,6 +415,7 @@ const PEI = () => {
     <div>
       {renderFilter()}
       {renderBotaoRelatorio()}
+      {renderCondutaSugerida()}
       {renderContent()}
       <Confirm
         open={!!confirmDeleteItem}
