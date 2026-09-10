@@ -11,6 +11,11 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import clsx from 'clsx';
 import { Accordion, AccordionTab } from 'primereact/accordion';
+import {
+  STATUS_META,
+  STATUS_META_COLOR_CLASS,
+  STATUS_META_LABEL,
+} from '../constants/protocolo';
 
 // --------- Tipos do shape real ---------
 // Conferido contra o payload de verdade de GET sessao/atividade/:pacienteId:
@@ -67,6 +72,38 @@ const mediaGrupo = (children: ChildRow[]) => {
 const dataColuna = (children: ChildRow[], index: number) =>
   children.find((c) => c.dias?.[index]?.data)?.dias?.[index]?.data ||
   `Dia ${index + 1}`;
+
+// Meta "atingida" quando as MAX_DIAS sessões mais recentes exibidas
+// (mesma janela que a tabela mostra) tiveram 100% de acerto E a
+// resposta já veio certa de primeira ("S"/primeiraResposta) nas 3 —
+// precisa das 3 completas e consecutivas, não só a média alta. Sem
+// isso, cai em "Em aquisição". Mesmo rótulo/cor que a tela de PEI usa
+// pro status de uma meta (constants/protocolo.ts), pra ler igual nas
+// duas telas.
+const metaAtingida = (dias: Dia[]) => {
+  const janela = (dias || []).slice(0, MAX_DIAS);
+  if (janela.length < MAX_DIAS) return false;
+  return janela.every(
+    (dia) => dia.primeiraResposta && parseFloat(dia.porcentagem) === 100
+  );
+};
+
+const renderStatusMeta = (dias: Dia[]) => {
+  const atingida = metaAtingida(dias);
+  const status = atingida ? STATUS_META.atingida : STATUS_META.aquisicao;
+
+  return (
+    <span
+      className={clsx(
+        'flex items-center gap-1 text-[10px] font-inter font-semibold',
+        STATUS_META_COLOR_CLASS[status]
+      )}
+    >
+      <i className={clsx('pi', atingida ? 'pi-check-circle' : 'pi-exclamation-triangle')} />
+      {STATUS_META_LABEL[status]}
+    </span>
+  );
+};
 
 export default function PrimeiraResposta() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -146,16 +183,22 @@ export default function PrimeiraResposta() {
                 stripedRows
                 className="text-sm"
               >
-                {/* field="programa" — bate com ChildRow.programa (o único
-                    campo de identificação que o tipo declara, e que a API
-                    sessao/atividade/:pacienteId realmente manda). Rotulado
-                    "Tarefa" (não "Programa") pra não repetir o nome do
-                    cabeçalho do Accordion, que já representa o programa. */}
+                {/* Nome da tarefa (ChildRow.programa — único campo de
+                    identificação que o tipo declara, e que a API
+                    sessao/atividade/:pacienteId realmente manda; rotulado
+                    "Tarefa" pra não repetir o nome do cabeçalho do
+                    Accordion, que já representa o programa) + status
+                    calculado a partir dos próprios dias exibidos. */}
                 <Column
-                  field="programa"
                   header="Tarefa"
                   style={{ width: '35%' }}
                   className="font-inter"
+                  body={(row: ChildRow) => (
+                    <div className="flex flex-col gap-1">
+                      <span>{row.programa}</span>
+                      {renderStatusMeta(row.dias)}
+                    </div>
+                  )}
                 />
                 {Array.from({
                   length: Math.min(sec.qtdColumns, MAX_DIAS),
