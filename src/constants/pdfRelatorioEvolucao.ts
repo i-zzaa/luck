@@ -626,6 +626,7 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const rightX = pageWidth - MARGIN_RIGHT;
+  const contentWidth = rightX - MARGIN_LEFT;
   const cellWidth = 6;
   const headerCellHeight = 3;
   const activityCellHeight = 2.5;
@@ -648,137 +649,154 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
     .filter((nivel) => Object.keys(dados[nivel] || {}).length);
 
   // Largura do bloco inteiro de um nível — todas as suas datas lado a
-  // lado. Precisa saber isso ANTES de desenhar pra decidir se cabe na
-  // linha atual ou se precisa quebrar pra próxima.
+  // lado. Precisa saber isso ANTES de desenhar: tanto pra decidir se
+  // cabe na linha atual quanto pra centralizar a linha inteira depois.
   const larguraNivel = (nivel: number) =>
     Object.keys(dados[nivel]).reduce((width, data) => {
       const programas = Object.keys(dados[nivel][data]).length;
       return width + programas * cellWidth + 5;
     }, -5);
 
-  // Níveis lado a lado enquanto couber na largura da página — só quebra
-  // pra linha de baixo quando o próximo nível não cabe mais na linha
-  // atual, nunca no meio de uma grade (cada nível é uma unidade única:
-  // ou entra inteiro na linha, ou vai inteiro pra próxima/nova página).
-  let currentX = MARGIN_LEFT;
-  let rowY = y;
-  let rowMaxHeight = 0;
-
+  // 1ª passada: agrupa os níveis em linhas só pela largura (nunca quebra
+  // um nível no meio — cada um é uma unidade única, ou entra inteiro
+  // numa linha ou vai pra próxima). Sem desenhar nada ainda, porque a
+  // centralização de cada linha (pedida explicitamente — as linhas
+  // ficavam coladas na margem esquerda, com folga sobrando à direita)
+  // só dá pra calcular depois de saber TODOS os níveis que cabem nela.
+  const linhas: { nivel: number; largura: number }[][] = [[]];
+  let larguraLinhaAtual = 0;
   niveisOrdenados.forEach((nivel) => {
     const largura = larguraNivel(nivel);
+    const proximaLargura =
+      larguraLinhaAtual === 0
+        ? largura
+        : larguraLinhaAtual + espacamentoEntreNiveis + largura;
 
-    if (currentX > MARGIN_LEFT && currentX + largura > rightX) {
-      currentX = MARGIN_LEFT;
-      rowY += rowMaxHeight + espacamentoEntreNiveis;
-      rowMaxHeight = 0;
+    if (larguraLinhaAtual > 0 && proximaLargura > contentWidth) {
+      linhas.push([]);
+      larguraLinhaAtual = largura;
+    } else {
+      larguraLinhaAtual = proximaLargura;
     }
-
-    const novoRowY = ensureSpace(doc, rowY, alturaBloco);
-    if (novoRowY !== rowY) {
-      rowY = novoRowY;
-      currentX = MARGIN_LEFT;
-      rowMaxHeight = 0;
-    }
-
-    doc.setFontSize(9);
-    doc.setFont('Helvetica', 'bold');
-    doc.setTextColor(...BLACK);
-    doc.text(`Nível ${nivel}`, currentX + largura / 2, rowY, {
-      align: 'center',
-    });
-
-    let offsetX = currentX;
-    const datas = Object.keys(dados[nivel]);
-
-    datas.forEach((data) => {
-      const programas = Object.keys(dados[nivel][data]);
-
-      // Data da sessão — era o maior texto perto da grade (7pt contra
-      // as células de ~2-3mm), destoando do resto; menor aqui fica
-      // proporcional ao tamanho real da grade abaixo.
-      doc.setFontSize(5);
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(...BLACK);
-      doc.text(
-        data,
-        offsetX + (programas.length * cellWidth) / 2,
-        rowY + topoAteGrade - 2,
-        { align: 'center' }
-      );
-      const headerY = rowY + topoAteGrade;
-
-      programas.forEach((programa, colIndex) => {
-        const x = offsetX + colIndex * cellWidth;
-        doc.setFillColor(GRAY_HEADER[0], GRAY_HEADER[1], GRAY_HEADER[2]);
-        doc.rect(x, headerY, cellWidth, headerCellHeight, 'F');
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.2);
-        doc.rect(x, headerY, cellWidth, headerCellHeight);
-        doc.setFontSize(3);
-        doc.setTextColor(0);
-        // programa pode vir maior que a célula (6mm) — em vez de
-        // estourar/cortar sem aviso, encolhe o texto pra caber (mesma
-        // ideia do fitContent do jsPDF, feita na mão porque addImage/
-        // text não tem isso pra fonte).
-        const rotulo = String(programa || '').toUpperCase();
-        let larguraTexto = doc.getTextWidth(rotulo);
-        let tamanhoFonte = 3;
-        while (larguraTexto > cellWidth - 0.5 && tamanhoFonte > 1.5) {
-          tamanhoFonte -= 0.25;
-          doc.setFontSize(tamanhoFonte);
-          larguraTexto = doc.getTextWidth(rotulo);
-        }
-        doc.text(
-          rotulo,
-          x + cellWidth / 2,
-          headerY + headerCellHeight / 2 + 0.5,
-          { align: 'center' }
-        );
-      });
-
-      for (let i = 0; i < maxActividades; i++) {
-        programas.forEach((programa, colIndex) => {
-          const atividades = Object.keys(dados[nivel][data][programa]);
-          const atividade = atividades[i];
-          const percentual = atividade
-            ? dados[nivel][data][programa][atividade].percentual
-            : 0;
-          const x = offsetX + colIndex * cellWidth;
-          const cellY = headerY + headerCellHeight + i * activityCellHeight;
-          const cor = NIVEL_COR[nivel] || '#ffffff';
-
-          if (percentual === 100) {
-            doc.setFillColor(cor);
-            doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
-          } else if (percentual === 50) {
-            doc.setFillColor(cor);
-            doc.rect(
-              x,
-              cellY + activityCellHeight / 2,
-              cellWidth,
-              activityCellHeight / 2,
-              'F'
-            );
-            doc.setFillColor('#ffffff');
-            doc.rect(x, cellY, cellWidth, activityCellHeight / 2, 'F');
-          } else {
-            doc.setFillColor('#ffffff');
-            doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
-          }
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.2);
-          doc.rect(x, cellY, cellWidth, activityCellHeight);
-        });
-      }
-
-      offsetX += programas.length * cellWidth + 5;
-    });
-
-    rowMaxHeight = Math.max(rowMaxHeight, alturaBloco);
-    currentX += largura + espacamentoEntreNiveis;
+    linhas[linhas.length - 1].push({ nivel, largura });
   });
 
-  return rowY + rowMaxHeight + 4;
+  // 2ª passada: desenha cada linha já centralizada na largura útil da
+  // página.
+  linhas.forEach((linha) => {
+    if (!linha.length) return;
+
+    const larguraLinha =
+      linha.reduce((soma, item) => soma + item.largura, 0) +
+      espacamentoEntreNiveis * (linha.length - 1);
+
+    y = ensureSpace(doc, y, alturaBloco);
+
+    let currentX = MARGIN_LEFT + (contentWidth - larguraLinha) / 2;
+    const rowY = y;
+
+    linha.forEach(({ nivel, largura }) => {
+      doc.setFontSize(9);
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(...BLACK);
+      doc.text(`Nível ${nivel}`, currentX + largura / 2, rowY, {
+        align: 'center',
+      });
+
+      let offsetX = currentX;
+      const datas = Object.keys(dados[nivel]);
+
+      datas.forEach((data) => {
+        const programas = Object.keys(dados[nivel][data]);
+
+        // Data da sessão — era o maior texto perto da grade (7pt contra
+        // as células de ~2-3mm), destoando do resto; menor aqui fica
+        // proporcional ao tamanho real da grade abaixo.
+        doc.setFontSize(5);
+        doc.setFont('Helvetica', 'normal');
+        doc.setTextColor(...BLACK);
+        doc.text(
+          data,
+          offsetX + (programas.length * cellWidth) / 2,
+          rowY + topoAteGrade - 2,
+          { align: 'center' }
+        );
+        const headerY = rowY + topoAteGrade;
+
+        programas.forEach((programa, colIndex) => {
+          const x = offsetX + colIndex * cellWidth;
+          doc.setFillColor(GRAY_HEADER[0], GRAY_HEADER[1], GRAY_HEADER[2]);
+          doc.rect(x, headerY, cellWidth, headerCellHeight, 'F');
+          doc.setDrawColor(0);
+          doc.setLineWidth(0.2);
+          doc.rect(x, headerY, cellWidth, headerCellHeight);
+          doc.setFontSize(3);
+          doc.setTextColor(0);
+          // programa pode vir maior que a célula (6mm) — em vez de
+          // estourar/cortar sem aviso, encolhe o texto pra caber (mesma
+          // ideia do fitContent do jsPDF, feita na mão porque addImage/
+          // text não tem isso pra fonte).
+          const rotulo = String(programa || '').toUpperCase();
+          let larguraTexto = doc.getTextWidth(rotulo);
+          let tamanhoFonte = 3;
+          while (larguraTexto > cellWidth - 0.5 && tamanhoFonte > 1.5) {
+            tamanhoFonte -= 0.25;
+            doc.setFontSize(tamanhoFonte);
+            larguraTexto = doc.getTextWidth(rotulo);
+          }
+          doc.text(
+            rotulo,
+            x + cellWidth / 2,
+            headerY + headerCellHeight / 2 + 0.5,
+            { align: 'center' }
+          );
+        });
+
+        for (let i = 0; i < maxActividades; i++) {
+          programas.forEach((programa, colIndex) => {
+            const atividades = Object.keys(dados[nivel][data][programa]);
+            const atividade = atividades[i];
+            const percentual = atividade
+              ? dados[nivel][data][programa][atividade].percentual
+              : 0;
+            const x = offsetX + colIndex * cellWidth;
+            const cellY = headerY + headerCellHeight + i * activityCellHeight;
+            const cor = NIVEL_COR[nivel] || '#ffffff';
+
+            if (percentual === 100) {
+              doc.setFillColor(cor);
+              doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
+            } else if (percentual === 50) {
+              doc.setFillColor(cor);
+              doc.rect(
+                x,
+                cellY + activityCellHeight / 2,
+                cellWidth,
+                activityCellHeight / 2,
+                'F'
+              );
+              doc.setFillColor('#ffffff');
+              doc.rect(x, cellY, cellWidth, activityCellHeight / 2, 'F');
+            } else {
+              doc.setFillColor('#ffffff');
+              doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
+            }
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.2);
+            doc.rect(x, cellY, cellWidth, activityCellHeight);
+          });
+        }
+
+        offsetX += programas.length * cellWidth + 5;
+      });
+
+      currentX += largura + espacamentoEntreNiveis;
+    });
+
+    y = rowY + alturaBloco;
+  });
+
+  return y + 4;
 };
 
 // ------------------ Manual/PEI (programas + metas) ------------------
