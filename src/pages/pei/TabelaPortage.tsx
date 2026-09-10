@@ -8,9 +8,16 @@ import {
 // tela — antes, selecionar Portage no filtro do PEI só mostrava a
 // árvore de itens/checkboxes, sem nenhum jeito de comparar a evolução
 // entre sessões sem abrir o PDF.
+// tailwind.config.cjs REDEFINE a paleta de cores inteira (não usa
+// `extend`), com só um punhado de tons por cor — "500"/"600"/"700"/
+// "100" de qualquer cor NÃO existem aqui, então uma classe como
+// `text-green-500` não gera CSS nenhum: o navegador cai no
+// `currentColor` (preto/herdado) em vez de verde. green-400/yellow-400/
+// red-400/gray-400 são os únicos tons "claro" que existem de verdade
+// nesse config — por isso o "500" vira "400" abaixo.
 const CLASSE_POR_CLASSIFICACAO: Record<string, string> = {
-  alto: 'text-green-500',
-  medio: 'text-yellow-500',
+  alto: 'text-green-400',
+  medio: 'text-yellow-400',
   baixo: 'text-red-400',
   na: 'text-gray-400',
 };
@@ -47,7 +54,7 @@ export function TabelaPortage({ data }: Props) {
             </div>
 
             {compacta ? (
-              <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
+              <div className="rounded-lg border border-gray-200 divide-y divide-gray-200">
                 {avaliacao.linhas.map(([categoria, valor]) => (
                   <div
                     key={categoria}
@@ -72,7 +79,7 @@ export function TabelaPortage({ data }: Props) {
               <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="w-full text-sm font-inter">
                   <thead>
-                    <tr className="bg-gray-100">
+                    <tr className="bg-gray-200">
                       {avaliacao.colunas.map((coluna) => (
                         <th
                           key={coluna}
@@ -83,7 +90,7 @@ export function TabelaPortage({ data }: Props) {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-200">
                     {avaliacao.linhas.map((linha) => (
                       <tr key={linha[0]}>
                         {linha.map((valor, colIndex) => (

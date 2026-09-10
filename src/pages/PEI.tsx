@@ -270,9 +270,14 @@ const PEI = () => {
       // a tabela — caía direto no "não há itens".
       const tabela = renderTabelaProtocolo();
 
+      // border border-gray-200 explícito — sem isso, o <fieldset> do
+      // Card cai no border padrão do navegador (2px groove, um
+      // baixo-relevo bem mais escuro/pesado que uma borda fina cinza-
+      // claro comum). O Card de "Relatório de Evolução" logo acima já
+      // tem esse mesmo className por isso; esses dois não tinham.
       if (!list.length) {
         return (
-          <Card>
+          <Card className="border border-gray-200">
             {tabela}
             <NotFound />
           </Card>
@@ -280,7 +285,7 @@ const PEI = () => {
       }
 
       return (
-        <Card>
+        <Card className="border border-gray-200">
           {tabela}
           <Accordion>
             {list.map((item: any, key: number) => {
