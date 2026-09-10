@@ -5,7 +5,6 @@ import logoLg from '../assets/logo-lg.jpg';
 import { filter } from '../server';
 import {
   STATUS_META_COLOR_RGB,
-  STATUS_META_LABEL,
   TIPO_PROTOCOLO,
   VALOR_PORTAGE,
 } from './protocolo';
@@ -491,39 +490,70 @@ const NIVEL_COR: Record<number, string> = {
 const desenharVBMapp = (doc: any, dados: any, startY: number) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
+  const rightX = pageWidth - MARGIN_RIGHT;
   const cellWidth = 6;
   const headerCellHeight = 3;
   const activityCellHeight = 2.5;
   const maxActividades = 10;
+  // Título "Nível X" + data da sessão, antes da grade em si começar.
+  const topoAteGrade = 7;
+  const alturaGrade = headerCellHeight + maxActividades * activityCellHeight;
+  const alturaBloco = topoAteGrade + alturaGrade + 4;
+  const espacamentoEntreNiveis = 8;
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
+  doc.setTextColor(...BLACK);
   doc.text('Marcos do Desenvolvimento Infantil', MARGIN_LEFT, y);
-  y += 8;
+  y += 10;
 
   const niveisOrdenados = Object.keys(dados || {})
     .map(Number)
-    .sort((a, b) => b - a);
+    .sort((a, b) => b - a)
+    .filter((nivel) => Object.keys(dados[nivel] || {}).length);
 
-  niveisOrdenados.forEach((nivel) => {
-    const datas = Object.keys(dados[nivel]);
-    if (!datas.length) return;
-
-    y = ensureSpace(doc, y, 15);
-    doc.setFontSize(10);
-    doc.setFont('Helvetica', 'bold');
-    doc.text(`Nível ${nivel}`, pageWidth / 2, y, { align: 'center' });
-    y += 5;
-
-    const totalWidth = datas.reduce((width, data) => {
+  // Largura do bloco inteiro de um nível — todas as suas datas lado a
+  // lado. Precisa saber isso ANTES de desenhar pra decidir se cabe na
+  // linha atual ou se precisa quebrar pra próxima.
+  const larguraNivel = (nivel: number) =>
+    Object.keys(dados[nivel]).reduce((width, data) => {
       const programas = Object.keys(dados[nivel][data]).length;
       return width + programas * cellWidth + 5;
     }, -5);
-    let offsetX = (pageWidth - totalWidth) / 2;
 
-    const alturaGrade =
-      headerCellHeight + maxActividades * activityCellHeight + 6;
-    y = ensureSpace(doc, y, alturaGrade);
+  // Níveis lado a lado enquanto couber na largura da página — só quebra
+  // pra linha de baixo quando o próximo nível não cabe mais na linha
+  // atual, nunca no meio de uma grade (cada nível é uma unidade única:
+  // ou entra inteiro na linha, ou vai inteiro pra próxima/nova página).
+  let currentX = MARGIN_LEFT;
+  let rowY = y;
+  let rowMaxHeight = 0;
+
+  niveisOrdenados.forEach((nivel) => {
+    const largura = larguraNivel(nivel);
+
+    if (currentX > MARGIN_LEFT && currentX + largura > rightX) {
+      currentX = MARGIN_LEFT;
+      rowY += rowMaxHeight + espacamentoEntreNiveis;
+      rowMaxHeight = 0;
+    }
+
+    const novoRowY = ensureSpace(doc, rowY, alturaBloco);
+    if (novoRowY !== rowY) {
+      rowY = novoRowY;
+      currentX = MARGIN_LEFT;
+      rowMaxHeight = 0;
+    }
+
+    doc.setFontSize(9);
+    doc.setFont('Helvetica', 'bold');
+    doc.setTextColor(...BLACK);
+    doc.text(`Nível ${nivel}`, currentX + largura / 2, rowY, {
+      align: 'center',
+    });
+
+    let offsetX = currentX;
+    const datas = Object.keys(dados[nivel]);
 
     datas.forEach((data) => {
       const programas = Object.keys(dados[nivel][data]);
@@ -534,10 +564,13 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
       doc.setFontSize(5);
       doc.setFont('Helvetica', 'normal');
       doc.setTextColor(...BLACK);
-      doc.text(data, offsetX + (programas.length * cellWidth) / 2, y, {
-        align: 'center',
-      });
-      const headerY = y + 2;
+      doc.text(
+        data,
+        offsetX + (programas.length * cellWidth) / 2,
+        rowY + topoAteGrade - 2,
+        { align: 'center' }
+      );
+      const headerY = rowY + topoAteGrade;
 
       programas.forEach((programa, colIndex) => {
         const x = offsetX + colIndex * cellWidth;
@@ -606,10 +639,11 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
       offsetX += programas.length * cellWidth + 5;
     });
 
-    y += alturaGrade;
+    rowMaxHeight = Math.max(rowMaxHeight, alturaBloco);
+    currentX += largura + espacamentoEntreNiveis;
   });
 
-  return y + 4;
+  return rowY + rowMaxHeight + 4;
 };
 
 // ------------------ Manual/PEI (programas + metas) ------------------
@@ -630,10 +664,28 @@ const agruparMetasPorProcedimento = (metas: any[]) => {
   return grupos;
 };
 
+// Rótulo curto pro selo da meta — o texto completo de
+// STATUS_META_LABEL ("Meta atingida, manter em manutenção") é bom pra
+// tela, mas não cabe numa pílula ao lado da descrição sem estourar a
+// linha. Fundo bem claro da mesma cor do texto — não dá pra usar
+// opacidade em jsPDF, então a cor de fundo é fixa, não um "verde com
+// 10% de alpha" de verdade.
+const STATUS_META_LABEL_PILULA: Record<string, string> = {
+  atingida: 'Atingida',
+  aquisicao: 'Em aquisição',
+  manutencao: 'Atingida (manutenção)',
+};
+const STATUS_META_BG_RGB: Record<string, [number, number, number]> = {
+  atingida: [220, 252, 231],
+  manutencao: [220, 252, 231],
+  aquisicao: [254, 226, 226],
+};
+
 const desenharPei = (doc: any, sections: any[], startY: number) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
+  const rightX = pageWidth - MARGIN_RIGHT;
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
@@ -683,24 +735,62 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
 
       grupo.forEach((meta, indexMeta) => {
         y = ensureSpace(doc, y, 10);
+
+        // Pílula do status ao lado da descrição, na mesma linha — não
+        // embaixo. Mede a largura dela ANTES de quebrar o texto da
+        // meta, reservando esse espaço só na primeira linha (onde a
+        // pílula de fato fica); as linhas seguintes (se a descrição
+        // for longa o bastante pra quebrar) usam a largura cheia.
+        const status = meta.status;
+        const pilulaTexto = status ? STATUS_META_LABEL_PILULA[status] : null;
+        let pilulaLargura = 0;
+        if (pilulaTexto) {
+          doc.setFontSize(7.5);
+          doc.setFont('Helvetica', 'bold');
+          pilulaLargura = doc.getTextWidth(pilulaTexto) + 6;
+        }
+
         doc.setFontSize(9);
         doc.setFont('Helvetica', 'normal');
-
-        const statusCor = meta.status ? STATUS_META_COLOR_RGB[meta.status] : null;
-        const textoMeta = `Meta ${indexMeta + 1}: ${meta.value || ''}`;
-        const linhasMeta = doc.splitTextToSize(textoMeta, contentWidth);
         doc.setTextColor(...BLACK);
-        doc.text(linhasMeta, MARGIN_LEFT, y);
-        y += linhasMeta.length * 4;
 
-        if (statusCor) {
+        const textoMeta = `Meta ${indexMeta + 1}: ${meta.value || ''}`;
+        const primeiraLinhaLargura = pilulaTexto
+          ? contentWidth - pilulaLargura - 3
+          : contentWidth;
+        const primeiraLinha = doc.splitTextToSize(textoMeta, primeiraLinhaLargura)[0];
+        const resto = textoMeta.slice(primeiraLinha.length).trim();
+        const linhasResto = resto ? doc.splitTextToSize(resto, contentWidth) : [];
+        const linhasMeta = [primeiraLinha, ...linhasResto];
+
+        doc.text(linhasMeta, MARGIN_LEFT, y);
+
+        if (pilulaTexto) {
+          const pilulaAltura = 4.2;
+          const pilulaX = rightX - pilulaLargura;
+          const pilulaY = y - pilulaAltura + 1.2;
+          doc.setFillColor(...STATUS_META_BG_RGB[status]);
+          doc.roundedRect(
+            pilulaX,
+            pilulaY,
+            pilulaLargura,
+            pilulaAltura,
+            pilulaAltura / 2,
+            pilulaAltura / 2,
+            'F'
+          );
+          doc.setFontSize(7.5);
           doc.setFont('Helvetica', 'bold');
-          doc.setTextColor(...statusCor);
-          doc.text(STATUS_META_LABEL[meta.status], MARGIN_LEFT + 4, y);
+          doc.setTextColor(...STATUS_META_COLOR_RGB[status]);
+          doc.text(pilulaTexto, pilulaX + pilulaLargura / 2, y - 1, {
+            align: 'center',
+          });
           doc.setTextColor(...BLACK);
           doc.setFont('Helvetica', 'normal');
-          y += 4;
+          doc.setFontSize(9);
         }
+
+        y += linhasMeta.length * 4;
 
         if (meta.observacao) {
           doc.setFont('Helvetica', 'italic');
