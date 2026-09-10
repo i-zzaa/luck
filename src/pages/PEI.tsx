@@ -13,8 +13,9 @@ import { Fieldset } from 'primereact/fieldset';
 import { ButtonHeron } from '../components/button';
 import { Confirm } from '../components/confirm';
 import {
-  STATUS_META_COLOR_CLASS,
-  STATUS_META_LABEL,
+  STATUS_META,
+  STATUS_META_LABEL_CURTO,
+  STATUS_META_PILL_CLASS,
   TIPO_PROTOCOLO,
   VALOR_PORTAGE,
 } from '../constants/protocolo';
@@ -22,6 +23,8 @@ import { useForm } from 'react-hook-form';
 import clsx from 'clsx';
 import { gerarRelatorioEvolucao } from '../constants/pdfRelatorioEvolucao';
 import { RichTextEditor } from '../components/richTextEditor';
+import { TabelaPortage } from './pei/TabelaPortage';
+import { TabelaVBMapp } from './pei/TabelaVBMapp';
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -56,6 +59,13 @@ const PEI = () => {
   // como a última seção do Relatório de Evolução (ver
   // pdfRelatorioEvolucao.ts/desenharCondutaSugerida).
   const [condutaSugerida, setCondutaSugerida] = useState('');
+  // Payload cru de GET protocolo/filtro (type: 'pdf') — mesma chamada
+  // que o Relatório de Evolução já usa (pdfRelatorioEvolucao.ts). Só
+  // preenchido quando o Protocolo selecionado é Portage ou VB-MAPP: é o
+  // que alimenta a tabela comparativa (TabelaPortage/TabelaVBMapp) logo
+  // acima da árvore de itens — antes a tela só mostrava a árvore, sem
+  // nenhum jeito de comparar evolução por sessão sem abrir o PDF.
+  const [tabelaProtocolo, setTabelaProtocolo] = useState<any>(null);
 
   const handleGerarRelatorioEvolucao = async () => {
     if (!pacienteSelecionado?.id) return;
@@ -154,40 +164,54 @@ const PEI = () => {
     );
   };
 
-  // status/observação: campos novos, ainda pendentes de confirmação do
-  // backend (ver docs/pedido-backend-formatacao.md) — meta.status só
-  // aparece aqui quando o backend já estiver mandando de volta o que foi
-  // salvo em onSubmit (usePeiForm.ts). Sem isso, o app simplesmente não
-  // mostra rótulo nenhum, igual a maioria das metas no relatório de
-  // referência que ainda não tem status marcado.
-  const renderMetaItem = (meta: any, indexMeta: number) => (
-    <div key={meta?.id ?? indexMeta}>
-      <span className="flex align-items-center gap-2 w-full font-inter">
-        Meta {indexMeta + 1}: {meta.value}
-        {meta.status && (
-          <span
-            className={clsx(
-              'font-semibold',
-              STATUS_META_COLOR_CLASS[meta.status]
-            )}
-          >
-            {STATUS_META_LABEL[meta.status]}
+  // Só o protocolo Manual carrega um `status` próprio (campo novo,
+  // ainda pendente de confirmação do backend — ver
+  // docs/pedido-backend-formatacao.md). Portage e VB-MAPP não têm isso,
+  // mas cada item guarda a resposta salva em `selected` ('1'/'0,5'/'0'
+  // — mesma escala de VALOR_PORTAGE/respostaSessao); deriva a mesma tag
+  // "Atingida"/"Em aquisição" a partir disso, pra ficar consistente com
+  // o Relatório de Evolução em PDF (que já mostra a pílula pro Manual
+  // hoje — ver pdfRelatorioEvolucao.ts/desenharPei).
+  const derivarStatusResposta = (selected?: string) => {
+    if (selected === VALOR_PORTAGE.sim) return STATUS_META.atingida;
+    if (selected === VALOR_PORTAGE.asVezes) return STATUS_META.aquisicao;
+    return undefined;
+  };
+
+  const renderMetaItem = (meta: any, indexMeta: number) => {
+    const status = meta.status || derivarStatusResposta(meta.selected);
+
+    return (
+      <div key={meta?.id ?? indexMeta}>
+        <span className="flex flex-wrap items-center gap-2 w-full font-inter">
+          <span>
+            Meta {indexMeta + 1}: {meta.value}
           </span>
+          {status && (
+            <span
+              className={clsx(
+                'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                STATUS_META_PILL_CLASS[status]
+              )}
+            >
+              {STATUS_META_LABEL_CURTO[status]}
+            </span>
+          )}
+        </span>
+        {meta.observacao && (
+          <p className="text-xs text-gray-400 italic mt-0.5">
+            {meta.observacao}
+          </p>
         )}
-      </span>
-      {meta.observacao && (
-        <p className="text-xs text-gray-400 italic mt-0.5">
-          {meta.observacao}
-        </p>
-      )}
-      <ul className="list-disc ml-8 font-inter">
-        {meta.subitems &&
-          meta.subitems.map((subitem: any, index: number) => (
-            <li key={subitem?.id ?? index}> {subitem.value} </li>
-          ))}
-      </ul>
-    </div>
-  );
+        <ul className="list-disc ml-8 font-inter">
+          {meta.subitems &&
+            meta.subitems.map((subitem: any, index: number) => (
+              <li key={subitem?.id ?? index}> {subitem.value} </li>
+            ))}
+        </ul>
+      </div>
+    );
+  };
 
   // Manual (pei): procedimento/estímulos vivem no nível do PROGRAMA
   // (item), não por meta — o backend mescla vários registros Pei num
@@ -221,10 +245,43 @@ const PEI = () => {
     </div>
   );
 
+  // Tabela comparativa por sessão, igual à do Relatório de Evolução em
+  // PDF (ver constants/pdfRelatorioEvolucao.ts/desenharPortage e
+  // desenharVBMapp) — fica ACIMA da árvore de itens de sempre, não no
+  // lugar dela.
+  const renderTabelaProtocolo = () => {
+    if (!tabelaProtocolo) return null;
+    if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
+      return <TabelaPortage data={tabelaProtocolo} />;
+    }
+    if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
+      return <TabelaVBMapp dados={tabelaProtocolo.data} />;
+    }
+    return null;
+  };
+
   const renderContent = () => {
     if (!loading) {
-      return list.length ? (
+      // A tabela não depende de `list` ter itens — /pei/filtro só traz
+      // itens ainda NÃO respondidos com sucesso (exclui selected='1'),
+      // então um protocolo inteiramente concluído pode ter `list` vazia
+      // e a tabela (que mostra o resultado completo) com dado normal.
+      // Sem separar os dois, um protocolo 100% concluído nunca mostrava
+      // a tabela — caía direto no "não há itens".
+      const tabela = renderTabelaProtocolo();
+
+      if (!list.length) {
+        return (
+          <Card>
+            {tabela}
+            <NotFound />
+          </Card>
+        );
+      }
+
+      return (
         <Card>
+          {tabela}
           <Accordion>
             {list.map((item: any, key: number) => {
               const isManual = tipoProtocolo === TIPO_PROTOCOLO.pei;
@@ -282,11 +339,6 @@ const PEI = () => {
             })}
           </Accordion>
         </Card>
-      ) : (
-        <Card>
-          {' '}
-          <NotFound />{' '}
-        </Card>
       );
     } else {
       return <LoadingHeron />;
@@ -318,6 +370,31 @@ const PEI = () => {
         open: true,
       });
     }
+
+    // Tabela comparativa (mesma estrutura do PDF) só existe pra Portage
+    // e VB-MAPP — Manual não tem essa comparação por sessão, só a
+    // listagem de metas. Busca à parte (endpoint diferente do 'pei'
+    // acima, mesmo usado pelo Relatório de Evolução) e some quando o
+    // protocolo selecionado não é nenhum dos dois, senão uma tabela de
+    // uma busca anterior ficaria presa na tela.
+    if (
+      protocoloId.id === TIPO_PROTOCOLO.portage ||
+      protocoloId.id === TIPO_PROTOCOLO.vbMapp
+    ) {
+      try {
+        const { data: dadosTabela }: any = await filter('protocolo', {
+          pacienteId: pacienteId?.id,
+          protocoloId: protocoloId.id,
+          type: 'pdf',
+        });
+        setTabelaProtocolo(dadosTabela || null);
+      } catch (error) {
+        setTabelaProtocolo(null);
+      }
+    } else {
+      setTabelaProtocolo(null);
+    }
+
     setLoading(false);
   };
 
@@ -375,9 +452,7 @@ const PEI = () => {
 
         <div className="text-gray-800 font-inter text-sm font-semibold mb-1">
           Conduta Sugerida{' '}
-          <span className="text-gray-400 font-normal text-xs">
-            (opcional)
-          </span>
+          <span className="text-gray-400 font-normal text-xs">(opcional)</span>
         </div>
         <div className="rounded-lg w-full border border-gray-300 mb-3">
           <RichTextEditor
@@ -425,7 +500,11 @@ const PEI = () => {
   }, []);
 
   return (
-    <div>
+    // Reserva espaço pra tab bar flutuante do rodapé (BottomTabBar —
+    // fixed, não empurra o conteúdo sozinha) não cobrir o fim da lista/
+    // tabela. Mesmo cálculo de components/Nav/bottomTabBarLayout.ts
+    // (ABOVE_TAB_BAR: 5,25rem até o topo da pill) + uma folga extra.
+    <div className="pb-[calc(5.25rem+1rem+env(safe-area-inset-bottom))]">
       {renderFilter()}
       {renderRelatorioEvolucao()}
       {renderContent()}

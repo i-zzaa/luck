@@ -5,9 +5,14 @@ import logoLg from '../assets/logo-lg.jpg';
 import { filter } from '../server';
 import {
   STATUS_META_COLOR_RGB,
+  STATUS_META_LABEL_CURTO,
   TIPO_PROTOCOLO,
   VALOR_PORTAGE,
 } from './protocolo';
+import {
+  classificarPercentual,
+  transformarPortagePorAvaliacao,
+} from '../util/portageEvolucao';
 
 // Relatório de Evolução — unifica num PDF só o que hoje são 3 exports
 // separados (Portage, VB-MAPP e a listagem do Manual em pages/PEI.tsx),
@@ -38,13 +43,15 @@ const RED: [number, number, number] = [239, 68, 68];
 // corPorcentagem em PrimeiraResposta.tsx) — verde/amarelo/vermelho
 // conforme o valor, cinza quando não é um percentual de verdade
 // ("Não se aplica").
-const corPercentualRGB = (valor: string): [number, number, number] => {
-  const numero = parseFloat(valor);
-  if (Number.isNaN(numero)) return GRAY_TEXT;
-  if (numero >= 80) return GREEN;
-  if (numero >= 50) return YELLOW;
-  return RED;
+const COR_POR_CLASSIFICACAO: Record<string, [number, number, number]> = {
+  na: GRAY_TEXT,
+  alto: GREEN,
+  medio: YELLOW,
+  baixo: RED,
 };
+
+const corPercentualRGB = (valor: string): [number, number, number] =>
+  COR_POR_CLASSIFICACAO[classificarPercentual(valor)];
 
 const MARGIN_LEFT = 15;
 const MARGIN_RIGHT = 15;
@@ -74,14 +81,18 @@ const carregarLogoBase64 = async (): Promise<string | null> => {
     });
     return logoDataUriCache;
   } catch (error) {
-    console.error('Não foi possível carregar o logo do Relatório de Evolução', error);
+    console.error(
+      'Não foi possível carregar o logo do Relatório de Evolução',
+      error
+    );
     return null; // sem logo é melhor que travar o relatório inteiro
   }
 };
 
 // Bloco de identificação profissional — mesmo texto que assina o
 // relatório de referência que a clínica já usa fora do app.
-const RESPONSAVEL_CONTATO = 'Cel: (11) 97271-6993 – Email: alcance.nt@yahoo.com';
+const RESPONSAVEL_CONTATO =
+  'Cel: (11) 97271-6993 – Email: alcance.nt@yahoo.com';
 
 // Y da linha divisória sob o timbre — mesma referência usada tanto pra
 // desenhar o timbre quanto pra saber onde o conteúdo de cada página
@@ -208,7 +219,15 @@ const desenharCabecalho = (doc: any, paciente: any) => {
   const notaY = tituloY + 5;
   const notaAltura = notaTexto.length * 3.4 + 4;
   doc.setFillColor(...NOTE_BG);
-  doc.roundedRect(MARGIN_LEFT, notaY, rightX - MARGIN_LEFT, notaAltura, 1, 1, 'F');
+  doc.roundedRect(
+    MARGIN_LEFT,
+    notaY,
+    rightX - MARGIN_LEFT,
+    notaAltura,
+    1,
+    1,
+    'F'
+  );
   doc.setFontSize(7.5);
   doc.setFont('Helvetica', 'italic');
   doc.setTextColor(...GRAY_TEXT);
@@ -268,79 +287,11 @@ const desenharCabecalho = (doc: any, paciente: any) => {
 // O backend pode devolver até 4 (reavaliações no meio do caminho); com
 // todas na página, o relatório fica poluído sem agregar muito — o que
 // importa pra evolução geral é o ponto de partida e o estado atual.
-const extrairDataDoRotulo = (rotulo: string) => rotulo.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || '';
-
-const transformarPortagePorAvaliacao = (data: any) => {
-  const headers: string[] = data?.headers || [];
-  const linhasPorCategoria: Record<string, any[]> = {
-    Socialização: data?.Socializacao || [],
-    Cognição: data?.Cognicao || [],
-  };
-
-  // headers[0] é o canto vazio da tabela original; headers[1] é sempre
-  // a avaliação mais recente e headers[headers.length - 1] a mais
-  // antiga (o backend busca orderBy id desc). Só pega essas duas
-  // pontas — com só 1 avaliação cadastrada, os dois índices coincidem
-  // e o loop abaixo desenha uma vez só.
-  const totalAvaliacoes = headers.length - 1;
-  const indicesEscolhidos =
-    totalAvaliacoes <= 0
-      ? []
-      : Array.from(new Set([headers.length - 1, 1])).sort((a, b) => b - a);
-
-  const avaliacoes: { titulo: string; colunas: string[]; linhas: string[][] }[] = [];
-
-  indicesEscolhidos.forEach((indiceAvaliacao, posicao) => {
-    // Faixas etárias com dado de verdade nessa avaliação (em qualquer
-    // categoria), na mesma ordem em que o backend já as manda.
-    const faixasComDado = new Set<string>();
-    Object.values(linhasPorCategoria).forEach((linhas) => {
-      linhas.forEach((linha) => {
-        const percentual = linha[indiceAvaliacao];
-        if (percentual && percentual !== 'Não se aplica') {
-          faixasComDado.add(linha[0]);
-        }
-      });
-    });
-    if (!faixasComDado.size) return; // avaliação sem nada preenchido — não desenha tabela vazia
-
-    const faixasOrdenadas = (linhasPorCategoria.Socialização.length
-      ? linhasPorCategoria.Socialização
-      : linhasPorCategoria.Cognição
-    )
-      .map((linha) => linha[0])
-      .filter((faixaEtaria) => faixasComDado.has(faixaEtaria));
-
-    const linhas = Object.entries(linhasPorCategoria)
-      .filter(([, linhasCategoria]) => linhasCategoria.length)
-      .map(([categoria, linhasCategoria]) => [
-        categoria,
-        ...faixasOrdenadas.map((faixaEtaria) => {
-          const linha = linhasCategoria.find((l) => l[0] === faixaEtaria);
-          return linha ? linha[indiceAvaliacao] : '';
-        }),
-      ]);
-
-    const dataAvaliacao = extrairDataDoRotulo(headers[indiceAvaliacao]);
-    // Com as duas pontas escolhidas, nomeia como a referência
-    // ("Primeira Aplicação"/"Aplicação Atual"); com só uma (paciente
-    // com uma única avaliação cadastrada), mantém o rótulo original do
-    // backend — não faz sentido chamar de "primeira" e "atual" a mesma
-    // coisa.
-    const titulo =
-      indicesEscolhidos.length === 2
-        ? `${posicao === 0 ? 'Primeira Aplicação' : 'Aplicação Atual'}${dataAvaliacao ? `: ${dataAvaliacao}` : ''}`
-        : headers[indiceAvaliacao];
-
-    avaliacoes.push({
-      titulo,
-      colunas: ['Áreas', ...faixasOrdenadas],
-      linhas,
-    });
-  });
-
-  return avaliacoes;
-};
+// transformarPortagePorAvaliacao/extrairDataDoRotulo moram em
+// util/portageEvolucao.ts — a mesma transformação (quais avaliações
+// pegar, como nomear) também alimenta a tabela comparativa exibida
+// direto na tela do PEI (pages/pei/TabelaPortage.tsx), então não pode
+// viver só aqui, específica de PDF.
 
 // Uma avaliação só preenche UMA faixa etária na grande maioria dos
 // casos (é a faixa que faz sentido pra idade da criança naquele
@@ -451,7 +402,8 @@ const desenharGraficoComparativoPortage = (
   const larguraBarra = Math.min(10, (larguraGrupo - 8) / series.length);
 
   categorias.forEach((categoria, indiceCategoria) => {
-    const centroGrupo = eixoX + larguraGrupo * indiceCategoria + larguraGrupo / 2;
+    const centroGrupo =
+      eixoX + larguraGrupo * indiceCategoria + larguraGrupo / 2;
     const larguraTotalBarras =
       larguraBarra * series.length + 2 * (series.length - 1);
     let xBarra = centroGrupo - larguraTotalBarras / 2;
@@ -574,7 +526,11 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
       // que isso por padrão, sobrando bastante vazio à direita.
       tableWidth: contentWidth,
       styles: { fontSize: 9, halign: 'center', cellPadding: 2.5 },
-      headStyles: { fillColor: GRAY_HEADER, textColor: BLACK, fontStyle: 'bold' },
+      headStyles: {
+        fillColor: GRAY_HEADER,
+        textColor: BLACK,
+        fontStyle: 'bold',
+      },
       columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
       // Colore cada percentual (verde/amarelo/vermelho, mesma faixa da
@@ -603,7 +559,9 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
 };
 
 // ------------------ VB-MAPP (grade colorida por nível) ------------------
-const NIVEL_COR: Record<number, string> = {
+// Exportado — pages/pei/TabelaVBMapp.tsx usa a mesma cor por nível pra
+// tabela comparativa exibida direto na tela, igual ao PDF.
+export const NIVEL_COR: Record<number, string> = {
   1: '#e36b05',
   2: '#03ae4e',
   3: '#0071bd',
@@ -787,17 +745,11 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
 };
 
 // ------------------ Manual/PEI (programas + metas) ------------------
-// Rótulo curto pro selo da meta — o texto completo de
-// STATUS_META_LABEL ("Meta atingida, manter em manutenção") é bom pra
-// tela, mas não cabe numa pílula ao lado da descrição sem estourar a
-// linha. Fundo bem claro da mesma cor do texto — não dá pra usar
-// opacidade em jsPDF, então a cor de fundo é fixa, não um "verde com
-// 10% de alpha" de verdade.
-const STATUS_META_LABEL_PILULA: Record<string, string> = {
-  atingida: 'Atingida',
-  aquisicao: 'Em aquisição',
-  manutencao: 'Atingida (manutenção)',
-};
+// Rótulo curto (STATUS_META_LABEL_CURTO) mora em constants/protocolo.ts
+// — mesmo texto usado na pílula daqui e na pílula da tela do PEI
+// (pages/PEI.tsx), um lugar só pra não divergir. Fundo bem claro da
+// mesma cor do texto — não dá pra usar opacidade em jsPDF, então a cor
+// de fundo é fixa, não um "verde com 10% de alpha" de verdade.
 const STATUS_META_BG_RGB: Record<string, [number, number, number]> = {
   atingida: [220, 252, 231],
   manutencao: [220, 252, 231],
@@ -856,11 +808,17 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
       const sr = section?.estimuloReforcadorPositivo;
       if (sd || resposta || sr) {
         autoTable(doc, {
-          head: [['SD (estímulo discriminativo)', 'Resposta', 'SR+ (reforçador)']],
+          head: [
+            ['SD (estímulo discriminativo)', 'Resposta', 'SR+ (reforçador)'],
+          ],
           body: [[sd || '', resposta || '', sr || '']],
           startY: y,
           styles: { fontSize: 8, halign: 'center' },
-          headStyles: { fillColor: GRAY_HEADER, textColor: BLACK, fontStyle: 'bold' },
+          headStyles: {
+            fillColor: GRAY_HEADER,
+            textColor: BLACK,
+            fontStyle: 'bold',
+          },
           margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
         });
         // 6 (não 3) — a última linha da tabela e o "Meta 1:" ficavam
@@ -878,7 +836,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
         // pílula de fato fica); as linhas seguintes (se a descrição
         // for longa o bastante pra quebrar) usam a largura cheia.
         const status = meta.status;
-        const pilulaTexto = status ? STATUS_META_LABEL_PILULA[status] : null;
+        const pilulaTexto = status ? STATUS_META_LABEL_CURTO[status] : null;
         let pilulaLargura = 0;
         if (pilulaTexto) {
           doc.setFontSize(7.5);
@@ -894,9 +852,14 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
         const primeiraLinhaLargura = pilulaTexto
           ? contentWidth - pilulaLargura - 3
           : contentWidth;
-        const primeiraLinha = doc.splitTextToSize(textoMeta, primeiraLinhaLargura)[0];
+        const primeiraLinha = doc.splitTextToSize(
+          textoMeta,
+          primeiraLinhaLargura
+        )[0];
         const resto = textoMeta.slice(primeiraLinha.length).trim();
-        const linhasResto = resto ? doc.splitTextToSize(resto, contentWidth) : [];
+        const linhasResto = resto
+          ? doc.splitTextToSize(resto, contentWidth)
+          : [];
         const linhasMeta = [primeiraLinha, ...linhasResto];
 
         doc.text(linhasMeta, MARGIN_LEFT, y);
@@ -945,7 +908,10 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
           doc.setFont('Helvetica', 'italic');
           doc.setFontSize(8);
           doc.setTextColor(...GRAY_TEXT);
-          const linhasObs = doc.splitTextToSize(meta.observacao, contentWidth - 4);
+          const linhasObs = doc.splitTextToSize(
+            meta.observacao,
+            contentWidth - 4
+          );
           y = ensureSpace(doc, y, linhasObs.length * 3.5 + 2);
           doc.text(linhasObs, MARGIN_LEFT + 4, y);
           y += linhasObs.length * 3.5 + 1;
@@ -1046,7 +1012,11 @@ const desenharRodape = (doc: any) => {
     doc.setFontSize(8);
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(...BLACK);
-    doc.text('Av. Henrique Andrés, 700 – Centro – Jundiaí-SP', 10, pageHeight - 10);
+    doc.text(
+      'Av. Henrique Andrés, 700 – Centro – Jundiaí-SP',
+      10,
+      pageHeight - 10
+    );
     doc.text(String(i), doc.internal.pageSize.getWidth() - 15, pageHeight - 10);
   }
 };
@@ -1095,14 +1065,16 @@ export const gerarRelatorioEvolucao = async (
     renderToast({
       type: 'failure',
       title: 'Sem dados',
-      message: 'Não há Portage, VB-MAPP ou Manual cadastrados pra esse paciente.',
+      message:
+        'Não há Portage, VB-MAPP ou Manual cadastrados pra esse paciente.',
       open: true,
     });
     return;
   }
 
   const doc: any = new jsPDF();
-  const pacienteInfo = portageData?.paciente || vbmappBody?.paciente || paciente;
+  const pacienteInfo =
+    portageData?.paciente || vbmappBody?.paciente || paciente;
 
   // Nome do arquivo (metadado /Title do PDF, não o nome do blob em si —
   // um blob: URL não carrega nome de arquivo próprio). É esse título
