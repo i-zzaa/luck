@@ -362,7 +362,11 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
   doc.setTextColor(...BLACK);
-  doc.text('Desenvolvimento Infantil — Escala Portage', MARGIN_LEFT, y);
+  doc.text(
+    'Desenvolvimento Infantil: Escala de Desenvolvimento Infantil Portage',
+    MARGIN_LEFT,
+    y
+  );
   y += 7;
 
   transformarPortagePorAvaliacao(data).forEach((avaliacao) => {
@@ -433,7 +437,7 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
-  doc.text('Marcos do Desenvolvimento — VB-MAPP', MARGIN_LEFT, y);
+  doc.text('Marcos do Desenvolvimento Infantil', MARGIN_LEFT, y);
   y += 8;
 
   const niveisOrdenados = Object.keys(dados || {})
@@ -572,7 +576,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
-  doc.text('Programas ABA (Metas) — Protocolo Manual', MARGIN_LEFT, y);
+  doc.text('Programas ABA (metas) para serem trabalhadas', MARGIN_LEFT, y);
   y += 8;
 
   (sections || []).forEach((section) => {
