@@ -234,23 +234,25 @@ const desenharCabecalho = (doc: any, paciente: any) => {
   doc.setFont('Helvetica', 'bold');
   doc.setTextColor(...BLACK);
   doc.text('DADOS DE IDENTIFICAÇÃO', MARGIN_LEFT, y);
-  y += 5;
+  y += 6;
 
-  // Nome/Data de Nascimento dentro de uma caixinha (mesmo tratamento da
-  // nota de confidencialidade) — antes era só texto solto colado no
-  // título da primeira seção (Portage) logo abaixo, sem separação
-  // nenhuma. Assim fica claro onde a identificação do paciente termina
-  // e o corpo do relatório começa.
-  doc.setFillColor(...NOTE_BG);
-  doc.roundedRect(MARGIN_LEFT, y - 4.5, rightX - MARGIN_LEFT, 9, 1, 1, 'F');
   doc.setFont('Helvetica', 'normal');
-  doc.text(`Nome: ${paciente?.nome || ''}`, MARGIN_LEFT + 3, y);
+  doc.text(`Nome: ${paciente?.nome || ''}`, MARGIN_LEFT, y);
   if (paciente?.dataNascimento) {
-    doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, rightX - 3, y, {
+    doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, rightX, y, {
       align: 'right',
     });
   }
-  y += 14;
+  y += 4;
+
+  // Linha fina fechando o bloco — sem fundo (achava pesado e ficava
+  // desalinhado com o texto flush-left do resto da página). Só isso já
+  // separa "identificação do paciente" do corpo do relatório logo
+  // abaixo, com respiro suficiente antes do título da próxima seção.
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.2);
+  doc.line(MARGIN_LEFT, y, rightX, y);
+  y += 9;
 
   // Reseta cor/fonte antes de devolver o controle pras seções seguintes
   // (Portage/VB-MAPP/Manual) — sem isso elas herdariam o roxo/cinza
@@ -354,10 +356,52 @@ const transformarPortagePorAvaliacao = (data: any) => {
   return avaliacoes;
 };
 
+// Uma avaliação só preenche UMA faixa etária na grande maioria dos
+// casos (é a faixa que faz sentido pra idade da criança naquele
+// momento) — nesse caso a tabela degenera pra 2 linhas (Socialização/
+// Cognição) numa única coluna de dado, com um cabeçalho de tabela
+// ("Áreas" | "0 a 1") meio artificial pra só 2 números. Em vez disso,
+// desenha como uma lista compacta: categoria à esquerda, percentual
+// (colorido) à direita, com a faixa etária junto do título — lê mais
+// rápido e não fica com "cara de tabela vazia". Com MAIS de uma faixa
+// etária na mesma avaliação (caso raro, mas possível), volta pra
+// tabela — aí a comparação lado a lado entre faixas é que importa.
+const desenharAvaliacaoCompacta = (
+  doc: any,
+  avaliacao: { linhas: string[][] },
+  y: number,
+  rightX: number
+) => {
+  avaliacao.linhas.forEach(([categoria, valor], index) => {
+    doc.setFontSize(9.5);
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(...BLACK);
+    doc.text(categoria, MARGIN_LEFT, y);
+
+    const naoSeAplica = valor === 'Não se aplica';
+    doc.setFont('Helvetica', naoSeAplica ? 'italic' : 'bold');
+    doc.setTextColor(...(naoSeAplica ? GRAY_TEXT : corPercentualRGB(valor)));
+    doc.text(valor, rightX, y, { align: 'right' });
+
+    if (index < avaliacao.linhas.length - 1) {
+      y += 3;
+      doc.setDrawColor(235, 235, 235);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN_LEFT, y, rightX, y);
+      y += 4;
+    }
+  });
+
+  doc.setTextColor(...BLACK);
+  doc.setFont('Helvetica', 'normal');
+  return y + 8;
+};
+
 const desenharPortage = (doc: any, data: any, startY: number) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
+  const rightX = pageWidth - MARGIN_RIGHT;
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
@@ -370,19 +414,33 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
   y += 7;
 
   transformarPortagePorAvaliacao(data).forEach((avaliacao) => {
-    y = ensureSpace(doc, y, 18);
+    const faixaUnica =
+      avaliacao.colunas.length === 2 ? avaliacao.colunas[1] : null;
+
+    y = ensureSpace(doc, y, faixaUnica ? 24 : 18);
 
     // Título com uma faixa lateral na cor de marca (mesmo tratamento
     // visual do resto do relatório) — antes era só texto solto, sem
     // separação clara de onde uma avaliação termina e a próxima começa.
+    // Com uma faixa etária só, ela entra junto do título (evita repetir
+    // "Áreas" | faixa como cabeçalho de tabela pra só 2 números).
     doc.setFillColor(...BRAND_PURPLE);
     doc.rect(MARGIN_LEFT, y - 3.2, 1.2, 4.2, 'F');
     doc.setFontSize(10);
     doc.setFont('Helvetica', 'bold');
     doc.setTextColor(...BRAND_PURPLE);
-    doc.text(avaliacao.titulo, MARGIN_LEFT + 3, y);
+    doc.text(
+      faixaUnica ? `${avaliacao.titulo} · ${faixaUnica}` : avaliacao.titulo,
+      MARGIN_LEFT + 3,
+      y
+    );
     doc.setTextColor(...BLACK);
-    y += 4;
+    y += 7;
+
+    if (faixaUnica) {
+      y = desenharAvaliacaoCompacta(doc, avaliacao, y, rightX);
+      return;
+    }
 
     autoTable(doc, {
       head: [avaliacao.colunas],
