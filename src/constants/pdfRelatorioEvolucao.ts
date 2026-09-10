@@ -1104,6 +1104,16 @@ export const gerarRelatorioEvolucao = async (
   const doc: any = new jsPDF();
   const pacienteInfo = portageData?.paciente || vbmappBody?.paciente || paciente;
 
+  // Nome do arquivo (metadado /Title do PDF, não o nome do blob em si —
+  // um blob: URL não carrega nome de arquivo próprio). É esse título
+  // que o visualizador de PDF do navegador usa como sugestão ao salvar
+  // o PDF aberto em nova aba (ver window.open(bloburl) logo abaixo).
+  doc.setProperties({
+    title: `${pacienteInfo?.nome || 'Paciente'} - ${moment().format(
+      'DD-MM-YYYY'
+    )} - RELATÓRIO DE INTERVENÇÃO ABA`,
+  });
+
   let y = desenharCabecalho(doc, pacienteInfo);
 
   if (portageData) {
