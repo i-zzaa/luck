@@ -15,6 +15,10 @@ interface RichTextEditorProps {
   // de "quantos caracteres precisa" é do formulário que usa o editor
   // (ex.: Resumo da Sessão), não do editor em si.
   minLength?: number;
+  // Altura mínima reduzida — pra campo opcional/secundário (ex.: Conduta
+  // Sugerida do PEI) que não deve dominar a tela do jeito que o Resumo
+  // da Sessão (obrigatório, principal conteúdo da tela) domina a dele.
+  compact?: boolean;
 }
 
 interface ToolbarButtonProps {
@@ -58,6 +62,7 @@ export function RichTextEditor({
   readOnly,
   placeholder,
   minLength,
+  compact,
 }: RichTextEditorProps) {
   // Contador próprio (não sobe pro `content` do formulário, que só
   // sincroniza no onBlur) — atualizar a cada tecla aqui não reflete lá
@@ -75,8 +80,10 @@ export function RichTextEditor({
     editable: !readOnly,
     editorProps: {
       attributes: {
-        class:
-          'font-inter text-md leading-6 min-h-[220px] focus:outline-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_s]:line-through [&_p]:mb-2',
+        class: clsx(
+          'font-inter text-md leading-6 focus:outline-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_s]:line-through [&_p]:mb-2',
+          compact ? 'min-h-[90px]' : 'min-h-[220px]'
+        ),
       },
     },
     onBlur: ({ editor: current }) => onBlur(current.getHTML()),

@@ -351,14 +351,47 @@ const PEI = () => {
   // Aparece assim que um paciente é escolhido no filtro (não depende do
   // Protocolo, já que o relatório unifica Portage + VB-MAPP + Manual —
   // os 3 protocolos ao mesmo tempo, não só o que estiver selecionado no
-  // dropdown).
-  // Mesmo estilo do botão "Gerar Relatório" do Protocolo de Avaliação
-  // (Portage.tsx/VBMapp.tsx: renderExport) — primary, full width, ícone
-  // pi-file-pdf — pra ficar consistente entre as duas telas que exportam
-  // PDF de protocolo.
-  const renderBotaoRelatorio = () =>
+  // dropdown). Antes o botão "Gerar Relatório" e o campo "Conduta
+  // Sugerida" apareciam soltos, um embaixo do outro, sem nenhum
+  // agrupamento visual — ficava fácil confundir com parte do próprio
+  // filtro acima (mesma cor do botão "Cadastrar") e o editor de texto
+  // grande (220px) dominava a tela antes de qualquer conteúdo do PEI
+  // aparecer. Agora é um bloco só, com cabeçalho próprio (título +
+  // explicação do que o relatório reúne) e nessa ordem: primeiro o
+  // campo opcional, o botão por último — como uma ação que "finaliza"
+  // o que foi escrito acima, não como o primeiro clique da tela.
+  const renderRelatorioEvolucao = () =>
     pacienteSelecionado?.id && (
-      <div className="mx-2 my-2">
+      <Card className="mx-2 my-3 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-2">
+          <i className="pi pi-file-pdf text-violet-800" />
+          <span className="text-gray-800 font-inter font-bold leading-4">
+            Relatório de Evolução
+          </span>
+        </div>
+        <p className="font-inter text-xs text-gray-400 mt-1 mb-3">
+          Reúne Portage, VB-MAPP e Manual num PDF só.
+        </p>
+
+        <div className="text-gray-800 font-inter text-sm font-semibold mb-1">
+          Conduta Sugerida{' '}
+          <span className="text-gray-400 font-normal text-xs">
+            (opcional)
+          </span>
+        </div>
+        <div className="rounded-lg w-full border border-gray-300 mb-3">
+          <RichTextEditor
+            value={condutaSugerida}
+            placeholder="Descreva a conduta sugerida para o paciente."
+            onBlur={(newContent) => setCondutaSugerida(newContent)}
+            compact
+          />
+        </div>
+
+        {/* Mesmo estilo do botão "Gerar Relatório" do Protocolo de
+            Avaliação (Portage.tsx/VBMapp.tsx: renderExport) — primary,
+            full width, ícone pi-file-pdf — pra ficar consistente entre
+            as telas que exportam PDF de protocolo. */}
         <ButtonHeron
           text="Gerar Relatório"
           type="primary"
@@ -368,27 +401,7 @@ const PEI = () => {
           onClick={handleGerarRelatorioEvolucao}
           loading={gerandoRelatorio}
         />
-      </div>
-    );
-
-  // Mesmo componente/estilo do campo "Resumo" da tela de Sessão (ver
-  // Session.tsx/renderSumary) — texto livre em rich text, sem mínimo de
-  // caractere aqui (não é obrigatório preencher pra gerar o relatório,
-  // diferente do resumo da sessão).
-  const renderCondutaSugerida = () =>
-    pacienteSelecionado?.id && (
-      <div className="mx-2 my-2">
-        <div className="text-gray-800 font-inter font-bold leading-4 mb-2">
-          Conduta Sugerida
-        </div>
-        <Card className="rounded-lg w-full border border-gray-300">
-          <RichTextEditor
-            value={condutaSugerida}
-            placeholder="Descreva a conduta sugerida para o paciente."
-            onBlur={(newContent) => setCondutaSugerida(newContent)}
-          />
-        </Card>
-      </div>
+      </Card>
     );
 
   const renderPrograma = useCallback(async () => {
@@ -414,8 +427,7 @@ const PEI = () => {
   return (
     <div>
       {renderFilter()}
-      {renderBotaoRelatorio()}
-      {renderCondutaSugerida()}
+      {renderRelatorioEvolucao()}
       {renderContent()}
       <Confirm
         open={!!confirmDeleteItem}
