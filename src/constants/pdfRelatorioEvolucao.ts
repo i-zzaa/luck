@@ -230,6 +230,14 @@ const desenharCabecalho = (doc: any, paciente: any) => {
 // com as CATEGORIAS (Socialização/Cognição) como linha e só as faixas
 // etárias que aquela avaliação realmente preencheu como coluna — dá
 // pra comparar evolução por sessão sem ruído de "Não se aplica".
+//
+// E só desenha DUAS: a primeira aplicação e a mais recente — igual o
+// documento de referência ("Primeira Aplicação"/"Aplicação Atual").
+// O backend pode devolver até 4 (reavaliações no meio do caminho); com
+// todas na página, o relatório fica poluído sem agregar muito — o que
+// importa pra evolução geral é o ponto de partida e o estado atual.
+const extrairDataDoRotulo = (rotulo: string) => rotulo.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || '';
+
 const transformarPortagePorAvaliacao = (data: any) => {
   const headers: string[] = data?.headers || [];
   const linhasPorCategoria: Record<string, any[]> = {
@@ -237,9 +245,20 @@ const transformarPortagePorAvaliacao = (data: any) => {
     Cognição: data?.Cognicao || [],
   };
 
+  // headers[0] é o canto vazio da tabela original; headers[1] é sempre
+  // a avaliação mais recente e headers[headers.length - 1] a mais
+  // antiga (o backend busca orderBy id desc). Só pega essas duas
+  // pontas — com só 1 avaliação cadastrada, os dois índices coincidem
+  // e o loop abaixo desenha uma vez só.
+  const totalAvaliacoes = headers.length - 1;
+  const indicesEscolhidos =
+    totalAvaliacoes <= 0
+      ? []
+      : Array.from(new Set([headers.length - 1, 1])).sort((a, b) => b - a);
+
   const avaliacoes: { titulo: string; colunas: string[]; linhas: string[][] }[] = [];
 
-  for (let indiceAvaliacao = 1; indiceAvaliacao < headers.length; indiceAvaliacao++) {
+  indicesEscolhidos.forEach((indiceAvaliacao, posicao) => {
     // Faixas etárias com dado de verdade nessa avaliação (em qualquer
     // categoria), na mesma ordem em que o backend já as manda.
     const faixasComDado = new Set<string>();
@@ -251,7 +270,7 @@ const transformarPortagePorAvaliacao = (data: any) => {
         }
       });
     });
-    if (!faixasComDado.size) continue; // avaliação sem nada preenchido — não desenha tabela vazia
+    if (!faixasComDado.size) return; // avaliação sem nada preenchido — não desenha tabela vazia
 
     const faixasOrdenadas = (linhasPorCategoria.Socialização.length
       ? linhasPorCategoria.Socialização
@@ -270,12 +289,23 @@ const transformarPortagePorAvaliacao = (data: any) => {
         }),
       ]);
 
+    const dataAvaliacao = extrairDataDoRotulo(headers[indiceAvaliacao]);
+    // Com as duas pontas escolhidas, nomeia como a referência
+    // ("Primeira Aplicação"/"Aplicação Atual"); com só uma (paciente
+    // com uma única avaliação cadastrada), mantém o rótulo original do
+    // backend — não faz sentido chamar de "primeira" e "atual" a mesma
+    // coisa.
+    const titulo =
+      indicesEscolhidos.length === 2
+        ? `${posicao === 0 ? 'Primeira Aplicação' : 'Aplicação Atual'}${dataAvaliacao ? `: ${dataAvaliacao}` : ''}`
+        : headers[indiceAvaliacao];
+
     avaliacoes.push({
-      titulo: headers[indiceAvaliacao],
+      titulo,
       colunas: ['Áreas', ...faixasOrdenadas],
       linhas,
     });
-  }
+  });
 
   return avaliacoes;
 };
