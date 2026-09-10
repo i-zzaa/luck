@@ -838,7 +838,6 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
-  const rightX = pageWidth - MARGIN_RIGHT;
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
@@ -919,9 +918,16 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
         doc.text(linhasMeta, MARGIN_LEFT, y);
 
         if (pilulaTexto) {
+          // Logo depois do texto (medido de verdade, não fixa na
+          // margem direita) — com descrição curta, ficava um vão
+          // enorme entre o fim do texto e a pílula lá na ponta.
+          doc.setFontSize(9);
+          doc.setFont('Helvetica', 'normal');
+          const larguraTextoLinha1 = doc.getTextWidth(primeiraLinha);
+
           const pilulaAltura = 4.2;
-          const pilulaX = rightX - pilulaLargura;
-          const pilulaY = y - pilulaAltura + 1.2;
+          const pilulaX = MARGIN_LEFT + larguraTextoLinha1 + 3;
+          const pilulaY = y - 3.4;
           doc.setFillColor(...STATUS_META_BG_RGB[status]);
           doc.roundedRect(
             pilulaX,
@@ -935,9 +941,15 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
           doc.setFontSize(7.5);
           doc.setFont('Helvetica', 'bold');
           doc.setTextColor(...STATUS_META_COLOR_RGB[status]);
-          doc.text(pilulaTexto, pilulaX + pilulaLargura / 2, y - 1, {
-            align: 'center',
-          });
+          // Centralizada dentro da pílula nos dois eixos — horizontal
+          // via align:'center', vertical calculando o baseline a partir
+          // do centro da caixa (texto ficava puxado pro topo antes).
+          doc.text(
+            pilulaTexto,
+            pilulaX + pilulaLargura / 2,
+            pilulaY + pilulaAltura / 2 + 1,
+            { align: 'center' }
+          );
           doc.setTextColor(...BLACK);
           doc.setFont('Helvetica', 'normal');
           doc.setFontSize(9);
