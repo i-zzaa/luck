@@ -144,24 +144,6 @@ const PEI = () => {
     );
   };
 
-  // Uma meta com `procedimentoEnsino` marca o início de um novo grupo
-  // (registro Pei original que foi mesclado nesse programa — cada um tem
-  // seu próprio procedimento/estímulos; ver comentário no header do
-  // Accordion). As metas seguintes, sem esse campo, pertencem ao mesmo
-  // grupo. Agrupa aqui pra desenhar cada um como um card visualmente
-  // separado, em vez de um `mb-8` solto entre elas.
-  const agruparMetasPorProcedimento = (metas: any[]) => {
-    const grupos: any[][] = [];
-    (metas || []).forEach((meta) => {
-      if (meta?.procedimentoEnsino || grupos.length === 0) {
-        grupos.push([meta]);
-      } else {
-        grupos[grupos.length - 1].push(meta);
-      }
-    });
-    return grupos;
-  };
-
   // status/observação: campos novos, ainda pendentes de confirmação do
   // backend (ver docs/pedido-backend-formatacao.md) — meta.status só
   // aparece aqui quando o backend já estiver mandando de volta o que foi
@@ -197,21 +179,21 @@ const PEI = () => {
     </div>
   );
 
-  // Manual (pei): cada grupo (procedimento de ensino) vira seu próprio
-  // card com borda — antes tudo ficava na mesma coluna com só um
-  // respiro (mb-8) entre procedimentos, difícil de distinguir onde um
-  // terminava e o outro começava.
-  const renderMetasManual = (metas: any[]) => (
-    <div className="my-2 space-y-3">
-      {agruparMetasPorProcedimento(metas).map((grupo, indexGrupo) => (
-        <div
-          key={grupo[0]?.id ?? indexGrupo}
-          className="rounded-lg border border-gray-200 p-3"
-        >
-          {renderHeader(grupo[0])}
-          {grupo.map((meta, indexMeta) => renderMetaItem(meta, indexMeta))}
-        </div>
-      ))}
+  // Manual (pei): procedimento/estímulos vivem no nível do PROGRAMA
+  // (item), não por meta — o backend mescla vários registros Pei num
+  // programa só (ver PeiService.agruparPeiPorPrograma/mesclarMetas no
+  // heron-list-nest), mas só o primeiro registro mesclado empresta
+  // esses campos pro grupo inteiro; nenhuma meta individual carrega
+  // procedimentoEnsino/SD/Resposta/SR+ de verdade. Um card só por
+  // programa, com o cabeçalho uma vez e todas as metas dele dentro.
+  const renderMetasManual = (item: any) => (
+    <div className="my-2">
+      <div className="rounded-lg border border-gray-200 p-3">
+        {renderHeader(item)}
+        {(item.metas || []).map((meta: any, indexMeta: number) =>
+          renderMetaItem(meta, indexMeta)
+        )}
+      </div>
     </div>
   );
 
@@ -282,7 +264,7 @@ const PEI = () => {
                     {tipoProtocolo === TIPO_PROTOCOLO.vbMapp &&
                       renderHeader(item)}
                     {isManual
-                      ? renderMetasManual(item.metas)
+                      ? renderMetasManual(item)
                       : renderMetasOutroProtocolo(item.metas)}
                   </div>
                 </AccordionTab>

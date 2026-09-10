@@ -800,23 +800,6 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
 };
 
 // ------------------ Manual/PEI (programas + metas) ------------------
-// Mesmo agrupamento por procedimento de ensino que pages/PEI.tsx usa na
-// tela (uma meta com `procedimentoEnsino` marca o início de um novo
-// grupo/registro mesclado) — duplicado aqui em vez de importado porque
-// o PDF desenha diferente da tela (autoTable em vez de <Fieldset>), mas
-// a REGRA de agrupamento é a mesma.
-const agruparMetasPorProcedimento = (metas: any[]) => {
-  const grupos: any[][] = [];
-  (metas || []).forEach((meta) => {
-    if (meta?.procedimentoEnsino || grupos.length === 0) {
-      grupos.push([meta]);
-    } else {
-      grupos[grupos.length - 1].push(meta);
-    }
-  });
-  return grupos;
-};
-
 // Rótulo curto pro selo da meta — o texto completo de
 // STATUS_META_LABEL ("Meta atingida, manter em manutenção") é bom pra
 // tela, mas não cabe numa pílula ao lado da descrição sem estourar a
@@ -855,24 +838,35 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
     doc.text(section.programa?.nome || '', MARGIN_LEFT, y);
     y += 5;
 
-    agruparMetasPorProcedimento(section.metas).forEach((grupo) => {
-      const cabecalho = grupo[0];
-
+    // PROCEDIMENTO DE ENSINO + SD/Resposta/SR+ vivem no nível da SEÇÃO
+    // (do programa), não em cada meta — o backend mescla vários
+    // registros Pei num programa só (ver PeiService.agruparPeiPorPrograma/
+    // mesclarMetas), mas só o PRIMEIRO registro mesclado empresta esses
+    // campos pro grupo; nenhuma meta individual carrega isso. Antes o
+    // código tentava reagrupar as metas por um `meta.procedimentoEnsino`
+    // que nunca existe de verdade nos dados reais (só nos mocks de
+    // teste que eu mesmo montei) — sempre caía num "cabeçalho vazio",
+    // sem quebrar nada visivelmente, mas nunca desenhava o
+    // procedimento/tabela nenhuma.
+    {
       y = ensureSpace(doc, y, 14);
-      if (cabecalho?.procedimentoEnsino?.nome) {
+      if (section?.procedimentoEnsino?.nome) {
         doc.setFontSize(9);
         doc.setFont('Helvetica', 'bold');
+        // O catálogo (PROCEDIMENTO_ENSINO no heron-list-nest) já grava o
+        // nome COM o prefixo "PROCEDIMENTO DE ENSINO:" embutido — prefixar
+        // de novo aqui duplicava o texto.
         const linhas = doc.splitTextToSize(
-          `PROCEDIMENTO DE ENSINO: ${cabecalho.procedimentoEnsino.nome}`,
+          section.procedimentoEnsino.nome,
           contentWidth
         );
         doc.text(linhas, MARGIN_LEFT, y);
         y += linhas.length * 4 + 2;
       }
 
-      const sd = cabecalho?.estimuloDiscriminativo;
-      const resposta = cabecalho?.resposta;
-      const sr = cabecalho?.estimuloReforcadorPositivo;
+      const sd = section?.estimuloDiscriminativo;
+      const resposta = section?.resposta;
+      const sr = section?.estimuloReforcadorPositivo;
       if (sd || resposta || sr) {
         autoTable(doc, {
           head: [['SD (estímulo discriminativo)', 'Resposta', 'SR+ (reforçador)']],
@@ -888,7 +882,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
         y = doc.lastAutoTable.finalY + 6;
       }
 
-      grupo.forEach((meta, indexMeta) => {
+      (section.metas || []).forEach((meta: any, indexMeta: number) => {
         y = ensureSpace(doc, y, 10);
 
         // Pílula do status ao lado da descrição, na mesma linha — não
@@ -987,7 +981,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
       });
 
       y += 3;
-    });
+    }
 
     y += 3;
   });

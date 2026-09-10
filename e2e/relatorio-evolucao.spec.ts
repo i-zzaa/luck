@@ -96,25 +96,30 @@ const VBMAPP_RESPONSE = {
 
 // Manual: 3 programas, com os 3 status possíveis (atingida, aquisição,
 // atingida-em-manutenção) — o pedido explícito de "metas atingidas e em
-// aquisição" pra validar a cor/ícone de cada uma. Um dos programas tem
-// 2 procedimentos de ensino diferentes (2 registros mesclados, como
-// PEI.tsx já lista), outro sem SD/Resposta/SR+ nenhum (Imitação
-// Motora), pra cobrir o caso de meta sem essa tabela.
+// aquisição" pra validar a cor/ícone de cada uma.
+//
+// procedimentoEnsino/SD/Resposta/SR+ vivem no nível da SEÇÃO (do
+// programa), não em cada meta — é assim que o backend de verdade
+// devolve (PeiService.agruparPeiPorPrograma/mesclarMetas mescla vários
+// registros Pei num programa só, mas só o primeiro registro empresta
+// esses campos pro grupo inteiro; nenhuma meta individual carrega
+// isso). Um programa sem esses campos (Imitação Motora), pra cobrir o
+// caso de seção sem procedimento/tabela nenhum.
 const PEI_RESPONSE = [
   {
     id: 1,
     programa: { id: 5, nome: 'Comportamental' },
     peiIds: [10, 11],
+    procedimentoEnsino: {
+      nome: 'PROCEDIMENTO DE ENSINO: ENSINO ESTRUTURADO - DTT - TREINO DE TENTATIVAS DISCRETAS',
+    },
+    estimuloDiscriminativo:
+      'Terapeuta pegar estímulo reforçador e colocar na frente dos olhos por 5 segundos.',
+    resposta: 'Cliente manter o contato visual por 5 segundos',
+    estimuloReforcadorPositivo: 'Ganhar o reforço',
     metas: [
       {
         id: 100,
-        procedimentoEnsino: {
-          nome: 'ENSINO ESTRUTURADO - DTT - TREINO DE TENTATIVAS DISCRETAS',
-        },
-        estimuloDiscriminativo:
-          'Terapeuta pegar estímulo reforçador e colocar na frente dos olhos por 5 segundos.',
-        resposta: 'Cliente manter o contato visual por 5 segundos',
-        estimuloReforcadorPositivo: 'Ganhar o reforço',
         value: 'continuar estimulando o contato visual para que mantenha por 3 segundos',
         status: 'atingida',
         observacao: 'Visto que Joaquim responde mas ainda não tem a iniciativa de cumprimentar.',
@@ -143,13 +148,13 @@ const PEI_RESPONSE = [
     id: 2,
     programa: { id: 6, nome: 'Operantes Verbais - Mando' },
     peiIds: [12],
+    procedimentoEnsino: { nome: 'PROCEDIMENTO DE ENSINO: ENSINO NATURALISTA' },
+    estimuloDiscriminativo: 'Presença do item desejado',
+    resposta: 'Cliente emitir as respostas',
+    estimuloReforcadorPositivo: 'Ganhar o item desejado',
     metas: [
       {
         id: 200,
-        procedimentoEnsino: { nome: 'ENSINO NATURALISTA' },
-        estimuloDiscriminativo: 'Presença do item desejado',
-        resposta: 'Cliente emitir as respostas',
-        estimuloReforcadorPositivo: 'Ganhar o item desejado',
         value: 'estimular que continue sempre pedindo por itens utilizando frases inteligíveis',
         status: 'atingida',
         subitems: [],
