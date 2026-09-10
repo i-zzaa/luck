@@ -411,7 +411,10 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
     MARGIN_LEFT,
     y
   );
-  y += 7;
+  // Respiro entre o título da seção e a primeira avaliação — 7 ficava
+  // colado, quase reduzindo o título a mais uma linha do bloco de
+  // avaliações abaixo, sem ler como um título de seção de verdade.
+  y += 11;
 
   transformarPortagePorAvaliacao(data).forEach((avaliacao) => {
     const faixaUnica =
@@ -638,7 +641,11 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
   y += 8;
 
   (sections || []).forEach((section) => {
-    y = ensureSpace(doc, y, 12);
+    // 40 (não só a altura do título) — reserva espaço suficiente pra
+    // pelo menos o começo do primeiro procedimento também, senão o
+    // título do programa ficava sozinho no fim da página, órfão, com
+    // todo o conteúdo dele começando já na página seguinte.
+    y = ensureSpace(doc, y, 40);
     doc.setFontSize(11);
     doc.setFont('Helvetica', 'bold');
     doc.text(section.programa?.nome || '', MARGIN_LEFT, y);
