@@ -31,6 +31,21 @@ const GRAY_TEXT: [number, number, number] = [110, 110, 110];
 // em vez do título sair preto puro feito o resto do texto corrido.
 const BRAND_PURPLE: [number, number, number] = [102, 41, 119];
 const NOTE_BG: [number, number, number] = [246, 246, 248];
+const GREEN: [number, number, number] = [34, 197, 94];
+const YELLOW: [number, number, number] = [202, 138, 4];
+const RED: [number, number, number] = [239, 68, 68];
+
+// Mesma faixa de cor que a tela usa pra "% de acertos" (ver
+// corPorcentagem em PrimeiraResposta.tsx) — verde/amarelo/vermelho
+// conforme o valor, cinza quando não é um percentual de verdade
+// ("Não se aplica").
+const corPercentualRGB = (valor: string): [number, number, number] => {
+  const numero = parseFloat(valor);
+  if (Number.isNaN(numero)) return GRAY_TEXT;
+  if (numero >= 80) return GREEN;
+  if (numero >= 50) return YELLOW;
+  return RED;
+};
 
 const MARGIN_LEFT = 15;
 const MARGIN_RIGHT = 15;
@@ -139,6 +154,32 @@ const ensureSpace = (doc: any, y: number, needed: number) => {
     return novaPagina(doc);
   }
   return y;
+};
+
+// Respiro entre um protocolo e o próximo (Portage -> VB-MAPP -> Manual)
+// quando os dois cabem na mesma página — grande o bastante pra não
+// embolar visualmente, mas sem forçar página nova só porque começou
+// outro protocolo (isso é papel do ensureSpace, quando o conteúdo de
+// verdade não cabe mais).
+const SECTION_GAP = 14;
+
+const iniciarNovaSecao = (doc: any, y: number) => {
+  const paginasAntes = doc.internal.getNumberOfPages();
+  const proximoY = ensureSpace(doc, y, SECTION_GAP + 20);
+  const quebrouPagina = doc.internal.getNumberOfPages() > paginasAntes;
+
+  // Quebrou de página: o timbre repetido no topo já separa visualmente
+  // as seções, não precisa de mais nada.
+  if (quebrouPagina) return proximoY;
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const rightX = pageWidth - MARGIN_RIGHT;
+  const linhaY = proximoY + SECTION_GAP / 2;
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.line(MARGIN_LEFT, linhaY, rightX, linhaY);
+
+  return proximoY + SECTION_GAP;
 };
 
 // Primeira página: timbre + título/data/nota de confidencialidade +
@@ -312,28 +353,58 @@ const transformarPortagePorAvaliacao = (data: any) => {
 
 const desenharPortage = (doc: any, data: any, startY: number) => {
   let y = startY;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
 
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
+  doc.setTextColor(...BLACK);
   doc.text('Desenvolvimento Infantil — Escala Portage', MARGIN_LEFT, y);
-  y += 6;
+  y += 7;
 
   transformarPortagePorAvaliacao(data).forEach((avaliacao) => {
-    y = ensureSpace(doc, y, 16);
+    y = ensureSpace(doc, y, 18);
 
+    // Título com uma faixa lateral na cor de marca (mesmo tratamento
+    // visual do resto do relatório) — antes era só texto solto, sem
+    // separação clara de onde uma avaliação termina e a próxima começa.
+    doc.setFillColor(...BRAND_PURPLE);
+    doc.rect(MARGIN_LEFT, y - 3.2, 1.2, 4.2, 'F');
     doc.setFontSize(10);
     doc.setFont('Helvetica', 'bold');
-    doc.text(avaliacao.titulo, MARGIN_LEFT, y);
+    doc.setTextColor(...BRAND_PURPLE);
+    doc.text(avaliacao.titulo, MARGIN_LEFT + 3, y);
+    doc.setTextColor(...BLACK);
     y += 4;
 
     autoTable(doc, {
       head: [avaliacao.colunas],
       body: avaliacao.linhas,
       startY: y,
-      styles: { fontSize: 9, halign: 'center' },
+      // Número fixo (não 'auto'/'wrap') é o que faz a tabela esticar
+      // até preencher a largura útil da página de verdade — só 2-3
+      // colunas curtas ("Áreas" + faixas etárias) ficavam bem menores
+      // que isso por padrão, sobrando bastante vazio à direita.
+      tableWidth: contentWidth,
+      styles: { fontSize: 9, halign: 'center', cellPadding: 2.5 },
       headStyles: { fillColor: GRAY_HEADER, textColor: BLACK, fontStyle: 'bold' },
       columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
+      // Colore cada percentual (verde/amarelo/vermelho, mesma faixa da
+      // tela) e deixa "Não se aplica" em itálico cinza — sem isso os
+      // números ficavam todos pretos, iguais entre si, difícil de
+      // escanear rápido qual faixa está bem e qual precisa de atenção.
+      didParseCell: (hookData: any) => {
+        if (hookData.section !== 'body' || hookData.column.index === 0) return;
+        const valor = String(hookData.cell.raw ?? '');
+        if (valor === 'Não se aplica') {
+          hookData.cell.styles.fontStyle = 'italic';
+          hookData.cell.styles.textColor = GRAY_TEXT;
+        } else if (valor) {
+          hookData.cell.styles.fontStyle = 'bold';
+          hookData.cell.styles.textColor = corPercentualRGB(valor);
+        }
+      },
     });
 
     y = doc.lastAutoTable.finalY + 8;
@@ -389,8 +460,12 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
     datas.forEach((data) => {
       const programas = Object.keys(dados[nivel][data]);
 
-      doc.setFontSize(7);
+      // Data da sessão — era o maior texto perto da grade (7pt contra
+      // as células de ~2-3mm), destoando do resto; menor aqui fica
+      // proporcional ao tamanho real da grade abaixo.
+      doc.setFontSize(5);
       doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(...BLACK);
       doc.text(data, offsetX + (programas.length * cellWidth) / 2, y, {
         align: 'center',
       });
@@ -405,8 +480,20 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
         doc.rect(x, headerY, cellWidth, headerCellHeight);
         doc.setFontSize(3);
         doc.setTextColor(0);
+        // programa pode vir maior que a célula (6mm) — em vez de
+        // estourar/cortar sem aviso, encolhe o texto pra caber (mesma
+        // ideia do fitContent do jsPDF, feita na mão porque addImage/
+        // text não tem isso pra fonte).
+        const rotulo = String(programa || '').toUpperCase();
+        let larguraTexto = doc.getTextWidth(rotulo);
+        let tamanhoFonte = 3;
+        while (larguraTexto > cellWidth - 0.5 && tamanhoFonte > 1.5) {
+          tamanhoFonte -= 0.25;
+          doc.setFontSize(tamanhoFonte);
+          larguraTexto = doc.getTextWidth(rotulo);
+        }
         doc.text(
-          programa.toUpperCase(),
+          rotulo,
           x + cellWidth / 2,
           headerY + headerCellHeight / 2 + 0.5,
           { align: 'center' }
@@ -645,12 +732,12 @@ export const gerarRelatorioEvolucao = async (
   }
 
   if (vbmappBody?.data) {
-    y = novaPagina(doc);
+    y = iniciarNovaSecao(doc, y);
     y = desenharVBMapp(doc, vbmappBody.data, y);
   }
 
   if (peiData?.length) {
-    y = novaPagina(doc);
+    y = iniciarNovaSecao(doc, y);
     y = desenharPei(doc, peiData, y);
   }
 
