@@ -218,6 +218,68 @@ const desenharCabecalho = (doc: any, paciente: any) => {
 };
 
 // ------------------ Portage (tabela Socialização/Cognição) ------------------
+// O backend devolve uma tabela por categoria com LINHA=faixa etária,
+// COLUNA=avaliação (data.headers[0] é o canto vazio da tabela original;
+// data.headers[i], i>=1, é o rótulo de cada avaliação — "Avaliação
+// <data>"/"Reavaliação <data>"). Renderizar direto assim faz uma
+// tabela enorme, cheia de "Não se aplica" (cada avaliação só preenche
+// as faixas etárias que faziam sentido pra idade da criança NAQUELE
+// momento — quanto mais avaliações, mais colunas ficam quase vazias).
+//
+// O relatório de referência inverte isso: uma tabelinha POR avaliação,
+// com as CATEGORIAS (Socialização/Cognição) como linha e só as faixas
+// etárias que aquela avaliação realmente preencheu como coluna — dá
+// pra comparar evolução por sessão sem ruído de "Não se aplica".
+const transformarPortagePorAvaliacao = (data: any) => {
+  const headers: string[] = data?.headers || [];
+  const linhasPorCategoria: Record<string, any[]> = {
+    Socialização: data?.Socializacao || [],
+    Cognição: data?.Cognicao || [],
+  };
+
+  const avaliacoes: { titulo: string; colunas: string[]; linhas: string[][] }[] = [];
+
+  for (let indiceAvaliacao = 1; indiceAvaliacao < headers.length; indiceAvaliacao++) {
+    // Faixas etárias com dado de verdade nessa avaliação (em qualquer
+    // categoria), na mesma ordem em que o backend já as manda.
+    const faixasComDado = new Set<string>();
+    Object.values(linhasPorCategoria).forEach((linhas) => {
+      linhas.forEach((linha) => {
+        const percentual = linha[indiceAvaliacao];
+        if (percentual && percentual !== 'Não se aplica') {
+          faixasComDado.add(linha[0]);
+        }
+      });
+    });
+    if (!faixasComDado.size) continue; // avaliação sem nada preenchido — não desenha tabela vazia
+
+    const faixasOrdenadas = (linhasPorCategoria.Socialização.length
+      ? linhasPorCategoria.Socialização
+      : linhasPorCategoria.Cognição
+    )
+      .map((linha) => linha[0])
+      .filter((faixaEtaria) => faixasComDado.has(faixaEtaria));
+
+    const linhas = Object.entries(linhasPorCategoria)
+      .filter(([, linhasCategoria]) => linhasCategoria.length)
+      .map(([categoria, linhasCategoria]) => [
+        categoria,
+        ...faixasOrdenadas.map((faixaEtaria) => {
+          const linha = linhasCategoria.find((l) => l[0] === faixaEtaria);
+          return linha ? linha[indiceAvaliacao] : '';
+        }),
+      ]);
+
+    avaliacoes.push({
+      titulo: headers[indiceAvaliacao],
+      colunas: ['Áreas', ...faixasOrdenadas],
+      linhas,
+    });
+  }
+
+  return avaliacoes;
+};
+
 const desenharPortage = (doc: any, data: any, startY: number) => {
   let y = startY;
 
@@ -226,23 +288,21 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
   doc.text('Desenvolvimento Infantil — Escala Portage', MARGIN_LEFT, y);
   y += 6;
 
-  (['Socializacao', 'Cognicao'] as const).forEach((chave) => {
-    if (!data?.[chave]?.length) return;
+  transformarPortagePorAvaliacao(data).forEach((avaliacao) => {
+    y = ensureSpace(doc, y, 16);
+
+    doc.setFontSize(10);
+    doc.setFont('Helvetica', 'bold');
+    doc.text(avaliacao.titulo, MARGIN_LEFT, y);
+    y += 4;
 
     autoTable(doc, {
-      head: [[chave === 'Socializacao' ? 'Socialização' : 'Cognição']],
-      theme: 'plain',
-      styles: { fontSize: 11, fontStyle: 'bold', halign: 'center' },
+      head: [avaliacao.colunas],
+      body: avaliacao.linhas,
       startY: y,
-      margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
-    });
-
-    autoTable(doc, {
-      head: [data.headers],
-      body: data[chave],
-      startY: doc.lastAutoTable.finalY + 3,
       styles: { fontSize: 9, halign: 'center' },
       headStyles: { fillColor: GRAY_HEADER, textColor: BLACK, fontStyle: 'bold' },
+      columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
     });
 
