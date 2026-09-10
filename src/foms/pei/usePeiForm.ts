@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TIPO_PROTOCOLO } from '../../constants/protocolo';
+import { STATUS_META_OPTIONS, TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { permissionAuth } from '../../contexts/permission';
 import { useToast } from '../../contexts/toast';
 import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
 import { dropDown, update, create } from '../../server';
 import { OBJ_ITEM, OBJ_META } from '../../util/util';
 import { formatPortage, formatVBMapp } from './peiFormat';
+import {
+  baseMetaIdFromField,
+  isMetaStatusOrObsField,
+  metaObsFieldId,
+  metaStatusFieldId,
+} from './metaStatusFields';
 
 export const usePeiForm = ({
   paciente,
@@ -159,6 +165,23 @@ export const usePeiForm = ({
 
       metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
+        // status/observação: campos novos (ver metaStatusFields.ts),
+        // ainda não confirmados no backend — meta.status/observacao só
+        // vêm preenchidos quando o backend já estiver salvando isso
+        // (ver docs/pedido-backend-formatacao.md). Sem eles, os campos
+        // do form ficam vazios, exatamente como uma meta nova.
+        if (meta.status) {
+          const statusOption = STATUS_META_OPTIONS.find(
+            (option) => option.id === meta.status
+          );
+          if (statusOption) {
+            setValue(metaStatusFieldId(meta.id) as any, statusOption);
+          }
+        }
+        if (meta.observacao) {
+          setValue(metaObsFieldId(meta.id) as any, meta.observacao);
+        }
+
         meta.subitems?.forEach((subitem: any) =>
           setValue(subitem.id, subitem.value)
         );
@@ -176,9 +199,14 @@ export const usePeiForm = ({
         (item: any) => item.id == tipoProtocolo
       );
 
+      // status/observação da meta (ver metaStatusFields.ts) são opcionais
+      // — nem toda meta tem um status marcado ainda (igual no relatório
+      // de referência, várias ficam sem rótulo) — por isso ficam de fora
+      // da checagem de "nenhum campo vazio" abaixo.
       if (
-        Object.values(formvalue).some(
-          (valor) => valor === '' || valor === undefined
+        Object.entries(formvalue).some(
+          ([key, valor]) =>
+            !isMetaStatusOrObsField(key) && (valor === '' || valor === undefined)
         )
       ) {
         setLoading(false);
@@ -193,6 +221,12 @@ export const usePeiForm = ({
       }
 
       Object.keys(formvalue).forEach((key: any) => {
+        // Tratados à parte, depois de payload.metas estar montado (ver
+        // abaixo) — sem esse retorno antecipado, cairiam no branch de
+        // meta logo abaixo (o id de status/observação também contém
+        // "-meta-", por ser o id da própria meta com um sufixo).
+        if (isMetaStatusOrObsField(key)) return;
+
         if (key.includes('-meta-') && !key.includes(`-sub-item-`)) {
           const match = key.match(/\d+/);
           const matchLast = key.match(/(\d+)$/);
@@ -220,6 +254,25 @@ export const usePeiForm = ({
           !key.includes('Id')
         ) {
           payload[key] = formvalue[key];
+        }
+      });
+
+      // Segundo passe: status/observação de cada meta (ver
+      // metaStatusFields.ts) — precisa rodar depois do payload.metas
+      // estar montado acima, pra achar a meta certa pelo id base. Só
+      // gera efeito quando o formulário realmente tem esses campos
+      // (protocolo Manual — ver foms/pei/index.tsx); pra Portage/VB-MAPP
+      // não existem, então esse passe não faz nada.
+      Object.keys(formvalue).forEach((key: any) => {
+        if (!isMetaStatusOrObsField(key)) return;
+        const metaId = baseMetaIdFromField(key);
+        const meta = payload.metas.find((item: any) => item.id === metaId);
+        if (!meta) return;
+
+        if (key.endsWith('::status')) {
+          meta.status = formvalue[key]?.id;
+        } else {
+          meta.observacao = formvalue[key];
         }
       });
 

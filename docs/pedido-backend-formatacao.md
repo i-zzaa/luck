@@ -327,6 +327,50 @@ ser recriados manualmente (por quem tiver acesso direto ao banco/admin,
 já que a tela hoje só edita item já existente, não cria o primeiro item
 de um programa vazio).
 
+### 12. `status` e `observacao` por meta do Manual (PEI) — campos novos
+
+Pro Relatório de Evolução (botão novo em `pages/PEI.tsx`, gera PDF
+unificando Portage + VB-MAPP + Manual — `constants/pdfRelatorioEvolucao.ts`),
+cada meta do protocolo Manual precisa carregar um status
+("Meta atingida" / "Em aquisição" / "Meta atingida, manter em
+manutenção" — ver `STATUS_META` em `constants/protocolo.ts`) e uma
+observação em texto livre, do jeito que aparece no relatório que a
+clínica já usa fora do app (documento de referência: cada meta tem um
+rótulo colorido de status e às vezes uma frase de observação, ex.:
+"Visto que Joaquim responde mas ainda não tem a iniciativa de
+cumprimentar.").
+
+**Esses dois campos não existem em lugar nenhum do backend hoje** — não
+tem onde salvar status/observação de uma meta. O frontend já está
+pronto do lado dele (formulário em `foms/pei/index.tsx`, parsing em
+`usePeiForm.ts: onSubmit`), mandando esses valores dentro de cada meta
+do payload de `POST`/`PUT /pei`:
+
+```jsonc
+{
+  "metas": [
+    {
+      "id": "...",
+      "value": "continuar estimulando o contato visual...",
+      "status": "atingida", // "atingida" | "aquisicao" | "manutencao" | ausente
+      "observacao": "Esta pouco e quando chama também não olha, é bem rápido.",
+      "subitems": [...]
+    }
+  ]
+}
+```
+
+**Pedido:**
+- Persistir `status` (enum de 3 valores, ou `null`/ausente) e
+  `observacao` (texto livre, opcional) em cada meta do Manual.
+- Devolver os dois campos em `GET /pei/filtro` (é de lá que
+  `pages/PEI.tsx` e o Relatório de Evolução leem os dados hoje).
+
+Enquanto isso não existir, os campos aparecem vazios/sem rótulo no
+cadastro e na listagem — nada quebra, só não persiste (o valor digitado
+se perde ao recarregar a página, porque não tem onde ele "morar" no
+banco ainda).
+
 ---
 
 Não sobrou nenhum item de "Fase 2" pendente por enquanto — os que

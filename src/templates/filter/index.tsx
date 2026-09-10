@@ -17,6 +17,13 @@ export interface FilterProps {
   onSubmit: (formState: any) => any;
   onInclude?: () => any;
   onReset: () => any;
+  // Dispara a cada mudança do campo "pacienteId" — antes mesmo de
+  // "Pesquisar" ser clicado. Optional: quem não precisa (a maioria das
+  // telas) simplesmente não passa. Existe pro botão de Relatório de
+  // Evolução em pages/PEI.tsx, que precisa aparecer assim que o
+  // paciente é escolhido, sem depender do Protocolo também estar
+  // selecionado (a busca normal via onSubmit exige os dois).
+  onPacienteChange?: (paciente: any) => void;
 }
 
 export function Filter({
@@ -30,10 +37,17 @@ export function Filter({
   onSubmit,
   onInclude,
   onReset,
+  onPacienteChange,
   defaultValues
 }: FilterProps) {
-  const { setValue, handleSubmit, control, reset } = useForm({defaultValues});
+  const { setValue, handleSubmit, control, reset, watch } = useForm({defaultValues});
   const { hasPermition } = permissionAuth();
+
+  const pacienteIdValue = watch('pacienteId');
+  useEffect(() => {
+    onPacienteChange?.(pacienteIdValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pacienteIdValue]);
 
   const handleReset = () => {
     reset();

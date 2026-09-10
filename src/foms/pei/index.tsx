@@ -3,10 +3,11 @@ import clsx from 'clsx';
 import { Fieldset } from 'primereact/fieldset';
 import { Input, ButtonHeron } from '../../components';
 import { PEICadastroFields } from '../../constants/formFields';
-import { TIPO_PROTOCOLO } from '../../constants/protocolo';
+import { STATUS_META_OPTIONS, TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { usePeiForm } from './usePeiForm';
 import { useIsTabRoute } from '../../components/Nav/useIsTabRoute';
 import { ABOVE_TAB_BAR } from '../../components/Nav/bottomTabBarLayout';
+import { metaObsFieldId, metaStatusFieldId } from './metaStatusFields';
 
 export default function PEICADASTRO({ paciente, param }: { paciente: { id: number; nome: string }; param?: any}) {
   const isTabRoute = useIsTabRoute();
@@ -99,6 +100,33 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
                   onClick={() => removeSubitemFromMeta(key, index)}
                 />
               ))}
+
+              {/* Status/observação — só no nível da meta (não por
+                  subitem) e só no Manual, que é o único protocolo com
+                  essa lista de metas em texto livre (Portage/VB-MAPP
+                  reaproveitam essa mesma tela, mas reportam resultado
+                  por tabela/grade, não por meta). Ambos opcionais — ver
+                  metaStatusFields.ts e a exclusão correspondente na
+                  validação de onSubmit. */}
+              {tipoProtocolo === TIPO_PROTOCOLO.pei && (
+                <>
+                  <Input
+                    labelText="Status da meta"
+                    id={metaStatusFieldId(item.id)}
+                    type="select"
+                    customCol="col-span-6 sm:col-span-6"
+                    control={control}
+                    options={STATUS_META_OPTIONS}
+                  />
+                  <Input
+                    labelText="Observação"
+                    id={metaObsFieldId(item.id)}
+                    type="textarea"
+                    customCol="col-span-6 sm:col-span-6"
+                    control={control}
+                  />
+                </>
+              )}
             </Fieldset>
           ))}
         </div>

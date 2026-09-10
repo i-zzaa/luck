@@ -12,8 +12,15 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Fieldset } from 'primereact/fieldset';
 import { ButtonHeron } from '../components/button';
 import { Confirm } from '../components/confirm';
-import { TIPO_PROTOCOLO, VALOR_PORTAGE } from '../constants/protocolo';
+import {
+  STATUS_META_COLOR_CLASS,
+  STATUS_META_LABEL,
+  TIPO_PROTOCOLO,
+  VALOR_PORTAGE,
+} from '../constants/protocolo';
 import { useForm } from 'react-hook-form';
+import clsx from 'clsx';
+import { gerarRelatorioEvolucao } from '../constants/pdfRelatorioEvolucao';
 
 const fieldsConst = PEIFields;
 const fieldsState: any = {};
@@ -36,6 +43,29 @@ const PEI = () => {
   // naquele programa (item.peiIds), não só um; por isso passa por
   // confirmação, diferente da edição.
   const [confirmDeleteItem, setConfirmDeleteItem] = useState<any>(null);
+  // Paciente escolhido no filtro, atualizado a cada troca do campo (ver
+  // Filter.onPacienteChange) — distinto de `pacienteCurrent`, que só
+  // muda depois de "Pesquisar"/"Cadastrar". O botão de Relatório de
+  // Evolução precisa aparecer assim que o paciente é selecionado, sem
+  // depender do Protocolo também estar escolhido.
+  const [pacienteSelecionado, setPacienteSelecionado] = useState<any>(null);
+  const [gerandoRelatorio, setGerandoRelatorio] = useState(false);
+
+  const handleGerarRelatorioEvolucao = async () => {
+    if (!pacienteSelecionado?.id) return;
+    setGerandoRelatorio(true);
+    try {
+      await gerarRelatorioEvolucao(pacienteSelecionado, renderToast);
+    } catch (error) {
+      renderToast({
+        type: 'failure',
+        title: 'Erro!',
+        message: 'Não foi possível gerar o relatório de evolução.',
+        open: true,
+      });
+    }
+    setGerandoRelatorio(false);
+  };
 
   const handleEditPrograma = (item: any) => {
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
@@ -132,11 +162,32 @@ const PEI = () => {
     return grupos;
   };
 
+  // status/observação: campos novos, ainda pendentes de confirmação do
+  // backend (ver docs/pedido-backend-formatacao.md) — meta.status só
+  // aparece aqui quando o backend já estiver mandando de volta o que foi
+  // salvo em onSubmit (usePeiForm.ts). Sem isso, o app simplesmente não
+  // mostra rótulo nenhum, igual a maioria das metas no relatório de
+  // referência que ainda não tem status marcado.
   const renderMetaItem = (meta: any, indexMeta: number) => (
     <div key={meta?.id ?? indexMeta}>
       <span className="flex align-items-center gap-2 w-full font-inter">
         Meta {indexMeta + 1}: {meta.value}
+        {meta.status && (
+          <span
+            className={clsx(
+              'font-semibold',
+              STATUS_META_COLOR_CLASS[meta.status]
+            )}
+          >
+            {STATUS_META_LABEL[meta.status]}
+          </span>
+        )}
       </span>
+      {meta.observacao && (
+        <p className="text-xs text-gray-400 italic mt-0.5">
+          {meta.observacao}
+        </p>
+      )}
       <ul className="list-disc ml-8 font-inter">
         {meta.subitems &&
           meta.subitems.map((subitem: any, index: number) => (
@@ -299,10 +350,34 @@ const PEI = () => {
             },
           });
         }}
+        onPacienteChange={setPacienteSelecionado}
         defaultValues={state}
       />
     );
   };
+
+  // Aparece assim que um paciente é escolhido no filtro (não depende do
+  // Protocolo, já que o relatório unifica Portage + VB-MAPP + Manual —
+  // os 3 protocolos ao mesmo tempo, não só o que estiver selecionado no
+  // dropdown).
+  // Mesmo estilo do botão "Gerar Relatório" do Protocolo de Avaliação
+  // (Portage.tsx/VBMapp.tsx: renderExport) — primary, full width, ícone
+  // pi-file-pdf — pra ficar consistente entre as duas telas que exportam
+  // PDF de protocolo.
+  const renderBotaoRelatorio = () =>
+    pacienteSelecionado?.id && (
+      <div className="mx-2 my-2">
+        <ButtonHeron
+          text="Gerar Relatório"
+          type="primary"
+          size="full"
+          icon="pi pi-file-pdf"
+          typeButton="button"
+          onClick={handleGerarRelatorioEvolucao}
+          loading={gerandoRelatorio}
+        />
+      </div>
+    );
 
   const renderPrograma = useCallback(async () => {
     const [paciente, protocolo]: any = await Promise.all([
@@ -327,6 +402,7 @@ const PEI = () => {
   return (
     <div>
       {renderFilter()}
+      {renderBotaoRelatorio()}
       {renderContent()}
       <Confirm
         open={!!confirmDeleteItem}
