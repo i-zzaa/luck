@@ -183,21 +183,27 @@ const PEI = () => {
 
     return (
       <div key={meta?.id ?? indexMeta}>
-        <span className="flex flex-wrap items-center gap-2 w-full font-inter">
-          <span>
-            Meta {indexMeta + 1}: {meta.value}
-          </span>
+        {/* Sem flex aqui de propósito — com `flex flex-wrap`, o texto
+            da meta e a pílula são dois ITENS separados que só quebram
+            de linha inteiros (a pílula cai pra uma linha própria
+            assim que a descrição da meta precisa de 2+ linhas, quase
+            sempre). Texto corrido (inline) deixa a pílula fluir junto
+            com a última palavra, exatamente como o PDF já faz — vai
+            pra próxima linha só se não couber mesmo, colada no fim da
+            frase, não separada dela. */}
+        <p className="font-inter">
+          Meta {indexMeta + 1}: {meta.value}
           {status && (
             <span
               className={clsx(
-                'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                'inline-block align-middle whitespace-nowrap ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold',
                 STATUS_META_PILL_CLASS[status]
               )}
             >
               {STATUS_META_LABEL_CURTO[status]}
             </span>
           )}
-        </span>
+        </p>
         {meta.observacao && (
           <p className="text-xs text-gray-400 italic mt-0.5">
             {meta.observacao}
