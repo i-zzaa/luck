@@ -81,9 +81,6 @@ const carregarLogoBase64 = async (): Promise<string | null> => {
 
 // Bloco de identificação profissional — mesmo texto que assina o
 // relatório de referência que a clínica já usa fora do app.
-const RESPONSAVEL_NOME = 'Talita Balbino Correa Cunico';
-const RESPONSAVEL_CARGO = 'Psicóloga/Supervisora ABA - Analista do Comportamento';
-const RESPONSAVEL_CARGO_LINHA2 = 'e Neuropsicóloga - CRP: 06/103406';
 const RESPONSAVEL_CONTATO = 'Cel: (11) 97271-6993 – Email: alcance.nt@yahoo.com';
 
 // Y da linha divisória sob o timbre — mesma referência usada tanto pra
@@ -103,20 +100,10 @@ const desenharTimbre = (doc: any) => {
     doc.addImage(logoDataUriCache, 'JPEG', MARGIN_LEFT, 12, 38, 15.2);
   }
 
-  let ry = 15;
-  doc.setFontSize(10);
-  doc.setFont('Helvetica', 'bold');
-  doc.setTextColor(...BRAND_PURPLE);
-  doc.text(RESPONSAVEL_NOME, rightX, ry, { align: 'right' });
-
+  let ry = 18;
   doc.setFontSize(7.5);
   doc.setFont('Helvetica', 'normal');
   doc.setTextColor(...GRAY_TEXT);
-  ry += 4.5;
-  doc.text(RESPONSAVEL_CARGO, rightX, ry, { align: 'right' });
-  ry += 3.5;
-  doc.text(RESPONSAVEL_CARGO_LINHA2, rightX, ry, { align: 'right' });
-  ry += 3.5;
   doc.text(RESPONSAVEL_CONTATO, rightX, ry, { align: 'right' });
   ry += 3.5;
   doc.text('CNPJ: 37.999.009/0001-68', rightX, ry, { align: 'right' });
