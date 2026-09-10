@@ -6,6 +6,16 @@ import { NIVEL_COR } from '../../constants/pdfRelatorioEvolucao';
 // árvore de itens/checkboxes, sem o preenchimento visual por
 // atividade que o PDF já tinha.
 //
+// No PDF os programas viram COLUNAS de uma grade (planilha), o que faz
+// sentido numa folha A4 — na tela, com até 9 programas por nível (ver
+// e2e/relatorio-evolucao.spec.ts), isso significa 9 colunas espremidas
+// numa largura de ~340px ou um scroll horizontal escondendo metade do
+// nível. Em vez disso, cada PROGRAMA vira uma LINHA própria (rótulo à
+// esquerda) com as células dos itens dele em flex-wrap — cabe na tela
+// de qualquer jeito, sem scroll horizontal, porque um programa com
+// muitos itens simplesmente quebra pra uma segunda linha dentro da
+// própria linha dele, em vez de estourar a largura da tela.
+//
 // dados: { [nivel]: { [data]: { [programa]: { [item]: { percentual } } } } }
 type Props = { dados: any };
 
@@ -49,65 +59,46 @@ export function TabelaVBMapp({ dados }: Props) {
 
             {datas.map((data) => {
               const programas = Object.keys(dados[nivel][data]);
-              const maxItens = programas.reduce(
-                (max, programa) =>
-                  Math.max(
-                    max,
-                    Object.keys(dados[nivel][data][programa]).length
-                  ),
-                0
-              );
 
               return (
                 <div key={data} className="mb-3">
                   <div className="font-inter text-[11px] text-gray-400 mb-1">
                     {data}
                   </div>
-                  <div className="overflow-x-auto rounded-lg border border-gray-200">
-                    <table className="border-collapse">
-                      <thead>
-                        <tr>
-                          {programas.map((programa) => (
-                            <th
-                              key={programa}
-                              className="bg-gray-100 border border-gray-200 px-1 py-1 font-inter text-[9px] font-semibold text-gray-800 whitespace-nowrap"
-                            >
-                              {programa}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.from({ length: maxItens }).map(
-                          (_, indexItem) => (
-                            <tr key={indexItem}>
-                              {programas.map((programa) => {
-                                const atividades = Object.keys(
-                                  dados[nivel][data][programa]
-                                );
-                                const atividade = atividades[indexItem];
-                                const percentual = atividade
-                                  ? dados[nivel][data][programa][atividade]
-                                      .percentual
-                                  : 0;
+                  <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    {programas.map((programa) => {
+                      const atividades = Object.keys(
+                        dados[nivel][data][programa]
+                      );
 
-                                return (
-                                  <td
-                                    key={programa}
-                                    className="border border-gray-200 p-0"
-                                  >
-                                    <div
-                                      className="w-5 h-5"
-                                      style={corCelula(percentual, corNivel)}
-                                    />
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
+                      return (
+                        <div
+                          key={programa}
+                          className="flex items-center gap-2 px-2 py-1.5"
+                        >
+                          <span
+                            className="w-16 shrink-0 font-inter text-[10px] font-semibold text-gray-700 truncate"
+                            title={programa}
+                          >
+                            {programa}
+                          </span>
+                          <div className="flex flex-wrap gap-1 flex-1">
+                            {atividades.map((atividade) => {
+                              const { percentual } =
+                                dados[nivel][data][programa][atividade];
+
+                              return (
+                                <div
+                                  key={atividade}
+                                  className="w-4 h-4 rounded-sm border border-gray-300 shrink-0"
+                                  style={corCelula(percentual, corNivel)}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
