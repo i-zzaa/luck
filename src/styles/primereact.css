@@ -683,6 +683,18 @@ textarea {
   border-radius: 6px;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
+/* Os ícones do CheckboxDTT/CheckboxSN são <svg width/height="1280">: num
+   flex item a largura encolhe pro quadrado, mas a altura não — o svg
+   ficava com 1280px de altura invisível por cima dos slots das linhas
+   de cima/baixo e o toque ia pro slot preenchido da mesma coluna. */
+.p-multistatecheckbox .p-checkbox-box {
+  overflow: hidden;
+}
+.p-multistatecheckbox .p-checkbox-box svg {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 .p-checkbox .p-checkbox-box .p-checkbox-icon {
   transition-duration: 0.2s;
   color: #ffffff;
