@@ -17,7 +17,8 @@ self.addEventListener('activate', () => {
   self.clients.claim();
 });
 
-// Formato do payload esperado (ver docs/pedido-backend-push.md): o backend
+// Formato do payload (montado em heron-list-nest/src/push/push.service.ts,
+// montarPayloadMudancaStatus): o backend
 // dispara o push já com título/corpo prontos — o SW só exibe, não decide
 // texto nem lógica de negócio nenhuma.
 interface PushPayload {

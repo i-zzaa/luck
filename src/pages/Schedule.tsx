@@ -177,10 +177,9 @@ export const Schedule = () => {
     return (
       <Card
         key={item.id}
-        // FALLBACK TEMPORÁRIO: prefere um código estável (ex.: "TO",
-        // "FONO") se o backend mandar; sem ele, useBorderColorClass cai
-        // no matching por substring do nome livre, como hoje (ver
-        // docs/pedido-backend-formatacao.md).
+        // Prefere o código estável que o backend manda (ex.: "TO",
+        // "FONO"); sem ele, useBorderColorClass cai no matching por
+        // substring do nome livre.
         type={item?.especialidade?.codigo || item.especialidade.nome}
         onClick={() =>
           podeAcessar &&

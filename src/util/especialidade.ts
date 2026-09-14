@@ -9,9 +9,8 @@
 // nunca batia e a tag sempre caía no cinza padrão, silenciosamente.
 // Consolidado aqui num único lugar.
 //
-// FALLBACK TEMPORÁRIO: prefere um `codigo` estável vindo do backend (ver
-// docs/pedido-backend-formatacao.md); só cai no matching por substring do
-// nome livre quando `codigo` não vier.
+// Prefere o `codigo` estável que o backend manda (`especialidade.codigo`);
+// só cai no matching por substring do nome livre quando `codigo` não vier.
 export type CodigoEspecialidade =
   | 'TO'
   | 'FONO'

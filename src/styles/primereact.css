@@ -875,8 +875,8 @@ textarea {
    (frase inteira, não uma palavra), a única forma de ler era rolar o
    painel pro lado. Deixa a altura crescer com o conteúdo e o texto
    quebrar linha normalmente.
-   Ver docs/pedido-backend-formatacao.md se algum dia vier um rótulo
-   curto pro Procedimento de Ensino — por ora o texto é mesmo comprido. */
+   Se algum dia vier um rótulo curto pro Procedimento de Ensino, dá pra
+   rever — por ora o texto é mesmo comprido. */
 .p-dropdown-item {
   font-size: .8rem;
   line-height: 1.2;

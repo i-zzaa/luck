@@ -26,17 +26,15 @@ const authInit = (page: Page) => {
 };
 
 test.describe('Banner de notificação push', () => {
-  // Cobertura possível hoje: enquanto VITE_VAPID_PUBLIC_KEY não existe
-  // (backend ainda não implementou — ver docs/pedido-backend-push.md), o
-  // banner "Ativar notificações" NUNCA deve aparecer, mesmo com o
-  // navegador suportando push e a permissão ainda não decidida — senão
-  // o botão "Ativar" chamaria subscribeToPush() e falharia silenciosamente
-  // (reason: 'no-vapid-key'), oferecendo algo que não funciona.
+  // Sem VITE_VAPID_PUBLIC_KEY no build, o banner "Ativar notificações"
+  // NUNCA deve aparecer, mesmo com o navegador suportando push e a
+  // permissão ainda não decidida — senão o botão "Ativar" chamaria
+  // subscribeToPush() e falharia silenciosamente (reason: 'no-vapid-key'),
+  // oferecendo algo que não funciona.
   //
   // O fluxo completo (banner aparece -> clica Ativar -> pede permissão ->
   // inscreve -> POST /push/subscribe) só é testável com uma chave VAPID
-  // real/fake definida em build time — vira um teste natural de adicionar
-  // assim que o backend entregar a chave.
+  // real/fake definida em build time — ainda não coberto aqui.
   test('banner não aparece sem VITE_VAPID_PUBLIC_KEY configurada', async ({ page, context }) => {
     await context.grantPermissions([]); // não concede notification permission
     await mockApi(page);

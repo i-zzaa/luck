@@ -24,10 +24,9 @@ export const getPushPermissionState = (): PushPermissionState => {
   return Notification.permission;
 };
 
-// FALLBACK/PENDÊNCIA DE BACKEND: a chave pública VAPID é gerada e mantida
-// pelo backend (o par de chaves privada/pública do Web Push) — só ele
-// consegui assinar os envios. Enquanto VITE_VAPID_PUBLIC_KEY não existir
-// no .env, a inscrição não é tentada (ver docs/pedido-backend-push.md).
+// A chave pública VAPID vem do par gerado e mantido pelo backend (só ele
+// consegue assinar os envios — heron-list-nest/src/push/push.service.ts).
+// Sem VITE_VAPID_PUBLIC_KEY no .env, a inscrição não é tentada.
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
 
 interface SubscribeResult {

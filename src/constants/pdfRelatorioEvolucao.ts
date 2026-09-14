@@ -17,8 +17,7 @@ import { STATUS_META_COLOR_RGB, STATUS_META_LABEL_CURTO } from './protocolo';
 // desenha o que chega: não escolhe avaliações, não ordena, não calcula
 // média/percentual/classificação nem status.
 //
-// Fora do escopo por enquanto (não existe no backend hoje — ver
-// docs/pedido-backend-formatacao.md): reforçamento diferencial e a
+// Fora do escopo por enquanto (não existe no backend): reforçamento diferencial e a
 // tabela ABC de comportamento disruptivo, que no documento de
 // referência são texto livre preenchido à mão pela terapeuta fora do
 // app.

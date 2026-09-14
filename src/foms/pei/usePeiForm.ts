@@ -169,11 +169,9 @@ export const usePeiForm = ({
 
       metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
-        // status/observação: campos novos (ver metaStatusFields.ts),
-        // ainda não confirmados no backend — meta.status/observacao só
-        // vêm preenchidos quando o backend já estiver salvando isso
-        // (ver docs/pedido-backend-formatacao.md). Sem eles, os campos
-        // do form ficam vazios, exatamente como uma meta nova.
+        // status/observação (ver metaStatusFields.ts): persistidos pelo
+        // backend e devolvidos em GET /pei/filtro. Meta sem eles deixa os
+        // campos do form vazios, exatamente como uma meta nova.
         if (meta.status) {
           const statusOption = drop?.statusMeta?.find(
             (option: any) => option.codigo === meta.status
