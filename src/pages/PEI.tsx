@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Filter } from '../templates/filter';
 import { PEIFields } from '../constants/formFields';
-import { deleteItem, dropDown, filter } from '../server';
+import { api, dropDown, filter } from '../server';
 import { useToast } from '../contexts/toast';
 import { Card } from '../components/card';
 import { NotFound } from '../components/notFound';
@@ -13,11 +13,9 @@ import { Fieldset } from 'primereact/fieldset';
 import { ButtonHeron } from '../components/button';
 import { Confirm } from '../components/confirm';
 import {
-  STATUS_META,
   STATUS_META_LABEL_CURTO,
   STATUS_META_PILL_CLASS,
   TIPO_PROTOCOLO,
-  VALOR_PORTAGE,
 } from '../constants/protocolo';
 import { useForm } from 'react-hook-form';
 import clsx from 'clsx';
@@ -59,21 +57,24 @@ const PEI = () => {
   // como a última seção do Relatório de Evolução (ver
   // pdfRelatorioEvolucao.ts/desenharCondutaSugerida).
   const [condutaSugerida, setCondutaSugerida] = useState('');
-  // Payload cru de GET protocolo/filtro (type: 'pdf') — mesma chamada
-  // que o Relatório de Evolução já usa (pdfRelatorioEvolucao.ts). Só
-  // preenchido quando o Protocolo selecionado é Portage ou VB-MAPP: é o
-  // que alimenta a tabela comparativa (TabelaPortage/TabelaVBMapp) logo
-  // acima da árvore de itens — antes a tela só mostrava a árvore, sem
-  // nenhum jeito de comparar evolução por sessão sem abrir o PDF.
+  // `tabelaComparativa` de POST /pei/filtro (item 13 do
+  // heron-list-nest/docs/pedido-frontend-fase2.md) — vem na mesma
+  // resposta dos itens, já no formato pronto de Portage (item 17) ou
+  // VB-MAPP (item 19), e null pro Manual. Alimenta a tabela comparativa
+  // (TabelaPortage/TabelaVBMapp) logo acima da árvore de itens.
   const [tabelaProtocolo, setTabelaProtocolo] = useState<any>(null);
 
   const handleGerarRelatorioEvolucao = async () => {
     if (!pacienteSelecionado?.id) return;
     setGerandoRelatorio(true);
     try {
+      // PUT /paciente/:id/relatorio-evolucao sobrescreve a conduta salva —
+      // editor vazio manda `undefined` (não persiste nada) em vez de apagar
+      // a conduta que já estava no banco.
+      const condutaPreenchida = condutaSugerida.replace(/<[^>]*>/g, '').trim();
       await gerarRelatorioEvolucao(
         pacienteSelecionado,
-        condutaSugerida,
+        condutaPreenchida ? condutaSugerida : undefined,
         renderToast
       );
     } catch (error) {
@@ -99,20 +100,22 @@ const PEI = () => {
   };
 
   // Edição em nível de protocolo já cobre "salvar" (consolida tudo no
-  // registro canônico via peiIds — ver usePeiForm.ts), mas faltava a
-  // exclusão do grupo inteiro: apaga cada registro original mesclado
-  // naquele programa (item.peiIds — cai pra [item.id] se o backend não
-  // mandar essa lista, por segurança).
+  // registro canônico via peiIds — ver usePeiForm.ts); aqui é a exclusão
+  // do grupo inteiro. DELETE /pei em lote (item 11 do
+  // pedido-frontend-fase2.md): uma requisição só com todos os peiIds
+  // mesclados no programa (sempre presentes — item 15), e com pacienteId
+  // o backend já devolve a lista do Manual atualizada, sem refazer a
+  // busca. `deleteItem` de server/index.ts não manda body, por isso o
+  // `api.delete` direto.
   const handleRemovePrograma = async (item: any) => {
     setLoading(true);
     try {
-      const ids: any[] = item?.peiIds?.length ? item.peiIds : [item.id];
-      await Promise.all(ids.map((id: any) => deleteItem(`pei/${id}`)));
-
-      onSubmitFilter({
-        pacienteId: state?.pacienteId || pacienteCurrent,
-        protocoloId: { id: tipoProtocolo },
+      const paciente: any = state?.pacienteId || pacienteCurrent;
+      const { data }: any = await api.delete('pei', {
+        data: { peiIds: item.peiIds, pacienteId: paciente?.id },
       });
+
+      setList(data || []);
       renderToast({
         type: 'success',
         title: 'Sucesso!',
@@ -164,22 +167,11 @@ const PEI = () => {
     );
   };
 
-  // Só o protocolo Manual carrega um `status` próprio (campo novo,
-  // ainda pendente de confirmação do backend — ver
-  // docs/pedido-backend-formatacao.md). Portage e VB-MAPP não têm isso,
-  // mas cada item guarda a resposta salva em `selected` ('1'/'0,5'/'0'
-  // — mesma escala de VALOR_PORTAGE/respostaSessao); deriva a mesma tag
-  // "Atingida"/"Em aquisição" a partir disso, pra ficar consistente com
-  // o Relatório de Evolução em PDF (que já mostra a pílula pro Manual
-  // hoje — ver pdfRelatorioEvolucao.ts/desenharPei).
-  const derivarStatusResposta = (selected?: string) => {
-    if (selected === VALOR_PORTAGE.sim) return STATUS_META.atingida;
-    if (selected === VALOR_PORTAGE.asVezes) return STATUS_META.aquisicao;
-    return undefined;
-  };
-
   const renderMetaItem = (meta: any, indexMeta: number) => {
-    const status = meta.status || derivarStatusResposta(meta.selected);
+    // `status` já vem resolvido por /pei/filtro nos três protocolos (item
+    // 12 do pedido-frontend-fase2.md) — a tela não deriva mais nada de
+    // `selected`.
+    const status = meta.status;
 
     return (
       <div key={meta?.id ?? indexMeta}>
@@ -261,15 +253,15 @@ const PEI = () => {
       return <TabelaPortage data={tabelaProtocolo} />;
     }
     if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
-      return <TabelaVBMapp dados={tabelaProtocolo.data} />;
+      return <TabelaVBMapp dados={tabelaProtocolo} />;
     }
     return null;
   };
 
   const renderContent = () => {
     if (!loading) {
-      // A tabela não depende de `list` ter itens — /pei/filtro só traz
-      // itens ainda NÃO respondidos com sucesso (exclui selected='1'),
+      // A tabela não depende de `list` ter itens — /pei/filtro com
+      // `pendentes` só traz itens ainda não atingidos,
       // então um protocolo inteiramente concluído pode ter `list` vazia
       // e a tabela (que mostra o resultado completo) com dado normal.
       // Sem separar os dois, um protocolo 100% concluído nunca mostrava
@@ -364,46 +356,33 @@ const PEI = () => {
     protocoloId && setTipoProtocolo(protocoloId.id);
     pacienteId && setPacienteCurrent(pacienteId);
 
+    // Uma chamada só (item 13 do pedido-frontend-fase2.md): com
+    // `comTabelaComparativa`, /pei/filtro devolve { itens,
+    // tabelaComparativa } — a tabela do Portage/VB-MAPP vem junto e o
+    // Manual vem com null, então a tela não escolhe mais rota por id de
+    // protocolo. `pendentes` (item 14) é o jeito semântico de pedir só
+    // os itens ainda não atingidos, sem o front conhecer a escala
+    // '1'/'0.5'/'0'. Em erro, limpa as duas coisas — senão a tabela de
+    // uma busca anterior ficaria presa na tela.
     try {
       const { data }: any = await filter('pei', {
         paciente: pacienteId,
         protocoloId: protocoloId,
-        notSelected: [VALOR_PORTAGE.sim],
+        pendentes: true,
+        comTabelaComparativa: true,
       });
 
-      setList(data);
+      setList(data?.itens || []);
+      setTabelaProtocolo(data?.tabelaComparativa || null);
     } catch (error) {
       setList([]);
+      setTabelaProtocolo(null);
       renderToast({
         type: 'failure',
         title: '401',
         message: 'PEI não encontrado!',
         open: true,
       });
-    }
-
-    // Tabela comparativa (mesma estrutura do PDF) só existe pra Portage
-    // e VB-MAPP — Manual não tem essa comparação por sessão, só a
-    // listagem de metas. Busca à parte (endpoint diferente do 'pei'
-    // acima, mesmo usado pelo Relatório de Evolução) e some quando o
-    // protocolo selecionado não é nenhum dos dois, senão uma tabela de
-    // uma busca anterior ficaria presa na tela.
-    if (
-      protocoloId.id === TIPO_PROTOCOLO.portage ||
-      protocoloId.id === TIPO_PROTOCOLO.vbMapp
-    ) {
-      try {
-        const { data: dadosTabela }: any = await filter('protocolo', {
-          pacienteId: pacienteId?.id,
-          protocoloId: protocoloId.id,
-          type: 'pdf',
-        });
-        setTabelaProtocolo(dadosTabela || null);
-      } catch (error) {
-        setTabelaProtocolo(null);
-      }
-    } else {
-      setTabelaProtocolo(null);
     }
 
     setLoading(false);
@@ -511,11 +490,8 @@ const PEI = () => {
   }, []);
 
   return (
-    // Reserva espaço pra tab bar flutuante do rodapé (BottomTabBar —
-    // fixed, não empurra o conteúdo sozinha) não cobrir o fim da lista/
-    // tabela. Mesmo cálculo de components/Nav/bottomTabBarLayout.ts
-    // (ABOVE_TAB_BAR: 5,25rem até o topo da pill) + uma folga extra.
-    <div className="pb-[calc(5.25rem+1rem+env(safe-area-inset-bottom))]">
+    // Espaço pra tab bar do rodapé já é reservado no LayoutDefault.
+    <div>
       {renderFilter()}
       {renderRelatorioEvolucao()}
       {renderContent()}

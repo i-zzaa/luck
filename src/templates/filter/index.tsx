@@ -62,6 +62,10 @@ export function Filter({
     onSubmit(formState);
   };
 
+  // Ainda fica no front: o item 25 do pedido-frontend-fase2.md pede que o
+  // backend aplique essa restrição pela permissão do token em /pei/filtro e
+  // /protocolo/filtro, mas isso foi deferido lá (heron-list-nest c6abb0a) —
+  // sem esta injeção, quem não tem a permissão veria os agendados.
   useEffect(() => {
     if (!hasPermition(`${screen}_FILTRO_SELECT_AGENDADOS`)) {
       setValue('naFila', true);

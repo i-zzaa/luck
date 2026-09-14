@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { Fieldset } from 'primereact/fieldset';
 import { Input, ButtonHeron } from '../../components';
 import { PEICadastroFields } from '../../constants/formFields';
-import { STATUS_META_OPTIONS, TIPO_PROTOCOLO } from '../../constants/protocolo';
+import { TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { usePeiForm } from './usePeiForm';
 import { useIsTabRoute } from '../../components/Nav/useIsTabRoute';
 import { ABOVE_TAB_BAR } from '../../components/Nav/bottomTabBarLayout';
@@ -116,7 +116,7 @@ export default function PEICADASTRO({ paciente, param }: { paciente: { id: numbe
                     type="select"
                     customCol="col-span-6 sm:col-span-6"
                     control={control}
-                    options={STATUS_META_OPTIONS}
+                    options={dropDownList.statusMeta}
                   />
                   <Input
                     labelText="Observação"

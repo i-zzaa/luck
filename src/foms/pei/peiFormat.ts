@@ -1,3 +1,18 @@
+// `selected` de um subitem do formulário, reposto pelo ID do subitem
+// original (não pela posição no array — remover um subitem no meio
+// deslocava a resposta dos seguintes pro subitem errado). Subitem novo
+// (sem original) fica sem `selected`.
+const selectedDoOriginal = (subitemsOriginais: any[] = [], id: any) => {
+  const original = subitemsOriginais.find((sub: any) => sub.id === id);
+  return original?.selected ? { selected: original.selected } : {};
+};
+
+// Portage continua voltando pro cadastro com a meta montada no cliente
+// (state.metaEdit — ver foms/Portage.tsx): o PUT
+// protocolo/portage/meta/:id/subitens do backend (item 16 do
+// heron-list-nest/docs/pedido-frontend-fase2.md) só grava `subitems`/
+// `selected`, e o formulário também edita procedimento de ensino,
+// SD, resposta e SR+ da meta — usar o PUT perderia esses campos.
 export function formatPortage(formvalue: any, metas: any[]) {
   const meta = { ...formvalue.metas[0] };
   delete formvalue.metas;
@@ -11,102 +26,49 @@ export function formatPortage(formvalue: any, metas: any[]) {
     faixaEtaria: metas[0].faixaEtaria,
     permiteSubitens: true,
     ...selectedMeta,
-    subitems: meta.subitems.map((item: any, key: number) => {
-      const selected = metas[0].subitems[key]?.selected ? { selected: metas[0].subitems[key]?.selected } : {};
-      return {
-        nome: item.value,
-        id: item.id,
-        ...selected,
-      };
-    }),
+    subitems: meta.subitems.map((item: any) => ({
+      nome: item.value,
+      id: item.id,
+      ...selectedDoOriginal(metas[0]?.subitems, item.id),
+    })),
   };
 }
 
-export function formatVBMapp(formvalue: any, dropDownList: any) {
+// VB-MAPP: monta um corpo de PUT protocolo/vbmapp/meta/:id/subitens por
+// atividade editada (item 16 do pedido-frontend-fase2.md) — o backend
+// grava cada atividade isoladamente, sem o front reenviar o nível
+// inteiro nem costurar a meta de volta na lista do cadastro.
+// `vbmappId` é o id real da atividade (ver VBMapp.tsx/onClickAddSubItem)
+// — o id do formulário ("N-meta-X") é só chave de campo do
+// react-hook-form.
+export function montarSubitensVBMapp(payload: any, metasOriginais: any[]) {
   const {
-    procedimentoEnsinoId = '',
-    estimuloDiscriminativo = '',
-    estimuloReforcadorPositivo = '',
-    resposta = '',
-    pacienteId = '',
-    programaId = '',
-    metas = []
-  } = formvalue ?? {};
-
-  const programaObj = dropDownList?.programa?.find((item: any) => item.id === programaId);
-
-  const formated = metas.map((metaCurrent: any) => ({
-    id: metaCurrent.id,
-    nome: metaCurrent.value,
     procedimentoEnsinoId,
     estimuloDiscriminativo,
     estimuloReforcadorPositivo,
     resposta,
     pacienteId,
-    permiteSubitens: true,
-    subitems: metaCurrent.subitems.map((item: any, key: number) => {
-      const selected = metaCurrent.subitems[key]?.selected ? { selected: metaCurrent.subitems[key]?.selected } : {};
-      return {
-        nome: item.value,
-        id: item.id,
-        ...selected,
-      };
-    }),
-  }));
+    metas = [],
+  } = payload ?? {};
 
-  return {
-    programa: programaObj.nome,
-    metas: formated,
-  };
-}
+  return metas.map((metaForm: any) => {
+    const original = metasOriginais.find((meta: any) => meta.id === metaForm.id);
 
-export function formatarDado({ state, param, drop, setValue, setMetas, TIPO_PROTOCOLO }: any) {
-  if (state?.item?.programa || (state?.tipoProtocolo && state?.tipoProtocolo === TIPO_PROTOCOLO.vbMapp)) {
-    const {
-      paciente,
-      programa,
-      estimuloDiscriminativo,
-      resposta,
-      estimuloReforcadorPositivo,
-      metas,
-      procedimentoEnsinoId,
-    } = state.item;
-
-    const programaObj = typeof programa !== 'object'
-      ? drop?.programa?.find((item: any) => item.nome.toLowerCase() === programa)
-      : programa;
-
-    const procedimentoEnsinoObj = typeof procedimentoEnsinoId !== 'object'
-      ? drop?.procedimentoEnsino?.find((item: any) => item.id === procedimentoEnsinoId)
-      : procedimentoEnsinoId;
-
-    setValue('pacienteId', paciente);
-    setValue('programaId', programaObj);
-    setValue('procedimentoEnsinoId', procedimentoEnsinoObj);
-    setValue('estimuloDiscriminativo', estimuloDiscriminativo);
-    setValue('resposta', resposta);
-    setValue('estimuloReforcadorPositivo', estimuloReforcadorPositivo);
-
-    setMetas(metas);
-    metas.forEach((meta: any) => {
-      setValue(meta.id, meta.value);
-      meta.subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
-    });
-  } else if (state?.tipoProtocolo === TIPO_PROTOCOLO.portage) {
-    const { paciente, metas } = param.item;
-    const procedimentoEnsino = drop.procedimentoEnsino?.find((item: any) => item.id === metas[0].procedimentoEnsino);
-    const programa = drop.programa?.find((item: any) => item.id === metas[0].programa);
-
-    setMetas(metas);
-    setValue(metas[0].id, metas[0].value);
-    setValue('pacienteId', paciente);
-    setValue('programaId', programa);
-    setValue('procedimentoEnsinoId', procedimentoEnsino);
-    setValue('estimuloDiscriminativo', metas[0].estimuloDiscriminativo);
-    setValue('resposta', metas[0].resposta);
-    setValue('estimuloReforcadorPositivo', metas[0].estimuloReforcadorPositivo);
-
-    metas[0].subitems?.forEach((subitem: any) => setValue(subitem.id, subitem.value));
-    if (!metas[0].subitems) metas[0].subitems = [];
-  }
+    return {
+      vbmappId: original?.vbmappId,
+      body: {
+        pacienteId,
+        selected: original?.selected,
+        procedimentoEnsinoId,
+        estimuloDiscriminativo,
+        estimuloReforcadorPositivo,
+        resposta,
+        subitems: (metaForm.subitems || []).map((item: any) => ({
+          nome: item.value,
+          id: item.id,
+          ...selectedDoOriginal(original?.subitems, item.id),
+        })),
+      },
+    };
+  });
 }

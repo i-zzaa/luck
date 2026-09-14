@@ -17,20 +17,31 @@ import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
 import { ABOVE_TAB_BAR } from '../components/Nav/bottomTabBarLayout';
 
+const RASCUNHO_VBMAPP = 'rascunhoRespostasVBMapp';
+
 export default function VBMapp({ paciente }: any) {
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState({} as any);
   const [selectedItems, setSelectedItems] = useState([]);
   const { renderToast } = useToast();
 
-  const [nivel, setNivel] = useState(VBMAPP.um);
-  const [nivelIndex, setNivelIndex] = useState(VBMAPP.um - 1);
-  const [existe, setExiste] = useState(false);
-  const isTabRoute = useIsTabRoute();
-
   const location = useLocation();
   const { state } = location;
   const navigate = useNavigate();
+
+  // Voltando da edição de subitens (usePeiForm.ts), reabre no nível em
+  // que o lápis foi clicado — antes sempre caía no Nível 1, mesmo
+  // editando um programa do Nível 2/3.
+  const voltandoDaEdicao =
+    Array.isArray(state?.subitensSalvos) &&
+    state?.pacienteId?.id === paciente.id &&
+    state?.protocoloId === TIPO_PROTOCOLO.vbMapp;
+  const nivelInicial = (voltandoDaEdicao && state?.nivel) || VBMAPP.um;
+
+  const [nivel, setNivel] = useState(nivelInicial);
+  const [nivelIndex, setNivelIndex] = useState(nivelInicial - 1);
+  const [existe, setExiste] = useState(false);
+  const isTabRoute = useIsTabRoute();
 
   const exportPDF = useCallback(async () => {
     try {
@@ -64,118 +75,62 @@ export default function VBMapp({ paciente }: any) {
         nivel: nivelCurrent,
       });
 
-      getMetaEdit(data.data);
+      setList(aplicarRascunho(data.data, nivelCurrent));
       setExiste(data.existeResposta);
     },
     [nivel, paciente.id]
   );
 
-  // Recupera o id original do item a partir do id composto que
-  // onClickAddSubItem monta (`${index}-meta-${item.id}`). Antes exigia
-  // que o trecho depois de "-meta-" fosse só dígitos (regex \d+) — o id
-  // de um item do VB-MAPP nem sempre é puramente numérico (pode vir
-  // como código, ex. "M1"), e nesse caso a extração falhava (retornava
-  // null) SILENCIOSAMENTE pra TODOS os itens editáveis do programa.
-  // Resultado: metasEditadasMap.has(...) nunca batia, o filtro abaixo
-  // removia a lista inteira do programa, e o lápis (que só aparece se
-  // sobrar algum item com permiteSubitens) sumia — exatamente o bug
-  // relatado em Mando/Tato/Ouvinte. Captura tudo depois do último
-  // "-meta-", não só dígitos.
-  const pegarIdDepoisDeMeta = (str: string) => {
-    const match = String(str).match(/-meta-(.+)$/);
-    return match ? match[1] : null;
-  };
+  // As atividades editadas no formulário do PEI já foram gravadas no
+  // backend (PUT protocolo/vbmapp/meta/:id/subitens — item 16 do
+  // heron-list-nest/docs/pedido-frontend-fase2.md), então a lista que
+  // acabou de vir do servidor já está certa pra elas — sem mais costura
+  // de state.metaEdit, ids compostos por regex nem filtro de "editável
+  // removido". O único rascunho que sobra é o das respostas marcadas nas
+  // OUTRAS atividades e ainda não salvas antes de clicar no lápis: essas
+  // só existem no cliente, e sem isso seriam perdidas ao navegar pro
+  // formulário. Aplicado uma vez só, por id, e só no mesmo paciente/nível.
+  const aplicarRascunho = (listaServidor: any, nivelCurrent: number) => {
+    const bruto = sessionStorage.getItem(RASCUNHO_VBMAPP);
+    if (!voltandoDaEdicao || !bruto) return listaServidor;
+    sessionStorage.removeItem(RASCUNHO_VBMAPP);
 
-  // Um item só entra no fluxo de edição do PEI se tiver subitens ou
-  // permiteSubitens (mesmo critério de onClickAddSubItem) — os demais
-  // itens do programa nunca são enviados pro formulário, então não tem
-  // como vir de volta em state.metaEdit.metas. Precisa desse mesmo
-  // critério aqui pra não confundir "não editável, nem deveria estar
-  // na resposta" com "editável e removido de propósito no PEI".
-  const itemEEditavel = (item: any) =>
-    (item.subitems && item.subitems.length) || item.permiteSubitens;
-
-  const getMetaEdit = (currentList: any) => {
-    if (
-      !state?.metaEdit ||
-      state.pacienteId.id !== paciente.id ||
-      state.protocoloId !== TIPO_PROTOCOLO.vbMapp
-    ) {
-      setList(currentList);
-      return;
+    const rascunho = JSON.parse(bruto);
+    if (rascunho.pacienteId !== paciente.id || rascunho.nivel !== nivelCurrent) {
+      return listaServidor;
     }
 
-    const savedList = sessionStorage.getItem('prePEIListVBMapp');
-    const previousList = savedList ? JSON.parse(savedList) : currentList;
+    const salvos = new Set(state.subitensSalvos.map(String));
+    const lista = JSON.parse(JSON.stringify(listaServidor || {}));
 
-    const copyList = JSON.parse(JSON.stringify(previousList));
-    const programa = state.metaEdit.programa;
-
-    if (!copyList[programa]) {
-      console.error('Programa não encontrado em copyList:', programa);
-      return;
-    }
-
-    // Chave sempre em string (tanto aqui quanto nos .get/.has abaixo) —
-    // meta.id no dado vindo do backend pode ser number, e o id extraído
-    // do composto por pegarIdDepoisDeMeta é sempre string; comparar sem
-    // normalizar os dois lados pro mesmo tipo faz o Map nunca bater.
-    const metasEditadasMap = new Map(
-      state.metaEdit.metas.map((meta: any) => [
-        pegarIdDepoisDeMeta(meta.id),
-        meta,
-      ])
-    );
-
-    // Só mexe nos itens que passaram pelo formulário do PEI (editáveis).
-    // Um editável que sumiu do retorno foi removido de propósito lá
-    // dentro — esse sim é excluído daqui. Os não-editáveis (nunca
-    // enviados, então nunca estariam no Map) ficam intactos, preservando
-    // a ordem original do programa.
-    copyList[programa] = copyList[programa]
-      .filter(
-        (meta: any) =>
-          !itemEEditavel(meta) || metasEditadasMap.has(String(meta.id))
-      )
-      .map((meta: any) => {
-        if (!itemEEditavel(meta)) return meta;
-
-        const metaEditada: any = metasEditadasMap.get(String(meta.id));
-        if (!metaEditada) return meta;
-
-        const updatedSubitems = (metaEditada?.subitems || []).map((edit: any) => {
-          const backendSub = (meta.subitems || []).find(
-            (s: any) => s.id === edit.id
-          );
-
-          return {
-            ...OBJ_ITEM,
-            ...backendSub,
-            ...edit,
-            selected:
-              edit.selected !== undefined
-                ? edit.selected
-                : (backendSub?.selected ?? false),
-          };
-        });
+    Object.keys(lista).forEach((programa) => {
+      lista[programa] = lista[programa].map((item: any) => {
+        const itemRascunho = (rascunho.list?.[programa] || []).find(
+          (r: any) => r.id === item.id
+        );
+        if (!itemRascunho || salvos.has(String(item.id))) return item;
 
         return {
-          ...meta,
-          ...metaEditada,
-          subitems: updatedSubitems,
-          selected: metaEditada?.selected ?? meta.selected,
-          id: meta.id,
+          ...item,
+          selected: itemRascunho.selected,
+          subitems: (item.subitems || []).map((sub: any) => ({
+            ...sub,
+            selected:
+              (itemRascunho.subitems || []).find((s: any) => s.id === sub.id)
+                ?.selected ?? sub.selected,
+          })),
         };
       });
+    });
 
-    setList(copyList);
+    return lista;
   };
 
-  const clearMetaEdit = () => {
-    // --- limpa somente state.metaEdit ---
+  const clearSubitensSalvos = () => {
+    // --- limpa somente o retorno da edição (subitensSalvos/nivel) ---
     const st = (state as any) || {};
-    if ('metaEdit' in st) {
-      const { metaEdit, ...rest } = st; // remove metaEdit
+    if ('subitensSalvos' in st) {
+      const { subitensSalvos, nivel: _nivel, ...rest } = st;
       navigate(location.pathname + location.search + location.hash, {
         replace: true,
         state: Object.keys(rest).length ? rest : null, // mantém eventuais outras chaves
@@ -190,7 +145,8 @@ export default function VBMapp({ paciente }: any) {
     try {
       await create('protocolo/vbmapp', payload);
       setExiste(true);
-      clearMetaEdit();
+      sessionStorage.removeItem(RASCUNHO_VBMAPP);
+      clearSubitensSalvos();
       renderToast({
         type: 'success',
         title: 'Sucesso!',
@@ -288,7 +244,11 @@ export default function VBMapp({ paciente }: any) {
       resposta,
     } = itensPermiteSubitens[0];
 
-    const meta = itensPermiteSubitens.map((item: any, key: any) => {
+    const meta = itensPermiteSubitens.map((item: any) => {
+      // "N-meta-X" é só a chave de campo que o formulário do PEI
+      // (usePeiForm.ts) espera; o id real da atividade vai em `vbmappId`,
+      // que é o que o PUT de subitens usa — nada é extraído de volta do
+      // id composto por regex.
       const id = `${index}-meta-${item.id}`;
 
       const objeto: any = {
@@ -297,6 +257,7 @@ export default function VBMapp({ paciente }: any) {
         ...item,
         respostaSessao: item?.respostaSessao,
         id,
+        vbmappId: item.id,
       };
 
       if (item?.subitems) {
@@ -318,11 +279,17 @@ export default function VBMapp({ paciente }: any) {
       return objeto;
     });
 
-    sessionStorage.setItem('prePEIListVBMapp', JSON.stringify(list));
+    // Rascunho das respostas ainda não salvas do nível (ver
+    // aplicarRascunho) — com paciente e nível, pra não vazar pra outro.
+    sessionStorage.setItem(
+      RASCUNHO_VBMAPP,
+      JSON.stringify({ pacienteId: paciente.id, nivel, list })
+    );
 
     navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
       state: {
         edit: true,
+        nivel,
         item: {
           metas: meta,
           paciente,

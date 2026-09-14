@@ -14,11 +14,25 @@ export const LayoutDefault = ({ children }: Props) => {
   // que quem rola é este container). Sem isso, o último item de telas
   // sem padding-bottom próprio (ex.: Primeira Resposta) ficava colado —
   // ou parcialmente escondido — atrás da tab bar.
+  //
+  // Padding (não margin): margem final dentro de um container com
+  // overflow não entra na área rolável no Safari. E soma a área segura
+  // (home indicator), que o `mb-24` fixo ignorava. Valor = topo da pill
+  // (ABOVE_TAB_BAR em Nav/bottomTabBarLayout.ts) + 1rem de folga.
   const isTabRoute = useIsTabRoute();
 
   return (
-    <div className="h-screen overflow-y-auto">
-      <div className={clsx('mx-2 mt-4', isTabRoute ? 'mb-24' : 'mb-16')}>
+    // overflow-x-hidden: nenhuma tela rola na horizontal — conteúdo largo
+    // (tabelas etc.) precisa se ajustar à largura, não empurrar a página.
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div
+        className={clsx(
+          'mx-2 pt-4',
+          isTabRoute
+            ? 'pb-[calc(5.25rem+1rem+env(safe-area-inset-bottom))]'
+            : 'pb-[calc(4rem+env(safe-area-inset-bottom))]'
+        )}
+      >
         {children}
       </div>
     </div>

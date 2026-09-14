@@ -8,10 +8,8 @@ import { SessionActivity } from './SessionActivity';
 import { SessionPortage } from './SessionPortage';
 import { SessionVBMapp } from './SessionVBMapp';
 import { SessionMaintenance } from './SessionMaintenance';
-import { useMemo, useState } from 'react';
-import { extractTrainedSelectionKeys, MIN_RESUMO_LENGTH } from '../../util/sessionTree';
+import { useState } from 'react';
 import { MetasBottomSheet } from '../../components/metasBottomSheet';
-import { classificarStatus } from '../../util/status';
 
 // Espaço reservado pro toast fixo de aviso (ver renderHeaderSession) —
 // ele não empurra ninguém sozinho (é fixed), então o resto da tela
@@ -21,6 +19,9 @@ const ATIVIDADE_ALERTA_SPACER = 'h-16';
 
 export const Session = () => {
   const {
+    calendarioId,
+    evento,
+    minResumoLength,
     content,
     setContent,
     list,
@@ -28,7 +29,6 @@ export const Session = () => {
     listPortage,
     listVBMapp,
     dtt,
-    maintenance,
     portage,
     vbmapp,
     isEdit,
@@ -36,31 +36,26 @@ export const Session = () => {
     setPortage,
     setVBMapp,
     setDTT,
-    setMaintenance,
+    setListMaintenance,
     handleSubmitSumary,
     refreshMetas,
-    state,
   } = useSessionForm();
 
   const [metasSheetOpen, setMetasSheetOpen] = useState(false);
 
-  const renderHeader = () => (
-    <ChoiceItemSchedule
-      start={state?.item?.data?.start}
-      end={state?.item?.data?.end}
-      statusEventos={state?.item?.statusEventos}
-      title={state?.item?.title}
-      localidade={state?.item?.localidade?.nome}
-      localExternoDescricao={state?.item?.localExternoDescricao}
-      localExibicao={state?.item?.localExibicao}
-      isExterno={state?.item?.isExterno}
-      km={state?.item?.km}
-      modalidade={state?.item?.modalidade?.nome}
-      dataInicio={state?.item?.dataInicio}
-      dataFim={state?.item?.dataFim}
-      dataAtual={state?.item?.dataAtual}
-    />
-  );
+  // Evento vem de GET /sessao/calendario/:id (não mais de location.state),
+  // então só existe depois da carga.
+  const renderHeader = () =>
+    evento && (
+      <ChoiceItemSchedule
+        start={evento.data?.start}
+        end={evento.data?.end}
+        statusEventos={evento.statusEventos}
+        title={evento.title}
+        localExibicao={evento.localExibicao}
+        modalidade={evento.modalidadeExibicao}
+      />
+    );
 
   const renderSumary = () => (
     <>
@@ -68,10 +63,10 @@ export const Session = () => {
         <span className="text-gray-800 font-inter font-bold leading-4">
           Resumo
           {!isEdit && <span className="text-red-400"> *</span>}
-          {!isEdit && (
+          {!isEdit && !!minResumoLength && (
             <span className="text-gray-400 font-normal text-xs">
               {' '}
-              (mínimo {MIN_RESUMO_LENGTH} caracteres)
+              (mínimo {minResumoLength} caracteres)
             </span>
           )}
         </span>
@@ -92,7 +87,7 @@ export const Session = () => {
           readOnly={isEdit}
           placeholder="Descreva como foi a sessão, a evolução do paciente e observações relevantes."
           onBlur={(newContent) => setContent(newContent)}
-          minLength={MIN_RESUMO_LENGTH}
+          minLength={minResumoLength}
         />
       </Card>
     </>
@@ -113,13 +108,11 @@ export const Session = () => {
       </div>
     );
 
-  // Sessão já atendida: fim do treino de verdade — nem o aviso "interrompa
-  // ao atingir 4 tentativas" nem o atalho de complementar metas fazem
-  // sentido mais (a sessão já está registrada e é só leitura).
-  const isAtendido = classificarStatus(state?.item?.statusEventos) === 'atendido';
-
+  // Sessão já registrada (modo "leitura", decidido pelo servidor): fim do
+  // treino de verdade — nem o aviso "interrompa ao atingir 4 tentativas"
+  // nem o atalho de complementar metas fazem sentido mais.
   const hasAtividadeAlerta =
-    !isAtendido &&
+    !isEdit &&
     (!!list.length ||
       !!listPortage.length ||
       !!listVBMapp.length ||
@@ -142,22 +135,6 @@ export const Session = () => {
     </div>
   );
 
-  // Fallback pro bottom sheet de "Adicionar metas": deriva quais metas já
-  // foram treinadas a partir da própria árvore da sessão — mesma fonte
-  // que SessionActivity/SessionPortage/SessionVBMapp usam pra exibir
-  // (estado editável se já tiver algo, senão a árvore carregada). Só
-  // entra em uso quando o backend não tem mais o "planejamento prévio"
-  // (ver useMetasSelection). Memoizado pelas mesmas árvores — não muda a
-  // cada render, senão o bottom sheet buscaria de novo à toa.
-  const metasFallbackSelection = useMemo(
-    () => ({
-      manual: extractTrainedSelectionKeys(dtt.length ? dtt : list),
-      portage: extractTrainedSelectionKeys(portage.length ? portage : listPortage),
-      vbmapp: extractTrainedSelectionKeys(vbmapp.length ? vbmapp : listVBMapp),
-    }),
-    [dtt, list, portage, listPortage, vbmapp, listVBMapp]
-  );
-
   return (
     <div className="grid overflow-x-hidden bg-background">
       {renderHeaderSession}
@@ -169,8 +146,8 @@ export const Session = () => {
       <div className={clsx(!isEdit && 'pb-24')}>
         {/* Opção discreta — não é a ação principal da tela, só um atalho
             pra quem precisa complementar as metas sem sair da Sessão.
-            Some quando a sessão já está atendida (fim do treino). */}
-        {!isAtendido && (
+            Some quando a sessão já está registrada (fim do treino). */}
+        {!isEdit && (
           <div className="flex justify-end mx-2 mt-2">
             <button
               type="button"
@@ -203,7 +180,7 @@ export const Session = () => {
         <SessionMaintenance
           listMaintenance={listMaintenance}
           isEdit={isEdit}
-          setMaintenance={setMaintenance}
+          setListMaintenance={setListMaintenance}
         />
         {renderSumary()}
       </div>
@@ -211,10 +188,8 @@ export const Session = () => {
       <MetasBottomSheet
         open={metasSheetOpen}
         onClose={() => setMetasSheetOpen(false)}
-        paciente={state?.item?.paciente}
-        calendarioId={state?.item?.id}
+        calendarioId={calendarioId}
         onSaved={refreshMetas}
-        fallbackSelection={metasFallbackSelection}
       />
     </div>
   );

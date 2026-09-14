@@ -1,23 +1,32 @@
 import React, { createContext, useState, useEffect, useRef, useContext, useCallback, useMemo } from 'react';
 import { api, intercepttRoute } from '../server';
-import { permissionAuth } from './permission';
 import { useToast } from './toast';
 import { clearCache } from '../localStorage/sessionStorage';
 import { buildErrorToast } from '../util/error';
 import { registerMustChangePasswordListener } from '../util/mustChangePasswordBus';
+import type {
+  AuthUserProps,
+  LoginCredentialsProps,
+  LoginResponseProps,
+} from '../types/user';
 
-// Duração fixa da sessão antes do logout automático (~2h13min). Não é
-// inatividade real (não há listeners de atividade do usuário aqui) — é só
-// um teto de tempo desde o login. Nomeado e centralizado pra não repetir o
-// mesmo "8000000" mágico em outro lugar.
-const SESSION_DURATION_MS = 8_000_000;
+// setTimeout estoura acima de 2^31-1 ms (~24,8 dias) e dispara na hora. O
+// token hoje dura 1h, mas o prazo vem do .env do backend — limita pra não
+// derrubar a sessão imediatamente se alguém configurar um prazo longo.
+const MAX_TIMEOUT_MS = 2_147_483_647;
 
 interface AuthContextData {
   signed: boolean;
+  // Em runtime é AuthUserProps | undefined, mas continua `any` pra fora:
+  // telas (ex.: Schedule) acessam user.id sem checar undefined, porque só
+  // renderizam com signed=true (routes/index.tsx). Tipar aqui quebraria
+  // essas telas sem mudar comportamento nenhum.
   user: any;
-  perfil: string ;
+  // perfil.codigo do login (ex.: 'terapeuta'); '' quando o backend não
+  // reconhece o perfil cadastrado (codigo null).
+  perfil: string;
   mustChangePassword: boolean;
-  Login(user: object): Promise<void>;
+  Login(credentials: LoginCredentialsProps): Promise<void>;
   Logout(): void;
   clearMustChangePassword(): void;
 }
@@ -30,13 +39,11 @@ export const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
 export const AuthProvider = ({ children }: Props) => {
 
-  const [user, setUser] = useState();
-  const [perfil, setPerfil] = useState<string>('');
+  const [user, setUser] = useState<AuthUserProps>();
   // Estado próprio (não apenas derivado de user.mustChangePassword): também
   // precisa poder ser forçado a true por um 403 vindo de qualquer chamada
   // da API já autenticada (ver mustChangePasswordBus), não só pelo login.
   const [mustChangePassword, setMustChangePassword] = useState<boolean>(false);
-  const { setPermissionsLogin } = permissionAuth();
   const { renderToast } = useToast();
   const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,28 +59,6 @@ export const AuthProvider = ({ children }: Props) => {
   }, []);
 
   useEffect(() => clearSessionTimer, []);
-
-  useEffect(() => {
-    const storagedToken = sessionStorage.getItem('token');
-    const storagedUser = sessionStorage.getItem('auth');
-    const storagedPerfil = sessionStorage.getItem('perfil') ||  '';
-
-    if (storagedToken && storagedUser) {
-      const _user = JSON.parse(storagedUser);
-      setUser(_user);
-      setPerfil(storagedPerfil);
-      setMustChangePassword(Boolean(_user.mustChangePassword));
-      intercepttRoute(storagedToken, _user.login, _user.id);
-    }
-  }, []);
-
-  // Registra este provider no barramento para que buildErrorToast (fora da
-  // árvore React) consiga forçar a tela de troca de senha a partir de um
-  // 403 recebido em qualquer requisição.
-  useEffect(() => {
-    registerMustChangePasswordListener(() => setMustChangePassword(true));
-    return () => registerMustChangePasswordListener(null);
-  }, []);
 
   // Login/Logout/value memoizados pelo mesmo motivo do renderToast em
   // toast.tsx: AuthProvider fica perto da raiz (App.tsx), então um value
@@ -98,40 +83,72 @@ export const AuthProvider = ({ children }: Props) => {
     }
   }, [clearSessionTimer]);
 
+  // Desloga sozinho quando passar o expiresAt devolvido pelo login (antes
+  // era um teto fixo de ~2h13 contado no front, sem relação com o prazo
+  // real do JWT, que hoje é 1h — dava 1h13 de telas quebrando com 401).
+  // O 401 do servidor continua sendo a fonte da verdade; isso só evita
+  // deixar o usuário navegando com um token que já sabemos estar vencido.
+  const scheduleSessionEnd = useCallback(
+    (expiresAt: string) => {
+      clearSessionTimer();
+      const remainingMs = new Date(expiresAt).getTime() - Date.now();
+      sessionTimerRef.current = setTimeout(() => {
+        Logout();
+      }, Math.min(Math.max(remainingMs, 0), MAX_TIMEOUT_MS));
+    },
+    [clearSessionTimer, Logout]
+  );
+
+  useEffect(() => {
+    const storagedToken = sessionStorage.getItem('token');
+    const storagedUser = sessionStorage.getItem('auth');
+    const storagedExpiresAt = sessionStorage.getItem('expiresAt');
+
+    if (!storagedToken || !storagedUser || !storagedExpiresAt) return;
+
+    // Recarregou a aba depois do token vencer: não restaura a sessão (toda
+    // chamada daria 401), volta direto pro login.
+    if (new Date(storagedExpiresAt).getTime() <= Date.now()) {
+      clearCache();
+      return;
+    }
+
+    const _user: AuthUserProps = JSON.parse(storagedUser);
+    setUser(_user);
+    setMustChangePassword(Boolean(_user.mustChangePassword));
+    intercepttRoute(storagedToken, _user.login, _user.id);
+    scheduleSessionEnd(storagedExpiresAt);
+  }, []);
+
+  // Registra este provider no barramento para que buildErrorToast (fora da
+  // árvore React) consiga forçar a tela de troca de senha a partir de um
+  // 403 recebido em qualquer requisição.
+  useEffect(() => {
+    registerMustChangePasswordListener(() => setMustChangePassword(true));
+    return () => registerMustChangePasswordListener(null);
+  }, []);
+
   const Login = useCallback(
-    async (loginState: { username: string, password: string}) => {
+    async (credentials: LoginCredentialsProps) => {
       try {
-        const response = await api.post('/login', loginState);
+        const response = await api.post<LoginResponseProps>('/login', credentials);
+        const { accessToken, expiresAt, user } = response.data;
 
-        const auth = response.data;
-
-        clearSessionTimer();
-        sessionTimerRef.current = setTimeout(() => {
-          Logout();
-        }, SESSION_DURATION_MS);
-
-        const user = auth?.user || auth.data;
-        const accessToken = auth?.accessToken || auth.data.accessToken;
-
-        const perfilName = user.perfil?.nome
-          ? user.perfil.nome.toLowerCase()
-          : user.perfil.toLowerCase();
-
+        // As permissões (já expandidas pelo backend) seguem dentro de `auth`
+        // e são lidas pelo PermissionProvider via useAuth().user — não há
+        // mais chave 'perfil' separada: o código vem de user.perfil.codigo.
         sessionStorage.setItem('token', accessToken);
         sessionStorage.setItem('auth', JSON.stringify(user));
-        sessionStorage.setItem('perfil', perfilName);
+        sessionStorage.setItem('expiresAt', expiresAt);
 
-        if (user.permissoes.length && setPermissionsLogin)
-          setPermissionsLogin(user.permissoes);
+        await intercepttRoute(accessToken, user.login, user.id);
+        scheduleSessionEnd(expiresAt);
 
-        setPerfil(perfilName);
         setUser(user);
         // Sempre presente na resposta do login (nunca undefined) — se true,
         // o app não deve deixar o usuário passar da tela de troca de senha
         // obrigatória (ver MustChangePasswordModal).
         setMustChangePassword(Boolean(user.mustChangePassword));
-
-        await intercepttRoute(accessToken, user.login, user.id);
 
         renderToast({
           type: 'success',
@@ -140,14 +157,10 @@ export const AuthProvider = ({ children }: Props) => {
           open: true,
         });
       } catch (error) {
-        // getErrorInfo/buildErrorToast lê error.response.{status,data} (forma
-        // real de um erro do axios) — o msgError anterior lia error.data e
-        // error.status, que não existem nesse objeto, então sempre caía no
-        // fallback genérico e escondia a mensagem real do backend.
         renderToast(buildErrorToast(error, 'Usuário não encontrado!'));
       }
     },
-    [clearSessionTimer, Logout, setPermissionsLogin, renderToast]
+    [scheduleSessionEnd, renderToast]
   );
 
   // Chamado após PUT /usuarios/reset-senha responder 200 (troca obrigatória
@@ -156,7 +169,7 @@ export const AuthProvider = ({ children }: Props) => {
   // liberar a navegação.
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);
-    setUser((prev: any) => {
+    setUser((prev) => {
       if (!prev) return prev;
 
       const updated = { ...prev, mustChangePassword: false };
@@ -171,11 +184,11 @@ export const AuthProvider = ({ children }: Props) => {
       user,
       Login,
       Logout,
-      perfil,
+      perfil: user?.perfil.codigo ?? '',
       mustChangePassword,
       clearMustChangePassword,
     }),
-    [user, Login, Logout, perfil, mustChangePassword, clearMustChangePassword]
+    [user, Login, Logout, mustChangePassword, clearMustChangePassword]
   );
 
   return (

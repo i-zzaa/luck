@@ -122,20 +122,6 @@ export const formatdateeua = (date: any) => {
   return moment(date).format('YYYY-MM-DD');
 };
 
-export const diffWeek = (dataInicio: any, dataAtual: any) => {
-  const inicio = moment(dataInicio);
-  const atual = moment(dataAtual);
-  return atual.diff(inicio, 'weeks') + 1;
-};
-
-export const getPrimeiroDoMes = (ano: number, mes: number) => {
-  return moment(new Date(ano, mes - 1, 1)).format('YYYY-MM-DD');
-};
-
-export const getUltimoDoMes = (ano: number, mes: number) => {
-  return moment(new Date(ano, mes, 0)).format('YYYY-MM-DD');
-};
-
 export enum DEVICE {
   mobile = 'DEVICE_MOBILE',
   web = 'DEVICE_WEB',

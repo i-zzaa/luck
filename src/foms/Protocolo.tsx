@@ -110,17 +110,17 @@ export default function Protocolo() {
         />
       ) : null}
 
+      {/* Escolhe o formulário pelo `codigo` estável de protocolo/dropdown
+          (item 26 de heron-list-nest/docs/pedido-frontend-fase2.md), não
+          pelo id numérico da tabela. */}
       {!state?.edit &&
-        protocoloObj?.id &&
-        protocoloObj.id === TIPO_PROTOCOLO.portage &&
+        protocoloObj?.codigo === 'portage' &&
         pacienteObj?.id && <PORTAGECADASTRO paciente={pacienteObj} />}
       {!state?.edit &&
-        protocoloObj?.id &&
-        protocoloObj.id === TIPO_PROTOCOLO.vbMapp &&
+        protocoloObj?.codigo === 'vbmapp' &&
         pacienteObj?.id && <VBMapp paciente={pacienteObj} />}
       {!state?.edit &&
-        protocoloObj?.id &&
-        protocoloObj.id === TIPO_PROTOCOLO.pei &&
+        protocoloObj?.codigo === 'pei' &&
         pacienteObj?.id && <PEICADASTRO paciente={pacienteObj} />}
       {state?.edit && <PEICADASTRO paciente={pacienteObj} param={state} />}
     </form>

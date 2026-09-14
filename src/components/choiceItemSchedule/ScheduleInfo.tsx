@@ -5,26 +5,16 @@ import { getStatusClass } from '../../util/status';
 interface ScheduleInfoProps {
   title: string;
   status?: { codigo?: string; nome?: string };
-  localidade: string;
-  localExternoDescricao?: string;
-  // FALLBACK TEMPORÁRIO: string já pronta pro "onde foi a sessão" (ex.:
-  // "Consultório 2" ou "Casa do paciente - 12km"), preferida quando o
-  // backend mandar. Enquanto não vier, cai na regra isExterno atual
-  // (ver docs/pedido-backend-formatacao.md).
+  // "Onde foi a sessão", já pronto do backend (ex.: "Consultório 2" ou
+  // "Casa do paciente - 12km") — a regra isExterno/km mora lá.
   localExibicao?: string;
-  isExterno: boolean;
-  km?: number;
   modalidadeInfo: string;
 }
 
 export const ScheduleInfo: FC<ScheduleInfoProps> = ({
   title,
   status,
-  localidade,
-  localExternoDescricao,
   localExibicao,
-  isExterno,
-  km,
   modalidadeInfo,
 }) => (
   <div className="text-gray-800 text-sm text-center grid justify-center gap-1">
@@ -44,11 +34,6 @@ export const ScheduleInfo: FC<ScheduleInfoProps> = ({
       )}
     </p>
 
-    <p className="flex gap-2 items-center justify-center">
-      {localExibicao ?? (isExterno ? localExternoDescricao : localidade)}
-      {!localExibicao && isExterno && (
-        <span className="font-bold font-inter">{`- ${km}km`}</span>
-      )}
-    </p>
+    <p className="flex gap-2 items-center justify-center">{localExibicao}</p>
   </div>
 );

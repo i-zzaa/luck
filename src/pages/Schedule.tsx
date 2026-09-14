@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import moment from 'moment';
 import { Sidebar } from 'primereact/sidebar';
-import {
-  formatdateeua,
-  firtUpperCase,
-  getPrimeiroDoMes,
-  getUltimoDoMes,
-} from '../util/util';
+import { formatdateeua, firtUpperCase } from '../util/util';
 import { useAuth } from '../contexts/auth';
 import { getList } from '../server';
 import { ButtonHeron, Card } from '../components';
@@ -17,16 +12,25 @@ import { useToast } from '../contexts/toast';
 import { useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
-import { isSlotLivre, sessaoBloqueada } from '../util/evento';
-import { classificarStatus } from '../util/status';
+import { isSlotLivre } from '../util/evento';
 
 type ViewMode = 'dia' | 'semana' | 'mes' | 'periodo';
+
+// Formato de /evento/filtro com ?agrupado=true — dias já ordenados e
+// contagens prontas (item 9 de heron-list-nest/docs/pedido-frontend-fase2.md).
+type AgendaAgrupada = {
+  totalSessoes: number;
+  dias: { data: string; totalSessoes: number; itens: any[] }[];
+};
+
+const AGENDA_VAZIA: AgendaAgrupada = { totalSessoes: 0, dias: [] };
 
 // sem domingo — não é dia de trabalho, então não faz sentido oferecer
 // como atalho de navegação na tira de dias
 const DIAS_SEMANA = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
-// segunda-feira da semana que contém `date`
+// segunda-feira da semana que contém `date` — só pra montar a tira de
+// navegação (seg-sáb); o intervalo de busca quem resolve é o backend.
 const getInicioSemana = (date: Date) =>
   moment(date).startOf('isoWeek').toDate();
 
@@ -34,8 +38,7 @@ export const Schedule = () => {
   const { renderToast } = useToast();
   const navigate = useNavigate();
 
-  const [list, setList] = useState({}) as any;
-  const [keys, setKeys] = useState([]) as any;
+  const [agenda, setAgenda] = useState<AgendaAgrupada>(AGENDA_VAZIA);
   const [loading, setLoading] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<ViewMode>('dia');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -77,20 +80,13 @@ export const Schedule = () => {
     navigate(`/${CONSTANTES_ROUTERS.METAS}`, { state: item });
   };
 
-  const getDayTerapeuta = async (currentDateStart: string, currentDateEnd: string) => {
+  const getDayTerapeuta = async (url: string) => {
     setLoading(true);
     try {
-      // evento/filtro/2025-09-10/2025-09-12?terapeutaId=25
-      const response: any = await getList(
-        `/evento/filtro/${currentDateStart}/${currentDateEnd}?terapeutaId=${user.id}`
-      );
-      let clavesOrdenadas = Object.keys(response).sort();
-
-      setList(response);
-      setKeys(clavesOrdenadas);
+      const response: any = await getList(url);
+      setAgenda(response || AGENDA_VAZIA);
     } catch (error) {
-      setList([]);
-      setKeys([]);
+      setAgenda(AGENDA_VAZIA);
       renderToast({
         type: 'failure',
         title: '401',
@@ -106,30 +102,23 @@ export const Schedule = () => {
   // contexto do dia que a terapeuta estava olhando. "período" é a exceção:
   // usa o intervalo customizado escolhido no bottom sheet.
   //
-  // Datas SEM +1 dia no fim: o endpoint trata o intervalo como inclusivo
-  // nas duas pontas. O código antigo somava um dia no fim (herdado do
-  // "Hoje" original) — confirmado por dois casos reais (clicar no dia 19
-  // trouxe o 20; clicar no 20 trouxe o 21): pedir "19→20" inclusivo
-  // também traz os eventos do 20 junto, e se o dia clicado não tiver
-  // sessão própria, só o dia seguinte aparece — parecendo "filtrou o dia
-  // errado". Pedindo dia=dia (sem somar) o intervalo já cobre o próprio
-  // dia inteiro.
+  // dia/semana/mês: o front manda só `modo` + a data de referência e o
+  // backend resolve o intervalo (semana ISO, início/fim do mês) — item 10
+  // de heron-list-nest/docs/pedido-frontend-fase2.md. Antes o cálculo
+  // morava aqui e já tinha gerado bug de "último dia sumindo" por
+  // depender de o filtro ser inclusivo nas duas pontas.
+  // `agrupado=true` (item 9): a resposta já vem em dias ordenados com as
+  // contagens prontas.
   const buscarPeriodo = (mode: ViewMode, date: Date) => {
     if (mode === 'periodo') {
       if (!customStart || !customEnd) return; // ainda não aplicou nada no sheet
-      return getDayTerapeuta(customStart, customEnd);
+      return getDayTerapeuta(
+        `/evento/filtro/${customStart}/${customEnd}?terapeutaId=${user.id}&agrupado=true`
+      );
     }
-    if (mode === 'semana') {
-      const inicio = getInicioSemana(date);
-      const fim = moment(inicio).add(6, 'days').toDate();
-      return getDayTerapeuta(formatdateeua(inicio), formatdateeua(fim));
-    }
-    if (mode === 'mes') {
-      const ano = moment(date).year();
-      const mes = moment(date).month() + 1;
-      return getDayTerapeuta(getPrimeiroDoMes(ano, mes), getUltimoDoMes(ano, mes));
-    }
-    return getDayTerapeuta(formatdateeua(date), formatdateeua(date));
+    return getDayTerapeuta(
+      `/evento/filtro?modo=${mode}&data=${formatdateeua(date)}&terapeutaId=${user.id}&agrupado=true`
+    );
   };
 
   // "período" fica de fora daqui de propósito: ele só busca quando o
@@ -167,44 +156,23 @@ export const Schedule = () => {
   };
 
   const cardChoice = (item: any) => {
-    const dateSession = item?.dataAtual || item?.date;
+    // Decisões do card vêm prontas do backend (item 7 de
+    // heron-list-nest/docs/pedido-frontend-fase2.md):
+    // - podeAbrirSessao: já embute a exceção "sessão atendida sempre abre
+    //   em leitura" sobre sessaoBloqueada;
+    // - podeEditarMetas: sessão ainda não atendida e cujo status permite
+    //   atendimento.
+    const podeAcessar = item?.podeAbrirSessao === true;
+    const mostrarBotaoMetas = item?.podeEditarMetas === true;
+
+    // Rótulos: `isAttended` vem do backend. "Não Atendido" (dia já passou
+    // e não foi atendida) ainda é derivado aqui — o backend não manda um
+    // campo de situação pra isso; é só rótulo, não decide acesso.
+    const isRealizada = item?.isAttended === true;
     const isPast = moment()
       .startOf('day')
-      .isAfter(moment(dateSession).startOf('day'));
-    // classificarStatus (não comparação estrita de string) — é a mesma
-    // classificação que o badge da tela usa pra colorir "Atendido"
-    // (ScheduleInfo.tsx: getStatusClass). Com comparação estrita contra
-    // um texto fixo, uma variação de acentuação/capitalização no
-    // statusEventos.nome real do backend fazia o badge mostrar
-    // "Atendido" só visualmente, mas o clique continuava bloqueado —
-    // porque aqui achava que a sessão não estava realizada.
-    const isRealizada = classificarStatus(item?.statusEventos) === 'atendido';
-
+      .isAfter(moment(item?.date).startOf('day'));
     const naoAtendido = isPast && !isRealizada;
-
-    // Sessão já realizada sempre pode ser reaberta, em modo leitura (quem
-    // decide "é leitura ou é nova" já é a própria tela de Sessão, via
-    // temSessaoRegistrada) — regra absoluta, sobrepõe até um eventual
-    // `sessaoBloqueada` vindo do backend (esse campo é calculado pra
-    // decidir se uma sessão ainda NÃO realizada pode ser aberta; não foi
-    // pensado pra revogar acesso a uma sessão que já aconteceu, mas como
-    // é booleano simples não tem como o backend expressar "bloqueada
-    // exceto se já realizada" nele — por isso `isRealizada` curto-circuita
-    // aqui em vez de só entrar como fallback do sessaoBloqueada). Pra
-    // sessão ainda não realizada, mantém o bloqueio de antes: passado sem
-    // ter sido atendida, ou tipo de evento que não registra sessão.
-    const podeAcessar =
-      isRealizada ||
-      !sessaoBloqueada(
-        item,
-        naoAtendido || item?.statusEventos?.atender === false
-      );
-
-    // Botão de metas (seleção do PEI pra essa sessão): só faz sentido
-    // pra sessão que o backend marcou como "atender" — antes aparecia
-    // pra qualquer sessão futura, mesmo tipos de evento que
-    // statusEventos.atender === false diz que não registram sessão.
-    const mostrarBotaoMetas = !isRealizada && item?.statusEventos?.atender === true;
 
     return (
       <Card
@@ -216,7 +184,9 @@ export const Schedule = () => {
         type={item?.especialidade?.codigo || item.especialidade.nome}
         onClick={() =>
           podeAcessar &&
-          navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })
+          // sem `state`: a tela de Sessão carrega tudo (evento incluso)
+          // por GET /sessao/calendario/:id a partir do id na rota
+          navigate(`/${CONSTANTES_ROUTERS.SESSION}/${item.id}`)
         }
       >
         <div className="flex items-center">
@@ -225,15 +195,8 @@ export const Schedule = () => {
             end={item?.data?.end}
             statusEventos={item?.statusEventos}
             title={item?.title}
-            localidade={item?.localidade?.nome}
-            localExternoDescricao={item?.localExternoDescricao}
             localExibicao={item?.localExibicao}
-            isExterno={item?.isExterno}
-            km={item?.km}
-            modalidade={item?.modalidade?.nome}
-            dataInicio={item?.dataInicio}
-            dataFim={item?.dataFim}
-            dataAtual={item?.dataAtual || item?.date}
+            modalidade={item?.modalidadeExibicao}
           />
           {mostrarBotaoMetas && (
             <ButtonHeron
@@ -286,15 +249,9 @@ export const Schedule = () => {
   const formatItem = (item: any) =>
     isSlotLivre(item) ? cardFree(item) : cardChoice(item);
 
-  // total de sessões reais (exclui os slots "livres") — usado no card de
-  // resumo e no cabeçalho de cada dia
-  const countSessoes = (items: any[]) =>
-    (items || []).filter((item: any) => !isSlotLivre(item)).length;
-
-  const totalSessoesPeriodo = useMemo(
-    () => keys.reduce((acc: number, key: string) => acc + countSessoes(list[key]), 0),
-    [keys, list]
-  );
+  // total do período já contado pelo backend (item 9)
+  const totalSessoesPeriodo = agenda.totalSessoes ?? 0;
+  const dias = agenda.dias ?? [];
 
   const rotuloPeriodo =
     viewMode === 'dia'
@@ -307,12 +264,12 @@ export const Schedule = () => {
 
   const renderContent = () => {
     if (!loading) {
-      return keys.length ? (
-        keys.map((key: string) => {
-          const total = countSessoes(list[key]);
-          const dataMoment = moment(key);
+      return dias.length ? (
+        dias.map((dia) => {
+          const total = dia.totalSessoes;
+          const dataMoment = moment(dia.data);
           return (
-            <div key={key}>
+            <div key={dia.data}>
               <div className="flex items-center justify-between mx-2 mt-6 mb-2">
                 <span className="font-inter font-bold text-gray-800">
                   {firtUpperCase(dataMoment.format('dddd'))}, {dataMoment.format('DD/MM')}
@@ -323,7 +280,7 @@ export const Schedule = () => {
                   </span>
                 )}
               </div>
-              {list[key].map((item: any) => formatItem(item))}
+              {dia.itens.map((item: any) => formatItem(item))}
             </div>
           );
         })

@@ -1,15 +1,11 @@
 // Classificação/cor do status de um evento (Falta, Atestado, Atendido...).
-// Antes essa mesma lógica existia DUPLICADA em ScheduleInfo.tsx (pra cor do
-// badge) e Home.tsx (pra contagem do dashboard) — cada uma com suas
-// próprias strings, sem nenhuma garantia de ficarem em sincronia se uma
-// mudasse sem a outra. Consolidado aqui num único lugar.
+// Usado no badge (ScheduleInfo.tsx), na Agenda e na tela de Sessão — um
+// lugar só pra não divergir.
 //
-// FALLBACK TEMPORÁRIO: o ideal é o backend já mandar uma classificação
-// pronta e estável (`statusEventos.codigo`), em vez do frontend adivinhar
-// por substring do texto livre (`statusEventos.nome`) — texto livre pode
-// mudar de pontuação/capitalização sem aviso e quebrar esse matching. Até
-// o backend expor esse campo (ver docs/pedido-backend-formatacao.md),
-// `classificarStatus` cai no matching por substring como faz hoje.
+// Lê `statusEventos.codigo`, código estável que o backend manda em todo
+// evento (coluna NOT NULL em StatusEventos, migration
+// 20260821180000_especialidade_status_evento_codigo). Antes o front
+// adivinhava a categoria por substring do `nome` livre.
 export type CategoriaStatus = 'falta' | 'atestado' | 'atendido' | 'outro';
 
 export const classificarStatus = (statusEventos?: {
@@ -20,16 +16,6 @@ export const classificarStatus = (statusEventos?: {
   if (codigo === 'falta' || codigo === 'atestado' || codigo === 'atendido') {
     return codigo;
   }
-
-  const normalized = (statusEventos?.nome || '').toLowerCase();
-  if (normalized.includes('falta')) return 'falta';
-  // raiz da palavra, não a palavra completa: "atestado"/"atendido" tem
-  // concordância de gênero em português ("sessão atendida", "guia
-  // atestada") — comparar só com a forma masculina deixava a feminina
-  // (bem provável vindo do backend, já que "sessão" é feminino) sem
-  // bater com nada, caindo em "outro" mesmo sendo uma sessão atendida.
-  if (normalized.includes('atestad')) return 'atestado';
-  if (normalized.includes('atendid')) return 'atendido';
   return 'outro';
 };
 

@@ -2,22 +2,15 @@ export interface ChoiceItemScheduleProps {
   start: string;
   end: string;
   title: string;
-  // Objeto inteiro (não só o nome) — a classificação de cor/categoria
-  // prefere `codigo` quando o backend mandar (ver util/status.ts) e só
-  // cai pro matching por texto de `nome` como fallback.
+  // Objeto inteiro (não só o nome) — a cor/categoria usa `codigo` (ver
+  // util/status.ts) e o badge exibe `nome`.
   statusEventos?: { codigo?: string; nome?: string };
-  localidade: string;
-  // Descrição/endereço do local externo — só existe (e só é usada) quando
-  // isExterno === true. Com isExterno === false, o local exibido é sempre
-  // `localidade` (localidade.nome, resolvido pelo chamador).
-  localExternoDescricao?: string;
-  // FALLBACK TEMPORÁRIO: string já pronta pro "onde", preferida quando o
-  // backend mandar (ver ScheduleInfo.tsx e docs/pedido-backend-formatacao.md).
+  // "Onde foi a sessão", já pronto do backend (ver ScheduleInfo.tsx).
   localExibicao?: string;
-  isExterno: boolean;
-  km?: number;
-  modalidade: string;
-  dataInicio?: string;
-  dataFim?: string;
-  dataAtual?: string;
+  // Texto da modalidade JÁ PRONTO pra exibir — passe
+  // `item.modalidadeExibicao` de /evento/filtro (ex.: "Avaliação 2/4").
+  // O componente não calcula mais a semana da avaliação (antes:
+  // useModalidadeInfo + diffWeek) — item 8 de
+  // heron-list-nest/docs/pedido-frontend-fase2.md.
+  modalidade?: string;
 }

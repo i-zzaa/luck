@@ -1,8 +1,16 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logoLg from '../assets/logo-lg.jpg';
+import { buscarDadosClinica } from './pdfRelatorioEvolucao';
 
-const gerarPdf = (data: any) => {
+// `data`: corpo de POST /protocolo/filtro {type:'pdf'} do Portage —
+// {headers, Socializacao, Cognicao, paciente, numeroEvolucao}.
+const gerarPdf = async (data: any) => {
+  // Item 22 do pedido-frontend-fase2.md: contato/CNPJ/endereço vêm de
+  // GET /clinica/dados — antes fixos aqui (e duplicados nos outros dois
+  // PDFs).
+  const clinica = await buscarDadosClinica();
+
   const doc: any = new jsPDF();
 
   // Cabeçalho com logotipo e contato
@@ -12,13 +20,18 @@ const gerarPdf = (data: any) => {
   doc.addImage(logoURL, 'JPEG', 15, 10, 50, 20); // Ajuste a posição e o tamanho do logotipo
 
   doc.setFontSize(9);
-  doc.text('Cel: (11) 97271-6993 • E-mail: alcance.nt@yahoo.com', 15, 35);
-  doc.text('CNPJ: 37.999.009/0001-68', 15, 40);
+  doc.text(`Cel: ${clinica.telefone} • E-mail: ${clinica.email}`, 15, 35);
+  doc.text(`CNPJ: ${clinica.cnpj}`, 15, 40);
 
-  // Título principal
+  // Título principal — número da evolução real (item 18: contagem de
+  // avaliações do paciente no backend), não mais "EVOLUÇÃO 1" fixo.
   doc.setFontSize(12);
   doc.setFont('Helvetica', 'bold');
-  doc.text('RELATÓRIO DE INTERVENÇÃO ABA INDIVIDUALIZADO – EVOLUÇÃO 1', 15, 55);
+  doc.text(
+    `RELATÓRIO DE INTERVENÇÃO ABA INDIVIDUALIZADO – EVOLUÇÃO ${data.numeroEvolucao}`,
+    15,
+    55
+  );
 
   // Observação
   doc.setFontSize(9);
@@ -105,11 +118,7 @@ const gerarPdf = (data: any) => {
 
   // Define o rodapé
   const pageHeight = doc.internal.pageSize.height;
-  doc.text(
-    'Av. Henrique Andrés, 700 – Centro – Jundiaí-SP',
-    10,
-    pageHeight - 10
-  ); // 10 é o espaço do rodapé a partir do final da página
+  doc.text(clinica.endereco, 10, pageHeight - 10); // 10 é o espaço do rodapé a partir do final da página
 
   // Salvar o PDF
   // doc.save('relatorio_aba.pdf');

@@ -21,35 +21,22 @@ export enum VBMAPP {
   tres = 3,
 }
 
-// Status de acompanhamento de uma meta — usado no cadastro do Manual
-// (foms/pei/index.tsx), na listagem (pages/PEI.tsx) e no Relatório de
-// Evolução (constants/pdfRelatorioEvolucao.ts). Só o Manual carrega
-// isso como campo de verdade (ainda não existe no backend — ver
-// docs/pedido-backend-formatacao.md); Portage e VB-MAPP não têm um
-// "status" próprio, mas a tela deriva o mesmo rótulo a partir da
-// resposta salva em cada item (ver derivarStatusResposta em
-// pages/PEI.tsx: selected '1' -> atingida, '0.5' -> aquisicao). Uma
-// meta sem status/resposta simplesmente não mostra rótulo nenhum.
+// Códigos de status de acompanhamento de uma meta. O status em si vem
+// resolvido do backend (/pei/filtro, relatório de evolução, primeiras
+// respostas) e a lista do select vem de GET /status-meta/dropdown — aqui
+// ficam só as chaves das paletas/rótulos de apresentação abaixo.
 export enum STATUS_META {
   atingida = 'atingida',
   aquisicao = 'aquisicao',
   manutencao = 'manutencao',
 }
 
-export const STATUS_META_OPTIONS = [
-  { id: STATUS_META.atingida, nome: 'Meta atingida' },
-  { id: STATUS_META.aquisicao, nome: 'Em aquisição' },
-  {
-    id: STATUS_META.manutencao,
-    nome: 'Meta atingida, manter em manutenção',
-  },
-];
-
-export const STATUS_META_LABEL: Record<string, string> =
-  STATUS_META_OPTIONS.reduce(
-    (acc, item) => ({ ...acc, [item.id]: item.nome }),
-    {}
-  );
+// Rótulo por extenso — tooltip/legenda de Primeiras Respostas.
+export const STATUS_META_LABEL: Record<string, string> = {
+  [STATUS_META.atingida]: 'Meta atingida',
+  [STATUS_META.aquisicao]: 'Em aquisição',
+  [STATUS_META.manutencao]: 'Meta atingida, manter em manutenção',
+};
 
 // Verde = atingida (sucesso), vermelho = em aquisição (ainda precisa de
 // atenção) — confirmado com quem preenche o relatório hoje.

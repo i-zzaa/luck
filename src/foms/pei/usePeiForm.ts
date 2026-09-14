@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { STATUS_META_OPTIONS, TIPO_PROTOCOLO } from '../../constants/protocolo';
+import { TIPO_PROTOCOLO } from '../../constants/protocolo';
 import { permissionAuth } from '../../contexts/permission';
 import { useToast } from '../../contexts/toast';
 import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
 import { dropDown, update, create } from '../../server';
 import { OBJ_ITEM, OBJ_META } from '../../util/util';
-import { formatPortage, formatVBMapp } from './peiFormat';
+import { formatPortage, montarSubitensVBMapp } from './peiFormat';
 import {
   baseMetaIdFromField,
   isMetaStatusOrObsField,
@@ -55,13 +55,17 @@ export const usePeiForm = ({
   } = useForm({ defaultValues });
 
   const renderDropdown = useCallback(async () => {
-    const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
-      dropDown(`programa/${tipoProtocolo}`),
-      dropDown('pei/procedimento-ensino'),
-      dropDown('protocolo'),
-    ]);
+    // statusMeta: opções do select de status da meta (Manual) vêm de
+    // GET /status-meta/dropdown — `{ codigo, nome, nomeCurto }` (item 26).
+    const [programa, procedimentoEnsino, protocolo, statusMeta]: any =
+      await Promise.all([
+        dropDown(`programa/${tipoProtocolo}`),
+        dropDown('pei/procedimento-ensino'),
+        dropDown('protocolo'),
+        dropDown('status-meta'),
+      ]);
 
-    const drop = { programa, procedimentoEnsino, protocolo };
+    const drop = { programa, procedimentoEnsino, protocolo, statusMeta };
     setDropDownList(drop);
     formatarDado(drop);
   }, [setDropDownList]);
@@ -171,8 +175,8 @@ export const usePeiForm = ({
         // (ver docs/pedido-backend-formatacao.md). Sem eles, os campos
         // do form ficam vazios, exatamente como uma meta nova.
         if (meta.status) {
-          const statusOption = STATUS_META_OPTIONS.find(
-            (option) => option.id === meta.status
+          const statusOption = drop?.statusMeta?.find(
+            (option: any) => option.codigo === meta.status
           );
           if (statusOption) {
             setValue(metaStatusFieldId(meta.id) as any, statusOption);
@@ -270,7 +274,7 @@ export const usePeiForm = ({
         if (!meta) return;
 
         if (key.endsWith('::status')) {
-          meta.status = formvalue[key]?.id;
+          meta.status = formvalue[key]?.codigo;
         } else {
           meta.observacao = formvalue[key];
         }
@@ -282,8 +286,10 @@ export const usePeiForm = ({
       // inteiro de um programa, que pode ter nascido de vários registros
       // Pei mesclados na listagem (ver PeiService.agruparPeiPorPrograma).
       // `peiIds` carrega todos eles — o backend consolida no registro
-      // canônico (payload.id) e apaga os outros ao salvar.
-      if (tipoProtocolo === TIPO_PROTOCOLO.pei && state?.item?.peiIds) {
+      // canônico (payload.id) e apaga os outros ao salvar. Sempre
+      // presente no item vindo de /pei/filtro (item 15 do
+      // pedido-frontend-fase2.md); só não existe num cadastro novo.
+      if (tipoProtocolo === TIPO_PROTOCOLO.pei && state?.item) {
         payload.peiIds = state.item.peiIds;
       }
 
@@ -305,12 +311,25 @@ export const usePeiForm = ({
           },
         });
       } else if (tipoProtocolo === TIPO_PROTOCOLO.vbMapp) {
-        const response = formatVBMapp(payload, dropDownList);
+        // Salva cada atividade editada direto no backend (PUT
+        // protocolo/vbmapp/meta/:id/subitens — item 16 do
+        // pedido-frontend-fase2.md). Não há PUT em lote: uma requisição
+        // por atividade do programa. Ao voltar, o cadastro rebusca o
+        // nível do servidor — `subitensSalvos` só diz quais atividades
+        // já estão gravadas (ver VBMapp.tsx/aplicarRascunho).
+        const edicoes = montarSubitensVBMapp(payload, metas);
+        await Promise.all(
+          edicoes.map(({ vbmappId, body }: any) =>
+            update(`protocolo/vbmapp/meta/${vbmappId}/subitens`, body)
+          )
+        );
+
         navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
           state: {
             pacienteId: formvalue.pacienteId,
             protocoloId: tipoProtocolo,
-            metaEdit: response,
+            nivel: state?.nivel,
+            subitensSalvos: edicoes.map(({ vbmappId }: any) => vbmappId),
           },
         });
       }

@@ -2,24 +2,20 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
 import logoLg from '../assets/logo-lg.jpg';
-import { filter } from '../server';
-import {
-  STATUS_META_COLOR_RGB,
-  STATUS_META_LABEL_CURTO,
-  TIPO_PROTOCOLO,
-  VALOR_PORTAGE,
-} from './protocolo';
-import {
-  classificarPercentual,
-  transformarPortagePorAvaliacao,
-} from '../util/portageEvolucao';
+import { api, update } from '../server';
+import { STATUS_META_COLOR_RGB, STATUS_META_LABEL_CURTO } from './protocolo';
 
-// Relatório de Evolução — unifica num PDF só o que hoje são 3 exports
-// separados (Portage, VB-MAPP e a listagem do Manual em pages/PEI.tsx),
+// Relatório de Evolução — unifica num PDF só Portage, VB-MAPP e Manual,
 // no mesmo espírito do "RELATÓRIO DE INTERVENÇÃO ABA" que a clínica já
-// usa fora do app (documento de referência). Reaproveita os MESMOS
-// endpoints que os botões "Gerar Relatório" de Portage.tsx/VBMapp.tsx e
-// a listagem de PEI.tsx já usam — não é uma fonte de dado nova.
+// usa fora do app (documento de referência).
+//
+// Item 20 do pedido-frontend-fase2.md: tudo vem de uma chamada só,
+// GET /paciente/:id/relatorio-evolucao — paciente, número da
+// intervenção, data de emissão, `temDados`, Portage "por avaliação"
+// (item 17), VB-MAPP em arrays ordenados (item 19), Manual com status
+// (item 12) e a conduta sugerida persistida (item 21). Este arquivo só
+// desenha o que chega: não escolhe avaliações, não ordena, não calcula
+// média/percentual/classificação nem status.
 //
 // Fora do escopo por enquanto (não existe no backend hoje — ver
 // docs/pedido-backend-formatacao.md): reforçamento diferencial e a
@@ -27,11 +23,85 @@ import {
 // referência são texto livre preenchido à mão pela terapeuta fora do
 // app.
 
+type Classificacao = 'alto' | 'medio' | 'baixo' | 'na';
+type Preenchimento = 'cheio' | 'metade' | 'vazio';
+
+type PortageAvaliacao = {
+  tipo: 'primeira' | 'atual';
+  titulo: string;
+  data: string | null;
+  faixasEtarias: string[];
+  categorias: {
+    nome: string;
+    valores: {
+      faixa: string;
+      percentual: number | null;
+      classificacao: Classificacao;
+    }[];
+  }[];
+};
+
+type PortageRelatorio = {
+  avaliacoes: PortageAvaliacao[];
+  comparativo: {
+    categoria: string;
+    sessoes: { titulo: string; media: number | null }[];
+  }[];
+};
+
+type VbmappRelatorio = {
+  niveis: {
+    nivel: number;
+    sessoes: {
+      data: string;
+      programas: {
+        nome: string;
+        slots: ({ atividade: string; preenchimento: Preenchimento } | null)[];
+      }[];
+    }[];
+  }[];
+};
+
+type RelatorioEvolucao = {
+  paciente: { nome: string; dataNascimento: string | null };
+  numeroIntervencao: number;
+  dataEmissao: string;
+  temDados: boolean;
+  portage: PortageRelatorio | null;
+  vbmapp: VbmappRelatorio | null;
+  manual: any[] | null;
+  condutaSugerida: string | null;
+};
+
+// Item 22 do pedido-frontend-fase2.md: contato/CNPJ/endereço eram fixos
+// e duplicados nos três geradores de PDF (este, pdfPortage.ts e
+// pdfVBMAPP.ts) — agora fonte única no backend. Exportado pra que os
+// outros dois PDFs busquem do mesmo jeito.
+export type DadosClinica = {
+  nome: string;
+  telefone: string;
+  email: string;
+  cnpj: string;
+  endereco: string;
+};
+
+export const buscarDadosClinica = async (): Promise<DadosClinica> => {
+  const { data } = await api.get('clinica/dados');
+  return data;
+};
+
+// Datas do backend chegam em ISO: `data` das avaliações/sessões e
+// `dataEmissao` como "YYYY-MM-DD", dataNascimento como DateTime cheio
+// (meia-noite UTC). Formatar em UTC evita o dia "voltar um" no fuso
+// -03:00 — é só apresentação, o valor em si já vem pronto.
+export const formatarDataPdf = (valor: string | null | undefined) =>
+  valor ? moment.utc(valor).format('DD/MM/YYYY') : '';
+
 const BLACK: [number, number, number] = [0, 0, 0];
 const GRAY_HEADER: [number, number, number] = [240, 240, 240];
 const GRAY_TEXT: [number, number, number] = [110, 110, 110];
 // Mesmo roxo da marca (var(--violet-800) em src/styles/global.css) — dá
-// pra reaproveisar no PDF pra amarrar visualmente com o resto do app,
+// pra reaproveitar no PDF pra amarrar visualmente com o resto do app,
 // em vez do título sair preto puro feito o resto do texto corrido.
 const BRAND_PURPLE: [number, number, number] = [102, 41, 119];
 const NOTE_BG: [number, number, number] = [246, 246, 248];
@@ -39,19 +109,18 @@ const GREEN: [number, number, number] = [34, 197, 94];
 const YELLOW: [number, number, number] = [202, 138, 4];
 const RED: [number, number, number] = [239, 68, 68];
 
-// Mesma faixa de cor que a tela usa pra "% de acertos" (ver
-// corPorcentagem em PrimeiraResposta.tsx) — verde/amarelo/vermelho
-// conforme o valor, cinza quando não é um percentual de verdade
-// ("Não se aplica").
-const COR_POR_CLASSIFICACAO: Record<string, [number, number, number]> = {
-  na: GRAY_TEXT,
-  alto: GREEN,
-  medio: YELLOW,
-  baixo: RED,
-};
+// Cor por `classificacao` — a classificação em si (corte 80/50) vem
+// pronta do backend (item 17); aqui é só a paleta, a mesma que a tela
+// usa pra "% de acertos" (ver corPorcentagem em PrimeiraResposta.tsx).
+const COR_POR_CLASSIFICACAO: Record<Classificacao, [number, number, number]> =
+  {
+    na: GRAY_TEXT,
+    alto: GREEN,
+    medio: YELLOW,
+    baixo: RED,
+  };
 
-const corPercentualRGB = (valor: string): [number, number, number] =>
-  COR_POR_CLASSIFICACAO[classificarPercentual(valor)];
+const NAO_SE_APLICA = 'Não se aplica';
 
 const MARGIN_LEFT = 15;
 const MARGIN_RIGHT = 15;
@@ -89,10 +158,11 @@ const carregarLogoBase64 = async (): Promise<string | null> => {
   }
 };
 
-// Bloco de identificação profissional — mesmo texto que assina o
-// relatório de referência que a clínica já usa fora do app.
-const RESPONSAVEL_CONTATO =
-  'Cel: (11) 97271-6993 – Email: alcance.nt@yahoo.com';
+// Dados da clínica do relatório sendo gerado agora — o timbre é
+// redesenhado a cada quebra de página (novaPagina/ensureSpace), bem
+// longe de onde os dados foram buscados; guardar aqui evita ter que
+// passar a clínica por todas as funções de seção só pra chegar nele.
+let clinicaAtual: DadosClinica | null = null;
 
 // Y da linha divisória sob o timbre — mesma referência usada tanto pra
 // desenhar o timbre quanto pra saber onde o conteúdo de cada página
@@ -115,9 +185,14 @@ const desenharTimbre = (doc: any) => {
   doc.setFontSize(7.5);
   doc.setFont('Helvetica', 'normal');
   doc.setTextColor(...GRAY_TEXT);
-  doc.text(RESPONSAVEL_CONTATO, rightX, ry, { align: 'right' });
+  doc.text(
+    `Cel: ${clinicaAtual?.telefone || ''} – Email: ${clinicaAtual?.email || ''}`,
+    rightX,
+    ry,
+    { align: 'right' }
+  );
   ry += 3.5;
-  doc.text('CNPJ: 37.999.009/0001-68', rightX, ry, { align: 'right' });
+  doc.text(`CNPJ: ${clinicaAtual?.cnpj || ''}`, rightX, ry, { align: 'right' });
 
   // Linha divisória sob o timbre inteiro — separa "quem assina" do
   // conteúdo do relatório em si, em vez de tudo escorrer junto.
@@ -182,9 +257,10 @@ const iniciarNovaSecao = (doc: any, y: number) => {
 // Primeira página: timbre + título/data/nota de confidencialidade +
 // identificação do paciente — só aparece uma vez (as demais páginas só
 // repetem o timbre, ver desenharTimbre/novaPagina).
-const desenharCabecalho = (doc: any, paciente: any) => {
+const desenharCabecalho = (doc: any, relatorio: RelatorioEvolucao) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const rightX = pageWidth - MARGIN_RIGHT;
+  const { paciente } = relatorio;
 
   desenharTimbre(doc);
 
@@ -193,21 +269,25 @@ const desenharCabecalho = (doc: any, paciente: any) => {
   // cabeçalho de documento, não como mais uma frase solta.
   //
   // "RELATÓRIO DE INTERVENÇÃO ABA <N> – <data>" no documento de
-  // referência — o "<N>" é um número sequencial de intervenção que a
-  // clínica controla à mão fora do app (não existe hoje como dado
-  // rastreado em lugar nenhum do sistema, então não dá pra numerar
-  // certo aqui); a data usada é a de hoje, dia em que o relatório está
-  // sendo gerado.
+  // referência — número e data de emissão vêm do backend
+  // (numeroIntervencao/dataEmissao, item 20), não mais a data do
+  // navegador nem um número omitido por não existir como dado.
   const tituloY = TIMBRE_DIVIDER_Y + 8;
   doc.setFontSize(13);
   doc.setFont('Helvetica', 'bold');
   doc.setTextColor(...BRAND_PURPLE);
-  doc.text('RELATÓRIO DE INTERVENÇÃO ABA', MARGIN_LEFT, tituloY);
+  doc.text(
+    `RELATÓRIO DE INTERVENÇÃO ABA ${relatorio.numeroIntervencao}`,
+    MARGIN_LEFT,
+    tituloY
+  );
 
   doc.setFontSize(9);
   doc.setFont('Helvetica', 'normal');
   doc.setTextColor(...GRAY_TEXT);
-  doc.text(moment().format('DD/MM/YYYY'), rightX, tituloY, { align: 'right' });
+  doc.text(formatarDataPdf(relatorio.dataEmissao), rightX, tituloY, {
+    align: 'right',
+  });
 
   // Nota de confidencialidade dentro de uma caixa cinza clara — lê como
   // aviso/rodapé legal, não compete com o título nem se mistura ao
@@ -244,9 +324,12 @@ const desenharCabecalho = (doc: any, paciente: any) => {
   doc.setFont('Helvetica', 'normal');
   doc.text(`Nome: ${paciente?.nome || ''}`, MARGIN_LEFT, y);
   if (paciente?.dataNascimento) {
-    doc.text(`Data de Nascimento: ${paciente.dataNascimento}`, rightX, y, {
-      align: 'right',
-    });
+    doc.text(
+      `Data de Nascimento: ${formatarDataPdf(paciente.dataNascimento)}`,
+      rightX,
+      y,
+      { align: 'right' }
+    );
   }
   y += 4;
 
@@ -269,29 +352,26 @@ const desenharCabecalho = (doc: any, paciente: any) => {
 };
 
 // ------------------ Portage (tabela Socialização/Cognição) ------------------
-// O backend devolve uma tabela por categoria com LINHA=faixa etária,
-// COLUNA=avaliação (data.headers[0] é o canto vazio da tabela original;
-// data.headers[i], i>=1, é o rótulo de cada avaliação — "Avaliação
-// <data>"/"Reavaliação <data>"). Renderizar direto assim faz uma
-// tabela enorme, cheia de "Não se aplica" (cada avaliação só preenche
-// as faixas etárias que faziam sentido pra idade da criança NAQUELE
-// momento — quanto mais avaliações, mais colunas ficam quase vazias).
-//
-// O relatório de referência inverte isso: uma tabelinha POR avaliação,
-// com as CATEGORIAS (Socialização/Cognição) como linha e só as faixas
-// etárias que aquela avaliação realmente preencheu como coluna — dá
-// pra comparar evolução por sessão sem ruído de "Não se aplica".
-//
-// E só desenha DUAS: a primeira aplicação e a mais recente — igual o
-// documento de referência ("Primeira Aplicação"/"Aplicação Atual").
-// O backend pode devolver até 4 (reavaliações no meio do caminho); com
-// todas na página, o relatório fica poluído sem agregar muito — o que
-// importa pra evolução geral é o ponto de partida e o estado atual.
-// transformarPortagePorAvaliacao/extrairDataDoRotulo moram em
-// util/portageEvolucao.ts — a mesma transformação (quais avaliações
-// pegar, como nomear) também alimenta a tabela comparativa exibida
-// direto na tela do PEI (pages/pei/TabelaPortage.tsx), então não pode
-// viver só aqui, específica de PDF.
+// O relatório de referência desenha uma tabelinha POR avaliação, com as
+// CATEGORIAS (Socialização/Cognição) como linha e as faixas etárias
+// daquela avaliação como coluna — e só DUAS: a primeira aplicação e a
+// mais recente. Quais avaliações entram, quais faixas cada uma tem,
+// percentual numérico e classificação vêm prontos do backend (item 17:
+// portage.avaliacoes); aqui só desenha.
+
+// Valor de uma categoria numa faixa etária da avaliação. A busca por
+// `faixa` é só pra alinhar a célula com a coluna do cabeçalho
+// (faixasEtarias) — uma categoria pode não ter aquela faixa, e aí a
+// célula sai como "Não se aplica", igual a percentual null.
+const valorNaFaixa = (
+  categoria: PortageAvaliacao['categorias'][number],
+  faixa: string
+) => categoria.valores.find((valor) => valor.faixa === faixa);
+
+const textoPercentual = (percentual: number | null | undefined) =>
+  percentual === null || percentual === undefined
+    ? NAO_SE_APLICA
+    : `${percentual}%`;
 
 // Uma avaliação só preenche UMA faixa etária na grande maioria dos
 // casos (é a faixa que faz sentido pra idade da criança naquele
@@ -305,22 +385,29 @@ const desenharCabecalho = (doc: any, paciente: any) => {
 // tabela — aí a comparação lado a lado entre faixas é que importa.
 const desenharAvaliacaoCompacta = (
   doc: any,
-  avaliacao: { linhas: string[][] },
+  avaliacao: PortageAvaliacao,
+  faixa: string,
   y: number,
   rightX: number
 ) => {
-  avaliacao.linhas.forEach(([categoria, valor], index) => {
+  avaliacao.categorias.forEach((categoria, index) => {
+    const valor = valorNaFaixa(categoria, faixa);
+    const naoSeAplica = valor?.percentual == null;
+
     doc.setFontSize(9.5);
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(...BLACK);
-    doc.text(categoria, MARGIN_LEFT, y);
+    doc.text(categoria.nome, MARGIN_LEFT, y);
 
-    const naoSeAplica = valor === 'Não se aplica';
     doc.setFont('Helvetica', naoSeAplica ? 'italic' : 'bold');
-    doc.setTextColor(...(naoSeAplica ? GRAY_TEXT : corPercentualRGB(valor)));
-    doc.text(valor, rightX, y, { align: 'right' });
+    doc.setTextColor(
+      ...COR_POR_CLASSIFICACAO[naoSeAplica ? 'na' : valor!.classificacao]
+    );
+    doc.text(textoPercentual(valor?.percentual), rightX, y, {
+      align: 'right',
+    });
 
-    if (index < avaliacao.linhas.length - 1) {
+    if (index < avaliacao.categorias.length - 1) {
       y += 3;
       doc.setDrawColor(235, 235, 235);
       doc.setLineWidth(0.2);
@@ -334,44 +421,24 @@ const desenharAvaliacaoCompacta = (
   return y + 8;
 };
 
-// Gráfico de barras comparando as sessões mostradas (as mesmas duas
-// pontas de transformarPortagePorAvaliacao — Primeira Aplicação x
-// Aplicação Atual) por categoria. Cada avaliação pode ter várias faixas
-// etárias preenchidas (ver desenharAvaliacaoCompacta) — pra virar UMA
-// barra por categoria/sessão, usa a média das faixas com dado real
-// daquela sessão (ignora "Não se aplica"), não só a primeira coluna.
-// Só desenha com 2+ sessões — com 1 só não tem o que comparar.
-const mediaCategoriaAvaliacao = (linha: string[] | undefined) => {
-  if (!linha) return null;
-  const valores = linha
-    .slice(1)
-    .map((v) => parseFloat(v))
-    .filter((v) => !Number.isNaN(v));
-  if (!valores.length) return null;
-  return valores.reduce((soma, v) => soma + v, 0) / valores.length;
-};
-
+// Gráfico de barras comparando as sessões por categoria — as médias
+// (só faixas aplicáveis) já vêm calculadas em portage.comparativo (item
+// 17). Só desenha com 2+ sessões — com 1 só não tem o que comparar.
 const CORES_SESSAO: [number, number, number][] = [
   [205, 205, 210], // sessão mais antiga — cinza, de referência
-  ...([BRAND_PURPLE] as [number, number, number][]), // sessão mais recente — cor de marca, em destaque
+  BRAND_PURPLE, // sessão mais recente — cor de marca, em destaque
 ];
 
 const desenharGraficoComparativoPortage = (
   doc: any,
-  avaliacoes: { titulo: string; linhas: string[][] }[],
+  comparativo: PortageRelatorio['comparativo'],
   startY: number
 ) => {
-  if (avaliacoes.length < 2) return startY;
+  const sessoesLegenda = comparativo[0]?.sessoes || [];
+  if (sessoesLegenda.length < 2) return startY;
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const rightX = pageWidth - MARGIN_RIGHT;
-  const categorias = ['Socialização', 'Cognição'];
-  const series = avaliacoes.map((avaliacao) => ({
-    titulo: avaliacao.titulo,
-    valores: categorias.map((categoria) =>
-      mediaCategoriaAvaliacao(avaliacao.linhas.find((l) => l[0] === categoria))
-    ),
-  }));
 
   const alturaGrafico = 38;
   const eixoX = MARGIN_LEFT + 12;
@@ -398,29 +465,31 @@ const desenharGraficoComparativoPortage = (
     doc.text(`${marca}%`, eixoX - 2, marcaY + 1, { align: 'right' });
   });
 
-  const larguraGrupo = (rightX - eixoX) / categorias.length;
-  const larguraBarra = Math.min(10, (larguraGrupo - 8) / series.length);
+  const larguraGrupo = (rightX - eixoX) / comparativo.length;
 
-  categorias.forEach((categoria, indiceCategoria) => {
+  comparativo.forEach((grupo, indiceCategoria) => {
+    const larguraBarra = Math.min(
+      10,
+      (larguraGrupo - 8) / grupo.sessoes.length
+    );
     const centroGrupo =
       eixoX + larguraGrupo * indiceCategoria + larguraGrupo / 2;
     const larguraTotalBarras =
-      larguraBarra * series.length + 2 * (series.length - 1);
+      larguraBarra * grupo.sessoes.length + 2 * (grupo.sessoes.length - 1);
     let xBarra = centroGrupo - larguraTotalBarras / 2;
 
-    series.forEach((serie, indiceSerie) => {
-      const valor = serie.valores[indiceCategoria];
+    grupo.sessoes.forEach((sessao, indiceSerie) => {
       const cor = CORES_SESSAO[indiceSerie] || BRAND_PURPLE;
 
-      if (valor !== null) {
-        const alturaBarra = (valor / 100) * alturaGrafico;
+      if (sessao.media !== null) {
+        const alturaBarra = (sessao.media / 100) * alturaGrafico;
         doc.setFillColor(...cor);
         doc.rect(xBarra, baseY - alturaBarra, larguraBarra, alturaBarra, 'F');
         doc.setFontSize(6);
         doc.setFont('Helvetica', 'bold');
         doc.setTextColor(...cor);
         doc.text(
-          `${Math.round(valor)}%`,
+          `${sessao.media}%`,
           xBarra + larguraBarra / 2,
           baseY - alturaBarra - 1.5,
           { align: 'center' }
@@ -439,7 +508,7 @@ const desenharGraficoComparativoPortage = (
     doc.setFontSize(7.5);
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(...BLACK);
-    doc.text(categoria, centroGrupo, baseY + 5, { align: 'center' });
+    doc.text(grupo.categoria, centroGrupo, baseY + 5, { align: 'center' });
   });
 
   doc.setDrawColor(190, 190, 190);
@@ -451,22 +520,26 @@ const desenharGraficoComparativoPortage = (
   // Legenda — sem isso não dá pra saber qual barra (cinza/roxa) é qual
   // sessão, só olhando as cores.
   let xLegenda = MARGIN_LEFT;
-  series.forEach((serie, indice) => {
+  sessoesLegenda.forEach((sessao, indice) => {
     const cor = CORES_SESSAO[indice] || BRAND_PURPLE;
     doc.setFillColor(...cor);
     doc.rect(xLegenda, y - 2.5, 3, 3, 'F');
     doc.setFontSize(7);
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(...BLACK);
-    doc.text(serie.titulo, xLegenda + 4.5, y);
-    xLegenda += doc.getTextWidth(serie.titulo) + 14;
+    doc.text(sessao.titulo, xLegenda + 4.5, y);
+    xLegenda += doc.getTextWidth(sessao.titulo) + 14;
   });
 
   doc.setTextColor(...BLACK);
   return y + 6;
 };
 
-const desenharPortage = (doc: any, data: any, startY: number) => {
+const desenharPortage = (
+  doc: any,
+  portage: PortageRelatorio,
+  startY: number
+) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
@@ -485,13 +558,17 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
   // avaliações abaixo, sem ler como um título de seção de verdade.
   y += 11;
 
-  const avaliacoes = transformarPortagePorAvaliacao(data);
-
-  avaliacoes.forEach((avaliacao) => {
+  portage.avaliacoes.forEach((avaliacao) => {
     const faixaUnica =
-      avaliacao.colunas.length === 2 ? avaliacao.colunas[1] : null;
+      avaliacao.faixasEtarias.length === 1 ? avaliacao.faixasEtarias[0] : null;
 
     y = ensureSpace(doc, y, faixaUnica ? 24 : 18);
+
+    // Título ("Primeira Aplicação"/"Avaliação Atual", do backend) + a
+    // data da avaliação, igual o documento de referência.
+    const tituloAvaliacao = avaliacao.data
+      ? `${avaliacao.titulo}: ${formatarDataPdf(avaliacao.data)}`
+      : avaliacao.titulo;
 
     // Título com uma faixa lateral na cor de marca (mesmo tratamento
     // visual do resto do relatório) — antes era só texto solto, sem
@@ -504,7 +581,7 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
     doc.setFont('Helvetica', 'bold');
     doc.setTextColor(...BRAND_PURPLE);
     doc.text(
-      faixaUnica ? `${avaliacao.titulo} · ${faixaUnica}` : avaliacao.titulo,
+      faixaUnica ? `${tituloAvaliacao} · ${faixaUnica}` : tituloAvaliacao,
       MARGIN_LEFT + 3,
       y
     );
@@ -512,13 +589,32 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
     y += 7;
 
     if (faixaUnica) {
-      y = desenharAvaliacaoCompacta(doc, avaliacao, y, rightX);
+      y = desenharAvaliacaoCompacta(doc, avaliacao, faixaUnica, y, rightX);
       return;
     }
 
     autoTable(doc, {
-      head: [avaliacao.colunas],
-      body: avaliacao.linhas,
+      head: [['Áreas', ...avaliacao.faixasEtarias]],
+      // Cada célula já sai com o estilo dela (cor pela `classificacao`
+      // do backend, itálico cinza pra "Não se aplica") — em vez de
+      // reinterpretar o texto "80%" depois, num didParseCell.
+      body: avaliacao.categorias.map((categoria) => [
+        categoria.nome,
+        ...avaliacao.faixasEtarias.map((faixa) => {
+          const valor = valorNaFaixa(categoria, faixa);
+          const naoSeAplica = valor?.percentual == null;
+          return {
+            content: textoPercentual(valor?.percentual),
+            styles: {
+              fontStyle: naoSeAplica ? 'italic' : 'bold',
+              textColor:
+                COR_POR_CLASSIFICACAO[
+                  naoSeAplica ? 'na' : valor!.classificacao
+                ],
+            },
+          };
+        }),
+      ]) as any,
       startY: y,
       // Número fixo (não 'auto'/'wrap') é o que faz a tabela esticar
       // até preencher a largura útil da página de verdade — só 2-3
@@ -533,41 +629,61 @@ const desenharPortage = (doc: any, data: any, startY: number) => {
       },
       columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
-      // Colore cada percentual (verde/amarelo/vermelho, mesma faixa da
-      // tela) e deixa "Não se aplica" em itálico cinza — sem isso os
-      // números ficavam todos pretos, iguais entre si, difícil de
-      // escanear rápido qual faixa está bem e qual precisa de atenção.
-      didParseCell: (hookData: any) => {
-        if (hookData.section !== 'body' || hookData.column.index === 0) return;
-        const valor = String(hookData.cell.raw ?? '');
-        if (valor === 'Não se aplica') {
-          hookData.cell.styles.fontStyle = 'italic';
-          hookData.cell.styles.textColor = GRAY_TEXT;
-        } else if (valor) {
-          hookData.cell.styles.fontStyle = 'bold';
-          hookData.cell.styles.textColor = corPercentualRGB(valor);
-        }
-      },
     });
 
     y = doc.lastAutoTable.finalY + 8;
   });
 
-  y = desenharGraficoComparativoPortage(doc, avaliacoes, y);
+  y = desenharGraficoComparativoPortage(doc, portage.comparativo, y);
 
   return y;
 };
 
 // ------------------ VB-MAPP (grade colorida por nível) ------------------
-// Exportado — pages/pei/TabelaVBMapp.tsx usa a mesma cor por nível pra
-// tabela comparativa exibida direto na tela, igual ao PDF.
+// Exportado — pages/pei/TabelaVBMapp.tsx e pdfVBMAPP.ts usam a mesma
+// cor por nível. O backend (item 19) não devolve cor, só nível — a
+// paleta continua sendo decisão visual do front.
 export const NIVEL_COR: Record<number, string> = {
   1: '#e36b05',
   2: '#03ae4e',
   3: '#0071bd',
 };
 
-const desenharVBMapp = (doc: any, dados: any, startY: number) => {
+// Desenha um slot da grade conforme `preenchimento` (item 19 — antes o
+// front convertia percentual 100/50 nisso). null = slot sem atividade,
+// sai em branco igual "vazio".
+export const desenharSlotVbmapp = (
+  doc: any,
+  slot: { preenchimento: Preenchimento } | null,
+  cor: string,
+  x: number,
+  y: number,
+  largura: number,
+  altura: number
+) => {
+  if (slot?.preenchimento === 'cheio') {
+    doc.setFillColor(cor);
+    doc.rect(x, y, largura, altura, 'F');
+  } else if (slot?.preenchimento === 'metade') {
+    // Metade inferior com a cor do nível, metade superior em branco.
+    doc.setFillColor(cor);
+    doc.rect(x, y + altura / 2, largura, altura / 2, 'F');
+    doc.setFillColor('#ffffff');
+    doc.rect(x, y, largura, altura / 2, 'F');
+  } else {
+    doc.setFillColor('#ffffff');
+    doc.rect(x, y, largura, altura, 'F');
+  }
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, largura, altura);
+};
+
+const desenharVBMapp = (
+  doc: any,
+  vbmapp: VbmappRelatorio,
+  startY: number
+) => {
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const rightX = pageWidth - MARGIN_RIGHT;
@@ -575,10 +691,14 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
   const cellWidth = 6;
   const headerCellHeight = 3;
   const activityCellHeight = 2.5;
-  const maxActividades = 10;
+  // `slots` já chega com tamanho fixo (SLOT_COUNT_ATIVIDADE no backend),
+  // igual em todo programa — lê do próprio dado pra altura da grade em
+  // vez de repetir o 10 aqui.
+  const quantidadeSlots =
+    vbmapp.niveis[0]?.sessoes[0]?.programas[0]?.slots.length || 0;
   // Título "Nível X" + data da sessão, antes da grade em si começar.
   const topoAteGrade = 7;
-  const alturaGrade = headerCellHeight + maxActividades * activityCellHeight;
+  const alturaGrade = headerCellHeight + quantidadeSlots * activityCellHeight;
   const alturaBloco = topoAteGrade + alturaGrade + 4;
   const espacamentoEntreNiveis = 8;
 
@@ -588,29 +708,25 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
   doc.text('Marcos do Desenvolvimento Infantil', MARGIN_LEFT, y);
   y += 10;
 
-  const niveisOrdenados = Object.keys(dados || {})
-    .map(Number)
-    .sort((a, b) => b - a)
-    .filter((nivel) => Object.keys(dados[nivel] || {}).length);
+  type Nivel = VbmappRelatorio['niveis'][number];
 
-  // Largura do bloco inteiro de um nível — todas as suas datas lado a
+  // Largura do bloco inteiro de um nível — todas as suas sessões lado a
   // lado. Precisa saber isso ANTES de desenhar: tanto pra decidir se
   // cabe na linha atual quanto pra centralizar a linha inteira depois.
-  const larguraNivel = (nivel: number) =>
-    Object.keys(dados[nivel]).reduce((width, data) => {
-      const programas = Object.keys(dados[nivel][data]).length;
-      return width + programas * cellWidth + 5;
-    }, -5);
+  const larguraNivel = (nivel: Nivel) =>
+    nivel.sessoes.reduce(
+      (width, sessao) => width + sessao.programas.length * cellWidth + 5,
+      -5
+    );
 
-  // 1ª passada: agrupa os níveis em linhas só pela largura (nunca quebra
-  // um nível no meio — cada um é uma unidade única, ou entra inteiro
-  // numa linha ou vai pra próxima). Sem desenhar nada ainda, porque a
-  // centralização de cada linha (pedida explicitamente — as linhas
-  // ficavam coladas na margem esquerda, com folga sobrando à direita)
-  // só dá pra calcular depois de saber TODOS os níveis que cabem nela.
-  const linhas: { nivel: number; largura: number }[][] = [[]];
+  // 1ª passada: agrupa os níveis (já ordenados pelo backend) em linhas
+  // só pela largura (nunca quebra um nível no meio — cada um é uma
+  // unidade única, ou entra inteiro numa linha ou vai pra próxima). Sem
+  // desenhar nada ainda, porque a centralização de cada linha só dá pra
+  // calcular depois de saber TODOS os níveis que cabem nela.
+  const linhas: { nivel: Nivel; largura: number }[][] = [[]];
   let larguraLinhaAtual = 0;
-  niveisOrdenados.forEach((nivel) => {
+  vbmapp.niveis.forEach((nivel) => {
     const largura = larguraNivel(nivel);
     const proximaLargura =
       larguraLinhaAtual === 0
@@ -644,15 +760,15 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
       doc.setFontSize(9);
       doc.setFont('Helvetica', 'bold');
       doc.setTextColor(...BLACK);
-      doc.text(`Nível ${nivel}`, currentX + largura / 2, rowY, {
+      doc.text(`Nível ${nivel.nivel}`, currentX + largura / 2, rowY, {
         align: 'center',
       });
 
+      const cor = NIVEL_COR[nivel.nivel] || '#ffffff';
       let offsetX = currentX;
-      const datas = Object.keys(dados[nivel]);
 
-      datas.forEach((data) => {
-        const programas = Object.keys(dados[nivel][data]);
+      nivel.sessoes.forEach((sessao) => {
+        const { programas } = sessao;
 
         // Data da sessão — era o maior texto perto da grade (7pt contra
         // as células de ~2-3mm), destoando do resto; menor aqui fica
@@ -661,7 +777,7 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
         doc.setFont('Helvetica', 'normal');
         doc.setTextColor(...BLACK);
         doc.text(
-          data,
+          formatarDataPdf(sessao.data),
           offsetX + (programas.length * cellWidth) / 2,
           rowY + topoAteGrade - 2,
           { align: 'center' }
@@ -681,7 +797,7 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
           // estourar/cortar sem aviso, encolhe o texto pra caber (mesma
           // ideia do fitContent do jsPDF, feita na mão porque addImage/
           // text não tem isso pra fonte).
-          const rotulo = String(programa || '').toUpperCase();
+          const rotulo = String(programa.nome || '').toUpperCase();
           let larguraTexto = doc.getTextWidth(rotulo);
           let tamanhoFonte = 3;
           while (larguraTexto > cellWidth - 0.5 && tamanhoFonte > 1.5) {
@@ -695,42 +811,19 @@ const desenharVBMapp = (doc: any, dados: any, startY: number) => {
             headerY + headerCellHeight / 2 + 0.5,
             { align: 'center' }
           );
-        });
 
-        for (let i = 0; i < maxActividades; i++) {
-          programas.forEach((programa, colIndex) => {
-            const atividades = Object.keys(dados[nivel][data][programa]);
-            const atividade = atividades[i];
-            const percentual = atividade
-              ? dados[nivel][data][programa][atividade].percentual
-              : 0;
-            const x = offsetX + colIndex * cellWidth;
-            const cellY = headerY + headerCellHeight + i * activityCellHeight;
-            const cor = NIVEL_COR[nivel] || '#ffffff';
-
-            if (percentual === 100) {
-              doc.setFillColor(cor);
-              doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
-            } else if (percentual === 50) {
-              doc.setFillColor(cor);
-              doc.rect(
-                x,
-                cellY + activityCellHeight / 2,
-                cellWidth,
-                activityCellHeight / 2,
-                'F'
-              );
-              doc.setFillColor('#ffffff');
-              doc.rect(x, cellY, cellWidth, activityCellHeight / 2, 'F');
-            } else {
-              doc.setFillColor('#ffffff');
-              doc.rect(x, cellY, cellWidth, activityCellHeight, 'F');
-            }
-            doc.setDrawColor(0);
-            doc.setLineWidth(0.2);
-            doc.rect(x, cellY, cellWidth, activityCellHeight);
+          programa.slots.forEach((slot, i) => {
+            desenharSlotVbmapp(
+              doc,
+              slot,
+              cor,
+              x,
+              headerY + headerCellHeight + i * activityCellHeight,
+              cellWidth,
+              activityCellHeight
+            );
           });
-        }
+        });
 
         offsetX += programas.length * cellWidth + 5;
       });
@@ -766,7 +859,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
   doc.text('Programas ABA (metas) para serem trabalhadas', MARGIN_LEFT, y);
   y += 8;
 
-  (sections || []).forEach((section) => {
+  sections.forEach((section) => {
     // 40 (não só a altura do título) — reserva espaço suficiente pra
     // pelo menos o começo do primeiro procedimento também, senão o
     // título do programa ficava sozinho no fim da página, órfão, com
@@ -780,13 +873,8 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
     // PROCEDIMENTO DE ENSINO + SD/Resposta/SR+ vivem no nível da SEÇÃO
     // (do programa), não em cada meta — o backend mescla vários
     // registros Pei num programa só (ver PeiService.agruparPeiPorPrograma/
-    // mesclarMetas), mas só o PRIMEIRO registro mesclado empresta esses
-    // campos pro grupo; nenhuma meta individual carrega isso. Antes o
-    // código tentava reagrupar as metas por um `meta.procedimentoEnsino`
-    // que nunca existe de verdade nos dados reais (só nos mocks de
-    // teste que eu mesmo montei) — sempre caía num "cabeçalho vazio",
-    // sem quebrar nada visivelmente, mas nunca desenhava o
-    // procedimento/tabela nenhuma.
+    // mesclarMetas), e só o PRIMEIRO registro mesclado empresta esses
+    // campos pro grupo; nenhuma meta individual carrega isso.
     {
       y = ensureSpace(doc, y, 14);
       if (section?.procedimentoEnsino?.nome) {
@@ -835,10 +923,14 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
         // meta, reservando esse espaço só na primeira linha (onde a
         // pílula de fato fica); as linhas seguintes (se a descrição
         // for longa o bastante pra quebrar) usam a largura cheia.
-        const status = meta.status;
+        //
+        // `meta.status` vem resolvido do backend (item 12) — sem mais
+        // derivar de `selected` aqui (statusMetaExibicao). null = meta
+        // sem status, não mostra pílula.
+        const status: string | null = meta.status ?? null;
         const pilulaTexto = status ? STATUS_META_LABEL_CURTO[status] : null;
         let pilulaLargura = 0;
-        if (pilulaTexto) {
+        if (status && pilulaTexto) {
           doc.setFontSize(7.5);
           doc.setFont('Helvetica', 'bold');
           pilulaLargura = doc.getTextWidth(pilulaTexto) + 6;
@@ -864,7 +956,7 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
 
         doc.text(linhasMeta, MARGIN_LEFT, y);
 
-        if (pilulaTexto) {
+        if (status && pilulaTexto) {
           // Logo depois do texto (medido de verdade, não fixa na
           // margem direita) — com descrição curta, ficava um vão
           // enorme entre o fim do texto e a pílula lá na ponta.
@@ -942,40 +1034,15 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
   return y;
 };
 
-// Conduta Sugerida vem do RichTextEditor (mesmo componente do Resumo
-// da Sessão — ver Session.tsx/renderSumary), então chega aqui como
-// HTML do Tiptap, não texto puro. jsPDF não renderiza HTML nessa
-// função (não dá pra só jogar a tag pro doc.text), então converte pra
-// texto simples preservando parágrafo (</p> vira quebra dupla) e item
-// de lista (<li> vira "• ") — suficiente pro texto livre que esse
-// campo recebe, sem precisar de negrito/itálico no PDF.
-const htmlParaTextoPdf = (html: string): string => {
-  if (!html) return '';
-  const texto = html
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<\/li>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-  return texto.replace(/\n{3,}/g, '\n\n').trim();
-};
-
 // Última seção do relatório, por pedido explícito — vem depois de
-// Portage/VB-MAPP/Manual, nessa ordem fixa.
+// Portage/VB-MAPP/Manual, nessa ordem fixa. O texto já chega sanitizado
+// (sem HTML/&nbsp;) do backend (item 21) — sem conversão HTML->texto
+// por regex aqui; só respeita as quebras de linha que vierem.
 const desenharCondutaSugerida = (
   doc: any,
-  conteudoHtml: string,
+  texto: string,
   startY: number
 ) => {
-  const texto = htmlParaTextoPdf(conteudoHtml);
-  if (!texto) return startY;
-
   let y = startY;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
@@ -1012,56 +1079,41 @@ const desenharRodape = (doc: any) => {
     doc.setFontSize(8);
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(...BLACK);
-    doc.text(
-      'Av. Henrique Andrés, 700 – Centro – Jundiaí-SP',
-      10,
-      pageHeight - 10
-    );
+    doc.text(clinicaAtual?.endereco || '', 10, pageHeight - 10);
     doc.text(String(i), doc.internal.pageSize.getWidth() - 15, pageHeight - 10);
   }
 };
 
+// `condutaSugerida`: texto do editor da tela. Quando informado, é
+// persistido ANTES de gerar (PUT /paciente/:id/relatorio-evolucao, item
+// 21) e o PDF usa a versão sanitizada que o GET devolve logo em seguida.
+// `undefined` = não mexe na conduta salva — importante porque o PUT
+// sobrescreve: string vazia APAGA a conduta persistida.
 export const gerarRelatorioEvolucao = async (
-  paciente: { id: number; nome: string },
-  condutaSugerida: string,
+  paciente: { id: number; nome?: string },
+  condutaSugerida: string | undefined,
   renderToast: (args: any) => void
 ) => {
-  // Precisa terminar de carregar ANTES de desenhar a primeira página —
-  // ver comentário em carregarLogoBase64.
-  const [, portageRes, vbmappRes, peiRes] = await Promise.allSettled([
+  if (condutaSugerida !== undefined) {
+    await update(`paciente/${paciente.id}/relatorio-evolucao`, {
+      condutaSugerida,
+    });
+  }
+
+  // Logo precisa terminar de carregar ANTES de desenhar a primeira
+  // página (ver carregarLogoBase64). Sem allSettled: se o relatório ou
+  // os dados da clínica falharem, o erro sobe pro chamador (PEI.tsx já
+  // mostra o toast de falha) — não gera PDF parcial.
+  const [, relatorioRes, clinica] = await Promise.all([
     carregarLogoBase64(),
-    filter('protocolo', {
-      pacienteId: paciente.id,
-      protocoloId: TIPO_PROTOCOLO.portage,
-      type: 'pdf',
-    }),
-    filter('protocolo', {
-      pacienteId: paciente.id,
-      protocoloId: TIPO_PROTOCOLO.vbMapp,
-      type: 'pdf',
-    }),
-    filter('pei', {
-      paciente: { id: paciente.id },
-      protocoloId: { id: TIPO_PROTOCOLO.pei },
-      notSelected: [VALOR_PORTAGE.sim],
-    }),
+    api.get(`paciente/${paciente.id}/relatorio-evolucao`),
+    buscarDadosClinica(),
   ]);
+  const relatorio: RelatorioEvolucao = relatorioRes.data;
 
-  const portageData =
-    portageRes.status === 'fulfilled' ? portageRes.value?.data : null;
-  const vbmappBody =
-    vbmappRes.status === 'fulfilled' ? vbmappRes.value?.data : null;
-  // GET pei/filtro devolve o array direto no corpo (não um {data:[...]}
-  // por fora) — mesma leitura que pages/PEI.tsx: `const { data } = await
-  // filter('pei', ...)` já extrai o corpo inteiro como a lista.
-  const peiData = peiRes.status === 'fulfilled' ? peiRes.value?.data : null;
-
-  if (
-    !portageData &&
-    !vbmappBody?.data &&
-    !peiData?.length &&
-    !htmlParaTextoPdf(condutaSugerida)
-  ) {
+  // `temDados` só olha Portage/VB-MAPP/Manual; um relatório só com a
+  // conduta sugerida continua valendo a pena gerar.
+  if (!relatorio.temDados && !relatorio.condutaSugerida) {
     renderToast({
       type: 'failure',
       title: 'Sem dados',
@@ -1072,39 +1124,40 @@ export const gerarRelatorioEvolucao = async (
     return;
   }
 
+  clinicaAtual = clinica;
+
   const doc: any = new jsPDF();
-  const pacienteInfo =
-    portageData?.paciente || vbmappBody?.paciente || paciente;
 
   // Nome do arquivo (metadado /Title do PDF, não o nome do blob em si —
   // um blob: URL não carrega nome de arquivo próprio). É esse título
   // que o visualizador de PDF do navegador usa como sugestão ao salvar
   // o PDF aberto em nova aba (ver window.open(bloburl) logo abaixo).
   doc.setProperties({
-    title: `${pacienteInfo?.nome || 'Paciente'} - ${moment().format(
-      'DD-MM-YYYY'
-    )} - RELATÓRIO DE INTERVENÇÃO ABA`,
+    title: `${relatorio.paciente?.nome || 'Paciente'} - ${moment
+      .utc(relatorio.dataEmissao)
+      .format('DD-MM-YYYY')} - RELATÓRIO DE INTERVENÇÃO ABA`,
   });
 
-  let y = desenharCabecalho(doc, pacienteInfo);
+  let y = desenharCabecalho(doc, relatorio);
 
-  if (portageData) {
-    y = desenharPortage(doc, portageData, y);
+  // Seção null = sem dado daquele protocolo (o backend já decide isso).
+  if (relatorio.portage) {
+    y = desenharPortage(doc, relatorio.portage, y);
   }
 
-  if (vbmappBody?.data) {
+  if (relatorio.vbmapp) {
     y = iniciarNovaSecao(doc, y);
-    y = desenharVBMapp(doc, vbmappBody.data, y);
+    y = desenharVBMapp(doc, relatorio.vbmapp, y);
   }
 
-  if (peiData?.length) {
+  if (relatorio.manual) {
     y = iniciarNovaSecao(doc, y);
-    y = desenharPei(doc, peiData, y);
+    y = desenharPei(doc, relatorio.manual, y);
   }
 
-  if (htmlParaTextoPdf(condutaSugerida)) {
+  if (relatorio.condutaSugerida) {
     y = iniciarNovaSecao(doc, y);
-    y = desenharCondutaSugerida(doc, condutaSugerida, y);
+    y = desenharCondutaSugerida(doc, relatorio.condutaSugerida, y);
   }
 
   desenharRodape(doc);

@@ -1,12 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import clsx from 'clsx';
 import { LayoutDefault } from '../components/layoutDefault';
 import { Nav } from '../components/Nav';
 import { LoadingHeron } from '../components/loading';
 import { MustChangePasswordModal } from '../components/mustChangePasswordModal';
 import { useAuth } from '../contexts/auth';
-import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
 
 // Cada rota antes era importada de forma estática, então navegar pra
 // QUALQUER tela baixava o JS de TODAS elas de uma vez — incluindo libs
@@ -49,7 +47,9 @@ export interface RoutesProps {
 
 export const ROUTES = [
   { path: '*', componentRoute: Home, icon: '', menu: false, title: 'Início' },
-  { path: CONSTANTES_ROUTERS.SESSION, componentRoute: Session, icon: '', menu: false, title: 'Sessão' },
+  // Sessão aberta pelo id do calendário na URL (sobrevive a F5/link direto
+  // — o evento vem de GET /sessao/calendario/:id).
+  { path: `${CONSTANTES_ROUTERS.SESSION}/:calendarioId`, componentRoute: Session, icon: '', menu: false, title: 'Sessão' },
   { path: CONSTANTES_ROUTERS.DTT, componentRoute: DTT, icon: '', menu: false, title: 'DTT' },
   { path: CONSTANTES_ROUTERS.METAS, componentRoute: Metas, icon: '', menu: false, title: 'Metas' },
   { path: CONSTANTES_ROUTERS.HOME, componentRoute: Home, icon: 'pi pi-home', menu: true, title: 'Início' },
@@ -68,16 +68,17 @@ const OtherRoutes = () => {
 
   const routes: RoutesProps[] = ROUTES;
   const { mustChangePassword } = useAuth();
-  const isTabRoute = useIsTabRoute();
 
   return (
-    <div className="min-h-full overflow-hidden bg-background h-screen w-full">
+    // 100dvh = altura visível de verdade (h-screen/100vh no iOS inclui a
+    // barra do navegador). flex-col + main flex-1 min-h-0: o scroll do
+    // LayoutDefault ocupa só o que sobra abaixo do header (mt-14). Antes
+    // ele tinha h-screen inteiro empurrado 3,5rem pra baixo, então o fim
+    // de toda tela (incluindo a reserva da tab bar) ficava fora da tela.
+    // A reserva de espaço da tab bar fica no LayoutDefault.
+    <div className="flex flex-col overflow-hidden bg-background h-[100dvh] w-full">
       <Nav />
-      {/* pb-24 extra só nas rotas de topo, onde a tab bar flutuante do
-          rodapé aparece (ver Nav/index.tsx) — nas telas de detalhe
-          (Sessão, DTT, Metas, Cadastro de PEI) ela não existe, então não
-          precisa da reserva de espaço. */}
-      <main className={clsx('mt-14', isTabRoute && 'pb-24')}>
+      <main className="flex-1 min-h-0 mt-14">
         {/* Enquanto a troca de senha obrigatória estiver pendente, as
             páginas não são montadas: evita que telas por trás do modal
             disparem requisições que o backend vai bloquear (e encher a

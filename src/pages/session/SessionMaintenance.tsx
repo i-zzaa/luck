@@ -24,10 +24,12 @@ interface Props {
   listMaintenance: MaintenanceObj;
   // true desabilita edição visual
   isEdit: boolean;
-  // setter que recebe o OBJETO listMaintenance atualizado
-  setMaintenance: (
+  // setter que recebe o OBJETO listMaintenance atualizado (a árvore com
+  // slots — não as selectedMaintenanceKeys, que é outro estado)
+  setListMaintenance: (
     next: MaintenanceObj | ((prev: MaintenanceObj) => MaintenanceObj)
-  ) => void;}
+  ) => void;
+}
 
 const isObjNode = (n: any) => n && typeof n === 'object' && !Array.isArray(n);
 const hasActs = (children: any[] | undefined) =>
@@ -38,7 +40,7 @@ const hasActs = (children: any[] | undefined) =>
 export const SessionMaintenance = memo(function SessionMaintenance({
   listMaintenance,
   isEdit,
-  setMaintenance,
+  setListMaintenance,
 }: Props) {
   const hasAny =
     (Array.isArray(listMaintenance?.manual) && listMaintenance.manual!.length > 0) ||
@@ -73,7 +75,7 @@ export const SessionMaintenance = memo(function SessionMaintenance({
     programa.children = metas;
     next[cat]![programaIdx] = programa;
 
-    setMaintenance(next);
+    setListMaintenance(next);
   };
 
   // Atualiza o slot [children[0]] de ACT (quando meta tem filhos-objeto)
@@ -109,7 +111,7 @@ export const SessionMaintenance = memo(function SessionMaintenance({
     programa.children = metas;
     next[cat]![programaIdx] = programa;
 
-    setMaintenance(next);
+    setListMaintenance(next);
   };
 
   const renderCategory = (cat: keyof MaintenanceObj, title: string) => {

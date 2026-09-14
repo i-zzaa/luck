@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  extractTrainedSelectionKeys,
+  extractRespostas,
   isObj,
   isPrimitiveOrNull,
   isResumoVazio,
-  MIN_RESUMO_LENGTH,
-  padSlots,
   resumoTextLength,
 } from './sessionTree';
 
@@ -47,79 +45,48 @@ describe('resumoTextLength', () => {
   });
 });
 
-describe('MIN_RESUMO_LENGTH', () => {
-  it('é 200 (regra de negócio do prontuário)', () => {
-    expect(MIN_RESUMO_LENGTH).toBe(200);
-  });
-});
-
-describe('padSlots', () => {
-  it('preenche com null até completar o tamanho pedido', () => {
-    expect(padSlots(['+', '-'], 5)).toEqual(['+', '-', null, null, null]);
+describe('extractRespostas', () => {
+  it('gera uma resposta por folha (children = slots), com a key em string', () => {
+    const nodes = [{ key: 10, children: ['+', null, '-'] }];
+    expect(extractRespostas(nodes, 'portage')).toEqual([
+      { nodeKey: '10', protocolo: 'portage', slots: ['+', null, '-'] },
+    ]);
   });
 
-  it('corta o array se já vier maior que o tamanho pedido', () => {
-    expect(padSlots(['+', '-', '+', '-', '+', '+'], 3)).toEqual(['+', '-', '+']);
-  });
-
-  it('devolve array só de null quando a entrada não é array', () => {
-    expect(padSlots(undefined as any, 3)).toEqual([null, null, null]);
-  });
-
-  it('não mexe num array que já tem exatamente o tamanho certo', () => {
-    expect(padSlots(['+', '-', null], 3)).toEqual(['+', '-', null]);
-  });
-});
-
-describe('extractTrainedSelectionKeys', () => {
-  it('marca uma folha como treinada se tiver pelo menos um slot preenchido', () => {
-    const nodes = [{ key: 'meta-1', children: [null, '+', null] }];
-    expect(extractTrainedSelectionKeys(nodes)).toEqual({
-      'meta-1': { checked: true, partialChecked: false },
-    });
-  });
-
-  it('não marca uma folha com todos os slots vazios', () => {
-    const nodes = [{ key: 'meta-1', children: [null, null, null] }];
-    expect(extractTrainedSelectionKeys(nodes)).toEqual({});
-  });
-
-  it('propaga pro nó pai quando um filho é treinado (3 níveis)', () => {
+  it('desce até as folhas e ignora nós internos (programa -> meta -> ato)', () => {
     const nodes = [
       {
         key: 'programa-1',
         children: [
           { key: 'meta-1', children: ['+', null] },
-          { key: 'meta-2', children: [null, null] },
+          {
+            key: 'meta-2',
+            children: [
+              { key: 'ato-1', children: [null, null] },
+              { key: 'ato-2', children: ['-', '+'] },
+            ],
+          },
         ],
       },
     ];
-    const result = extractTrainedSelectionKeys(nodes);
-    expect(result['meta-1']).toEqual({ checked: true, partialChecked: false });
-    expect(result['meta-2']).toBeUndefined();
-    // só 1 dos 2 filhos treinado -> pai fica parcial, não totalmente marcado
-    expect(result['programa-1']).toEqual({ checked: false, partialChecked: true });
+    expect(extractRespostas(nodes, 'manual').map((r) => r.nodeKey)).toEqual([
+      'meta-1',
+      'ato-1',
+      'ato-2',
+    ]);
   });
 
-  it('marca o pai como totalmente selecionado quando TODOS os filhos são treinados', () => {
-    const nodes = [
-      {
-        key: 'programa-1',
-        children: [
-          { key: 'meta-1', children: ['+'] },
-          { key: 'meta-2', children: ['-'] },
-        ],
-      },
-    ];
-    expect(extractTrainedSelectionKeys(nodes)['programa-1']).toEqual({
-      checked: true,
-      partialChecked: false,
-    });
+  it('manda folha sem nada marcado também (slots só null)', () => {
+    const nodes = [{ key: 'm', children: [null] }];
+    expect(extractRespostas(nodes, 'manutencao')).toEqual([
+      { nodeKey: 'm', protocolo: 'manutencao', slots: [null] },
+    ]);
   });
 
-  it('devolve objeto vazio pra árvore vazia/indefinida', () => {
-    expect(extractTrainedSelectionKeys([])).toEqual({});
-    expect(extractTrainedSelectionKeys(undefined as any)).toEqual({});
+  it('ignora nó sem children/sem key e árvore vazia/indefinida', () => {
+    expect(extractRespostas([{ key: 'x' }, { children: ['+'] }], 'vbmapp')).toEqual([]);
+    expect(extractRespostas([], 'vbmapp')).toEqual([]);
+    expect(extractRespostas(undefined as any, 'vbmapp')).toEqual([]);
   });
 });
 

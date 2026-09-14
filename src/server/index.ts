@@ -30,17 +30,15 @@ export const intercepttRoute = (token: string, login: string, id: any) => {
 
   requestInterceptorId = api.interceptors.request.use(
     async (config: any) => {
+      // Antes havia uma checagem `new Date(token)` pra "expiração" — token
+      // é um JWT, não uma data, então virava Invalid Date, a comparação
+      // dava sempre false e o header ia de qualquer jeito. Expiração é
+      // decidida pelo backend (401); o `expiresAt` do login só serve pro
+      // AuthProvider deslogar sozinho quando o prazo passar (contexts/auth).
       if (!config.url.endsWith('login')) {
-        const userTokenExpiration = new Date(token);
-        const today = new Date();
-        if (today > userTokenExpiration) {
-          config.headers.Authorization = null;
-        } else {
         config.headers.Authorization = `Bearer ${token}`;
         config.headers.login = login;
         config.headers.idUser = id;
-
-        }
       }
       return config;
     },

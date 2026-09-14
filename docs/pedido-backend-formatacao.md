@@ -35,6 +35,19 @@ Depois que o backend confirmar que cada item está no ar, fazemos uma
 segunda passada pra remover o cálculo/transformação local (vira código
 morto, mas não atrapalha até lá).
 
+> **Status (2026-09-13):** atendidos pelo backend e já consumidos pelo
+> front: 1, 3, 4, 5, 6, 7, 8, 9 e 12. **Pendentes:**
+> - **2** — `especialidade.codigo` ainda não vem nos eventos da agenda
+>   (o front segue com `resolveEspecialidadeCodigo`).
+> - **10** — o backend já seta o cookie `HttpOnly` (em paralelo ao token
+>   no corpo); falta migrar o front (`withCredentials`, parar de guardar
+>   token em `sessionStorage`).
+> - **11** — recuperação dos itens de VB-MAPP perdidos: sem evidência no
+>   código/commits; confirmar com quem tem acesso ao banco.
+>
+> Pedidos seguintes: `heron-list-nest/docs/pedido-frontend-fase2.md` e o
+> retorno da integração em `heron-list-nest/docs/retorno-frontend-fase2.md`.
+
 ---
 
 ## Pedidos
@@ -103,9 +116,10 @@ Enquanto esse campo não vier, o frontend continua aplicando a regra
 
 ### 4. Endpoint de dashboard agregado
 
-Já está em documento separado, mais detalhado, porque envolve endpoint
-novo (não só campo novo em endpoint existente): ver
-`docs/pedido-backend-dashboard.md`.
+Atendido: `GET /terapeuta/dashboard?terapeutaId=&dataInicio=&dataFim=`
+devolve `totalSessoes`, `totalPacientes`, `taxaComparecimento`,
+`horasAtendidas` e `resumosPendentes` (o documento separado deste pedido
+foi removido depois da entrega).
 
 ### 5. `tipo: "livre" | "agendado"` — em vez do sentinela `id === 0`
 

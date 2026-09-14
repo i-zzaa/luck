@@ -19,9 +19,11 @@ export default function Metas() {
   const location = useLocation();
   const { state } = location as any;
 
+  // Só o calendarioId vai pro hook — o backend resolve o paciente a partir
+  // do evento. state.paciente continua sendo usado pelo guard abaixo e
+  // pelo atalho "Cadastrar Protocolo".
   const selection = useMetasSelection({
-    paciente: state?.paciente,
-    calendarioId: state?.id,
+    calendarioId: state?.paciente ? state?.id : undefined,
     onSaved: () => navigate(`/${CONSTANTES_ROUTERS.CALENDAR}`),
   });
 
@@ -56,15 +58,8 @@ export default function Metas() {
         end={state?.data?.end}
         statusEventos={state?.statusEventos}
         title={state?.title}
-        localidade={state?.localidade?.nome}
-        localExternoDescricao={state?.localExternoDescricao}
         localExibicao={state?.localExibicao}
-        isExterno={state?.isExterno}
-        km={state?.km}
-        modalidade={state?.modalidade?.nome}
-        dataInicio={state?.dataInicio}
-        dataFim={state?.dataFim}
-        dataAtual={state?.dataAtual}
+        modalidade={state?.modalidadeExibicao}
       />
 
       <div className="text-gray-400 text-xs mt-4 mx-2">

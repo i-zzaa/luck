@@ -4,19 +4,31 @@ const DEFAULT_ERROR_MESSAGE =
   'Não foi possível concluir a operação. Tente novamente.';
 
 // Mensagem fixa que o backend devolve em qualquer rota com tag de permissão
-// enquanto mustChangePassword estiver true para o usuário do token. Casado
-// por substring (case-insensitive) em vez de string exata pra não quebrar
-// se o backend ajustar pontuação/sufixo.
+// enquanto mustChangePassword estiver true para o usuário do token. O
+// `codigo` desse 403 é o mesmo SEM_PERMISSAO de qualquer outra falta de
+// permissão, então ainda é preciso olhar a mensagem. Casado por substring
+// (case-insensitive) em vez de string exata pra não quebrar se o backend
+// ajustar pontuação/sufixo.
 const MUST_CHANGE_PASSWORD_MESSAGE_HINT = 'troca de senha obrigat';
+
+// Envelope padronizado de erro do backend (heron-list-nest util/response.ts
+// e AllExceptionsFilter, item 28 do pedido-frontend-fase2.md): toda resposta
+// de erro vem com `codigo` estável (NAO_AUTENTICADO, SEM_PERMISSAO, ...) e
+// `mensagem` legível.
+interface ErrorEnvelope {
+  codigo: string;
+  mensagem: string;
+}
 
 const isMustChangePasswordError = (error: any): boolean => {
   const status = error?.response?.status;
-  const message = error?.response?.data?.message;
+  const mensagem = (error?.response?.data as ErrorEnvelope | undefined)
+    ?.mensagem;
 
   return (
     status === 403 &&
-    typeof message === 'string' &&
-    message.toLowerCase().includes(MUST_CHANGE_PASSWORD_MESSAGE_HINT)
+    typeof mensagem === 'string' &&
+    mensagem.toLowerCase().includes(MUST_CHANGE_PASSWORD_MESSAGE_HINT)
   );
 };
 
@@ -25,33 +37,19 @@ export interface ErrorInfo {
   message: string;
 }
 
-// Extrai código e mensagem de erro vindos do backend a partir de um erro do
-// axios (error.response.data / error.response.status). Cobre também erros
-// sem resposta do servidor (falha de rede) usando error.message como
-// fallback, e nunca deixa a mensagem em branco.
+// Extrai código e mensagem do envelope de erro do backend a partir de um
+// erro do axios (error.response.data). Sem resposta do servidor (falha de
+// rede, timeout) não há envelope — aí usa error.message do axios e, por
+// último, o fallback, pra nunca deixar a mensagem em branco.
 export const getErrorInfo = (
   error: any,
   fallbackMessage: string = DEFAULT_ERROR_MESSAGE
 ): ErrorInfo => {
-  const response = error?.response;
-  const data = response?.data;
-
-  const backendMessage =
-    (typeof data === 'string' ? data : undefined) ||
-    data?.message ||
-    data?.mensagem ||
-    data?.error ||
-    data?.erro ||
-    (typeof data?.data === 'string' ? data.data : undefined);
-
-  const message = backendMessage || error?.message || fallbackMessage;
-
-  const code =
-    data?.codigo ?? data?.code ?? data?.errorCode ?? response?.status ?? '';
+  const data = error?.response?.data as ErrorEnvelope | undefined;
 
   return {
-    code: code === undefined || code === null ? '' : String(code),
-    message,
+    code: data?.codigo ?? '',
+    message: data?.mensagem || error?.message || fallbackMessage,
   };
 };
 

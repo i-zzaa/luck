@@ -2,24 +2,14 @@ import { Sidebar } from 'primereact/sidebar';
 import { ButtonHeron } from '../button';
 import { useMetasSelection } from '../../pages/metas/useMetasSelection';
 import { MetasSelectionFields } from '../../pages/metas/MetasSelectionFields';
-import { SelectionKeys } from '../../util/sessionTree';
 
 interface MetasBottomSheetProps {
   open: boolean;
   onClose: () => void;
-  paciente: { id: number; nome: string } | undefined;
   calendarioId: number | string | undefined;
   // chamado depois de salvar com sucesso — quem chama decide como
   // recarregar as metas da tela por trás (ver useSessionForm: refreshMetas)
   onSaved: () => void;
-  // ver useMetasSelection: fallback de seleção derivado da própria
-  // sessão já registrada, usado quando o planejamento prévio
-  // (pei/activity-session/:id) vem vazio do backend.
-  fallbackSelection?: {
-    manual?: SelectionKeys;
-    portage?: SelectionKeys;
-    vbmapp?: SelectionKeys;
-  };
 }
 
 // Mesmo fluxo de seleção de metas da tela dedicada (pages/Metas.tsx),
@@ -30,15 +20,11 @@ interface MetasBottomSheetProps {
 export function MetasBottomSheet({
   open,
   onClose,
-  paciente,
   calendarioId,
   onSaved,
-  fallbackSelection,
 }: MetasBottomSheetProps) {
   const selection = useMetasSelection({
-    paciente,
     calendarioId,
-    fallbackSelection,
     onSaved: () => {
       onClose();
       onSaved();

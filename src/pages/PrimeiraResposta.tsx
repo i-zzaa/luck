@@ -7,6 +7,8 @@ import { Filter } from '../components';
 import { PrimeirasRespostasFields } from '../constants/formFields';
 import { NotFound } from '../components/notFound';
 import { LoadingHeron } from '../components/loading';
+import { GraficoLinha, PontoGrafico } from '../components/graficoLinha';
+import moment from 'moment';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import clsx from 'clsx';
@@ -18,91 +20,91 @@ import {
 } from '../constants/protocolo';
 
 // --------- Tipos do shape real ---------
-// Conferido contra o payload de verdade de GET sessao/atividade/:pacienteId:
-// é um array solto (ProgramaGroup[]), sem nenhum wrapper {manual, portage,
-// vbmapp} por fora — essa suposição de estrutura (mantida até aqui) nunca
-// bateu com o que o backend manda, então a tela sempre caía no "não há
-// itens" independente do dado existir. "atividade" no nome do endpoint é
-// a mesma convenção do resto do projeto pra Manual (ver ACTIVITY em
-// useSessionForm.ts) — não tem evidência de Portage/VB-MAPP virem daqui.
-type Dia = { primeiraResposta: boolean; data: string; porcentagem: string };
-type ChildRow = { programa: string; dias: Dia[] };
+// GET sessao/atividade/:pacienteId?ultimasSessoes=N (item 23 do
+// pedido-frontend-fase2): array solto de programas, já resumido pelo
+// backend — status por tarefa, média/classificação do programa, datas de
+// coluna e evolução. Com o query param presente o backend troca pro shape
+// novo; sem ele devolve o antigo (cru), por isso o param é obrigatório aqui.
+// Datas sempre ISO (YYYY-MM-DD); porcentagem numérica ou null (sem "-").
+type Classificacao = 'alto' | 'medio' | 'baixo' | 'na';
+type Dia = {
+  data: string;
+  primeiraResposta: '+' | '-';
+  porcentagem: number | null;
+};
+type ChildRow = {
+  programa: string;
+  status: STATUS_META.atingida | STATUS_META.aquisicao;
+  dias: Dia[];
+};
 type ProgramaGroup = {
   programa: string;
+  mediaAcerto: number | null;
+  classificacao: Classificacao;
+  colunas: { data: string | null }[];
+  evolucao: { data: string | null; mediaAcerto: number | null }[];
   children: ChildRow[];
-  qtdColumns: number;
 };
 
 // --------- Estado inicial ----------
 const fieldsConst = PrimeirasRespostasFields;
 
-// Faixas de cor pra "% de acertos" — leitura rápida sem precisar ler o
-// número: verde (domínio), amarelo (em progresso), vermelho (atenção).
-const corPorcentagem = (porcentagem: string) => {
-  const valor = parseFloat(porcentagem);
-  if (Number.isNaN(valor)) return 'text-gray-400';
-  if (valor >= 80) return 'text-green-500';
-  if (valor >= 50) return 'text-yellow-500';
-  return 'text-red-400';
+// Quantas sessões mais recentes a tela mostra — é o backend que aplica a
+// janela (e usa o mesmo N pro status "atingida"); aqui só escolhe o N.
+// Mais que 3 e a tabela não cabe na largura do celular.
+const ULTIMAS_SESSOES = 3;
+
+// Cor por faixa de acerto — a faixa (classificacao) vem pronta do
+// backend; aqui só traduz pra classe Tailwind. Leitura rápida sem
+// precisar ler o número: verde (domínio), amarelo (em progresso),
+// vermelho (atenção), cinza (sem dado).
+const COR_CLASSIFICACAO: Record<Classificacao, string> = {
+  alto: 'text-green-500',
+  medio: 'text-yellow-500',
+  baixo: 'text-red-400',
+  na: 'text-gray-400',
 };
 
-// Só as 3 sessões mais recentes cabem na tela — mais que isso e a
-// tabela fica ilegível de tanto scroll horizontal.
-const MAX_DIAS = 3;
+// Mesma escala da classificação do programa, aplicada à % de uma célula
+// só. O backend não manda classificação por dia, e o pedido é que o front
+// não recalcule corte 80/50 — então a célula fica neutra e só o cabeçalho
+// do programa ganha cor.
+const COR_PORCENTAGEM_DIA = 'text-gray-700';
 
-// Média das porcentagens dos dias exibidos (só os MAX_DIAS primeiros),
-// de todas as tarefas de um grupo — mostrado no cabeçalho do Accordion
-// pra dar o resumo do programa sem precisar abrir. Considera só os dias
-// que aparecem na tabela, senão a média não bateria com o que a
-// terapeuta está vendo.
-const mediaGrupo = (children: ChildRow[]) => {
-  const valores = children
-    .flatMap((c) => c.dias.slice(0, MAX_DIAS))
-    .map((d) => parseFloat(d.porcentagem))
-    .filter((v) => !Number.isNaN(v));
-  if (!valores.length) return null;
-  const media = valores.reduce((acc, v) => acc + v, 0) / valores.length;
-  return media.toFixed(0);
+// Exibe só DD/MM — com o ano as 3 colunas não cabem na largura do celular
+// sem rolagem horizontal. Sem data (nenhuma tarefa com dado naquele
+// índice), cai no "Dia N".
+const formatarDataColuna = (data: string | null, index: number) => {
+  if (!data) return `Dia ${index + 1}`;
+  const m = moment(data, 'YYYY-MM-DD', true);
+  return m.isValid() ? m.format('DD/MM') : data;
 };
 
-// A data de uma coluna de dia é a mesma pra todas as tarefas do grupo
-// (é a data da sessão, não da tarefa) — usa a primeira que aparecer
-// nesse índice como rótulo da coluna, com "Dia N" de fallback caso
-// nenhuma tarefa tenha dado nesse índice.
-const dataColuna = (children: ChildRow[], index: number) =>
-  children.find((c) => c.dias?.[index]?.data)?.dias?.[index]?.data ||
-  `Dia ${index + 1}`;
+const formatarMedia = (valor: number | null) =>
+  valor === null ? null : Math.round(valor);
 
-// Meta "atingida" quando as MAX_DIAS sessões mais recentes exibidas
-// (mesma janela que a tabela mostra) tiveram 100% de acerto E a
-// resposta já veio certa de primeira ("S"/primeiraResposta) nas 3 —
-// precisa das 3 completas e consecutivas, não só a média alta. Sem
-// isso, cai em "Em aquisição". Mesmo rótulo/cor que a tela de PEI usa
-// pro status de uma meta (constants/protocolo.ts), pra ler igual nas
-// duas telas.
-const metaAtingida = (dias: Dia[]) => {
-  const janela = (dias || []).slice(0, MAX_DIAS);
-  if (janela.length < MAX_DIAS) return false;
-  return janela.every(
-    (dia) => dia.primeiraResposta && parseFloat(dia.porcentagem) === 100
-  );
-};
-
-const renderStatusMeta = (dias: Dia[]) => {
-  const atingida = metaAtingida(dias);
-  const status = atingida ? STATUS_META.atingida : STATUS_META.aquisicao;
-
+const renderStatusMeta = (status: ChildRow['status']) => {
+  // Só o ícone ao lado do nome da tarefa — o texto ("Em aquisição")
+  // numa coluna estreita quebrava linha e disputava a leitura com o nome.
+  // O significado de cada ícone fica na legenda (renderLegenda) e no
+  // title (tooltip/leitor de tela). Mesmo rótulo/cor que a tela de PEI
+  // usa pro status de uma meta (constants/protocolo.ts).
   return (
-    <span
+    <i
       className={clsx(
-        'flex items-center gap-1 text-[10px] font-inter font-semibold',
+        'pi shrink-0 text-sm',
+        ICONE_STATUS_META[status],
         STATUS_META_COLOR_CLASS[status]
       )}
-    >
-      <i className={clsx('pi', atingida ? 'pi-check-circle' : 'pi-exclamation-triangle')} />
-      {STATUS_META_LABEL[status]}
-    </span>
+      title={STATUS_META_LABEL[status]}
+      aria-label={STATUS_META_LABEL[status]}
+    />
   );
+};
+
+const ICONE_STATUS_META: Record<string, string> = {
+  [STATUS_META.atingida]: 'pi-check-circle',
+  [STATUS_META.aquisicao]: 'pi-exclamation-triangle',
 };
 
 export default function PrimeiraResposta() {
@@ -117,32 +119,49 @@ export default function PrimeiraResposta() {
     const dia = row?.dias?.[index];
     if (!dia) return <span className="text-gray-300">—</span>;
 
+    const acertouDePrimeira = dia.primeiraResposta === '+';
+
     return (
-      <div className="flex items-center justify-center gap-1 py-1">
+      <div className="flex flex-wrap items-center justify-center gap-x-1 py-1">
         <i
           className={clsx('pi text-xs', {
-            'pi-check-circle text-green-400': dia.primeiraResposta,
-            'pi-times-circle text-red-300': !dia.primeiraResposta,
+            'pi-check-circle text-green-400': acertouDePrimeira,
+            'pi-times-circle text-red-300': !acertouDePrimeira,
           })}
           title={
-            dia.primeiraResposta
-              ? 'Acertou de primeira'
-              : 'Não acertou de primeira'
+            acertouDePrimeira ? 'Acertou de primeira' : 'Não acertou de primeira'
           }
         />
         <span
           className={clsx(
             'font-inter text-xs font-semibold',
-            corPorcentagem(dia.porcentagem)
+            dia.porcentagem === null ? 'text-gray-400' : COR_PORCENTAGEM_DIA
           )}
         >
-          {/* O backend manda "-" quando não há porcentagem apurada
-              (sessão sem tentativa registrada nesse dia, etc.) — "%"
-              grudado nesse "-" não faz sentido ("-%"), só quando o
-              valor é numérico de verdade. */}
-          {dia.porcentagem}
-          {!Number.isNaN(parseFloat(dia.porcentagem)) && '%'}
+          {/* null = sessão sem porcentagem apurada naquele dia. */}
+          {dia.porcentagem === null ? '—' : `${dia.porcentagem}%`}
         </span>
+      </div>
+    );
+  };
+
+  // Um gráfico só por programa: a evolução (média de acerto por coluna de
+  // sessão) vem pronta do backend, já na janela de ULTIMAS_SESSOES e em
+  // ordem cronológica — aqui só formata a data pra exibição. Com menos de
+  // 2 pontos com valor não exibe: um ponto solto não mostra evolução.
+  const renderGrafico = (sec: ProgramaGroup) => {
+    const pontos: PontoGrafico[] = (sec.evolucao || []).map((p, i) => ({
+      data: formatarDataColuna(p.data, i),
+      valor: formatarMedia(p.mediaAcerto),
+    }));
+    if (pontos.filter((p) => p.valor !== null).length < 2) return null;
+
+    return (
+      <div className="flex flex-col gap-2 mt-8 min-w-0 w-full">
+        <span className="font-inter text-xs font-semibold text-gray-800">
+          Evolução do programa (média de acerto por data)
+        </span>
+        <GraficoLinha pontos={pontos} altura={200} />
       </div>
     );
   };
@@ -153,7 +172,7 @@ export default function PrimeiraResposta() {
     return (
       <Accordion multiple>
         {sections.map((sec, idx) => {
-          const media = mediaGrupo(sec.children);
+          const media = formatarMedia(sec.mediaAcerto);
 
           return (
             <AccordionTab
@@ -168,7 +187,8 @@ export default function PrimeiraResposta() {
                     <span
                       className={clsx(
                         'font-inter text-xs font-semibold',
-                        corPorcentagem(media)
+                        COR_CLASSIFICACAO[sec.classificacao] ??
+                          COR_CLASSIFICACAO.na
                       )}
                     >
                       {media}% de acerto
@@ -179,38 +199,46 @@ export default function PrimeiraResposta() {
             >
               <DataTable
                 value={sec.children}
-                scrollable
                 stripedRows
                 className="text-sm"
+                // Sem `scrollable` e com layout fixo em 100%: a tabela
+                // cabe na largura da tela (sem rolagem horizontal), e as
+                // colunas dividem o espaço em vez de crescer pelo conteúdo.
+                tableStyle={{ tableLayout: 'fixed', width: '100%' }}
               >
                 {/* Nome da tarefa (ChildRow.programa — único campo de
                     identificação que o tipo declara, e que a API
                     sessao/atividade/:pacienteId realmente manda; rotulado
                     "Tarefa" pra não repetir o nome do cabeçalho do
                     Accordion, que já representa o programa) + status
-                    calculado a partir dos próprios dias exibidos. */}
+                    que o backend já manda pronto. */}
                 <Column
                   header="Tarefa"
-                  style={{ width: '35%' }}
-                  className="font-inter"
+                  style={{ width: '40%' }}
+                  headerClassName="font-inter !px-2"
+                  bodyClassName="font-inter !px-2 break-words"
                   body={(row: ChildRow) => (
-                    <div className="flex flex-col gap-1">
-                      <span>{row.programa}</span>
-                      {renderStatusMeta(row.dias)}
+                    <div className="flex items-start gap-1.5 py-1">
+                      <span className="mt-0.5 flex">
+                        {renderStatusMeta(row.status)}
+                      </span>
+                      <span className="text-sm font-medium leading-snug text-gray-800">
+                        {row.programa}
+                      </span>
                     </div>
                   )}
                 />
-                {Array.from({
-                  length: Math.min(sec.qtdColumns, MAX_DIAS),
-                }).map((_, index) => (
+                {(sec.colunas || []).map((coluna, index) => (
                   <Column
                     key={`col-${index}`}
-                    header={dataColuna(sec.children, index)}
-                    headerClassName="font-inter whitespace-nowrap"
+                    header={formatarDataColuna(coluna.data, index)}
+                    headerClassName="font-inter !px-1 text-center"
+                    bodyClassName="!px-1"
                     body={(row: ChildRow) => renderBodyTemplate(row, index)}
                   />
                 ))}
               </DataTable>
+              {renderGrafico(sec)}
             </AccordionTab>
           );
         })}
@@ -223,7 +251,7 @@ export default function PrimeiraResposta() {
     setLoading(true);
     try {
       const result: ProgramaGroup[] = await getList(
-        `sessao/atividade/${pacienteId.id}`
+        `sessao/atividade/${pacienteId.id}?ultimasSessoes=${ULTIMAS_SESSOES}`
       );
       setList(result);
     } catch (error) {
@@ -267,6 +295,19 @@ export default function PrimeiraResposta() {
         Não acertou de primeira
       </span>
       <span className="whitespace-nowrap">% = acertos na sessão</span>
+      {/* Status da tarefa: na tabela aparece só o ícone, ao lado do nome. */}
+      {[STATUS_META.atingida, STATUS_META.aquisicao].map((status) => (
+        <span key={status} className="flex items-center gap-1 whitespace-nowrap">
+          <i
+            className={clsx(
+              'pi text-xs',
+              ICONE_STATUS_META[status],
+              STATUS_META_COLOR_CLASS[status]
+            )}
+          />
+          {STATUS_META_LABEL[status]}
+        </span>
+      ))}
     </div>
   );
 

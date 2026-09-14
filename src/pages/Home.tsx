@@ -7,8 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { getList } from '../server';
 import { formatdateeua } from '../util/util';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
-import { getMockSessoesSemResumo } from './home/mockDashboard';
-import { classificarStatus } from '../util/status';
 import { isSlotLivre } from '../util/evento';
 import { ButtonHeron } from '../components/button';
 import {
@@ -19,6 +17,9 @@ import {
 
 type ViewMode = 'dia' | 'semana';
 
+// Ainda necessário só pro /terapeuta/dashboard, que aceita apenas
+// dataInicio/dataFim (sem `modo`). /evento/filtro já resolve o intervalo
+// no servidor.
 const getInicioSemana = (date: Date) => moment(date).startOf('isoWeek').toDate();
 
 export default function Home() {
@@ -59,11 +60,11 @@ export default function Home() {
   // -------------------- Dashboard de produtividade --------------------
   const [viewMode, setViewMode] = useState<ViewMode>('dia');
   const [dashboardLoading, setDashboardLoading] = useState(false);
-  const [list, setList] = useState<any>({});
-  // FALLBACK TEMPORÁRIO: endpoint agregado ainda não existe no backend
-  // (ver docs/pedido-backend-dashboard.md) — enquanto não vier, os números
-  // continuam sendo calculados a partir de /evento/filtro, como hoje.
-  const [resumoBackend, setResumoBackend] = useState<any>(null);
+  // eventos de hoje (só a aba "Hoje" usa — ver proximasHoje)
+  const [eventosHoje, setEventosHoje] = useState<any[]>([]);
+  // Números já agregados pelo backend (GET /terapeuta/dashboard). O front
+  // só exibe.
+  const [resumo, setResumo] = useState<any>(null);
 
   useEffect(() => {
     if (!authUser?.id) return;
@@ -77,98 +78,49 @@ export default function Home() {
 
     const buscar = async () => {
       setDashboardLoading(true);
-      try {
-        // mesmo endpoint que a Agenda já usa (evento/filtro), com
-        // intervalo inclusivo nas duas pontas — ver Schedule.tsx
-        const response: any = await getList(
-          `/evento/filtro/${dataInicio}/${dataFim}?terapeutaId=${authUser.id}`
-        );
-        setList(response || {});
-      } catch (error) {
-        setList({});
-      } finally {
-        setDashboardLoading(false);
-      }
-    };
-
-    const buscarResumo = async () => {
-      try {
-        const response = await getList(
+      // /evento/filtro só alimenta "Próximas sessões de hoje"; os números
+      // do painel vêm prontos de /terapeuta/dashboard. allSettled: uma
+      // chamada falhando não derruba a outra seção.
+      // Na aba "Semana" a lista não é exibida, então nem busca.
+      // modo=dia + agrupado=true: intervalo e agrupamento resolvidos no
+      // servidor (itens 9 e 10 de heron-list-nest/docs/pedido-frontend-fase2.md).
+      const [eventos, dashboard] = await Promise.allSettled([
+        viewMode === 'dia'
+          ? getList(
+              `/evento/filtro?modo=dia&data=${dataInicio}&terapeutaId=${authUser.id}&agrupado=true`
+            )
+          : Promise.resolve(null),
+        getList(
           `/terapeuta/dashboard?terapeutaId=${authUser.id}&dataInicio=${dataInicio}&dataFim=${dataFim}`
-        );
-        setResumoBackend(response || null);
-      } catch (error) {
-        // endpoint ainda não existe no backend — cai no cálculo local
-        setResumoBackend(null);
-      }
+        ),
+      ]);
+      const agenda: any = eventos.status === 'fulfilled' ? eventos.value : null;
+      setEventosHoje((agenda?.dias ?? []).flatMap((dia: any) => dia.itens ?? []));
+      setResumo(dashboard.status === 'fulfilled' ? dashboard.value || null : null);
+      setDashboardLoading(false);
     };
 
     buscar();
-    buscarResumo();
   }, [viewMode, authUser?.id]);
 
-  // achata a resposta (agrupada por dia) numa lista só de sessões reais,
-  // excluindo os slots "livres" (mesmo padrão do formatItem da Agenda)
-  const sessoes = useMemo(() => {
-    return Object.values(list || {})
-      .flat()
-      .filter((item: any) => !isSlotLivre(item));
-  }, [list]);
-
-  const totalSessoesCalculado = sessoes.length;
-
-  const totalPacientesCalculado = useMemo(() => {
-    const chaves = new Set(
-      sessoes.map((item: any) => item?.paciente?.id ?? item?.title)
-    );
-    return chaves.size;
-  }, [sessoes]);
-
-  const comparecimento = useMemo(() => {
-    const contagem = { atendido: 0, falta: 0, atestado: 0, outro: 0 };
-    sessoes.forEach((item: any) => {
-      contagem[classificarStatus(item?.statusEventos)]++;
-    });
-    return contagem;
-  }, [sessoes]);
-
-  const taxaComparecimentoCalculada =
-    totalSessoesCalculado > 0
-      ? Math.round((comparecimento.atendido / totalSessoesCalculado) * 100)
-      : null;
-
-  // soma a duração (data.start -> data.end) de cada sessão do período —
-  // dado real, dá pra calcular com o que o evento/filtro já devolve hoje
-  const horasAtendidasCalculada = useMemo(() => {
-    const minutos = sessoes.reduce((acc: number, item: any) => {
-      const start = item?.data?.start;
-      const end = item?.data?.end;
-      if (!start || !end) return acc;
-      const diff = moment(end, 'HH:mm').diff(moment(start, 'HH:mm'), 'minutes');
-      return acc + (diff > 0 ? diff : 0);
-    }, 0);
-
-    const h = Math.floor(minutos / 60);
-    const m = minutos % 60;
-    return m > 0 ? `${h}h${m}` : `${h}h`;
-  }, [sessoes]);
-
-  // Prefere o agregado do backend quando ele existir; até lá, usa o
-  // cálculo local a partir de /evento/filtro (ver useEffect acima).
-  const totalSessoes = resumoBackend?.totalSessoes ?? totalSessoesCalculado;
-  const totalPacientes = resumoBackend?.totalPacientes ?? totalPacientesCalculado;
-  const taxaComparecimento =
-    resumoBackend?.taxaComparecimento ?? taxaComparecimentoCalculada;
-  const horasAtendidas = resumoBackend?.horasAtendidas ?? horasAtendidasCalculada;
+  const totalSessoes = resumo?.totalSessoes ?? '–';
+  const totalPacientes = resumo?.totalPacientes ?? '–';
+  const taxaComparecimento = resumo?.taxaComparecimento ?? null;
+  const horasAtendidas = resumo?.horasAtendidas ?? '–';
+  const resumosPendentes: any[] = resumo?.resumosPendentes ?? [];
 
   // próximas sessões de hoje: só faz sentido na aba "Hoje" — na aba
   // "Semana" a lista já mistura outros dias, então o "próximas" perderia
-  // o sentido de "o que vem agora"
+  // o sentido de "o que vem agora".
+  // "Depois de agora" + ordenar por horário + 3 primeiras continua aqui:
+  // o backend não entrega isso pronto (agrupado ordena só os dias, não os
+  // itens dentro do dia).
   const proximasHoje = useMemo(() => {
     if (viewMode !== 'dia') return [];
     const agora = moment();
-    return sessoes
+    return eventosHoje
       .filter((item: any) => {
+        if (isSlotLivre(item)) return false;
         const horario = item?.data?.start;
         if (!horario) return false;
         return moment(horario, 'HH:mm').isAfter(agora);
@@ -177,13 +129,7 @@ export default function Home() {
         (a?.data?.start || '').localeCompare(b?.data?.start || '')
       )
       .slice(0, 3);
-  }, [sessoes, viewMode]);
-
-  const resumosPendentes = useMemo(
-    () => resumoBackend?.resumosPendentes ?? getMockSessoesSemResumo(),
-    [resumoBackend]
-  );
-  const resumosPendentesSaoMock = !resumoBackend?.resumosPendentes;
+  }, [eventosHoje, viewMode]);
 
   const renderTabs = (
     <div className="bg-gray-200 rounded-full p-1 flex gap-1">
@@ -256,12 +202,6 @@ export default function Home() {
           </div>
         ))}
       </div>
-      {resumosPendentesSaoMock && (
-        <span className="text-[10px] font-inter text-gray-400 mt-2 block">
-          Dado de exemplo — ainda depende de um ajuste no backend (ver
-          docs/pedido-backend-dashboard.md).
-        </span>
-      )}
     </Card>
   );
 
@@ -323,7 +263,7 @@ export default function Home() {
                 key={item.id}
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() =>
-                  navigate(`/${CONSTANTES_ROUTERS.SESSION}`, { state: { item } })
+                  navigate(`/${CONSTANTES_ROUTERS.SESSION}/${item.id}`)
                 }
               >
                 <span className="font-inter text-xs text-gray-400 w-10">

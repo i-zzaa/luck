@@ -25,7 +25,6 @@ export function MetasSelectionFields({ selection, notFoundExtra }: Props) {
     nodesManual,
     selectedKeysManual,
     setSelectedKeysManual,
-    setManualKeysFlat,
     nodesPortage,
     selectedPortageKeys,
     setSelectedPortageKeys,
@@ -56,10 +55,7 @@ export function MetasSelectionFields({ selection, notFoundExtra }: Props) {
             value={nodesManual}
             selectionMode="checkbox"
             selectionKeys={selectedKeysManual}
-            onSelectionChange={(e: any) => {
-              setSelectedKeysManual(e.value);
-              setManualKeysFlat(Object.keys(e.value));
-            }}
+            onSelectionChange={(e: any) => setSelectedKeysManual(e.value)}
             className="w-full md:w-30rem"
           />
         </CollapsibleSection>
