@@ -1,0 +1,80 @@
+src/foms/pei/metaObsField.ts
+  s_554168bd5e56f6::t_ffcad266353ddb 16
+  s_213b27f7be7118::t_fd1ed10e59c130 11-15,17-35,38
+  s_554168bd5e56f6::t_cd4bf7531560dc 1-10
+e2e/pei.spec.ts
+  s_4c89a3a42aef7a::t_65d2adc76972d4 1-50,61-81,84-158,163-195,199-202,209,213,221-222
+  s_213b27f7be7118::t_ea6666badc75ef 51-60,82-83,159-162,196-198,203-208,210-212,214-220
+src/pages/PEI.tsx
+  s_213b27f7be7118::t_3caee36ac28d4b 4,8-10,14,17-35,37-42,50,54-71,112,152,156,172,188,222,246-263,277-300,302-495,498-536,539-560
+  s_213b27f7be7118::t_d7bd4e2a0c40c9 301
+  s_213b27f7be7118::t_ea6666badc75ef 268-276
+  s_213b27f7be7118::t_e34d85c599f1b9 264-267
+e2e/relatorio-evolucao.spec.ts
+  s_213b27f7be7118::t_bc453b20430601 218
+  s_213b27f7be7118::t_94352693f6c602 299-303,306-312,395-399
+  s_213b27f7be7118::t_504b9a1a39b8ea 20-22
+  s_213b27f7be7118::t_3f6b273b74719a 188-217,219-295,347,354-361,364,368
+src/foms/pei/AutoTextarea.tsx
+  s_213b27f7be7118::t_f3bee41f93d318 1-33,35-36,38-53,55-68,70-81
+  s_213b27f7be7118::t_f7c481170b9b14 34,37,54,69
+src/pages/pei/ProgramaPeiCard.tsx
+  s_213b27f7be7118::t_a0386294463f67 1-261
+src/constants/pdfRelatorioEvolucao.ts
+  s_213b27f7be7118::t_90759058dd4fa7 1014-1029
+e2e/pei-metas.spec.ts
+  s_213b27f7be7118::t_ff669ecafa51b6 65-67,80-81
+  s_213b27f7be7118::t_806f8d3b431b08 138
+  s_213b27f7be7118::t_5e0fb8611287b9 114,123,125,128-129,134,137,139,182
+  s_213b27f7be7118::t_b8712f6f8cb5cb 1-62,70-79,82-113,115-122,124,126-127,130-133,135-136,140-181,183-195
+  s_213b27f7be7118::t_9349c18afa3098 63-64,68-69
+src/foms/pei/MetaCard.tsx
+  s_213b27f7be7118::t_806f8d3b431b08 326
+  s_213b27f7be7118::t_4939105f91aac0 102-110
+  s_213b27f7be7118::t_0e7f44c80bdee8 1-101,111-325,327-333
+src/foms/pei/usePeiForm.ts
+  s_213b27f7be7118::t_8caf1500727df7 75-77
+  s_213b27f7be7118::t_8f410deb33a151 13,15-16,18-19,236-247,249,268-306,310,328,330,362,369,374
+  s_213b27f7be7118::t_71c61a6cea2ac6 314,626-628
+  s_554168bd5e56f6::t_cf8f7074a747b1 329
+  s_554168bd5e56f6::t_b86a2910e78855 471-475
+  s_554168bd5e56f6::t_0a155126cea3eb 20,126-132,363-367,393-404
+  s_554168bd5e56f6::t_75510e7b9af4a5 10
+  s_213b27f7be7118::t_ef5a275cd5d9f5 21-39,60-67,78,88,92-124,319,377-392,405,476-481,483-485,488,490-500,503-526,528,530-531,535-556,558-569,571,574-576,578-579,581,583-589,591-594,597-600,618-625
+src/foms/pei/index.tsx
+  s_213b27f7be7118::t_0eac04c98cb0b7 9,26-36,43,45-50,52-54,56-87,89-92,94-96,98-111,113-124,126-156,162-163,167-193
+src/pages/pei/ResultadoAvaliacao.tsx
+  s_213b27f7be7118::t_85a35be7f51904 1-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c921b84e4826ed98d956b7c63aa46f2c04df231d",
+  "prompts": {},
+  "sessions": {
+    "s_213b27f7be7118": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9af0ca58-e431-4faf-8920-0d592c9dfa61",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    },
+    "s_4c89a3a42aef7a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018feb3d-7621-4fa0-b967-3ef8f671f411",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    },
+    "s_554168bd5e56f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4f1883e-8faa-43ae-bae8-aa543c24cc48",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
