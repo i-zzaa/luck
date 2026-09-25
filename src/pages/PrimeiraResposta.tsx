@@ -1,315 +1,214 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { dropDown, getList } from '../server';
 
-import { Card } from '../components/card';
 import { useToast } from '../contexts/toast';
-import { Filter } from '../components';
-import { PrimeirasRespostasFields } from '../constants/formFields';
+import { permissionAuth } from '../contexts/permission';
+import { Input } from '../components';
 import { NotFound } from '../components/notFound';
 import { LoadingHeron } from '../components/loading';
-import { GraficoLinha, PontoGrafico } from '../components/graficoLinha';
-import moment from 'moment';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import clsx from 'clsx';
-import { Accordion, AccordionTab } from 'primereact/accordion';
+import { buildErrorToast } from '../util/error';
+import { Legenda, ProgramaCard } from './primeiraResposta/ProgramaCard';
 import {
-  STATUS_META,
-  STATUS_META_COLOR_CLASS,
-  STATUS_META_LABEL,
-} from '../constants/protocolo';
-
-// --------- Tipos do shape real ---------
-// GET sessao/atividade/:pacienteId?ultimasSessoes=N (item 23 do
-// pedido-frontend-fase2): array solto de programas, já resumido pelo
-// backend — status por tarefa, média/classificação do programa, datas de
-// coluna e evolução. Com o query param presente o backend troca pro shape
-// novo; sem ele devolve o antigo (cru), por isso o param é obrigatório aqui.
-// Datas sempre ISO (YYYY-MM-DD); porcentagem numérica ou null (sem "-").
-type Classificacao = 'alto' | 'medio' | 'baixo' | 'na';
-type Dia = {
-  data: string;
-  primeiraResposta: '+' | '-';
-  porcentagem: number | null;
-};
-type ChildRow = {
-  programa: string;
-  status: STATUS_META.atingida | STATUS_META.aquisicao;
-  dias: Dia[];
-};
-type ProgramaGroup = {
-  programa: string;
-  mediaAcerto: number | null;
-  classificacao: Classificacao;
-  colunas: { data: string | null }[];
-  evolucao: { data: string | null; mediaAcerto: number | null }[];
-  children: ChildRow[];
-};
-
-// --------- Estado inicial ----------
-const fieldsConst = PrimeirasRespostasFields;
+  ProgramaGroup,
+  agruparPorMeta,
+  periodo,
+  tarefaAtingida,
+} from './primeiraResposta/tipos';
 
 // Quantas sessões mais recentes a tela mostra — é o backend que aplica a
 // janela (e usa o mesmo N pro status "atingida"); aqui só escolhe o N.
-// Mais que 3 e a tabela não cabe na largura do celular.
+// Mais que 3 e a grade não cabe na largura do celular.
 const ULTIMAS_SESSOES = 3;
 
-// Cor por faixa de acerto — a faixa (classificacao) vem pronta do
-// backend; aqui só traduz pra classe Tailwind. Leitura rápida sem
-// precisar ler o número: verde (domínio), amarelo (em progresso),
-// vermelho (atenção), cinza (sem dado).
-const COR_CLASSIFICACAO: Record<Classificacao, string> = {
-  alto: 'text-green-500',
-  medio: 'text-yellow-500',
-  baixo: 'text-red-400',
-  na: 'text-gray-400',
-};
+// Mesma permissão que o Filter usava pra exibir o campo Paciente.
+const PERMISSAO_PACIENTE = 'PEI_FILTRO_BOTAO_CADASTRAR';
 
-// Mesma escala da classificação do programa, aplicada à % de uma célula
-// só. O backend não manda classificação por dia, e o pedido é que o front
-// não recalcule corte 80/50 — então a célula fica neutra e só o cabeçalho
-// do programa ganha cor.
-const COR_PORCENTAGEM_DIA = 'text-gray-700';
-
-// Exibe só DD/MM — com o ano as 3 colunas não cabem na largura do celular
-// sem rolagem horizontal. Sem data (nenhuma tarefa com dado naquele
-// índice), cai no "Dia N".
-const formatarDataColuna = (data: string | null, index: number) => {
-  if (!data) return `Dia ${index + 1}`;
-  const m = moment(data, 'YYYY-MM-DD', true);
-  return m.isValid() ? m.format('DD/MM') : data;
-};
-
-const formatarMedia = (valor: number | null) =>
-  valor === null ? null : Math.round(valor);
-
-const renderStatusMeta = (status: ChildRow['status']) => {
-  // Só o ícone ao lado do nome da tarefa — o texto ("Em aquisição")
-  // numa coluna estreita quebrava linha e disputava a leitura com o nome.
-  // O significado de cada ícone fica na legenda (renderLegenda) e no
-  // title (tooltip/leitor de tela). Mesmo rótulo/cor que a tela de PEI
-  // usa pro status de uma meta (constants/protocolo.ts).
-  return (
-    <i
-      className={clsx(
-        'pi shrink-0 text-sm',
-        ICONE_STATUS_META[status],
-        STATUS_META_COLOR_CLASS[status]
-      )}
-      title={STATUS_META_LABEL[status]}
-      aria-label={STATUS_META_LABEL[status]}
-    />
-  );
-};
-
-const ICONE_STATUS_META: Record<string, string> = {
-  [STATUS_META.atingida]: 'pi-check-circle',
-  [STATUS_META.aquisicao]: 'pi-exclamation-triangle',
+const iniciais = (nome = '') => {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '';
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : '';
+  return `${partes[0][0]}${ultima}`.toUpperCase();
 };
 
 export default function PrimeiraResposta() {
   const [loading, setLoading] = useState<boolean>(false);
-  const [dropDownList, setDropDownList] = useState<any>({});
+  const [pacientes, setPacientes] = useState<any[]>([]);
+  const [paciente, setPaciente] = useState<any>(null);
+  const [trocando, setTrocando] = useState(false);
   const [list, setList] = useState<ProgramaGroup[] | null>(null);
+  const [aberto, setAberto] = useState<number | null>(null);
 
   const { renderToast } = useToast();
+  const { hasPermition } = permissionAuth();
+  const { control, setValue } = useForm<any>({ defaultValues: { pacienteId: null } });
 
-  // ------------------ Helpers de UI ------------------
-  const renderBodyTemplate = (row: ChildRow, index: number) => {
-    const dia = row?.dias?.[index];
-    if (!dia) return <span className="text-gray-300">—</span>;
+  // Descarta resposta de um paciente anterior quando a pessoa troca rápido.
+  const requisicao = useRef(0);
 
-    const acertouDePrimeira = dia.primeiraResposta === '+';
+  // Carrega assim que o paciente é escolhido — antes era preciso achar o
+  // funil sem rótulo do Filter (e o amarelo ao lado era "limpar").
+  const carregar = async (escolhido: any) => {
+    if (!escolhido?.id) return;
+    const atual = ++requisicao.current;
 
-    return (
-      <div className="flex flex-wrap items-center justify-center gap-x-1 py-1">
-        <i
-          className={clsx('pi text-xs', {
-            'pi-check-circle text-green-400': acertouDePrimeira,
-            'pi-times-circle text-red-300': !acertouDePrimeira,
-          })}
-          title={
-            acertouDePrimeira ? 'Acertou de primeira' : 'Não acertou de primeira'
-          }
-        />
-        <span
-          className={clsx(
-            'font-inter text-xs font-semibold',
-            dia.porcentagem === null ? 'text-gray-400' : COR_PORCENTAGEM_DIA
-          )}
-        >
-          {/* null = sessão sem porcentagem apurada naquele dia. */}
-          {dia.porcentagem === null ? '—' : `${dia.porcentagem}%`}
-        </span>
-      </div>
-    );
-  };
-
-  // Um gráfico só por programa: a evolução (média de acerto por coluna de
-  // sessão) vem pronta do backend, já na janela de ULTIMAS_SESSOES e em
-  // ordem cronológica — aqui só formata a data pra exibição. Com menos de
-  // 2 pontos com valor não exibe: um ponto solto não mostra evolução.
-  const renderGrafico = (sec: ProgramaGroup) => {
-    const pontos: PontoGrafico[] = (sec.evolucao || []).map((p, i) => ({
-      data: formatarDataColuna(p.data, i),
-      valor: formatarMedia(p.mediaAcerto),
-    }));
-    if (pontos.filter((p) => p.valor !== null).length < 2) return null;
-
-    return (
-      <div className="flex flex-col gap-2 mt-8 min-w-0 w-full">
-        <span className="font-inter text-xs font-semibold text-gray-800">
-          Evolução do programa (média de acerto por data)
-        </span>
-        <GraficoLinha pontos={pontos} altura={200} />
-      </div>
-    );
-  };
-
-  const renderSections = (sections: ProgramaGroup[]) => {
-    if (!sections || sections.length === 0) return <NotFound />;
-
-    return (
-      <Accordion multiple>
-        {sections.map((sec, idx) => {
-          const media = formatarMedia(sec.mediaAcerto);
-
-          return (
-            <AccordionTab
-              key={`sec-${idx}-${sec.programa}`}
-              tabIndex={idx}
-              header={
-                <div className="flex items-center justify-between w-full pr-2">
-                  <span className="font-inter font-semibold">
-                    {sec.programa}
-                  </span>
-                  {media !== null && (
-                    <span
-                      className={clsx(
-                        'font-inter text-xs font-semibold',
-                        COR_CLASSIFICACAO[sec.classificacao] ??
-                          COR_CLASSIFICACAO.na
-                      )}
-                    >
-                      {media}% de acerto
-                    </span>
-                  )}
-                </div>
-              }
-            >
-              <DataTable
-                value={sec.children}
-                stripedRows
-                className="text-sm"
-                // Sem `scrollable` e com layout fixo em 100%: a tabela
-                // cabe na largura da tela (sem rolagem horizontal), e as
-                // colunas dividem o espaço em vez de crescer pelo conteúdo.
-                tableStyle={{ tableLayout: 'fixed', width: '100%' }}
-              >
-                {/* Nome da tarefa (ChildRow.programa — único campo de
-                    identificação que o tipo declara, e que a API
-                    sessao/atividade/:pacienteId realmente manda; rotulado
-                    "Tarefa" pra não repetir o nome do cabeçalho do
-                    Accordion, que já representa o programa) + status
-                    que o backend já manda pronto. */}
-                <Column
-                  header="Tarefa"
-                  style={{ width: '40%' }}
-                  headerClassName="font-inter !px-2"
-                  bodyClassName="font-inter !px-2 break-words"
-                  body={(row: ChildRow) => (
-                    <div className="flex items-start gap-1.5 py-1">
-                      <span className="mt-0.5 flex">
-                        {renderStatusMeta(row.status)}
-                      </span>
-                      <span className="text-sm font-medium leading-snug text-gray-800">
-                        {row.programa}
-                      </span>
-                    </div>
-                  )}
-                />
-                {(sec.colunas || []).map((coluna, index) => (
-                  <Column
-                    key={`col-${index}`}
-                    header={formatarDataColuna(coluna.data, index)}
-                    headerClassName="font-inter !px-1 text-center"
-                    bodyClassName="!px-1"
-                    body={(row: ChildRow) => renderBodyTemplate(row, index)}
-                  />
-                ))}
-              </DataTable>
-              {renderGrafico(sec)}
-            </AccordionTab>
-          );
-        })}
-      </Accordion>
-    );
-  };
-
-  // ------------------ Filtro ------------------
-  const onSubmitFilter = async ({ pacienteId }: any) => {
+    setPaciente(escolhido);
+    setTrocando(false);
+    setAberto(null);
     setLoading(true);
     try {
       const result: ProgramaGroup[] = await getList(
-        `sessao/atividade/${pacienteId.id}?ultimasSessoes=${ULTIMAS_SESSOES}`
+        `sessao/atividade/${escolhido.id}?ultimasSessoes=${ULTIMAS_SESSOES}`
       );
+      if (atual !== requisicao.current) return;
       setList(result);
     } catch (error) {
+      if (atual !== requisicao.current) return;
       setList(null);
-      renderToast({
-        type: 'failure',
-        title: '401',
-        message: 'PEI não encontrado!',
-        open: true,
-      });
+      renderToast(
+        buildErrorToast(error, 'Não foi possível carregar as respostas deste paciente.')
+      );
     }
     setLoading(false);
   };
 
-  const renderFilter = () => (
-    <Filter
-      id="form-filter-pei"
-      legend="Filtro"
-      nameButton="Cadastrar"
-      fields={fieldsConst}
-      dropdown={dropDownList}
-      onSubmit={onSubmitFilter}
-      onReset={() => setList(null)}
-      screen="PEI"
-      loading={loading}
+  const renderPacientes = useCallback(async () => {
+    const [lista]: any = await Promise.all([dropDown('paciente')]);
+    setPacientes(lista || []);
+  }, []);
+
+  useEffect(() => {
+    renderPacientes();
+  }, [renderPacientes]);
+
+  const seletor = (
+    <Input
+      labelText="Paciente"
+      id="pacienteId"
+      type="select"
+      customCol="col-span-6"
+      control={control}
+      options={pacientes}
+      onChange={(valor) => {
+        if (valor?.id) carregar(valor);
+      }}
     />
   );
 
-  // ------------------ Legenda ------------------
-  // Dois indicadores diferentes convivem na mesma célula (ícone = acertou
-  // de primeira; número = % de acertos na sessão inteira) — sem isso fica
-  // fácil confundir um com o outro.
-  const renderLegenda = () => (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 py-2 font-inter text-[11px] text-gray-400">
-      <span className="flex items-center gap-1 whitespace-nowrap">
-        <i className="pi pi-check-circle text-green-400 text-xs" />
-        Acertou de primeira
-      </span>
-      <span className="flex items-center gap-1 whitespace-nowrap">
-        <i className="pi pi-times-circle text-red-300 text-xs" />
-        Não acertou de primeira
-      </span>
-      <span className="whitespace-nowrap">% = acertos na sessão</span>
-      {/* Status da tarefa: na tabela aparece só o ícone, ao lado do nome. */}
-      {[STATUS_META.atingida, STATUS_META.aquisicao].map((status) => (
-        <span key={status} className="flex items-center gap-1 whitespace-nowrap">
-          <i
-            className={clsx(
-              'pi text-xs',
-              ICONE_STATUS_META[status],
-              STATUS_META_COLOR_CLASS[status]
-            )}
-          />
-          {STATUS_META_LABEL[status]}
-        </span>
-      ))}
-    </div>
-  );
+  // ------------------ Escolha do paciente ------------------
+  const renderEscolha = () => {
+    if (!hasPermition(PERMISSAO_PACIENTE)) {
+      return (
+        <section className="bg-white border border-gray-200 rounded-[14px] px-4 py-5">
+          <p className="m-0 text-[14px] leading-[1.45] text-gray-800">
+            Seu perfil não tem acesso à lista de pacientes desta tela.
+          </p>
+        </section>
+      );
+    }
+
+    return (
+      <section className="bg-white border border-gray-200 rounded-[14px] px-4 pt-5 pb-4 flex flex-col gap-2">
+        {!paciente && (
+          <div className="flex flex-col gap-1.5">
+            <h2 className="m-0 text-[18px] font-bold text-[#27272a]">
+              De quem você quer ver as respostas?
+            </h2>
+            <p className="m-0 text-[14px] leading-[1.45] text-gray-800">
+              Mostramos as últimas {ULTIMAS_SESSOES} sessões de cada item das
+              metas: se a criança acertou de primeira e o percentual de acerto.
+            </p>
+          </div>
+        )}
+        {seletor}
+        {paciente && (
+          <button
+            type="button"
+            onClick={() => {
+              setTrocando(false);
+              setValue('pacienteId', paciente);
+            }}
+            className="self-end h-11 px-3 rounded-[10px] text-[14px] font-bold text-primary"
+          >
+            Cancelar
+          </button>
+        )}
+      </section>
+    );
+  };
+
+  // ------------------ Cabeçalho do paciente ------------------
+  const renderPaciente = () => {
+    const faixaDatas = list?.length ? periodo(list) : null;
+
+    return (
+      <section className="bg-white border border-gray-200 rounded-[14px] py-3 pl-3.5 pr-2 flex items-center gap-3">
+        <div className="w-11 h-11 shrink-0 rounded-full bg-[#f3e8f7] text-primary flex items-center justify-center text-[15px] font-bold">
+          {iniciais(paciente?.nome)}
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+          <span className="text-[16px] font-bold text-[#27272a] truncate">
+            {paciente?.nome}
+          </span>
+          <span className="text-[13px] text-gray-800">
+            Últimas {ULTIMAS_SESSOES} sessões
+            {faixaDatas ? ` · ${faixaDatas}` : ''}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setTrocando(true)}
+          className="h-11 px-3 rounded-[10px] text-[14px] font-bold text-primary"
+        >
+          Trocar
+        </button>
+      </section>
+    );
+  };
+
+  // ------------------ Resumo ------------------
+  const renderResumo = (sections: ProgramaGroup[]) => {
+    const metas = sections.reduce(
+      (total, sec) => total + agruparPorMeta(sec.children).length,
+      0
+    );
+    const atingidos = sections
+      .flatMap((sec) => sec.children || [])
+      .filter(tarefaAtingida).length;
+    const itens = [
+      { valor: sections.length, label: sections.length === 1 ? 'programa' : 'programas' },
+      { valor: metas, label: metas === 1 ? 'meta' : 'metas' },
+      {
+        valor: atingidos,
+        label: atingidos === 1 ? 'item atingido' : 'itens atingidos',
+        destaque: true,
+      },
+    ];
+
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {itens.map((item) => (
+          <div
+            key={item.label}
+            className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 flex flex-col gap-0.5"
+          >
+            <span
+              className={
+                item.destaque && item.valor > 0
+                  ? 'text-[20px] font-bold text-[#15803d]'
+                  : 'text-[20px] font-bold text-[#27272a]'
+              }
+            >
+              {item.valor}
+            </span>
+            <span className="text-[12px] font-semibold text-gray-800">
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   // ------------------ Conteúdo ------------------
   const renderContent = () => {
@@ -317,34 +216,42 @@ export default function PrimeiraResposta() {
 
     if (!list?.length) {
       return (
-        <Card>
+        <section className="bg-white border border-gray-200 rounded-[14px] py-4">
           <NotFound />
-        </Card>
+        </section>
       );
     }
 
     return (
       <>
-        {renderLegenda()}
-        <Card>{renderSections(list)}</Card>
+        {renderResumo(list)}
+
+        <div className="flex justify-between items-baseline px-1 pt-2">
+          <h2 className="m-0 text-[13px] font-bold tracking-[0.08em] text-gray-800">
+            PROGRAMAS
+          </h2>
+          <span className="text-[12px] text-gray-800">média de acerto</span>
+        </div>
+        <div className="px-1">
+          <Legenda />
+        </div>
+
+        {list.map((sec, idx) => (
+          <ProgramaCard
+            key={`sec-${idx}-${sec.programa}`}
+            sec={sec}
+            open={aberto === idx}
+            onToggle={() => setAberto(aberto === idx ? null : idx)}
+          />
+        ))}
       </>
     );
   };
 
-  // ------------------ Dropdowns ------------------
-  const renderPrograma = useCallback(async () => {
-    const [paciente]: any = await Promise.all([dropDown('paciente')]);
-    setDropDownList({ paciente });
-  }, []);
-
-  useEffect(() => {
-    renderPrograma();
-  }, [renderPrograma]);
-
   return (
-    <div>
-      {renderFilter()}
-      {renderContent()}
+    <div className="mt-2 flex flex-col gap-3">
+      {!paciente || trocando ? renderEscolha() : renderPaciente()}
+      {paciente && renderContent()}
     </div>
   );
 }
