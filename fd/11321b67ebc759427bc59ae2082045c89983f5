@@ -1,0 +1,24 @@
+src/pages/Schedule.tsx
+  s_213b27f7be7118::t_f62f8ab2feb0a9 7,14-15,137-142,144-148,150-153,159-171,185-190,193-219,222-224,226-244,256-258,260,262,271-274,276,278,280-281,285,288-296,304,306-315,369,375
+  s_213b27f7be7118::t_652597a67b826e 175-177
+e2e/agenda.spec.ts
+  s_213b27f7be7118::t_652597a67b826e 1-137
+src/pages/agenda/SessaoCard.tsx
+  s_213b27f7be7118::t_534063e1167731 1-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fd11321b67ebc759427bc59ae2082045c89983f5",
+  "prompts": {},
+  "sessions": {
+    "s_213b27f7be7118": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9af0ca58-e431-4faf-8920-0d592c9dfa61",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
