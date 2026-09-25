@@ -1,28 +1,57 @@
-import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
-import { TabPanel, TabView } from 'primereact/tabview';
-import CheckboxPortage from '../components/CheckboxPortage';
+import { MutableRefObject, useCallback, useEffect, useMemo, useState } from 'react';
 import { create, filter } from '../server';
-import { TIPO_PROTOCOLO, VBMAPP } from '../constants/protocolo';
-import { ButtonHeron } from '../components';
+import { TIPO_PROTOCOLO, VALOR_PORTAGE, VBMAPP } from '../constants/protocolo';
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfVBMAPP';
 import { NotFound } from '../components/notFound';
 import { OBJ_ITEM, OBJ_META } from '../util/util';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
-import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
-import { ABOVE_TAB_BAR } from '../components/Nav/bottomTabBarLayout';
+import { buildErrorToast } from '../util/error';
+import {
+  BarraSalvar,
+  BotaoEditar,
+  FiltroPendentes,
+  GrupoAvaliacao,
+  ItemAvaliacao,
+  ProgressoGeral,
+  Segmentado,
+  SheetAlteracoes,
+  contarAlteracoes,
+  contarRespostas,
+  itemPendente,
+  somarContagens,
+} from './protocolo/avaliacao';
 
 const RASCUNHO_VBMAPP = 'rascunhoRespostasVBMapp';
 
-export default function VBMapp({ paciente }: any) {
+const NIVEIS = [
+  { valor: VBMAPP.um, label: 'Nível 1' },
+  { valor: VBMAPP.dois, label: 'Nível 2' },
+  { valor: VBMAPP.tres, label: 'Nível 3' },
+];
+
+export default function VBMapp({
+  paciente,
+  onAlteracoesChange,
+  salvarRef,
+}: {
+  paciente: any;
+  // Protocolo.tsx pergunta (salvar ou descartar) antes de trocar de
+  // paciente/protocolo com resposta não salva — e usa salvarRef pra
+  // salvar daqui antes da troca.
+  onAlteracoesChange?: (quantidade: number) => void;
+  salvarRef?: MutableRefObject<(() => Promise<boolean>) | null>;
+}) {
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState({} as any);
-  const [selectedItems, setSelectedItems] = useState([]);
+  // Como veio do servidor (antes do rascunho) ou como foi salvo por
+  // último — base do "N respostas não salvas".
+  const [salvo, setSalvo] = useState({} as any);
+  const [programaAberto, setProgramaAberto] = useState<string | null>(null);
+  const [soPendentes, setSoPendentes] = useState(false);
+  // Trocar de nível recarrega do servidor e perderia o que não foi salvo.
+  const [nivelPendente, setNivelPendente] = useState<number | null>(null);
   const { renderToast } = useToast();
 
   const location = useLocation();
@@ -39,9 +68,12 @@ export default function VBMapp({ paciente }: any) {
   const nivelInicial = (voltandoDaEdicao && state?.nivel) || VBMAPP.um;
 
   const [nivel, setNivel] = useState(nivelInicial);
-  const [nivelIndex, setNivelIndex] = useState(nivelInicial - 1);
   const [existe, setExiste] = useState(false);
-  const isTabRoute = useIsTabRoute();
+
+  const alteracoes = useMemo(() => contarAlteracoes(list, salvo), [list, salvo]);
+  useEffect(() => {
+    onAlteracoesChange?.(alteracoes);
+  }, [alteracoes, onAlteracoesChange]);
 
   const exportPDF = useCallback(async () => {
     try {
@@ -75,6 +107,7 @@ export default function VBMapp({ paciente }: any) {
         nivel: nivelCurrent,
       });
 
+      setSalvo(JSON.parse(JSON.stringify(data.data || {})));
       setList(aplicarRascunho(data.data, nivelCurrent));
       setExiste(data.existeResposta);
     },
@@ -126,64 +159,62 @@ export default function VBMapp({ paciente }: any) {
     return lista;
   };
 
-  const clearSubitensSalvos = () => {
-    // --- limpa somente o retorno da edição (subitensSalvos/nivel) ---
-    const st = (state as any) || {};
-    if ('subitensSalvos' in st) {
-      const { subitensSalvos, nivel: _nivel, ...rest } = st;
-      navigate(location.pathname + location.search + location.hash, {
-        replace: true,
-        state: Object.keys(rest).length ? rest : null, // mantém eventuais outras chaves
-      });
-    }
-  };
-
-  const onSubmit = useCallback(async () => {
+  // navegar=false quando o salvar vem antes de uma troca (nível aqui, ou
+  // paciente/protocolo no Protocolo.tsx), que cuida do resto.
+  const onSubmit = useCallback(async (navegar = true): Promise<boolean> => {
     setLoading(true);
     const payload = { pacienteId: paciente.id, vbmapp: list };
 
     try {
       await create('protocolo/vbmapp', payload);
       setExiste(true);
+      setSalvo(JSON.parse(JSON.stringify(list)));
       sessionStorage.removeItem(RASCUNHO_VBMAPP);
-      clearSubitensSalvos();
       renderToast({
         type: 'success',
         title: 'Sucesso!',
-        message: 'VB Mapp Cadastrado.',
+        message: 'VB-MAPP salvo.',
         open: true,
       });
 
-      navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
-        replace: true, // evita empilhar
-        state: {
-          pacienteId: paciente, // mantém paciente
-          // resetProtocolo: true, // flag para o pai limpar protocolo
-        },
-      });
-
-      sessionStorage.setItem('removeProtocolo', 'true');
+      // Continua no VB-MAPP, no mesmo nível (antes o protocolo era limpo
+      // e a pessoa voltava pro seletor). O replace também tira
+      // subitensSalvos/nivel do retorno da edição.
+      if (navegar) {
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          replace: true,
+          state: { pacienteId: paciente, tipoProtocolo: TIPO_PROTOCOLO.vbMapp },
+        });
+      }
+      return true;
     } catch (error) {
       console.error('Error saving form data', error);
-      renderToast({
-        type: 'failure',
-        title: 'Erro!',
-        message: 'Falha na conexão',
-        open: true,
-      });
+      // Mensagem/código do backend em vez de "Falha na conexão" pra
+      // qualquer erro: sem isso, um 4xx/5xx com motivo real (item
+      // inválido, atividade inexistente) chegava na tela como se fosse
+      // queda de rede — ver util/error.ts.
+      renderToast(buildErrorToast(error, 'Falha na conexão'));
+      return false;
     } finally {
       setLoading(false);
     }
-  }, [list, paciente.id, renderToast]);
+  }, [list, paciente, renderToast]);
 
-  const updateNivel = useCallback(
-    (e: any) => {
-      setNivel(e.index + 1);
-      setNivelIndex(e.index);
-      getVBMapp(e.index + 1);
-    },
-    [getVBMapp]
-  );
+  useEffect(() => {
+    if (salvarRef) salvarRef.current = () => onSubmit(false);
+  });
+
+  const irParaNivel = (novo: number) => {
+    setNivel(novo);
+    setProgramaAberto(null);
+    getVBMapp(novo);
+  };
+
+  const trocarNivel = (novo: number) => {
+    if (novo === nivel) return;
+    if (alteracoes > 0) setNivelPendente(novo);
+    else irParaNivel(novo);
+  };
 
   // Antes isso achava o item por `.id`, procurando em TODO item de topo e,
   // se não batesse, em TODOS os subitems dele também. Se um subitem
@@ -196,7 +227,7 @@ export default function VBMapp({ paciente }: any) {
     programa: string,
     metaIndex: number,
     subItemIndex: number | undefined,
-    newValue: boolean
+    newValue: VALOR_PORTAGE | null
   ) => {
     setList((prevList: any) => {
       const updatedList = { ...prevList };
@@ -305,137 +336,6 @@ export default function VBMapp({ paciente }: any) {
     });
   };
 
-  // metaIndex vem sempre preenchido (posição do item de topo em
-  // list[programa]); subItemIndex só existe quando rowData é um subitem.
-  const renderedCheckboxes = useCallback(
-    (
-      rowData: any,
-      programa: any,
-      metaIndex: number,
-      subItemIndex?: number
-    ) => {
-      const value = rowData.selected || null;
-      return (
-        <div key={rowData.id ?? `${metaIndex}-${subItemIndex}`}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8">
-              <CheckboxPortage
-                value={value}
-                onChange={(newValue: any) =>
-                  onCheckboxChange(
-                    programa,
-                    metaIndex,
-                    subItemIndex,
-                    newValue
-                  )
-                }
-              />
-            </div>
-            {rowData.nome}
-          </div>
-          <div className="grid ml-8 mt-2">
-            {rowData?.subitems &&
-              rowData.subitems.map((subItem: any, subIndex: number) =>
-                renderedCheckboxes(subItem, programa, metaIndex, subIndex)
-              )}
-          </div>
-        </div>
-      );
-    },
-    [] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
-  const renderTable = useCallback(
-    () => (
-      <div className="mt-8">
-        {Object.keys(list).length > 0 ? (
-          <Accordion>
-            {Object.keys(list).map((programa, keys) => (
-              <AccordionTab
-                className="mb-2"
-                key={keys}
-                tabIndex={keys}
-                header={
-                  <div className="flex items-center w-full gap-2">
-                    <span>{programa.toLocaleUpperCase()}</span>
-                    {validItensPermiteSubitens(list[programa]) && (
-                      <i
-                        className="pi pi-pencil"
-                        onClick={() =>
-                          onClickAddSubItem(list[programa], keys, programa)
-                        }
-                      />
-                    )}
-                  </div>
-                }
-              >
-                <DataTable
-                  id="vbmapp-page"
-                  className="custom-data-table"
-                  value={list[programa]}
-                  selection={selectedItems}
-                  responsiveLayout="scroll"
-                  dataKey="id"
-                  tableStyle={{ minWidth: 'none' }}
-                >
-                  <Column
-                    body={(row: any, options: any) =>
-                      renderedCheckboxes(row, programa, options.rowIndex)
-                    }
-                    bodyStyle={{ padding: '.1rem' }}
-                  />
-                </DataTable>
-              </AccordionTab>
-            ))}
-          </Accordion>
-        ) : (
-          <NotFound />
-        )}
-      </div>
-    ),
-    [list, renderedCheckboxes, selectedItems]
-  );
-
-  const renderExport = useCallback(
-    () =>
-      existe && (
-        <div className="mt-auto">
-          <ButtonHeron
-            text="Gerar Relatório"
-            type="primary"
-            size="full"
-            icon="pi pi-file-pdf"
-            onClick={exportPDF}
-            loading={loading}
-            typeButton="button"
-          />
-        </div>
-      ),
-    [existe, exportPDF, loading]
-  );
-
-  const renderFooter = useCallback(
-    () => (
-      <div
-        className={clsx(
-          'fixed inset-x-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
-          // acima da tab bar flutuante quando ela está visível na mesma
-          // tela (rota /protocolo-av) — ver Nav/bottomTabBarLayout.ts
-          isTabRoute ? ABOVE_TAB_BAR : 'bottom-0'
-        )}
-      >
-        <ButtonHeron
-          text="Salvar"
-          type="primary"
-          size="full"
-          onClick={onSubmit}
-          loading={loading}
-        />
-      </div>
-    ),
-    [onSubmit, loading, isTabRoute]
-  );
-
   // getVBMapp já é memoizado a partir de [nivel, paciente.id] — depender
   // também do objeto `paciente` aqui era redundante e perigoso: o
   // componente pai (Protocolo.tsx) usa watch() no topo do form e
@@ -446,15 +346,86 @@ export default function VBMapp({ paciente }: any) {
     getVBMapp();
   }, [getVBMapp]);
 
+  const programas = Object.keys(list || {});
+  const contagemGeral = somarContagens(
+    programas.map((programa) => contarRespostas(list[programa]))
+  );
+
   return (
-    <div className="mt-8 space-y-6 pb-24">
-      {renderExport()}
-      <TabView activeIndex={nivelIndex} onTabChange={updateNivel}>
-        <TabPanel header="Nível 1">{renderTable()}</TabPanel>
-        <TabPanel header="Nível 2">{renderTable()}</TabPanel>
-        <TabPanel header="Nível 3">{renderTable()}</TabPanel>
-      </TabView>
-      {renderFooter()}
+    <div className="mt-3 flex flex-col gap-3 pb-40">
+      <ProgressoGeral
+        contagem={contagemGeral}
+        protocolo={`Nível ${nivel}`}
+        onRelatorio={existe ? exportPDF : undefined}
+      />
+      <Segmentado rotulo="Nível" opcoes={NIVEIS} valor={nivel} onChange={trocarNivel} />
+      <FiltroPendentes ativo={soPendentes} onChange={setSoPendentes} />
+
+      {programas.length === 0 && <NotFound />}
+
+      {programas.map((programa, keys) => {
+        const itens: any[] = list[programa] || [];
+        const visiveis = itens
+          .map((item, metaIndex) => ({ item, metaIndex }))
+          .filter(({ item }) => !soPendentes || itemPendente(item));
+
+        return (
+          <GrupoAvaliacao
+            key={programa}
+            titulo={programa}
+            contagem={contarRespostas(itens)}
+            open={programaAberto === programa}
+            onToggle={() =>
+              setProgramaAberto(programaAberto === programa ? null : programa)
+            }
+            vazio={soPendentes && visiveis.length === 0}
+            acao={
+              validItensPermiteSubitens(itens) ? (
+                <div className="pt-2.5">
+                  <BotaoEditar
+                    texto="Editar atividades do programa"
+                    onClick={() => onClickAddSubItem(itens, keys, programa)}
+                  />
+                </div>
+              ) : undefined
+            }
+          >
+            {visiveis.map(({ item, metaIndex }) => (
+              <ItemAvaliacao
+                key={item.id ?? metaIndex}
+                item={item}
+                onResponder={(valor) =>
+                  onCheckboxChange(programa, metaIndex, undefined, valor)
+                }
+                onResponderSub={(subIndex, valor) =>
+                  onCheckboxChange(programa, metaIndex, subIndex, valor)
+                }
+              />
+            ))}
+          </GrupoAvaliacao>
+        );
+      })}
+
+      <BarraSalvar alteracoes={alteracoes} loading={loading} onSalvar={() => onSubmit()} />
+
+      <SheetAlteracoes
+        open={nivelPendente !== null}
+        alteracoes={alteracoes}
+        destino="trocar de nível"
+        salvando={loading}
+        onSalvar={async () => {
+          const destino = nivelPendente;
+          if ((await onSubmit(false)) && destino !== null) {
+            setNivelPendente(null);
+            irParaNivel(destino);
+          }
+        }}
+        onDescartar={() => {
+          if (nivelPendente !== null) irParaNivel(nivelPendente);
+          setNivelPendente(null);
+        }}
+        onCancelar={() => setNivelPendente(null)}
+      />
     </div>
   );
 }

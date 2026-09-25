@@ -23,8 +23,8 @@ export enum VBMAPP {
 
 // Códigos de status de acompanhamento de uma meta. O status em si vem
 // resolvido do backend (/pei/filtro, relatório de evolução, primeiras
-// respostas) e a lista do select vem de GET /status-meta/dropdown — aqui
-// ficam só as chaves das paletas/rótulos de apresentação abaixo.
+// respostas) — não se cadastra no formulário do PEI, só é exibido —, e
+// aqui ficam só as chaves das paletas/rótulos de apresentação abaixo.
 export enum STATUS_META {
   atingida = 'atingida',
   aquisicao = 'aquisicao',

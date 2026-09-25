@@ -1,39 +1,84 @@
-// código completo e final atualizado com fluxo de prioridade ajustado
-import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
-import CheckboxPortage from '../components/CheckboxPortage';
+import { MutableRefObject, useEffect, useMemo, useState } from 'react';
 import { create, dropDown, filter } from '../server';
 import {
   TIPO_PORTAGE,
   TIPO_PROTOCOLO,
   VALOR_PORTAGE,
 } from '../constants/protocolo';
-import { ButtonHeron } from '../components';
 import { useToast } from '../contexts/toast';
 import gerarPdf from '../constants/pdfPortage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { OBJ_ITEM, OBJ_META } from '../util/util';
-import { useIsTabRoute } from '../components/Nav/useIsTabRoute';
-import { ABOVE_TAB_BAR } from '../components/Nav/bottomTabBarLayout';
+import {
+  BarraSalvar,
+  BotaoEditar,
+  FiltroPendentes,
+  GrupoAvaliacao,
+  ItemAvaliacao,
+  ProgressoGeral,
+  Segmentado,
+  contarAlteracoes,
+  contarRespostas,
+  itemPendente,
+  somarContagens,
+} from './protocolo/avaliacao';
+
+const AREAS = [TIPO_PORTAGE.socializacao, TIPO_PORTAGE.cognicao];
+
+// "0 a 1" → "0 a 1 ano"; "1 a 2" → "1 a 2 anos". Só completa quando a
+// faixa vem no formato numérico de sempre.
+const rotuloFaixa = (faixa: string) => {
+  const m = /^\s*(\d+)\s*a\s*(\d+)\s*$/.exec(faixa);
+  if (!m) return faixa;
+  return `${m[1]} a ${m[2]} ${m[2] === '1' ? 'ano' : 'anos'}`;
+};
+
+// list[área][faixa] → { "área|faixa": itens } pra comparar com o salvo.
+const porFaixa = (lista: any) => {
+  const r: Record<string, any[]> = {};
+  Object.keys(lista || {}).forEach((area) =>
+    Object.keys(lista[area] || {}).forEach((faixa) => {
+      r[`${area}|${faixa}`] = lista[area][faixa] || [];
+    })
+  );
+  return r;
+};
 
 export default function PortageCadastro({
   paciente,
+  onAlteracoesChange,
+  salvarRef,
 }: {
   paciente: { id: number; nome: string };
+  // Protocolo.tsx pergunta (salvar ou descartar) antes de trocar de
+  // paciente/protocolo com resposta não salva — e usa salvarRef pra
+  // salvar daqui antes da troca.
+  onAlteracoesChange?: (quantidade: number) => void;
+  salvarRef?: MutableRefObject<(() => Promise<boolean>) | null>;
 }) {
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState<any>({});
-  const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  // Última versão salva (ou vinda do servidor) — base do "N respostas não
+  // salvas". Tirada ANTES de aplicar rascunhos (prePEIList/draftSubitems),
+  // que são justamente o que ainda não foi salvo.
+  const [salvo, setSalvo] = useState<any>({});
+  const [area, setArea] = useState<string>(TIPO_PORTAGE.socializacao);
+  const [faixaAberta, setFaixaAberta] = useState<string | null>(null);
+  const [soPendentes, setSoPendentes] = useState(false);
   const { renderToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = location;
   const [existePortage, setExistePortage] = useState(false);
-  const isTabRoute = useIsTabRoute();
+
+  const alteracoes = useMemo(
+    () => contarAlteracoes(porFaixa(list), porFaixa(salvo)),
+    [list, salvo]
+  );
+  useEffect(() => {
+    onAlteracoesChange?.(alteracoes);
+  }, [alteracoes, onAlteracoesChange]);
 
   const exportPDF = async () => {
     const { data }: any = await filter('protocolo', {
@@ -53,22 +98,6 @@ export default function PortageCadastro({
     }
   };
 
-  const renderList = useCallback(async () => {
-    try {
-      const atividade = await dropDown('protocolo/portage');
-      setList(atividade);
-    } catch (error) {
-      console.error('Error fetching dropdown data', error);
-    }
-  }, []);
-
-  const getNextState = (currentValue: any) => {
-    if (currentValue === VALOR_PORTAGE.sim) return VALOR_PORTAGE.asVezes;
-    if (currentValue === VALOR_PORTAGE.asVezes) return VALOR_PORTAGE.nao;
-    if (currentValue === VALOR_PORTAGE.nao) return null;
-    return VALOR_PORTAGE.sim;
-  };
-
   // Antes isso reencontrava o item por `.id` (e, pra subitem, tentava
   // re-derivar o id do pai fazendo parse de "0-meta-N-sub-item-M" na
   // marra). Isso quebra silenciosamente sempre que o id real não segue
@@ -84,7 +113,7 @@ export default function PortageCadastro({
     faixaEtaria: string,
     metaIndex: number,
     subItemIndex: number | undefined,
-    value: any = undefined
+    value: VALOR_PORTAGE | null
   ) => {
     setList((prevList: any) => {
       const updatedSelection = JSON.parse(JSON.stringify(prevList));
@@ -95,40 +124,42 @@ export default function PortageCadastro({
       if (subItemIndex !== undefined && subItemIndex !== null) {
         const sub = meta.subitems?.[subItemIndex];
         if (!sub) return prevList;
-        sub.selected =
-          value !== undefined ? value : getNextState(sub.selected);
+        sub.selected = value;
       } else {
-        meta.selected =
-          value !== undefined ? value : getNextState(meta.selected);
+        meta.selected = value;
       }
 
       return updatedSelection;
     });
   };
 
-  const onSubmit = async () => {
+  // navegar=false quando quem salva é o Protocolo.tsx antes de trocar de
+  // paciente/protocolo: ele mesmo cuida da navegação depois.
+  const onSubmit = async (navegar = true): Promise<boolean> => {
     setLoading(true);
     const payload = { pacienteId: paciente, portage: list };
     try {
       await create('protocolo/portage', payload);
       sessionStorage.removeItem('draftSubitems');
-      navigate(location.pathname, { replace: true });
+      sessionStorage.removeItem('prePEIList');
       setExistePortage(true);
+      setSalvo(JSON.parse(JSON.stringify(list)));
       renderToast({
         type: 'success',
         title: 'Sucesso!',
-        message: 'Portage Cadastrado.',
+        message: 'Portage salvo.',
         open: true,
       });
-      navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
-        replace: true, // evita empilhar
-        state: {
-          pacienteId: paciente, // mantém paciente
-          // resetProtocolo: true, // flag para o pai limpar protocolo
-        },
-      });
-
-      sessionStorage.setItem('removeProtocolo', 'true');
+      // Continua no Portage depois de salvar (antes o protocolo era
+      // limpo e a pessoa voltava pro seletor). O replace só tira o
+      // `metaEdit` do state, pra ele não ser reaplicado.
+      if (navegar) {
+        navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+          replace: true,
+          state: { pacienteId: paciente, tipoProtocolo: TIPO_PROTOCOLO.portage },
+        });
+      }
+      return true;
     } catch (error) {
       console.error('Error saving form data', error);
       renderToast({
@@ -137,10 +168,15 @@ export default function PortageCadastro({
         message: 'Falha na conexão',
         open: true,
       });
+      return false;
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (salvarRef) salvarRef.current = () => onSubmit(false);
+  });
 
   const onClickAddSubItem = (item: any) => {
     const id = item.id.toString().startsWith('0-meta-')
@@ -187,128 +223,6 @@ export default function PortageCadastro({
     });
   };
 
-  // metaIndex vem sempre preenchido (posição do item de topo em
-  // activities); subItemIndex só existe quando rowData é um subitem —
-  // é isso que diz pro onCheckboxChange qual dos dois ramos usar.
-  const renderedCheckboxesPostage = (
-    portageType: string,
-    faixaEtaria: string,
-    rowData: any,
-    metaIndex: number,
-    subItemIndex?: number
-  ) => {
-    const value = rowData.selected || null;
-    return (
-      <div key={rowData.id ?? `${metaIndex}-${subItemIndex}`}>
-        <div className="flex items-center gap-2">
-          <CheckboxPortage
-            value={value}
-            onChange={(val: any) =>
-              onCheckboxChange(
-                portageType,
-                faixaEtaria,
-                metaIndex,
-                subItemIndex,
-                val
-              )
-            }
-          />
-          {rowData.nome}
-          {rowData?.permiteSubitens && (
-            <i
-              className="pi pi-pencil"
-              onClick={() => onClickAddSubItem(rowData)}
-            />
-          )}
-        </div>
-        <div className="grid ml-8 mt-2">
-          {rowData?.subitems?.map((sub: any, subIndex: number) =>
-            renderedCheckboxesPostage(
-              portageType,
-              faixaEtaria,
-              sub,
-              metaIndex,
-              subIndex
-            )
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderTable = (type: string) => (
-    <div className="mt-8">
-      {list?.[type] && (
-        <>
-          <div className="text-gray-400 my-4 text-start"> {type} </div>
-          <Accordion>
-            {Object.keys(list[type]).map((faixaEtaria: any) => (
-              <AccordionTab
-                tabIndex={faixaEtaria}
-                key={faixaEtaria}
-                header={<div>{faixaEtaria}</div>}
-              >
-                <DataTable
-                  className="custom-data-table"
-                  value={list[type][faixaEtaria]}
-                  selection={selectedItems}
-                  responsiveLayout="scroll"
-                  dataKey="id"
-                >
-                  <Column
-                    body={(row: any, options: any) =>
-                      renderedCheckboxesPostage(
-                        type,
-                        faixaEtaria,
-                        row,
-                        options.rowIndex
-                      )
-                    }
-                    bodyStyle={{ padding: '.1rem' }}
-                  />
-                </DataTable>
-              </AccordionTab>
-            ))}
-          </Accordion>
-        </>
-      )}
-    </div>
-  );
-
-  const renderExport = () =>
-    existePortage && (
-      <div className="mt-auto">
-        <ButtonHeron
-          text="Gerar Relatório"
-          type="primary"
-          size="full"
-          icon="pi pi-file-pdf"
-          onClick={exportPDF}
-          loading={loading}
-          typeButton="button"
-        />
-      </div>
-    );
-
-  const renderFooter = () => (
-    <div
-      className={clsx(
-        'fixed inset-x-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
-        // acima da tab bar flutuante quando ela está visível na mesma
-        // tela (rota /protocolo-av) — ver Nav/bottomTabBarLayout.ts
-        isTabRoute ? ABOVE_TAB_BAR : 'bottom-0'
-      )}
-    >
-      <ButtonHeron
-        text="Salvar"
-        type="primary"
-        size="full"
-        onClick={onSubmit}
-        loading={loading}
-      />
-    </div>
-  );
-
   useEffect(() => {
     if (
       state?.metaEdit &&
@@ -341,6 +255,7 @@ export default function PortageCadastro({
         const atividade = await dropDown('protocolo/portage');
         listAtual = JSON.parse(JSON.stringify(atividade));
       }
+      setSalvo(JSON.parse(JSON.stringify(listAtual)));
 
       const prePEIList = JSON.parse(
         sessionStorage.getItem('prePEIList') || '{}'
@@ -469,12 +384,67 @@ export default function PortageCadastro({
     // — mesmo sendo o mesmo paciente.id. Mesma causa do fix em VBMapp.tsx.
   }, [paciente?.id]);
 
+  const contagemGeral = somarContagens(
+    Object.values(porFaixa(list)).map((itens) => contarRespostas(itens))
+  );
+  const faixas = Object.keys(list?.[area] || {});
+
   return (
-    <div className="mt-8 space-y-6 pb-24">
-      {renderExport()}
-      {renderTable(TIPO_PORTAGE.socializacao)}
-      {renderTable(TIPO_PORTAGE.cognicao)}
-      {renderFooter()}
+    <div className="mt-3 flex flex-col gap-3 pb-40">
+      <ProgressoGeral
+        contagem={contagemGeral}
+        protocolo="Portage"
+        onRelatorio={existePortage ? exportPDF : undefined}
+      />
+      <Segmentado
+        rotulo="Área"
+        opcoes={AREAS.map((a) => ({ valor: a, label: a }))}
+        valor={area}
+        onChange={(novaArea) => {
+          setArea(novaArea);
+          setFaixaAberta(null);
+        }}
+      />
+      <FiltroPendentes ativo={soPendentes} onChange={setSoPendentes} />
+
+      {faixas.map((faixa) => {
+        const itens: any[] = list[area][faixa] || [];
+        const visiveis = itens
+          .map((item, metaIndex) => ({ item, metaIndex }))
+          .filter(({ item }) => !soPendentes || itemPendente(item));
+        const chave = `${area}|${faixa}`;
+
+        return (
+          <GrupoAvaliacao
+            key={chave}
+            titulo={rotuloFaixa(faixa)}
+            contagem={contarRespostas(itens)}
+            open={faixaAberta === chave}
+            onToggle={() => setFaixaAberta(faixaAberta === chave ? null : chave)}
+            vazio={soPendentes && visiveis.length === 0}
+          >
+            {visiveis.map(({ item, metaIndex }) => (
+              <ItemAvaliacao
+                key={item.id ?? metaIndex}
+                item={item}
+                onResponder={(valor) =>
+                  onCheckboxChange(area, faixa, metaIndex, undefined, valor)
+                }
+                onResponderSub={(subIndex, valor) =>
+                  onCheckboxChange(area, faixa, metaIndex, subIndex, valor)
+                }
+                acao={
+                  item?.permiteSubitens ? (
+                    <BotaoEditar texto="Subitens" onClick={() => onClickAddSubItem(item)} />
+                  ) : undefined
+                }
+              />
+            ))}
+          </GrupoAvaliacao>
+        );
+      })}
+
+      <BarraSalvar alteracoes={alteracoes} loading={loading} onSalvar={() => onSubmit()} />
     </div>
   );
 }
