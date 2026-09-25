@@ -1,26 +1,26 @@
 import { Controller } from 'react-hook-form';
-import { Dropdown } from 'primereact/dropdown';
+import { SeletorBottomSheet } from '../../seletorBottomSheet';
 import { InputProps } from '../types';
 
-export function InputDropdown({ id, value, options, disabled, validate, control, onChange }: InputProps) {
+// Seleção em bottom sheet (ver components/seletorBottomSheet) no lugar do
+// Dropdown do PrimeReact: no celular a lista abria colada no campo e ficava
+// atrás do teclado ao buscar.
+export function InputDropdown({ id, labelText, value, options, disabled, validate, control, onChange }: InputProps) {
   return (
     <Controller
       name={id}
       control={control}
       rules={validate}
       render={({ field }: any) => (
-        <Dropdown
+        <SeletorBottomSheet
+          id={id}
+          titulo={labelText}
           value={value || field.value}
-          // virtualScrollerOptions={{ itemSize: 38 }}
           options={options}
-          onChange={(e: any) => {
-            onChange?.(e.value);
-            field.onChange(e.value);
+          onChange={(valor) => {
+            onChange?.(valor);
+            field.onChange(valor);
           }}
-          optionLabel="nome"
-          filter
-          showClear
-          filterBy="nome"
           disabled={disabled}
         />
       )}

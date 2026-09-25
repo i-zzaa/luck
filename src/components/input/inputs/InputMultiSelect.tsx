@@ -1,28 +1,27 @@
 import { Controller } from 'react-hook-form';
-import { MultiSelect } from 'primereact/multiselect';
-import { setColorChips } from '../../../util/util';
+import { SeletorBottomSheet } from '../../seletorBottomSheet';
 import { InputProps } from '../types';
 
-export function InputMultiSelect({ id, value, options, disabled, validate, control, onChange }: InputProps) {
+// Seleção múltipla em bottom sheet (ver components/seletorBottomSheet); os
+// chips continuam com a cor da especialidade.
+export function InputMultiSelect({ id, labelText, value, options, disabled, validate, control, onChange }: InputProps) {
   return (
     <Controller
       name={id}
       control={control}
       rules={validate}
       render={({ field }: any) => (
-        <MultiSelect
-          disabled={disabled}
-          id={field.id}
-          display="chip"
-          optionLabel="nome"
-          filter
+        <SeletorBottomSheet
+          id={id}
+          titulo={labelText}
+          multiple
           value={value || field.value}
-          onChange={(e: any) => {
-            setColorChips();
-            onChange?.(e.value);
-            field.onChange(e.value);
-          }}
           options={options}
+          onChange={(valor) => {
+            onChange?.(valor);
+            field.onChange(valor);
+          }}
+          disabled={disabled}
         />
       )}
     />

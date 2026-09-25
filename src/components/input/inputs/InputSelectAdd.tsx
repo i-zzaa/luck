@@ -1,9 +1,9 @@
 import { Controller } from 'react-hook-form';
-import { Dropdown } from 'primereact/dropdown';
+import { SeletorBottomSheet } from '../../seletorBottomSheet';
 import { ButtonHeron } from '../../button';
 import { InputProps } from '../types';
 
-export function InputSelectAdd({ id, value, options, disabled, validate, control, onChange, onClick, buttonAdd }: InputProps) {
+export function InputSelectAdd({ id, labelText, value, options, disabled, validate, control, onChange, onClick, buttonAdd }: InputProps) {
   return (
     <div className="grid gap-2 grid-cols-6">
       <Controller
@@ -11,21 +11,19 @@ export function InputSelectAdd({ id, value, options, disabled, validate, control
         control={control}
         rules={validate}
         render={({ field }: any) => (
-          <Dropdown
-            className="col-span-5"
-            value={value || field.value}
-            virtualScrollerOptions={{ itemSize: 38 }}
-            options={options}
-            onChange={(e: any) => {
-              onChange?.(e.value);
-              field.onChange(e.value);
-            }}
-            optionLabel="nome"
-            filter
-            showClear
-            filterBy="nome"
-            disabled={disabled}
-          />
+          <div className="col-span-5">
+            <SeletorBottomSheet
+              id={id}
+              titulo={labelText}
+              value={value || field.value}
+              options={options}
+              onChange={(valor) => {
+                onChange?.(valor);
+                field.onChange(valor);
+              }}
+              disabled={disabled}
+            />
+          </div>
         )}
       />
       {buttonAdd ? (

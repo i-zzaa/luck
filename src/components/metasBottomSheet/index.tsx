@@ -1,5 +1,5 @@
-import { Sidebar } from 'primereact/sidebar';
 import { ButtonHeron } from '../button';
+import { BottomSheet } from '../bottomSheet';
 import { useMetasSelection } from '../../pages/metas/useMetasSelection';
 import { MetasSelectionFields } from '../../pages/metas/MetasSelectionFields';
 
@@ -32,37 +32,28 @@ export function MetasBottomSheet({
   });
 
   return (
-    <Sidebar
-      visible={open}
-      onHide={onClose}
-      position="bottom"
-      className="rounded-t-2xl"
-      style={{ height: '85vh' }}
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      titulo="Adicionar metas"
+      descricao="Selecione os programas para essa sessão."
+      altura="cheia"
     >
-      <div className="flex flex-col h-full">
-        <span className="font-inter font-bold text-gray-800 text-lg">
-          Adicionar metas
-        </span>
-        <p className="font-inter text-xs text-gray-400 mt-1">
-          Selecione os programas para essa sessão.
-        </p>
-
-        <div className="flex-1 overflow-y-auto mt-2 pb-4">
-          <MetasSelectionFields selection={selection} />
-        </div>
-
-        <div className="pt-3 border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <ButtonHeron
-            text="Salvar"
-            type="primary"
-            size="full"
-            onClick={() => selection.onSubmit()}
-            loading={selection.loading}
-            typeButton="button"
-            disabled={!selection.hasAnyContent}
-          />
-        </div>
+      <div className="flex-1 min-h-0 overflow-y-auto pb-4">
+        <MetasSelectionFields selection={selection} />
       </div>
-    </Sidebar>
+
+      <div className="pt-3 border-t border-gray-300">
+        <ButtonHeron
+          text="Salvar"
+          type="primary"
+          size="full"
+          onClick={() => selection.onSubmit()}
+          loading={selection.loading}
+          typeButton="button"
+          disabled={!selection.hasAnyContent}
+        />
+      </div>
+    </BottomSheet>
   );
 }
