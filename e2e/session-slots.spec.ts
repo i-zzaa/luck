@@ -64,7 +64,11 @@ const signatures = (page: Page) =>
 test('tocar num slot preenchido altera esse slot, não o da mesma coluna em outra linha', async ({ page }) => {
   await setup(page);
   await page.goto('/session/1');
-  await page.getByText('Programa 1').first().click();
+  // O primeiro programa já abre sozinho (Session: um card aberto por vez).
+  await expect(page.getByRole('button', { name: /Programa 1/ }).first()).toHaveAttribute(
+    'aria-expanded',
+    'true'
+  );
   await page.waitForSelector('.p-multistatecheckbox');
 
   const before = await signatures(page);

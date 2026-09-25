@@ -25,6 +25,12 @@ export const useSessionForm = () => {
   // atendida). Ausente em link antigo — aí o servidor assume hoje.
   const [searchParams] = useSearchParams();
   const dataSessao = searchParams.get('data') || undefined;
+  // O mesmo dia vai também no GET: numa série, é ele que diz qual registro
+  // de sessão abrir (sem ele o servidor devolvia o mais recente da série —
+  // o dia abria em leitura com a sessão de outro dia).
+  const urlSessao = `/sessao/calendario/${calendarioId}${
+    dataSessao ? `?data=${encodeURIComponent(dataSessao)}` : ''
+  }`;
   const editor = useRef(null);
 
   const [evento, setEvento] = useState<any>(null);
@@ -68,7 +74,7 @@ export const useSessionForm = () => {
   const loadSession = useCallback(async () => {
     try {
       const [result, config]: any = await Promise.all([
-        getList(`/sessao/calendario/${calendarioId}`),
+        getList(urlSessao),
         // Config é só UX: se falhar, a tela abre sem o contador e o
         // servidor continua barrando resumo curto no salvar.
         getList('/sessao/config').catch(() => null),
@@ -100,7 +106,7 @@ export const useSessionForm = () => {
     } catch (error) {
       renderToast(buildErrorToast(error, 'Não foi possível carregar a sessão.'));
     }
-  }, [calendarioId, applyTrees, navigate, renderToast]);
+  }, [urlSessao, applyTrees, navigate, renderToast]);
 
   // Recarrega só as árvores de metas, sem tocar no resumo que a terapeuta
   // pode estar digitando — chamado depois de salvar metas pelo bottom
@@ -109,7 +115,7 @@ export const useSessionForm = () => {
   const refreshMetas = useCallback(async () => {
     if (!calendarioId) return;
     try {
-      const result: any = await getList(`/sessao/calendario/${calendarioId}`);
+      const result: any = await getList(urlSessao);
       const maintenanceObj = result?.maintenance || {};
 
       // Diferente do carregamento inicial (applyTrees), aqui já pode
@@ -135,7 +141,7 @@ export const useSessionForm = () => {
     } catch (error) {
       renderToast(buildErrorToast(error, 'Não foi possível atualizar as metas.'));
     }
-  }, [calendarioId, renderToast]);
+  }, [calendarioId, urlSessao, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
     const tamanhoResumo = resumoTextLength(content);

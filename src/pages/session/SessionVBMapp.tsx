@@ -1,9 +1,8 @@
 // src/components/session/SessionVBMapp.tsx
-import React from "react";
-import { Accordion, AccordionTab } from "primereact/accordion";
-import { Card } from "../../components/card";
+import React, { useState } from "react";
 import { HeaderPrograma } from "../../components/fielSetHeader/HeaderProgram";
 import { CheckboxTree } from "./CheckboxTree";
+import { CabecalhoMeta, CardGrupo, resumoGrupo } from "./sessaoUi";
 
 interface Props {
   listVBMapp: any[];
@@ -22,73 +21,59 @@ export const SessionVBMapp: React.FC<Props> = React.memo(function SessionVBMapp(
   isEdit,
   setVBMapp,
 }) {
+  // Um programa aberto por vez — o primeiro, ao entrar.
+  const [aberto, setAberto] = useState<string | null>(null);
+
   const source = (Array.isArray(vbmapp) && vbmapp.length) ? vbmapp : (listVBMapp || []);
   if (!Array.isArray(source) || !source.length) return null;
 
+  // Nível e programa num card só ("Nível 1 · Mando"), em vez de um
+  // accordion dentro do outro. O índice do programa é o ORIGINAL em
+  // nivel.children (o path do CheckboxTree navega a árvore por ele) — antes
+  // era o índice depois de filtrar os programas sem metas, e um programa
+  // vazio antes de outro fazia o toque cair no programa errado.
+  const grupos: { chave: string; titulo: string; programa: any; nIdx: number; pIdx: number }[] = [];
+  source.forEach((nivel: any, nIdx: number) => {
+    (Array.isArray(nivel?.children) ? nivel.children : []).forEach((programa: any, pIdx: number) => {
+      if (!Array.isArray(programa?.children) || !programa.children.length) return;
+      grupos.push({
+        chave: String(programa?.key ?? `${nIdx}-${pIdx}`),
+        titulo: `${getLabel(nivel)} · ${getLabel(programa)}`,
+        programa,
+        nIdx,
+        pIdx,
+      });
+    });
+  });
+  if (!grupos.length) return null;
+  const abertoEfetivo = aberto === null ? grupos[0].chave : aberto;
+
   return (
-    <div className="mt-8">
-      <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
-        <span className="font-bold">VB Mapp</span>
-      </div>
-      <Card className="rounded-lg max-w-[100%]">
-        <Accordion>
-          {source.map((nivel: any, nIdx: number) => {
-            const programasRaw = Array.isArray(nivel?.children) ? nivel.children : [];
-            // Esconde nível sem programas válidos (programa precisa ter metas)
-            const programas = programasRaw.filter(
-              (p: any) => Array.isArray(p?.children) && p.children.length > 0
-            );
-            if (programas.length === 0) return null;
-
-            return (
-              <AccordionTab
-                tabIndex={nIdx}
-                key={String(nivel?.key ?? nIdx)}
-                className="p-accordion-content-padding-zero"
-                header={<div className="flex items-center w-full"><span>{getLabel(nivel)}</span></div>}
-              >
-                <Accordion>
-                  {programas.map((programa: any, pIdx: number) => {
-                    const metas = Array.isArray(programa?.children) ? programa.children : [];
-                    if (metas.length === 0) return null; // Oculta programa sem metas
-
-                    return (
-                      <AccordionTab
-                        tabIndex={pIdx}
-                        key={String(programa?.key ?? `${nIdx}-${pIdx}`)}
-                        className="p-accordion-content-padding-zero"
-                        header={<div className="flex items-center"><span>{getLabel(programa)}</span></div>}
-                      >
-                        <div className="mb-4">
-                          <HeaderPrograma {...programa} />
-                        </div>
-
-                        <ul className="list-none">
-                          {metas.map((meta: any, mIdx: number) => (
-                            <li key={String(meta?.key ?? `${nIdx}-${pIdx}-${mIdx}`)} className="mb-6">
-                              <span className="font-bold font-inter">Meta {mIdx + 1}: </span>
-                              <span className="font-base font-inter">{getLabel(meta)}</span>
-
-                              {/* dispara o CheckboxTree a partir da meta */}
-                              <CheckboxTree
-                                node={meta}
-                                path={[nIdx, pIdx, mIdx]}
-                                isEdit={isEdit}
-                                setStateFn={setVBMapp}
-                                repeatCount={10}
-                              />
-                            </li>
-                          ))}
-                        </ul>
-                      </AccordionTab>
-                    );
-                  })}
-                </Accordion>
-              </AccordionTab>
-            );
-          })}
-        </Accordion>
-      </Card>
+    <div className="flex flex-col gap-3">
+      {grupos.map(({ chave, titulo, programa, nIdx, pIdx }) => (
+        <CardGrupo
+          key={chave}
+          titulo={titulo}
+          resumo={resumoGrupo(programa)}
+          open={abertoEfetivo === chave}
+          onToggle={() => setAberto(abertoEfetivo === chave ? '' : chave)}
+        >
+          <HeaderPrograma {...programa} />
+          {programa.children.map((meta: any, mIdx: number) => (
+            <div key={String(meta?.key ?? `${nIdx}-${pIdx}-${mIdx}`)} className="flex flex-col gap-2.5">
+              <CabecalhoMeta numero={mIdx + 1} nome={getLabel(meta)} />
+              {/* dispara o CheckboxTree a partir da meta */}
+              <CheckboxTree
+                node={meta}
+                path={[nIdx, pIdx, mIdx]}
+                isEdit={isEdit}
+                setStateFn={setVBMapp}
+                repeatCount={10}
+              />
+            </div>
+          ))}
+        </CardGrupo>
+      ))}
     </div>
   );
 });

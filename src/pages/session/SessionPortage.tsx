@@ -1,9 +1,8 @@
 // src/components/session/SessionPortage.tsx
-import { memo } from 'react';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Card } from '../../components/card';
+import { memo, useState } from 'react';
 import CheckboxDTT from '../../components/DTT';
 import { HeaderPrograma } from '../../components/fielSetHeader/HeaderProgram';
+import { CabecalhoMeta, CardGrupo, ItemTentativas, resumoGrupo } from './sessaoUi';
 
 interface Props {
   listPortage: any[];
@@ -30,6 +29,9 @@ export const SessionPortage = memo(function SessionPortage({
   isEdit,
   setPortage,
 }: Props) {
+  // Um grupo (área · faixa) aberto por vez — o primeiro, ao entrar.
+  const [aberto, setAberto] = useState<number | null>(0);
+
   const source =
     Array.isArray(portage) && portage.length ? portage : listPortage || [];
   if (!Array.isArray(source) || !source.length) return null;
@@ -51,25 +53,27 @@ export const SessionPortage = memo(function SessionPortage({
     if (!Array.isArray(node?.children)) return null;
 
     const hasActs = node.children.some((c: any) => isObjNode(c));
+    // path = [programa, meta] na meta; [programa, meta, ato] no ato
+    const ehMeta = path.length === 2;
 
-    // Folha (2 níveis: Programa -> Meta -> slots)
     if (!hasActs) {
       const slots = ensureSlots(node.children, 10);
+      const item = (
+        <ItemTentativas nome={getLabel(node)} slots={slots} leitura={isEdit}>
+          {slots.map((v: any, slot: number) => renderCheckbox(path, slot, v))}
+        </ItemTentativas>
+      );
       return (
-        <div key={String(node?.key ?? path.join('-'))}>
-          <span className="block font-medium mb-[0.5]">- {getLabel(node)}</span>
-          <div className="flex gap-1 my-2">
-            {slots.map((v: any, slot: number) => renderCheckbox(path, slot, v))}
-          </div>
+        <div key={String(node?.key ?? path.join('-'))} className="flex flex-col gap-2.5">
+          {ehMeta && <CabecalhoMeta numero={path[1] + 1} nome={getLabel(node)} />}
+          {item}
         </div>
       );
     }
 
-    // Nó interno (3 níveis: Programa -> Meta -> Ato -> slots)
     return (
-      <div key={String(node?.key ?? path.join('-'))} className="my-2">
-        <span className="font-bold font-inter">Meta {path[1] + 1}: </span>
-        <span className="font-base font-inter">{getLabel(node)}</span>
+      <div key={String(node?.key ?? path.join('-'))} className="flex flex-col gap-2.5">
+        {ehMeta && <CabecalhoMeta numero={path[1] + 1} nome={getLabel(node)} />}
         {(node.children || [])
           .filter((child: any) => isObjNode(child))
           .map((child: any, idx: number) => renderItems(child, [...path, idx]))}
@@ -124,46 +128,30 @@ export const SessionPortage = memo(function SessionPortage({
   };
 
   return (
-    <div className="mt-8">
-      <div className="text-gray-400 font-inter grid justify-start mx-2 mt-8 leading-4">
-        <span className="font-bold">Portage</span>
-      </div>
-      <Card className="rounded-lg max-w-[100%]">
-        <Accordion>
-          {source.map((programa: any, pIdx: number) => {
-            const metas = Array.isArray(programa?.children)
-              ? programa.children
-              : [];
-            if (metas.length === 0) return null; // não mostrar programa sem meta
+    <div className="flex flex-col gap-3">
+      {source.map((programa: any, pIdx: number) => {
+        const metas = Array.isArray(programa?.children) ? programa.children : [];
+        if (metas.length === 0) return null; // não mostrar programa sem meta
 
-            return (
-              <AccordionTab
-                tabIndex={pIdx}
-                key={String(programa?.key ?? pIdx)}
-                className="p-accordion-content-padding-zero"
-                header={
-                  <div className="flex items-center w-full">
-                    <span>{getLabel(programa)}</span>
-                  </div>
-                }
-              >
-                {metas.map((meta: any, mIdx: number) => (
-                  <div
-                    key={String(meta?.key ?? `${pIdx}-${mIdx}`)}
-                    className="my-2 grid gap-2 items-center"
-                  >
-                    <div className="flex flex-col gap-1">
-                      {renderHeaderPrograma(meta)}
-                      {/* recursão parte da meta; path = [programa, meta] */}
-                      {renderItems(meta, [pIdx, mIdx])}
-                    </div>
-                  </div>
-                ))}
-              </AccordionTab>
-            );
-          })}
-        </Accordion>
-      </Card>
+        return (
+          <CardGrupo
+            key={String(programa?.key ?? pIdx)}
+            titulo={getLabel(programa)}
+            resumo={resumoGrupo(programa)}
+            open={aberto === pIdx}
+            onToggle={() => setAberto(aberto === pIdx ? null : pIdx)}
+          >
+            {metas.map((meta: any, mIdx: number) => (
+              <div key={String(meta?.key ?? `${pIdx}-${mIdx}`)} className="flex flex-col gap-2.5">
+                {/* Portage: SD/Resposta/SR+ vêm em cada meta */}
+                {renderHeaderPrograma(meta)}
+                {/* recursão parte da meta; path = [programa, meta] */}
+                {renderItems(meta, [pIdx, mIdx])}
+              </div>
+            ))}
+          </CardGrupo>
+        );
+      })}
     </div>
   );
 });
