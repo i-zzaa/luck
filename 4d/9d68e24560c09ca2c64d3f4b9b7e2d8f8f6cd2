@@ -1,0 +1,35 @@
+src/pages/session/useSessionForm.ts
+  s_554168bd5e56f6::t_4a469c59f3cf78 3,22-27,173-177,194
+  s_554168bd5e56f6::t_464f80530dc0b7 8-12,113-134,138
+src/components/DTT/index.test.tsx
+  s_554168bd5e56f6::t_90ee0fe281d556 1-43
+src/util/sessionTree.test.ts
+  s_554168bd5e56f6::t_7fb8a9a720d7b6 7,112-171
+  s_554168bd5e56f6::t_a829303c56bfa1 172
+src/components/DTT/types.ts
+  s_554168bd5e56f6::t_5d484d3a966327 10-13
+src/util/sessionTree.ts
+  s_554168bd5e56f6::t_ffbd4dbea29edd 66-119
+src/pages/Schedule.tsx
+  s_554168bd5e56f6::t_f043fc93036cd5 410-413,415-416,455
+  s_554168bd5e56f6::t_3f52c8033a8a5d 15
+  s_554168bd5e56f6::t_c60ee0a30c3a41 187-192
+src/components/DTT/index.tsx
+  s_554168bd5e56f6::t_fca4a4f259260d 5-10,24,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4d9d68e24560c09ca2c64d3f4b9b7e2d8f8f6cd2",
+  "prompts": {},
+  "sessions": {
+    "s_554168bd5e56f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4f1883e-8faa-43ae-bae8-aa543c24cc48",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
