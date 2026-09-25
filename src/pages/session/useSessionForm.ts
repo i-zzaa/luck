@@ -1,11 +1,15 @@
 // src/hooks/useSessionForm.ts
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
 import { useToast } from '../../contexts/toast';
 import { getList, update } from '../../server';
 import { buildErrorToast } from '../../util/error';
-import { extractRespostas, resumoTextLength } from '../../util/sessionTree';
+import {
+  extractRespostas,
+  mesclarRespostas,
+  resumoTextLength,
+} from '../../util/sessionTree';
 
 const MAINTENANCE_VAZIA = { manual: [], vbmapp: [], portage: [] };
 
@@ -15,6 +19,12 @@ export const useSessionForm = () => {
   // O id na URL basta pra abrir a sessão (sobrevive a F5/link direto) — o
   // evento vem de GET /sessao/calendario/:id.
   const { calendarioId } = useParams();
+  // Dia do atendimento, posto na URL pela agenda: em série recorrente o
+  // id da rota é o da série inteira, então é a data que diz qual
+  // ocorrência está sendo registrada (e é ela que o servidor marca como
+  // atendida). Ausente em link antigo — aí o servidor assume hoje.
+  const [searchParams] = useSearchParams();
+  const dataSessao = searchParams.get('data') || undefined;
   const editor = useRef(null);
 
   const [evento, setEvento] = useState<any>(null);
@@ -100,11 +110,32 @@ export const useSessionForm = () => {
     if (!calendarioId) return;
     try {
       const result: any = await getList(`/sessao/calendario/${calendarioId}`);
-      applyTrees(result);
+      const maintenanceObj = result?.maintenance || {};
+
+      // Diferente do carregamento inicial (applyTrees), aqui já pode
+      // haver treino preenchido na tela: o planejamento volta do servidor
+      // com os slots vazios, então as respostas atuais são remontadas por
+      // cima da árvore nova (que é quem traz as metas recém-adicionadas).
+      setList(result?.sessao || []);
+      setDTT((atual: any[]) => mesclarRespostas(result?.sessao || [], atual));
+
+      setListPortage(result?.portage || []);
+      setPortage((atual: any[]) =>
+        atual.length ? mesclarRespostas(result?.portage || [], atual) : atual
+      );
+
+      setListVBMapp(result?.vbmapp || []);
+      setVBMapp((atual: any[]) => mesclarRespostas(result?.vbmapp || [], atual));
+
+      setListMaintenance((atual: any) => ({
+        manual: mesclarRespostas(maintenanceObj.manual || [], atual?.manual || []),
+        vbmapp: mesclarRespostas(maintenanceObj.vbmapp || [], atual?.vbmapp || []),
+        portage: mesclarRespostas(maintenanceObj.portage || [], atual?.portage || []),
+      }));
     } catch (error) {
       renderToast(buildErrorToast(error, 'Não foi possível atualizar as metas.'));
     }
-  }, [calendarioId, applyTrees, renderToast]);
+  }, [calendarioId, renderToast]);
 
   const handleSubmitSumary = useCallback(async () => {
     const tamanhoResumo = resumoTextLength(content);
@@ -139,7 +170,11 @@ export const useSessionForm = () => {
 
     setLoading(true);
     try {
-      await update(`/sessao/calendario/${calendarioId}`, { resumo: content, respostas });
+      await update(`/sessao/calendario/${calendarioId}`, {
+        resumo: content,
+        respostas,
+        data: dataSessao,
+      });
       renderToast({
         type: 'success',
         message: 'Sessão atualizada!',
@@ -156,6 +191,7 @@ export const useSessionForm = () => {
     }
   }, [
     calendarioId,
+    dataSessao,
     content,
     minResumoLength,
     dtt,

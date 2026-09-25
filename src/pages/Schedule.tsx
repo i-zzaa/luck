@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import moment from 'moment';
-import { Sidebar } from 'primereact/sidebar';
 import { formatdateeua, firtUpperCase } from '../util/util';
 import { useAuth } from '../contexts/auth';
 import { getList } from '../server';
@@ -13,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
 import { ChoiceItemSchedule } from '../components/choiceItemSchedule';
 import { isSlotLivre } from '../util/evento';
+import { BottomSheet } from '../components/bottomSheet';
 
 type ViewMode = 'dia' | 'semana' | 'mes' | 'periodo';
 
@@ -184,8 +184,12 @@ export const Schedule = () => {
         onClick={() =>
           podeAcessar &&
           // sem `state`: a tela de Sessão carrega tudo (evento incluso)
-          // por GET /sessao/calendario/:id a partir do id na rota
-          navigate(`/${CONSTANTES_ROUTERS.SESSION}/${item.id}`)
+          // por GET /sessao/calendario/:id a partir do id na rota. A data
+          // vai na query (sobrevive a F5) porque em série recorrente o id
+          // é o da série inteira — é ela que diz qual dia foi atendido.
+          navigate(
+            `/${CONSTANTES_ROUTERS.SESSION}/${item.id}?data=${item.date}`
+          )
         }
       >
         <div className="flex items-center">
@@ -403,19 +407,13 @@ export const Schedule = () => {
   );
 
   const renderPeriodoSheet = (
-    <Sidebar
-      visible={sheetOpen}
-      onHide={() => setSheetOpen(false)}
-      position="bottom"
-      className="rounded-t-2xl"
-      style={{ height: 'auto' }}
+    <BottomSheet
+      open={sheetOpen}
+      onClose={() => setSheetOpen(false)}
+      titulo="Filtrar por período"
     >
-      <div className="pb-2">
-        <span className="font-inter font-bold text-gray-800 text-lg">
-          Filtrar por período
-        </span>
-
-        <div className="grid grid-cols-2 gap-3 mt-4">
+      <div>
+        <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
             <label className="text-xs font-inter text-gray-400">
               Data inicial
@@ -454,7 +452,7 @@ export const Schedule = () => {
           />
         </div>
       </div>
-    </Sidebar>
+    </BottomSheet>
   );
 
   return (

@@ -4,6 +4,7 @@ import {
   isObj,
   isPrimitiveOrNull,
   isResumoVazio,
+  mesclarRespostas,
   resumoTextLength,
 } from './sessionTree';
 
@@ -106,5 +107,66 @@ describe('isObj / isPrimitiveOrNull', () => {
     expect(isPrimitiveOrNull(null)).toBe(true);
     expect(isPrimitiveOrNull('+')).toBe(true);
     expect(isPrimitiveOrNull({})).toBe(false);
+  });
+});
+
+describe('mesclarRespostas', () => {
+  // Cenário real: a terapeuta treina uma meta, abre "Adicionar metas" e
+  // volta — o planejamento novo chega com todos os slots vazios.
+  const arvoreNova = [
+    {
+      key: 'programa-1',
+      children: [
+        { key: 'meta-0', children: [null, null, null] },
+        { key: 'meta-1', children: [null, null, null] },
+      ],
+    },
+  ];
+
+  it('mantém o que já estava preenchido na tela', () => {
+    const atual = [
+      {
+        key: 'programa-1',
+        children: [{ key: 'meta-0', children: ['C', 'DT', null] }],
+      },
+    ];
+
+    const [programa]: any = mesclarRespostas(arvoreNova, atual);
+
+    expect(programa.children[0].children).toEqual(['C', 'DT', null]);
+  });
+
+  it('mantém a meta nova que só existe na árvore do servidor', () => {
+    const atual = [
+      {
+        key: 'programa-1',
+        children: [{ key: 'meta-0', children: ['C', null, null] }],
+      },
+    ];
+
+    const [programa]: any = mesclarRespostas(arvoreNova, atual);
+
+    expect(programa.children.map((m: any) => m.key)).toEqual([
+      'meta-0',
+      'meta-1',
+    ]);
+    expect(programa.children[1].children).toEqual([null, null, null]);
+  });
+
+  it('sem nada preenchido, devolve a árvore do servidor', () => {
+    expect(mesclarRespostas(arvoreNova, [])).toBe(arvoreNova);
+  });
+
+  it('respeita a quantidade de slots da árvore nova', () => {
+    const atual = [
+      {
+        key: 'programa-1',
+        children: [{ key: 'meta-0', children: ['C', 'C', 'C', 'C', 'C'] }],
+      },
+    ];
+
+    const [programa]: any = mesclarRespostas(arvoreNova, atual);
+
+    expect(programa.children[0].children).toHaveLength(3);
   });
 });

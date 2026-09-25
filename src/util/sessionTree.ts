@@ -63,3 +63,57 @@ export const extractRespostas = (
   (nodes || []).forEach(visit);
   return respostas;
 };
+
+// Preserva as respostas já marcadas na tela quando as árvores são
+// recarregadas do servidor — é o que acontece ao voltar do "Adicionar
+// metas" (useSessionForm/refreshMetas): o planejamento recém-salvo volta
+// com todos os slots vazios e, sem isso, o que a terapeuta já treinou
+// some da tela (e nem chega a ser enviado no salvar).
+//
+// Casa folha com folha pela `key`; a topologia (metas novas incluídas) e
+// a quantidade de slots são sempre as da árvore nova — do que já estava
+// preenchido só entram os slots com valor.
+export const mesclarRespostas = (novas: any[], atuais: any[]): any[] => {
+  const preenchidosPorChave = new Map<string, any[]>();
+
+  const coletar = (node: any) => {
+    const children = node?.children;
+    if (!Array.isArray(children) || children.length === 0) return;
+
+    if (children.every(isPrimitiveOrNull)) {
+      if (node?.key !== undefined && node?.key !== null) {
+        preenchidosPorChave.set(String(node.key), children);
+      }
+      return;
+    }
+
+    children.forEach(coletar);
+  };
+
+  (atuais || []).forEach(coletar);
+  if (!preenchidosPorChave.size) return novas || [];
+
+  const aplicar = (node: any): any => {
+    const children = node?.children;
+    if (!Array.isArray(children) || children.length === 0) return node;
+
+    if (children.every(isPrimitiveOrNull)) {
+      const salvos =
+        node?.key !== undefined && node?.key !== null
+          ? preenchidosPorChave.get(String(node.key))
+          : undefined;
+
+      if (!salvos) return node;
+
+      const slots = children.map((slot: any, i: number) =>
+        salvos[i] === undefined || salvos[i] === null ? slot : salvos[i]
+      );
+
+      return { ...node, children: slots };
+    }
+
+    return { ...node, children: children.map(aplicar) };
+  };
+
+  return (novas || []).map(aplicar);
+};

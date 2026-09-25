@@ -7,8 +7,10 @@ export enum DTTENUM {
 }
 
 export interface CheckboxDTTProps {
-  value: DTTENUM.c | DTTENUM.dt | DTTENUM.dp | DTTENUM.dg | DTTENUM.dv;
-  onChange: (value: CheckboxDTTProps['value']) => void;
+  // Slot ainda não treinado é null — é assim que a árvore da sessão
+  // guarda a tentativa vazia (ver util/sessionTree.ts).
+  value: DTTENUM | null;
+  onChange: (value: DTTENUM | null) => void;
   disabled?: boolean;
 }
 
