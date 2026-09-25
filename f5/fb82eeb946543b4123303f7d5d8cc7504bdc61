@@ -1,0 +1,62 @@
+src/components/seletorBottomSheet/styles.css
+  s_213b27f7be7118::t_bd3bd7b2227f4e 50-55
+  s_213b27f7be7118::t_212d697216f611 303-335
+  s_4c89a3a42aef7a::t_65d2adc76972d4 1,4-5,7-11,18-48,138-154,156-192,203-207,209-271,273-278,280-297,299-302
+  s_554168bd5e56f6::t_20ec9c0208c6b4 2-3,6,12-17
+  s_213b27f7be7118::t_05b96786ad10c7 193-202
+  s_554168bd5e56f6::t_a5c85a662c89c3 49,56-137,155,208,272,279,298
+src/components/input/inputs/InputMultiSelect.tsx
+  s_4c89a3a42aef7a::t_65d2adc76972d4 2,5-7,14-17,20-24,29
+src/components/bottomSheet/index.tsx
+  s_213b27f7be7118::t_b287f410727cdb 3-4,6-12,15-17,43-50,55,57-62,64-73,76
+  s_554168bd5e56f6::t_bca46959118d96 2,13-14,18-20,26-27,34-36,40-41
+  s_213b27f7be7118::t_325ef69d38364c 1,5,21-25,28-33,37-39,42,51-54,56,63,74-75,77-78
+src/foms/pei/metaObsField.ts
+  s_554168bd5e56f6::t_ffcad266353ddb 7-10
+  s_213b27f7be7118::t_fd1ed10e59c130 1-6,11
+src/components/seletorBottomSheet/index.tsx
+  s_554168bd5e56f6::t_c2e4b5b4b0dbdb 219
+  s_4c89a3a42aef7a::t_65d2adc76972d4 1,3-182,191,208,287-289
+  s_554168bd5e56f6::t_6b260c57f76895 2,183-190,192-207,209-218,220-286
+src/components/metasBottomSheet/index.tsx
+  s_554168bd5e56f6::t_f043fc93036cd5 2,35-40,42-44,46-55,57
+e2e/seletor-bottom-sheet.spec.ts
+  s_213b27f7be7118::t_bd3bd7b2227f4e 1-67,71
+  s_213b27f7be7118::t_82c5837b700508 68-70
+src/components/input/inputs/InputDropdown.tsx
+  s_4c89a3a42aef7a::t_65d2adc76972d4 2,5-8,15-17,20-22
+src/components/input/inputs/InputSelectAdd.tsx
+  s_4c89a3a42aef7a::t_65d2adc76972d4 2,6,14-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f5fb82eeb946543b4123303f7d5d8cc7504bdc61",
+  "prompts": {},
+  "sessions": {
+    "s_213b27f7be7118": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9af0ca58-e431-4faf-8920-0d592c9dfa61",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    },
+    "s_4c89a3a42aef7a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018feb3d-7621-4fa0-b967-3ef8f671f411",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    },
+    "s_554168bd5e56f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4f1883e-8faa-43ae-bae8-aa543c24cc48",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
