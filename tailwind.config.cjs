@@ -48,9 +48,11 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Raleway', 'sans-serif'],
+        // Uma fonte só no app inteiro: Inter (index.html carrega os pesos
+        // 300–700). `inter` fica como alias pra quem já usa font-inter.
+        sans: ['Inter', 'sans-serif'],
         'sans-serif': 'sans-serif',
-        inter: 'Inter',
+        inter: ['Inter', 'sans-serif'],
       },
     },
   },

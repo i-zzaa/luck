@@ -13,7 +13,7 @@
 }
 
 .p-component {
-  font-family: Raleway, sans-serif !important;
+  font-family: Inter, sans-serif !important;
 }
 
 
@@ -24,7 +24,7 @@ textarea {
 
 .p-calendar,
 .p-datepicker-calendar {
-  font-family: sans-serif !important;
+  font-family: Inter, sans-serif !important;
 }
 
 .dialog-demo .p-button {
