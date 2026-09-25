@@ -17,9 +17,9 @@ import path from 'path';
 // (2) salva o PDF em test-results/ (gitignored) pra conferência visual
 // manual — é o artefato que importa pra essa massa de dados.
 
-// Portage: 3 avaliações (o código só desenha as duas pontas — Primeira
-// e Atual — mas testar com uma reavaliação no meio confirma que ela
-// realmente fica de fora). 4 faixas etárias por avaliação, com "Não se
+// Portage: 3 avaliações. As tabelas mostram só as duas pontas (primeira
+// e atual — o backend já escolhe, ver portageRelatorio abaixo); a
+// reavaliação do meio aparece só no gráfico comparativo. 4 faixas etárias por avaliação, com "Não se
 // aplica" numa delas — cenário pedido explicitamente pra validar o
 // layout com mais níveis (0-1, 1-2, 2-3, 3-4).
 const PORTAGE_RESPONSE = {
@@ -185,15 +185,132 @@ const PEI_RESPONSE = [
   },
 ];
 
+// --- Formato atual: GET /paciente/:id/relatorio-evolucao (item 20) ---
+// O PDF vem todo de uma chamada só (ver pdfRelatorioEvolucao.ts:
+// RelatorioEvolucao). As massas acima continuam sendo a fonte do
+// cenário — só são convertidas pro formato que o backend devolve hoje.
+
+const classificar = (percentual: number | null) => {
+  if (percentual === null) return 'na';
+  if (percentual >= 80) return 'alto';
+  if (percentual >= 50) return 'medio';
+  return 'baixo';
+};
+
+const paraPercentual = (texto: string) =>
+  texto === 'Não se aplica' ? null : Number(texto.replace('%', ''));
+
+const paraIso = (dataBr: string) => {
+  const [dia, mes, ano] = dataBr.split('/');
+  return `${ano}-${mes}-${dia}`;
+};
+
+// headers[1] é a avaliação mais recente e a última coluna a primeira —
+// o backend já escolhe as duas pontas (primeira e atual) e manda a
+// reavaliação do meio só no comparativo.
+const portageRelatorio = () => {
+  const areas = ['Socializacao', 'Cognicao'] as const;
+  const nomes = { Socializacao: 'Socialização', Cognicao: 'Cognição' };
+  const colunas = PORTAGE_RESPONSE.headers.slice(1);
+  const faixas = PORTAGE_RESPONSE.Socializacao.map((linha) => linha[0]);
+
+  const avaliacao = (tipo: 'primeira' | 'atual', coluna: number) => {
+    const data = colunas[coluna].split(' ')[1];
+    return {
+      tipo,
+      titulo: tipo === 'primeira' ? 'Primeira avaliação' : 'Avaliação atual',
+      data: paraIso(data),
+      faixasEtarias: faixas,
+      categorias: areas.map((area) => ({
+        nome: nomes[area],
+        valores: PORTAGE_RESPONSE[area].map((linha) => {
+          const percentual = paraPercentual(linha[coluna + 1]);
+          return { faixa: linha[0], percentual, classificacao: classificar(percentual) };
+        }),
+      })),
+    };
+  };
+
+  const media = (valores: (number | null)[]) => {
+    const v = valores.filter((n): n is number => n !== null);
+    return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+  };
+
+  return {
+    avaliacoes: [avaliacao('primeira', colunas.length - 1), avaliacao('atual', 0)],
+    comparativo: areas.map((area) => ({
+      categoria: nomes[area],
+      sessoes: colunas
+        .map((titulo, c) => ({
+          titulo,
+          media: media(PORTAGE_RESPONSE[area].map((linha) => paraPercentual(linha[c + 1]))),
+        }))
+        .reverse(),
+    })),
+  };
+};
+
+const PREENCHIMENTO: Record<number, 'cheio' | 'metade' | 'vazio'> = {
+  100: 'cheio',
+  50: 'metade',
+  0: 'vazio',
+};
+
+// Grade de 10 slots por programa (null = slot sem atividade).
+const vbmappRelatorio = () => ({
+  niveis: Object.entries(VBMAPP_RESPONSE.data).map(([nivel, porData]) => ({
+    nivel: Number(nivel),
+    sessoes: Object.entries(porData).map(([data, programas]) => ({
+      data: paraIso(data),
+      programas: Object.entries(programas as Record<string, any>).map(([nome, itens]) => {
+        const slots: any[] = Object.entries(itens).map(([atividade, v]: any) => ({
+          atividade,
+          preenchimento: PREENCHIMENTO[v.percentual],
+        }));
+        while (slots.length < 10) slots.push(null);
+        return { nome, slots };
+      }),
+    })),
+  })),
+});
+
+const RELATORIO_RESPONSE = {
+  paciente: { nome: 'Gabriel Luis Guido', dataNascimento: '2023-02-01T00:00:00.000Z' },
+  numeroIntervencao: 3,
+  dataEmissao: '2026-09-24',
+  temDados: true,
+  portage: portageRelatorio(),
+  vbmapp: vbmappRelatorio(),
+  manual: PEI_RESPONSE,
+  condutaSugerida: null,
+};
+
+const CLINICA_RESPONSE = {
+  nome: 'Clínica Teste',
+  telefone: '(00) 0000-0000',
+  email: 'contato@clinica.teste',
+  cnpj: '00.000.000/0001-00',
+  endereco: 'Rua Teste, 123',
+};
+
 const authInit = (page: Page) => {
   const future = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   return page.addInitScript(([tokenVal]) => {
-    sessionStorage.setItem('token', tokenVal as string);
+    // Sessão falsa no formato atual do AuthProvider (contexts/auth.tsx):
+    // token + auth + expiresAt no futuro, perfil em user.perfil.codigo.
+    // A tela PEI só mostra o seletor de paciente com a permissão dele.
+    sessionStorage.setItem('token', 'token-teste');
+    sessionStorage.setItem('expiresAt', tokenVal as string);
     sessionStorage.setItem(
       'auth',
-      JSON.stringify({ id: 1, login: 'terapeuta.teste', nome: 'Teste', permissoes: ['*'] })
+      JSON.stringify({
+        id: 1,
+        login: 'terapeuta.teste',
+        nome: 'Teste',
+        permissoes: ['PEI_FILTRO_BOTAO_CADASTRAR', 'PEI_FILTRO_SELECT_PROTOCOLO'],
+        perfil: { codigo: 'developer' },
+      })
     );
-    sessionStorage.setItem('perfil', 'developer');
     // window.open é como o app abre o blob do PDF gerado — captura a
     // URL em vez de tentar abrir uma aba de verdade (Playwright não
     // renderiza PDF nativamente).
@@ -227,27 +344,28 @@ const mockApi = (page: Page) =>
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [{ id: 3, nome: 'Manual' }] }),
+        body: JSON.stringify({ data: [{ id: 3, nome: 'Manual', codigo: 'pei' }] }),
       });
     }
     if (url.includes('/pei/filtro') && method === 'POST') {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(PEI_RESPONSE),
+        body: JSON.stringify({ itens: PEI_RESPONSE, tabelaComparativa: null }),
       });
     }
-    if (url.includes('/protocolo/filtro') && method === 'POST') {
-      const body = route.request().postData() || '';
-      // protocoloId 1 = Portage, 2 = VB-MAPP (ver constants/protocolo.ts:
-      // TIPO_PROTOCOLO) — o corpo do POST carrega qual dos dois.
-      const response = body.includes('"protocoloId":1')
-        ? PORTAGE_RESPONSE
-        : VBMAPP_RESPONSE;
+    if (url.includes('/relatorio-evolucao') && method === 'GET') {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(response),
+        body: JSON.stringify(RELATORIO_RESPONSE),
+      });
+    }
+    if (url.includes('/clinica/dados')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(CLINICA_RESPONSE),
       });
     }
 
@@ -274,7 +392,11 @@ test.describe('Relatório de Evolução (pages/PEI.tsx)', () => {
     await page.locator('.p-dropdown').first().click();
     await page.getByText('Gabriel Luis Guido').click();
 
-    const botaoRelatorio = page.getByText('Gerar Relatório', { exact: true });
+    // O relatório agora abre num bottom sheet (conduta + "Gerar PDF").
+    await page.getByRole('button', { name: /Relatório de Evolução/ }).click();
+    const botaoRelatorio = page
+      .getByRole('dialog', { name: 'Relatório de Evolução' })
+      .getByRole('button', { name: 'Gerar PDF' });
     await expect(botaoRelatorio).toBeVisible();
     await botaoRelatorio.click();
 

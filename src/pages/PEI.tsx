@@ -1,32 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Filter } from '../templates/filter';
-import { PEIFields } from '../constants/formFields';
 import { api, dropDown, filter } from '../server';
 import { useToast } from '../contexts/toast';
-import { Card } from '../components/card';
-import { NotFound } from '../components/notFound';
+import { permissionAuth } from '../contexts/permission';
 import { LoadingHeron } from '../components/loading';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CONSTANTES_ROUTERS } from '../routes/OtherRoutes';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Fieldset } from 'primereact/fieldset';
-import { ButtonHeron } from '../components/button';
-import { Confirm } from '../components/confirm';
-import {
-  STATUS_META_LABEL_CURTO,
-  STATUS_META_PILL_CLASS,
-  TIPO_PROTOCOLO,
-} from '../constants/protocolo';
+import { Input } from '../components';
+import { BottomSheet } from '../components/bottomSheet';
+import { TIPO_PROTOCOLO } from '../constants/protocolo';
 import { useForm } from 'react-hook-form';
-import clsx from 'clsx';
 import { gerarRelatorioEvolucao } from '../constants/pdfRelatorioEvolucao';
 import { RichTextEditor } from '../components/richTextEditor';
+import { Segmentado } from '../foms/protocolo/avaliacao';
 import { TabelaPortage } from './pei/TabelaPortage';
 import { TabelaVBMapp } from './pei/TabelaVBMapp';
+import { ProgramaPeiCard } from './pei/ProgramaPeiCard';
+import {
+  PendentesAvaliacao,
+  ResultadoPortage,
+  agruparPendentes,
+} from './pei/ResultadoAvaliacao';
 
-const fieldsConst = PEIFields;
-const fieldsState: any = {};
-fieldsConst.forEach((field: any) => (fieldsState[field.id] = ''));
+// Mesmas permissões dos campos do Filter de antes (PEIFields).
+const PERMISSAO_PACIENTE = 'PEI_FILTRO_BOTAO_CADASTRAR';
+const PERMISSAO_PROTOCOLO = 'PEI_FILTRO_SELECT_PROTOCOLO';
+const PERMISSAO_CADASTRAR = 'PEI_FILTRO_BOTAO_CADASTRAR';
+
+// Ordem fixa no seletor, pelo `codigo` estável de protocolo/dropdown.
+const ORDEM_PROTOCOLO = ['portage', 'vbmapp', 'pei'];
+const ROTULO_PROTOCOLO: Record<string, string> = {
+  portage: 'Portage',
+  vbmapp: 'VB-MAPP',
+  pei: 'Manual',
+};
+
+const iniciais = (nome = '') => {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '';
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : '';
+  return `${partes[0][0]}${ultima}`.toUpperCase();
+};
 
 const PEI = () => {
   const { renderToast } = useToast();
@@ -34,9 +47,28 @@ const PEI = () => {
   const location = useLocation();
   const { state } = location;
 
+  const { hasPermition } = permissionAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [list, setList] = useState({}) as any;
+  // Já buscou com o protocolo atual — distingue "ainda não escolheu" de
+  // "não tem nada".
+  const [buscou, setBuscou] = useState(false);
+  const [aberto, setAberto] = useState<number | null>(null);
+  const [trocandoPaciente, setTrocandoPaciente] = useState(false);
+  const [relatorioAberto, setRelatorioAberto] = useState(false);
+
+  // Paciente e protocolo no topo da tela (antes, o Filter com dropdowns
+  // e botões só de ícone). Vem pré-preenchido quando o cadastro/edição
+  // navega de volta pra cá com { pacienteId, protocoloId }.
+  const { control, watch, setValue } = useForm<any>({
+    defaultValues: {
+      pacienteId: state?.pacienteId ?? null,
+      protocoloId: state?.protocoloId ?? null,
+    },
+  });
+  const pacienteForm = watch('pacienteId');
+  const protocoloForm = watch('protocoloId');
 
   const [tipoProtocolo, setTipoProtocolo] = useState();
   const [pacienteCurrent, setPacienteCurrent] = useState();
@@ -77,6 +109,7 @@ const PEI = () => {
         condutaPreenchida ? condutaSugerida : undefined,
         renderToast
       );
+      setRelatorioAberto(false);
     } catch (error) {
       renderToast({
         type: 'failure',
@@ -116,10 +149,11 @@ const PEI = () => {
       });
 
       setList(data || []);
+      setAberto(null);
       renderToast({
         type: 'success',
         title: 'Sucesso!',
-        message: 'PEI removido!',
+        message: 'Programa excluído.',
         open: true,
       });
     } catch (error) {
@@ -133,120 +167,9 @@ const PEI = () => {
     setLoading(false);
   };
 
-  const renderFiledSet = (title: string, text: string) => (
-    <Fieldset className="text-[8px]">
-      <div className="font-bold text-wrap"> {title} </div>
-      <div className="font-normal text-wrap"> {text}</div>
-    </Fieldset>
-  );
-
-  const renderHeader = (item: any) => {
-    return (
-      <>
-        {
-          <div className="font-bold my-2">
-            {' '}
-            {item.procedimentoEnsino?.nome || ''}
-          </div>
-        }
-
-        <div className=" grid grid-cols-3 gap-1">
-          {item.estimuloDiscriminativo &&
-            renderFiledSet(
-              'SD (estímulo discriminativo)',
-              item.estimuloDiscriminativo
-            )}
-          {item.resposta && renderFiledSet('Resposta', item.resposta)}
-          {item.estimuloReforcadorPositivo &&
-            renderFiledSet(
-              'SR+ (estímulo reforçador positivo)',
-              item.estimuloReforcadorPositivo
-            )}
-        </div>
-      </>
-    );
-  };
-
-  const renderMetaItem = (meta: any, indexMeta: number) => {
-    // `status` já vem resolvido por /pei/filtro nos três protocolos (item
-    // 12 do pedido-frontend-fase2.md) — a tela não deriva mais nada de
-    // `selected`.
-    const status = meta.status;
-
-    return (
-      <div key={meta?.id ?? indexMeta}>
-        {/* Sem flex aqui de propósito — com `flex flex-wrap`, o texto
-            da meta e a pílula são dois ITENS separados que só quebram
-            de linha inteiros (a pílula cai pra uma linha própria
-            assim que a descrição da meta precisa de 2+ linhas, quase
-            sempre). Texto corrido (inline) deixa a pílula fluir junto
-            com a última palavra, exatamente como o PDF já faz — vai
-            pra próxima linha só se não couber mesmo, colada no fim da
-            frase, não separada dela. */}
-        <p className="font-inter">
-          Meta {indexMeta + 1}: {meta.value}
-          {status && (
-            <span
-              className={clsx(
-                'inline-block align-middle whitespace-nowrap ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                STATUS_META_PILL_CLASS[status]
-              )}
-            >
-              {STATUS_META_LABEL_CURTO[status]}
-            </span>
-          )}
-        </p>
-        {meta.observacao && (
-          <p className="text-xs text-gray-400 italic mt-0.5">
-            {meta.observacao}
-          </p>
-        )}
-        <ul className="list-disc ml-8 font-inter">
-          {meta.subitems &&
-            meta.subitems.map((subitem: any, index: number) => (
-              <li key={subitem?.id ?? index}> {subitem.value} </li>
-            ))}
-        </ul>
-      </div>
-    );
-  };
-
-  // Manual (pei): procedimento/estímulos vivem no nível do PROGRAMA
-  // (item), não por meta — o backend mescla vários registros Pei num
-  // programa só (ver PeiService.agruparPeiPorPrograma/mesclarMetas no
-  // heron-list-nest), mas só o primeiro registro mesclado empresta
-  // esses campos pro grupo inteiro; nenhuma meta individual carrega
-  // procedimentoEnsino/SD/Resposta/SR+ de verdade. Um card só por
-  // programa, com o cabeçalho uma vez e todas as metas dele dentro.
-  const renderMetasManual = (item: any) => (
-    <div className="my-2">
-      <div className="rounded-lg border border-gray-200 p-3">
-        {renderHeader(item)}
-        {(item.metas || []).map((meta: any, indexMeta: number) =>
-          renderMetaItem(meta, indexMeta)
-        )}
-      </div>
-    </div>
-  );
-
-  const renderMetasOutroProtocolo = (metas: any[]) => (
-    <div className="my-2">
-      {(metas || []).map((meta: any, indexMeta: number) => (
-        <div
-          key={meta?.id ?? indexMeta}
-          className={meta?.procedimentoEnsino && 'mb-8'}
-        >
-          {tipoProtocolo === TIPO_PROTOCOLO.portage && renderHeader(meta)}
-          {renderMetaItem(meta, indexMeta)}
-        </div>
-      ))}
-    </div>
-  );
-
   // Tabela comparativa por sessão, igual à do Relatório de Evolução em
   // PDF (ver constants/pdfRelatorioEvolucao.ts/desenharPortage e
-  // desenharVBMapp) — fica ACIMA da árvore de itens de sempre, não no
-  // lugar dela.
+  // desenharVBMapp).
   const renderTabelaProtocolo = () => {
     if (!tabelaProtocolo) return null;
     if (tipoProtocolo === TIPO_PROTOCOLO.portage) {
@@ -258,100 +181,11 @@ const PEI = () => {
     return null;
   };
 
-  const renderContent = () => {
-    if (!loading) {
-      // A tabela não depende de `list` ter itens — /pei/filtro com
-      // `pendentes` só traz itens ainda não atingidos,
-      // então um protocolo inteiramente concluído pode ter `list` vazia
-      // e a tabela (que mostra o resultado completo) com dado normal.
-      // Sem separar os dois, um protocolo 100% concluído nunca mostrava
-      // a tabela — caía direto no "não há itens".
-      const tabela = renderTabelaProtocolo();
-
-      // border border-gray-200 explícito — sem isso, o <fieldset> do
-      // Card cai no border padrão do navegador (2px groove, um
-      // baixo-relevo bem mais escuro/pesado que uma borda fina cinza-
-      // claro comum). O Card de "Relatório de Evolução" logo acima já
-      // tem esse mesmo className por isso; esses dois não tinham.
-      if (!list.length) {
-        return (
-          <Card className="border border-gray-200">
-            {tabela}
-            <NotFound />
-          </Card>
-        );
-      }
-
-      return (
-        <Card className="border border-gray-200">
-          {tabela}
-          <Accordion>
-            {list.map((item: any, key: number) => {
-              const isManual = tipoProtocolo === TIPO_PROTOCOLO.pei;
-
-              return (
-                <AccordionTab
-                  key={item?.id ?? key}
-                  header={
-                    <div className="flex items-center w-full gap-1">
-                      <span>{item.programa.nome}</span>
-
-                      {/* Protocolo Manual: um item da lista já é o programa
-                          inteiro (backend mescla todas as metas dos
-                          registros daquele programa — ver
-                          PeiService.agruparPeiPorPrograma). Editar abre o
-                          formulário com o grupo completo; salvar consolida
-                          tudo no registro canônico (peiIds). Excluir apaga
-                          todos os registros mesclados nesse programa de
-                          uma vez (peiIds), por isso pede confirmação. */}
-                      {isManual && (
-                        <div className="ml-auto flex items-center">
-                          <ButtonHeron
-                            text="editar"
-                            type="transparent"
-                            size="icon"
-                            icon="pi pi-pencil"
-                            color="violet"
-                            onClick={() => handleEditPrograma(item)}
-                            loading={loading}
-                          />
-                          <ButtonHeron
-                            text="remove"
-                            type="transparent"
-                            size="icon"
-                            icon="pi pi-trash"
-                            color="red"
-                            onClick={() => setConfirmDeleteItem(item)}
-                            loading={loading}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  }
-                  tabIndex={key}
-                >
-                  <div className="w-full overflow-y-auto">
-                    {tipoProtocolo === TIPO_PROTOCOLO.vbMapp &&
-                      renderHeader(item)}
-                    {isManual
-                      ? renderMetasManual(item)
-                      : renderMetasOutroProtocolo(item.metas)}
-                  </div>
-                </AccordionTab>
-              );
-            })}
-          </Accordion>
-        </Card>
-      );
-    } else {
-      return <LoadingHeron />;
-    }
-  };
-
   const onSubmitFilter = async ({ pacienteId, protocoloId }: any) => {
     if (!protocoloId) return;
 
     setLoading(true);
+    setAberto(null);
 
     protocoloId && setTipoProtocolo(protocoloId.id);
     pacienteId && setPacienteCurrent(pacienteId);
@@ -385,89 +219,9 @@ const PEI = () => {
       });
     }
 
+    setBuscou(true);
     setLoading(false);
   };
-
-  const renderFilter = () => {
-    return (
-      <Filter
-        id="form-filter-pei"
-        legend="Filtro"
-        nameButton="Cadastrar"
-        fields={fieldsConst}
-        dropdown={dropDownList}
-        onSubmit={(value) => onSubmitFilter(value)}
-        onReset={() => setList([])}
-        screen="PEI"
-        loading={loading}
-        onInclude={() => {
-          navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
-            state: {
-              edit: false,
-              pacienteId: state?.pacienteId || pacienteCurrent,
-              tipoProtocolo,
-            },
-          });
-        }}
-        onPacienteChange={setPacienteSelecionado}
-        defaultValues={state}
-      />
-    );
-  };
-
-  // Aparece assim que um paciente é escolhido no filtro (não depende do
-  // Protocolo, já que o relatório unifica Portage + VB-MAPP + Manual —
-  // os 3 protocolos ao mesmo tempo, não só o que estiver selecionado no
-  // dropdown). Antes o botão "Gerar Relatório" e o campo "Conduta
-  // Sugerida" apareciam soltos, um embaixo do outro, sem nenhum
-  // agrupamento visual — ficava fácil confundir com parte do próprio
-  // filtro acima (mesma cor do botão "Cadastrar") e o editor de texto
-  // grande (220px) dominava a tela antes de qualquer conteúdo do PEI
-  // aparecer. Agora é um bloco só, com cabeçalho próprio (título +
-  // explicação do que o relatório reúne) e nessa ordem: primeiro o
-  // campo opcional, o botão por último — como uma ação que "finaliza"
-  // o que foi escrito acima, não como o primeiro clique da tela.
-  const renderRelatorioEvolucao = () =>
-    pacienteSelecionado?.id && (
-      <Card className="mx-2 my-3 rounded-lg border border-gray-200">
-        <div className="flex items-center gap-2">
-          <i className="pi pi-file-pdf text-violet-800" />
-          <span className="text-gray-800 font-inter font-bold leading-4">
-            Relatório de Evolução
-          </span>
-        </div>
-        <p className="font-inter text-xs text-gray-400 mt-1 mb-3">
-          Reúne Portage, VB-MAPP e Manual num PDF só.
-        </p>
-
-        <div className="text-gray-800 font-inter text-sm font-semibold mb-1">
-          Conduta Sugerida{' '}
-          <span className="text-gray-400 font-normal text-xs">(opcional)</span>
-        </div>
-        <div className="rounded-lg w-full border border-gray-300 mb-3">
-          <RichTextEditor
-            value={condutaSugerida}
-            placeholder="Descreva a conduta sugerida para o paciente."
-            onBlur={(newContent) => setCondutaSugerida(newContent)}
-            compact
-          />
-        </div>
-
-        {/* Mesmo estilo do botão "Gerar Relatório" do Protocolo de
-            Avaliação (Portage.tsx/VBMapp.tsx: renderExport) — primary,
-            full width, ícone pi-file-pdf — pra ficar consistente entre
-            as telas que exportam PDF de protocolo. */}
-        <ButtonHeron
-          text="Gerar Relatório"
-          type="primary"
-          size="full"
-          icon="pi pi-file-pdf"
-          typeButton="button"
-          onClick={handleGerarRelatorioEvolucao}
-          loading={gerandoRelatorio}
-        />
-      </Card>
-    );
 
   const renderPrograma = useCallback(async () => {
     const [paciente, protocolo]: any = await Promise.all([
@@ -489,27 +243,321 @@ const PEI = () => {
     renderPrograma();
   }, []);
 
+  // O Relatório de Evolução depende só do paciente (junta os 3
+  // protocolos), não do protocolo escolhido.
+  useEffect(() => {
+    setPacienteSelecionado(pacienteForm?.id ? pacienteForm : null);
+  }, [pacienteForm]);
+
+  // Escolher já busca — sem o "Pesquisar" (funil sem rótulo) de antes.
+  const buscar = (paciente: any, protocolo: any) => {
+    if (protocolo?.id) onSubmitFilter({ pacienteId: paciente, protocoloId: protocolo });
+  };
+
+  const podePaciente = hasPermition(PERMISSAO_PACIENTE);
+  const podeProtocolo = hasPermition(PERMISSAO_PROTOCOLO);
+  const temPaciente = Boolean(pacienteForm?.id);
+  const protocolos = ORDEM_PROTOCOLO.map((codigo) =>
+    (dropDownList.protocolo || []).find((p: any) => p?.codigo === codigo)
+  ).filter(Boolean);
+  const isManual = tipoProtocolo === TIPO_PROTOCOLO.pei;
+  // Sem protocolo escolhido, abre no Manual (o PEI em si) — como no
+  // protótipo; Portage/VB-MAPP ficam a um toque no seletor.
+  const protocoloPadrao = protocolos.find((p: any) => p.codigo === 'pei');
+  const protocoloEfetivo = (p: any) => (p?.id ? p : protocoloPadrao);
+
+  // Sem permissão de escolher paciente não há troca de paciente pra
+  // disparar a busca — abre direto no Manual quando os protocolos chegam.
+  useEffect(() => {
+    if (!protocoloPadrao || protocoloForm?.id || podePaciente || state?.protocoloId) return;
+    setValue('protocoloId', protocoloPadrao);
+    buscar(pacienteForm, protocoloPadrao);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [protocoloPadrao?.id]);
+  const nomeProtocolo =
+    ROTULO_PROTOCOLO[protocoloForm?.codigo] || protocoloForm?.nome || '';
+
+  const seletorPaciente = (
+    <Input
+      labelText="Paciente"
+      id="pacienteId"
+      type="select"
+      customCol="col-span-6"
+      control={control}
+      options={dropDownList.paciente}
+      onChange={(valor) => {
+        if (!valor?.id) return;
+        setTrocandoPaciente(false);
+        const protocolo = protocoloEfetivo(protocoloForm);
+        if (protocolo && !protocoloForm?.id) setValue('protocoloId', protocolo);
+        buscar(valor, protocolo);
+      }}
+    />
+  );
+
+  const seletorProtocolo = podeProtocolo && protocolos.length > 0 && (
+    <Segmentado
+      rotulo="Protocolo"
+      variante="forte"
+      opcoes={protocolos.map((p: any) => ({
+        valor: p.codigo as string,
+        label: ROTULO_PROTOCOLO[p.codigo] || p.nome,
+      }))}
+      valor={protocoloForm?.codigo || ''}
+      onChange={(codigo) => {
+        const protocolo = protocolos.find((p: any) => p.codigo === codigo);
+        setValue('protocoloId', protocolo);
+        buscar(pacienteForm, protocolo);
+      }}
+    />
+  );
+
+  const renderTopo = () => {
+    if (podePaciente && (!temPaciente || trocandoPaciente)) {
+      return (
+        <section className="bg-white border border-gray-200 rounded-[14px] px-4 pt-5 pb-4 flex flex-col gap-2">
+          {!temPaciente && (
+            <div className="flex flex-col gap-1.5">
+              <h2 className="m-0 text-[18px] font-bold text-[#27272a]">De quem é o PEI?</h2>
+              <p className="m-0 text-[14px] leading-[1.45] text-gray-800">
+                Escolha o paciente para ver os programas, as metas e gerar o
+                Relatório de Evolução.
+              </p>
+            </div>
+          )}
+          {seletorPaciente}
+          {temPaciente && (
+            <button
+              type="button"
+              onClick={() => setTrocandoPaciente(false)}
+              className="self-end h-11 px-3 rounded-[10px] text-[14px] font-bold text-primary"
+            >
+              Cancelar
+            </button>
+          )}
+        </section>
+      );
+    }
+
+    return (
+      <section className="bg-white border border-gray-200 rounded-[14px] pt-3 pb-3.5 pl-3.5 pr-2 flex flex-col gap-3">
+        {temPaciente && (
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 shrink-0 rounded-full bg-[#f3e8f7] text-primary flex items-center justify-center text-[15px] font-bold">
+              {iniciais(pacienteForm?.nome)}
+            </div>
+            <span className="flex-1 min-w-0 text-[16px] font-bold text-[#27272a] truncate">
+              {pacienteForm?.nome}
+            </span>
+            {podePaciente && (
+              <button
+                type="button"
+                onClick={() => setTrocandoPaciente(true)}
+                className="h-11 px-3 rounded-[10px] text-[14px] font-bold text-primary"
+              >
+                Trocar
+              </button>
+            )}
+          </div>
+        )}
+        {seletorProtocolo && <div className="mr-1.5">{seletorProtocolo}</div>}
+      </section>
+    );
+  };
+
+  // Uma linha que abre o sheet com a conduta + "Gerar PDF" — antes era um
+  // bloco com editor de texto grande que dominava a tela antes de
+  // qualquer programa aparecer.
+  const renderLinhaRelatorio = () =>
+    pacienteSelecionado?.id && !trocandoPaciente && (
+      <button
+        type="button"
+        onClick={() => setRelatorioAberto(true)}
+        className="min-h-[64px] flex items-center gap-3 px-3.5 py-3 rounded-[14px] border border-gray-200 bg-white text-left"
+      >
+        <span className="w-10 h-10 shrink-0 rounded-xl bg-[#f3e8f7] text-primary flex items-center justify-center">
+          <i className="pi pi-file-pdf" />
+        </span>
+        <span className="flex-1 flex flex-col gap-0.5">
+          <span className="text-[15px] font-bold text-[#27272a]">Relatório de Evolução</span>
+          <span className="text-[13px] text-gray-800">Portage, VB-MAPP e Manual num PDF só</span>
+        </span>
+        <i className="pi pi-chevron-right text-primary text-[13px]" />
+      </button>
+    );
+
+  const novoPrograma = () =>
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+      state: {
+        edit: false,
+        pacienteId: state?.pacienteId || pacienteCurrent || pacienteForm,
+        tipoProtocolo,
+      },
+    });
+
+  // Atalho do "Em aquisição" pro Protocolo de Avaliação, já no paciente e
+  // no protocolo (Protocolo.tsx lê pacienteId/tipoProtocolo do state).
+  const avaliar = () =>
+    navigate(`/${CONSTANTES_ROUTERS.PROTOCOLO}`, {
+      state: { pacienteId: pacienteForm, tipoProtocolo },
+    });
+
+  const renderLista = () => {
+    if (trocandoPaciente) return null;
+    if (!protocoloForm?.id) {
+      return (
+        (temPaciente || !podePaciente) && (
+          <p className="m-0 px-1 text-[14px] text-gray-800">
+            Escolha o protocolo acima para ver os programas.
+          </p>
+        )
+      );
+    }
+    if (loading) return <LoadingHeron />;
+    if (!buscou) return null;
+
+    const itens: any[] = Array.isArray(list) ? list : [];
+    const tabela = renderTabelaProtocolo();
+    const pendentes = isManual ? [] : agruparPendentes(itens);
+
+    return (
+      <>
+        {/* A tabela não depende de `list` ter itens — /pei/filtro com
+            `pendentes` só traz itens ainda não atingidos, então um
+            protocolo inteiramente concluído pode ter lista vazia e a
+            tabela com dado normal. */}
+        {tabela && (
+          <section className="bg-white border border-gray-200 rounded-[14px] p-3.5 flex flex-col gap-3">
+            <h2 className="m-0 text-[15px] font-bold text-[#27272a]">
+              Resultado do {nomeProtocolo}
+            </h2>
+            {tipoProtocolo === TIPO_PROTOCOLO.portage ? (
+              <ResultadoPortage dados={tabelaProtocolo} />
+            ) : (
+              <div className="-mx-2">{tabela}</div>
+            )}
+          </section>
+        )}
+
+        <div className="flex justify-between items-center gap-2 px-1 pt-1.5">
+          <h2 className="m-0 text-[13px] font-bold tracking-[0.08em] text-gray-800">
+            {isManual ? 'PROGRAMAS' : 'EM AQUISIÇÃO'} ·{' '}
+            {isManual ? itens.length : pendentes.reduce((n, g) => n + g.metas.length, 0)}
+          </h2>
+          {!isManual && itens.length > 0 && (
+            <button
+              type="button"
+              onClick={avaliar}
+              className="h-9 px-2 text-[13px] font-bold text-primary"
+            >
+              Avaliar
+            </button>
+          )}
+          {isManual && hasPermition(PERMISSAO_CADASTRAR) && (
+            <button
+              type="button"
+              onClick={novoPrograma}
+              className="h-9 flex items-center gap-1.5 px-3 rounded-[10px] bg-primary text-white text-[13px] font-bold"
+            >
+              <i className="pi pi-plus text-[11px]" />
+              Novo programa
+            </button>
+          )}
+        </div>
+
+        {!itens.length && (
+          <p className="m-0 px-1 text-[14px] text-gray-800">
+            {isManual
+              ? 'Nenhum programa cadastrado para este paciente.'
+              : 'Nenhum item em aquisição.'}
+          </p>
+        )}
+
+        {!isManual && <PendentesAvaliacao grupos={pendentes} />}
+
+        {isManual && itens.map((item: any, key: number) => (
+          <ProgramaPeiCard
+            key={item?.id ?? key}
+            item={item}
+            open={aberto === key}
+            onToggle={() => setAberto(aberto === key ? null : key)}
+            colunasPorMeta={tipoProtocolo === TIPO_PROTOCOLO.portage}
+            // Manual: um item já é o programa inteiro (backend mescla os
+            // registros daquele programa — PeiService.agruparPeiPorPrograma);
+            // editar abre o grupo completo, excluir apaga todos (peiIds).
+            onEditar={isManual ? () => handleEditPrograma(item) : undefined}
+            onExcluir={isManual ? () => setConfirmDeleteItem(item) : undefined}
+          />
+        ))}
+      </>
+    );
+  };
+
   return (
     // Espaço pra tab bar do rodapé já é reservado no LayoutDefault.
-    <div>
-      {renderFilter()}
-      {renderRelatorioEvolucao()}
-      {renderContent()}
-      <Confirm
+    <div className="mt-2 flex flex-col gap-3">
+      {renderTopo()}
+      {renderLinhaRelatorio()}
+      {renderLista()}
+
+      <BottomSheet
+        open={relatorioAberto}
+        onClose={() => setRelatorioAberto(false)}
+        titulo="Relatório de Evolução"
+        descricao={`Reúne Portage, VB-MAPP e Manual de ${pacienteSelecionado?.nome ?? 'paciente'} num PDF só.`}
+      >
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-bold text-[#3f3f46]">
+            Conduta sugerida{' '}
+            <span className="font-medium text-[#71717a]">
+              (opcional, entra como última seção do PDF)
+            </span>
+          </span>
+          <div className="rounded-lg w-full border border-gray-300">
+            <RichTextEditor
+              value={condutaSugerida}
+              placeholder="Descreva a conduta sugerida para o paciente."
+              onBlur={(newContent) => setCondutaSugerida(newContent)}
+              compact
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleGerarRelatorioEvolucao}
+          disabled={gerandoRelatorio}
+          className="h-12 flex items-center justify-center gap-2 rounded-xl bg-primary text-white text-[15px] font-bold disabled:opacity-60"
+        >
+          <i className="pi pi-file-pdf" />
+          {gerandoRelatorio ? 'Gerando…' : 'Gerar PDF'}
+        </button>
+      </BottomSheet>
+
+      <BottomSheet
         open={!!confirmDeleteItem}
-        title="Excluir programa"
-        message={`Excluir todos os registros de "${confirmDeleteItem?.programa?.nome}"? Essa ação não pode ser desfeita.`}
-        icon="pi pi-trash"
-        acceptLabel="Excluir"
-        rejectLabel="Cancelar"
-        onAccept={() => {
-          const item = confirmDeleteItem;
-          setConfirmDeleteItem(null);
-          handleRemovePrograma(item);
-        }}
-        onReject={() => setConfirmDeleteItem(null)}
         onClose={() => setConfirmDeleteItem(null)}
-      />
+        titulo={`Excluir “${confirmDeleteItem?.programa?.nome ?? ''}”?`}
+        descricao="Apaga o programa e todas as metas dele. Essa ação não pode ser desfeita."
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const item = confirmDeleteItem;
+            setConfirmDeleteItem(null);
+            handleRemovePrograma(item);
+          }}
+          className="h-12 rounded-xl bg-[#b91c1c] text-white text-[15px] font-bold"
+        >
+          Excluir programa
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmDeleteItem(null)}
+          className="h-12 rounded-xl border border-gray-300 bg-white text-[15px] font-bold text-[#27272a]"
+        >
+          Cancelar
+        </button>
+      </BottomSheet>
     </div>
   );
 };

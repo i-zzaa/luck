@@ -7,13 +7,36 @@ import { useToast } from '../../contexts/toast';
 import { CONSTANTES_ROUTERS } from '../../routes/OtherRoutes';
 import { dropDown, update, create } from '../../server';
 import { OBJ_ITEM, OBJ_META } from '../../util/util';
+import { buildErrorToast } from '../../util/error';
 import { formatPortage, montarSubitensVBMapp } from './peiFormat';
 import {
+  META_TEXTO_CAMPOS,
   baseMetaIdFromField,
-  isMetaStatusOrObsField,
+  isMetaTextoField,
+  metaConclusaoFieldId,
   metaObsFieldId,
-  metaStatusFieldId,
-} from './metaStatusFields';
+  metaPropFromField,
+  metaTextoFieldId,
+} from './metaObsField';
+
+// Maior sufixo numérico ("…-meta-3", "…-sub-item-7") + 1. Usar o
+// tamanho da lista, como antes, repetia id depois de excluir uma meta
+// ou item do meio (metas 0,1,2 → exclui a 1 → a nova virava "-meta-2").
+const proximoIndice = (ids: string[], regex: RegExp) =>
+  ids.reduce((max, id) => {
+    const match = id.match(regex);
+    return Math.max(max, match ? parseInt(match[1], 10) : -1);
+  }, -1) + 1;
+
+const META_INDICE = /-meta-(\d+)$/;
+const ITEM_INDICE = /-sub-item-(\d+)$/;
+
+const vazio = (valor: any) => `${valor ?? ''}`.trim() === '';
+
+export interface PeiToast {
+  texto: string;
+  desfazer?: () => void;
+}
 
 export const usePeiForm = ({
   paciente,
@@ -34,12 +57,24 @@ export const usePeiForm = ({
   const [loading, setLoading] = useState(false);
   const [dropDownList, setDropDownList] = useState<any>([]);
   const [metas, setMetas] = useState<any[]>([]);
+  // Accordion: uma meta aberta por vez. `undefined` = ainda não mexeu
+  // (abre a primeira); `null` = fechou todas de propósito.
+  const [openMetaId, setOpenMetaId] = useState<string | null | undefined>();
+  // Campo que acabou de ser criado (meta/item novo) e deve receber foco.
+  const [focusId, setFocusId] = useState<string | null>(null);
+  // Metas sem descrição na última tentativa de salvar.
+  const [metasInvalidas, setMetasInvalidas] = useState<string[]>([]);
+  const [toast, setToast] = useState<PeiToast | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { renderToast } = useToast();
   const { hasPermition } = permissionAuth();
   const { state } = location;
+
+  // "Dados do programa": aberto num cadastro novo, recolhido (com
+  // resumo) na edição — reabre se faltar algum campo ao salvar.
+  const [programaAberto, setProgramaAberto] = useState(!state?.item);
 
   const tipoProtocolo = state?.tipoProtocolo || TIPO_PROTOCOLO.pei;
 
@@ -50,22 +85,51 @@ export const usePeiForm = ({
     control,
     reset,
     watch,
+    getValues,
     unregister,
-    resetField,
   } = useForm({ defaultValues });
 
-  const renderDropdown = useCallback(async () => {
-    // statusMeta: opções do select de status da meta (Manual) vêm de
-    // GET /status-meta/dropdown — `{ codigo, nome, nomeCurto }` (item 26).
-    const [programa, procedimentoEnsino, protocolo, statusMeta]: any =
-      await Promise.all([
-        dropDown(`programa/${tipoProtocolo}`),
-        dropDown('pei/procedimento-ensino'),
-        dropDown('protocolo'),
-        dropDown('status-meta'),
-      ]);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
-    const drop = { programa, procedimentoEnsino, protocolo, statusMeta };
+  // Ids de form de uma meta: descrição, observação, conclusão e itens.
+  const camposDaMeta = (meta: any) => [
+    meta.id,
+    metaObsFieldId(meta.id),
+    metaConclusaoFieldId(meta.id),
+    ...(meta.subitems || []).map((sub: any) => sub.id),
+  ];
+
+  // Foto de metas + valores pra "Desfazer" uma exclusão.
+  const snapshot = (ids: string[]) => ({
+    metas: metas.map((m) => ({ ...m, subitems: [...(m.subitems || [])] })),
+    valores: ids.map((id) => [id, getValues(id as any)] as const),
+  });
+
+  const restaurar = ({ metas: salvas, valores }: ReturnType<typeof snapshot>) => {
+    valores.forEach(([id, valor]) => {
+      if (valor !== undefined) setValue(id as any, valor);
+    });
+    setMetas(salvas);
+    setToast(null);
+  };
+
+  const limparInvalida = (metaId: string) =>
+    setMetasInvalidas((ids) =>
+      ids.includes(metaId) ? ids.filter((id) => id !== metaId) : ids
+    );
+
+  const renderDropdown = useCallback(async () => {
+    const [programa, procedimentoEnsino, protocolo]: any = await Promise.all([
+      dropDown(`programa/${tipoProtocolo}`),
+      dropDown('pei/procedimento-ensino'),
+      dropDown('protocolo'),
+    ]);
+
+    const drop = { programa, procedimentoEnsino, protocolo };
     setDropDownList(drop);
     formatarDado(drop);
   }, [setDropDownList]);
@@ -169,20 +233,20 @@ export const usePeiForm = ({
 
       metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
-        // status/observação (ver metaStatusFields.ts): persistidos pelo
-        // backend e devolvidos em GET /pei/filtro. Meta sem eles deixa os
-        // campos do form vazios, exatamente como uma meta nova.
-        if (meta.status) {
-          const statusOption = drop?.statusMeta?.find(
-            (option: any) => option.codigo === meta.status
-          );
-          if (statusOption) {
-            setValue(metaStatusFieldId(meta.id) as any, statusOption);
+        // observação/conclusão (ver metaObsField.ts): persistidas pelo
+        // backend e devolvidas em GET /pei/filtro. Meta sem elas deixa
+        // os campos do form vazios, exatamente como uma meta nova.
+        // `meta.status` não tem campo aqui — só é exibido no PEI e nos
+        // relatórios —, mas continua vindo em `metas` pra ser reenviado
+        // em onSubmit.
+        Object.entries(META_TEXTO_CAMPOS).forEach(([sufixo, prop]) => {
+          if (meta[prop]) {
+            setValue(
+              metaTextoFieldId(meta.id, sufixo as any) as any,
+              meta[prop]
+            );
           }
-        }
-        if (meta.observacao) {
-          setValue(metaObsFieldId(meta.id) as any, meta.observacao);
-        }
+        });
 
         meta.subitems?.forEach((subitem: any) =>
           setValue(subitem.id, subitem.value)
@@ -201,22 +265,58 @@ export const usePeiForm = ({
         (item: any) => item.id == tipoProtocolo
       );
 
-      // status/observação da meta (ver metaStatusFields.ts) são opcionais
-      // — nem toda meta tem um status marcado ainda (igual no relatório
-      // de referência, várias ficam sem rótulo) — por isso ficam de fora
-      // da checagem de "nenhum campo vazio" abaixo.
+      // Item vazio não bloqueia mais o salvar: é descartado, como se
+      // tivesse sido excluído (some da tela também, se o salvar falhar).
+      const itensVazios = Object.keys(formvalue).filter(
+        (key) =>
+          key.includes('-sub-item-') &&
+          !isMetaTextoField(key) &&
+          vazio(formvalue[key])
+      );
+      if (itensVazios.length) {
+        itensVazios.forEach((key) => {
+          delete formvalue[key];
+          unregister(key as any);
+        });
+        setMetas((atual) =>
+          atual.map((meta) => ({
+            ...meta,
+            subitems: (meta.subitems || []).filter(
+              (sub: any) => !itensVazios.includes(sub.id)
+            ),
+          }))
+        );
+      }
+
+      // Só a descrição da meta é obrigatória. Em vez do toast genérico,
+      // a meta com problema abre e o campo fica marcado (ver MetaCard).
+      const semDescricao = metas.filter((meta) => vazio(formvalue[meta.id]));
+      if (semDescricao.length) {
+        setLoading(false);
+        setMetasInvalidas(semDescricao.map((meta) => meta.id));
+        setOpenMetaId(semDescricao[0].id);
+        setFocusId(semDescricao[0].id);
+        return;
+      }
+      setMetasInvalidas([]);
+
+      // Observação e conclusão da meta (ver metaObsField.ts) são
+      // opcionais — nem toda meta tem —, por isso ficam de fora da
+      // checagem de "nenhum campo vazio" abaixo (que agora só pega os
+      // dados do programa).
       if (
         Object.entries(formvalue).some(
           ([key, valor]) =>
-            !isMetaStatusOrObsField(key) && (valor === '' || valor === undefined)
+            !isMetaTextoField(key) && (valor === '' || valor === undefined)
         )
       ) {
         setLoading(false);
+        setProgramaAberto(true);
         renderToast({
           type: 'failure',
           title: 'Valores Vazios!',
           message:
-            'Preencha todos os campos. Informe a descrição da meta e/ou do item ou exclua-o',
+            'Preencha os dados do programa: procedimento, programa, SD, resposta e SR+.',
           open: true,
         });
         return;
@@ -225,9 +325,9 @@ export const usePeiForm = ({
       Object.keys(formvalue).forEach((key: any) => {
         // Tratados à parte, depois de payload.metas estar montado (ver
         // abaixo) — sem esse retorno antecipado, cairiam no branch de
-        // meta logo abaixo (o id de status/observação também contém
-        // "-meta-", por ser o id da própria meta com um sufixo).
-        if (isMetaStatusOrObsField(key)) return;
+        // meta logo abaixo (o id da observação/conclusão também contém "-meta-",
+        // por ser o id da própria meta com um sufixo).
+        if (isMetaTextoField(key)) return;
 
         if (key.includes('-meta-') && !key.includes(`-sub-item-`)) {
           const match = key.match(/\d+/);
@@ -259,24 +359,49 @@ export const usePeiForm = ({
         }
       });
 
-      // Segundo passe: status/observação de cada meta (ver
-      // metaStatusFields.ts) — precisa rodar depois do payload.metas
-      // estar montado acima, pra achar a meta certa pelo id base. Só
-      // gera efeito quando o formulário realmente tem esses campos
-      // (protocolo Manual — ver foms/pei/index.tsx); pra Portage/VB-MAPP
-      // não existem, então esse passe não faz nada.
+      // Segundo passe: observação/conclusão de cada meta (ver metaObsField.ts) —
+      // precisa rodar depois do payload.metas estar montado acima, pra
+      // achar a meta certa pelo id base. Só gera efeito quando o
+      // formulário realmente tem esse campo (protocolo Manual — ver
+      // foms/pei/index.tsx); pra Portage/VB-MAPP não existe, então esse
+      // passe não faz nada.
       Object.keys(formvalue).forEach((key: any) => {
-        if (!isMetaStatusOrObsField(key)) return;
+        if (!isMetaTextoField(key)) return;
         const metaId = baseMetaIdFromField(key);
         const meta = payload.metas.find((item: any) => item.id === metaId);
         if (!meta) return;
 
-        if (key.endsWith('::status')) {
-          meta.status = formvalue[key]?.codigo;
-        } else {
-          meta.observacao = formvalue[key];
-        }
+        meta[metaPropFromField(key)] = formvalue[key];
       });
+
+      // Ordem da tela, não a de registro no form: um item criado com
+      // Enter no meio da lista entra no form por último.
+      const ordem = (lista: any[], id: string) =>
+        lista.findIndex((item: any) => item.id === id);
+      payload.metas.sort(
+        (a: any, b: any) => ordem(metas, a.id) - ordem(metas, b.id)
+      );
+      payload.metas.forEach((meta: any) => {
+        const naTela = metas.find((item: any) => item.id === meta.id);
+        if (!naTela) return;
+        meta.subitems.sort(
+          (a: any, b: any) =>
+            ordem(naTela.subitems || [], a.id) -
+            ordem(naTela.subitems || [], b.id)
+        );
+      });
+
+      // O status da meta não é cadastrado aqui (só aparece no PEI e nos
+      // relatórios), mas o backend regrava o array de metas inteiro ao
+      // salvar — sem reenviar o que já estava gravado, editar o programa
+      // apagaria o status de todas as metas dele. Meta nova não tem
+      // status e continua sem.
+      if (tipoProtocolo === TIPO_PROTOCOLO.pei) {
+        payload.metas.forEach((meta: any) => {
+          const salva = metas.find((item: any) => item.id === meta.id);
+          if (salva?.status) meta.status = salva.status;
+        });
+      }
 
       if (Boolean(state?.item?.id)) payload.id = state.item.id;
 
@@ -343,62 +468,136 @@ export const usePeiForm = ({
       });
     } catch (error) {
       setLoading(false);
-      renderToast({
-        type: 'failure',
-        title: 'Erro!',
-        message: 'Falha na conexão',
-        open: true,
-      });
+      // Mensagem/código do backend em vez de "Falha na conexão" pra
+      // qualquer erro (ver util/error.ts): no VB-MAPP é uma requisição
+      // por atividade, então um erro em uma delas precisa dizer o que
+      // foi — as outras já gravaram.
+      renderToast(buildErrorToast(error, 'Falha na conexão'));
     }
   };
 
   const addMeta = () => {
-    const item = [...metas];
     const programaId: any = watch('programaId');
-    OBJ_META.id = `${programaId.id}-meta-${item.length}`;
-    item.push({ ...OBJ_META });
+    if (!programaId?.id) {
+      renderToast({
+        type: 'warning',
+        title: 'Programa',
+        message: 'Escolha o programa antes de adicionar metas.',
+        open: true,
+      });
+      return;
+    }
+
+    const id = `${programaId.id}-meta-${proximoIndice(
+      metas.map((m) => m.id),
+      META_INDICE
+    )}`;
+    // Já nasce com um item vazio pra digitar direto (vazio é descartado
+    // ao salvar).
+    const subitems = [{ ...OBJ_ITEM, id: `${id}-sub-item-0` }];
+    setMetas([...metas, { ...OBJ_META, id, subitems }]);
+    setOpenMetaId(id);
+    setFocusId(id);
+  };
+
+  const duplicateMeta = (index: number) => {
+    const original = metas[index];
+    const programaId = original.id.split('-meta-')[0];
+    const id = `${programaId}-meta-${proximoIndice(
+      metas.map((m) => m.id),
+      META_INDICE
+    )}`;
+    const subitems = (original.subitems || []).map((sub: any, i: number) => ({
+      ...OBJ_ITEM,
+      id: `${id}-sub-item-${i}`,
+    }));
+
+    // Cópia sem status (é uma meta nova) — só os textos.
+    const copia = { ...OBJ_META, id, subitems };
+    delete (copia as any).status;
+    setValue(id as any, getValues(original.id as any));
+    ['obs', 'conclusao'].forEach((sufixo) => {
+      const valor = getValues(metaTextoFieldId(original.id, sufixo as any) as any);
+      if (valor) setValue(metaTextoFieldId(id, sufixo as any) as any, valor);
+    });
+    (original.subitems || []).forEach((sub: any, i: number) =>
+      setValue(subitems[i].id as any, getValues(sub.id as any))
+    );
+
+    const item = [...metas];
+    item.splice(index + 1, 0, copia);
     setMetas(item);
+    setOpenMetaId(id);
+    setToast({ texto: `Meta ${index + 1} duplicada` });
   };
 
   const removeMeta = (index: number) => {
-    const item = [...metas];
-    setValue(item[index].id, undefined);
-    item.splice(index, 1);
-    setMetas(item);
+    const meta = metas[index];
+    const campos = camposDaMeta(meta);
+    const foto = snapshot(campos);
+
+    // Tira do form também: antes o valor virava `undefined` mas a chave
+    // continuava lá, e a checagem de campo vazio do onSubmit barrava o
+    // salvar depois de excluir qualquer meta.
+    campos.forEach((id) => unregister(id as any));
+    setMetas(metas.filter((_, i) => i !== index));
+    limparInvalida(meta.id);
+    setToast({
+      texto: `Meta ${index + 1} excluída`,
+      desfazer: () => {
+        restaurar(foto);
+        setOpenMetaId(meta.id);
+      },
+    });
   };
 
-  const addSubitem = (idMeta: number) => {
+  // afterIndex: Enter num item cria o próximo logo abaixo dele; sem ele
+  // ("Adicionar item"), vai pro fim da lista.
+  const addSubitem = (metaIndex: number, afterIndex?: number) => {
     const item = [...metas];
-    const subitems = item[idMeta]?.subitems ? [...item[idMeta].subitems] : [];
+    const subitems = item[metaIndex]?.subitems
+      ? [...item[metaIndex].subitems]
+      : [];
 
-    // Busca o maior número de subitem existente
-    const lastIndex = subitems.reduce((max, sub) => {
-      const match = sub.id.match(/sub-item-(\d+)$/);
-      const num = match ? parseInt(match[1], 10) : 0;
-      return Math.max(max, num);
-    }, -1);
+    const id = `${item[metaIndex].id}-sub-item-${proximoIndice(
+      subitems.map((sub: any) => sub.id),
+      ITEM_INDICE
+    )}`;
+    const posicao = afterIndex === undefined ? subitems.length : afterIndex + 1;
+    subitems.splice(posicao, 0, { ...OBJ_ITEM, id });
 
-    // Gera o novo id com base no último índice encontrado
-    const newSubitemId = `${item[idMeta].id}-sub-item-${lastIndex + 1}`;
-    const newSubitem = { ...OBJ_ITEM, id: newSubitemId };
-
-    subitems.push(newSubitem);
-    item[idMeta].subitems = subitems;
+    item[metaIndex] = { ...item[metaIndex], subitems };
     setMetas(item);
+    setFocusId(id);
   };
 
   const removeSubitemFromMeta = (metaIndex: number, subIndex: number) => {
-    const novasMetas = [...metas];
-    const subitemRemovido = novasMetas[metaIndex]?.subitems?.[subIndex];
+    const subitem = metas[metaIndex]?.subitems?.[subIndex];
+    if (!subitem) return;
 
-    if (subitemRemovido?.id) {
-      // Remove o campo e seu valor do react-hook-form
-      unregister(subitemRemovido.id, { keepValue: false });
-      resetField(subitemRemovido.id); // Garante que valores persistentes sejam limpos
-    }
+    const valor = getValues(subitem.id as any);
+    const foto = snapshot([subitem.id]);
 
-    novasMetas[metaIndex].subitems.splice(subIndex, 1);
-    setMetas(novasMetas);
+    unregister(subitem.id, { keepValue: false });
+
+    const item = [...metas];
+    item[metaIndex] = {
+      ...item[metaIndex],
+      subitems: item[metaIndex].subitems.filter(
+        (_: any, i: number) => i !== subIndex
+      ),
+    };
+    setMetas(item);
+    setToast({
+      texto: vazio(valor) ? 'Item excluído' : `Item “${valor}” excluído`,
+      desfazer: () => restaurar(foto),
+    });
+  };
+
+  const toggleMeta = (metaId: string) => {
+    const aberta = openMetaId === undefined ? metas[0]?.id : openMetaId;
+    setOpenMetaId(aberta === metaId ? null : metaId);
+    setFocusId(null);
   };
 
   return {
@@ -416,5 +615,16 @@ export const usePeiForm = ({
     onSubmit,
     hasPermition,
     removeSubitemFromMeta,
+    duplicateMeta,
+    toggleMeta,
+    openMetaId: openMetaId === undefined ? metas[0]?.id ?? null : openMetaId,
+    focusId,
+    metasInvalidas,
+    limparInvalida,
+    toast,
+    fecharToast: () => setToast(null),
+    programaAberto,
+    setProgramaAberto,
+    watch,
   };
 };

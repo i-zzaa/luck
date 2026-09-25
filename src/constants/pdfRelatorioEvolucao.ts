@@ -1011,6 +1011,22 @@ const desenharPei = (doc: any, sections: any[], startY: number) => {
           doc.setFontSize(9);
         }
 
+        if (meta.conclusao) {
+          doc.setFont('Helvetica', 'italic');
+          doc.setFontSize(8);
+          doc.setTextColor(...GRAY_TEXT);
+          const linhasConclusao = doc.splitTextToSize(
+            `Conclusão: ${meta.conclusao}`,
+            contentWidth - 4
+          );
+          y = ensureSpace(doc, y, linhasConclusao.length * 3.5 + 2);
+          doc.text(linhasConclusao, MARGIN_LEFT + 4, y);
+          y += linhasConclusao.length * 3.5 + 1;
+          doc.setTextColor(...BLACK);
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9);
+        }
+
         (meta.subitems || []).forEach((subitem: any) => {
           y = ensureSpace(doc, y, 5);
           const linhasSub = doc.splitTextToSize(
