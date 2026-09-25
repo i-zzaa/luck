@@ -69,3 +69,28 @@ test('lista longa: o sheet ocupa até 85% da tela e mostra vários itens', async
   await expect(page.getByText('Paciente 287', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Trocar' })).toBeVisible();
 });
+
+test('buscar não leva a busca nem o resultado para baixo', async ({ page }) => {
+  await mockApi(page);
+  await authInit(page);
+  await page.goto('/protocolo-av');
+  await page.waitForLoadState('networkidle');
+
+  await page.getByTestId('seletor-pacienteId').click();
+  // mede só depois da animação de abertura (o sheet sobe da base)
+  await expect(page.locator('.p-sidebar.seletor-sheet.p-sidebar-enter-done')).toBeVisible();
+  const busca = page.getByRole('searchbox', { name: 'Buscar em Paciente' });
+  const antes = (await busca.boundingBox())!;
+
+  // Com altura automática o sheet encolhia a cada letra e, preso à base
+  // da tela, levava busca e resultado para baixo (atrás do teclado).
+  await busca.fill('287');
+  const depois = (await busca.boundingBox())!;
+  expect(Math.abs(depois.y - antes.y)).toBeLessThan(2);
+
+  const resultado = page.getByRole('option', { name: 'Paciente 287' });
+  await expect(resultado).toBeInViewport();
+  const caixa = (await resultado.boundingBox())!;
+  // logo abaixo da busca, não no pé da tela
+  expect(caixa.y - (depois.y + depois.height)).toBeLessThan(40);
+});

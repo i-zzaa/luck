@@ -186,7 +186,10 @@ export function SeletorBottomSheet({
         position="bottom"
         showCloseIcon={false}
         blockScroll
-        className="seletor-sheet"
+        // Com busca, altura fixa (85% da tela): com altura automática o
+        // sheet encolhia a cada letra digitada e, preso à base da tela,
+        // levava busca e resultados para baixo — atrás do teclado.
+        className={`seletor-sheet ${mostrarBusca ? 'seletor-sheet-cheia' : ''}`}
         aria-label={titulo}
       >
         <div className="seletor-conteudo">
