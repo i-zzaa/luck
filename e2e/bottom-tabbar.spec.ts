@@ -14,12 +14,21 @@ const mockApi = (page: Page) =>
 const authInit = (page: Page) => {
   const future = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   return page.addInitScript(([tokenVal]) => {
-    sessionStorage.setItem('token', tokenVal as string);
+    // Sessão falsa no formato atual do AuthProvider (contexts/auth.tsx):
+    // só restaura com token + auth + expiresAt no futuro, e o perfil vem
+    // de user.perfil.codigo.
+    sessionStorage.setItem('token', 'token-teste');
+    sessionStorage.setItem('expiresAt', tokenVal as string);
     sessionStorage.setItem(
       'auth',
-      JSON.stringify({ id: 1, login: 'terapeuta.teste', nome: 'Teste', permissoes: ['*'] })
+      JSON.stringify({
+        id: 1,
+        login: 'terapeuta.teste',
+        nome: 'Teste',
+        permissoes: ['*'],
+        perfil: { codigo: 'developer' },
+      })
     );
-    sessionStorage.setItem('perfil', 'developer');
   }, [future]);
 };
 
@@ -37,7 +46,7 @@ test.describe('Tab bar flutuante do rodapé', () => {
     // Agenda é o botão central elevado, sem rótulo visível — só
     // aria-label (ver AgendaFab em BottomTabBar.tsx) — os outros 4 têm
     // texto normal.
-    for (const label of ['Início', 'PEI', 'Primeira Resposta']) {
+    for (const label of ['Início', 'Protocolo', 'PEI', '1ª resposta']) {
       await expect(tabbar.getByText(label, { exact: true })).toBeVisible();
     }
     await expect(tabbar.getByRole('link', { name: 'Agenda' })).toBeVisible();

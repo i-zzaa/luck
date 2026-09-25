@@ -23,12 +23,21 @@ const mockApi = (page: Page) =>
 const authInit = (page: import('@playwright/test').Page) => {
   const future = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   return page.addInitScript(([tokenVal]) => {
-    sessionStorage.setItem('token', tokenVal as string);
+    // Sessão falsa no formato atual do AuthProvider (contexts/auth.tsx):
+    // só restaura com token + auth + expiresAt no futuro, e o perfil vem
+    // de user.perfil.codigo.
+    sessionStorage.setItem('token', 'token-teste');
+    sessionStorage.setItem('expiresAt', tokenVal as string);
     sessionStorage.setItem(
       'auth',
-      JSON.stringify({ id: 1, login: 'terapeuta.teste', nome: 'Teste', permissoes: ['*'] })
+      JSON.stringify({
+        id: 1,
+        login: 'terapeuta.teste',
+        nome: 'Teste',
+        permissoes: ['*'],
+        perfil: { codigo: 'developer' },
+      })
     );
-    sessionStorage.setItem('perfil', 'developer');
   }, [future]);
 };
 
@@ -60,18 +69,20 @@ test.describe('Guard de autenticação', () => {
 });
 
 test.describe('Guard da tela de Sessão', () => {
-  test('navegar direto pra /session sem location.state redireciona pra /agenda', async ({
+  test('abrir /session/:id de uma sessão que não existe redireciona pra /agenda', async ({
     page,
   }) => {
-    // useSessionForm.ts: location.state some ao dar F5/abrir link direto
-    // (react-router guarda state em memória, não na URL) — sem esse
-    // guard, a tela quebra tentando ler state.item.* de undefined.
+    // useSessionForm.ts: a sessão é carregada pelo id da URL
+    // (/session/:calendarioId → GET /sessao/calendario/:id). Sem `evento`
+    // na resposta — link velho, sessão apagada — volta pra agenda em vez
+    // de quebrar lendo campos de undefined. (O mock genérico responde
+    // `{ data: [] }`, sem evento.)
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
     await mockApi(page);
     await authInit(page);
 
-    await page.goto('/session');
+    await page.goto('/session/999');
     await expect(page).toHaveURL(/\/agenda$/, { timeout: 10_000 });
     expect(errors).toEqual([]);
   });

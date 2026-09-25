@@ -21,23 +21,29 @@ const useIsActiveTab = (path: string) => {
   return pathname === routePath || pathname.startsWith(`${routePath}/`);
 };
 
+// Rótulo curto só na tab bar: o `title` da rota é o título da página
+// ("Protocolo de Avaliação", "Primeira Resposta") e cortava em "Protocol…"
+// / "Primeira…" nos 5 slots da barra.
+// Função, não constante de módulo: OtherRoutes importa (via Nav) este
+// arquivo, e no load do módulo CONSTANTES_ROUTERS ainda é undefined
+// (import circular) — ler na hora de renderizar evita isso.
+const rotuloCurto = (path: string, title: string) => {
+  if (path === CONSTANTES_ROUTERS.PROTOCOLO) return 'Protocolo';
+  if (path === CONSTANTES_ROUTERS.PRIMEIRARESPOSTA) return '1ª resposta';
+  return title;
+};
+
 function TabBarItem({ route }: { route: { path: string; icon: string; title: string } }) {
   const isActive = useIsActiveTab(route.path);
 
   return (
     <NavLink
       to={route.path}
+      aria-current={isActive ? 'page' : undefined}
       className="flex-1 flex items-center justify-center h-full min-w-0"
     >
-      {/* bloco de fundo atrás do item ativo — mesmo tratamento do item
-          ativo em TabBar.tsx do desafiaê (itemActive.backgroundColor =
-          colors.primaryWash): barra branca, wash na cor primária. */}
-      <div
-        className={clsx(
-          'flex flex-col items-center justify-center gap-1 h-[3.25rem] min-w-[3.25rem] px-2 rounded-xl duration-300',
-          isActive && 'bg-primary/10'
-        )}
-      >
+      {/* Item ativo só por cor + peso (sem o bloco de fundo de antes). */}
+      <div className="flex flex-col items-center justify-center gap-1 h-[3.25rem] min-w-[3.25rem] px-1 duration-300">
         <i
           className={clsx(
             route.icon,
@@ -50,11 +56,11 @@ function TabBarItem({ route }: { route: { path: string; icon: string; title: str
         />
         <span
           className={clsx(
-            'font-inter text-[11px] leading-none truncate max-w-full duration-300',
-            isActive ? 'text-primary font-semibold' : 'text-gray-800'
+            'text-[11px] leading-none whitespace-nowrap duration-300',
+            isActive ? 'text-primary font-bold' : 'text-gray-800 font-semibold'
           )}
         >
-          {route.title}
+          {rotuloCurto(route.path, route.title)}
         </span>
       </div>
     </NavLink>

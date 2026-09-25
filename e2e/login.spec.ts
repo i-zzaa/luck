@@ -14,15 +14,19 @@ test.describe('Login', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
+          // Formato atual de POST /login (types/user.ts LoginResponseProps):
+          // expiresAt é obrigatório (agenda o fim da sessão) e o perfil
+          // vem como objeto com `codigo`.
           user: {
             id: 1,
             login: 'terapeuta.teste',
             nome: 'Terapeuta Teste',
-            perfil: 'terapeuta',
+            perfil: { codigo: 'terapeuta' },
             permissoes: ['*'],
             mustChangePassword: false,
           },
           accessToken: 'fake-jwt-token',
+          expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
         }),
       });
     });

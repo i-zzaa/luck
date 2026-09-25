@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
-import { ROUTES } from '../../routes/OtherRoutes';
+import { CONSTANTES_ROUTERS, ROUTES } from '../../routes/OtherRoutes';
 
 // true quando a rota atual é uma das 5 rotas "de topo" (menu: true) —
 // é nelas que a tabbar flutuante aparece. Nas rotas de detalhe/edição
@@ -13,7 +13,8 @@ import { ROUTES } from '../../routes/OtherRoutes';
 // inicial, então compara com "/" + path, delimitando por fim-de-segmento
 // pra "/pei" não bater também em "/pei-cadastro".
 export function useIsTabRoute(): boolean {
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
+  const isEdicao = Boolean((state as any)?.edit);
 
   return useMemo(() => {
     // Depois do login, signed vira true e a árvore troca de PublicRoutes
@@ -26,10 +27,17 @@ export function useIsTabRoute(): boolean {
     // depois de entrar.
     if (pathname === '/') return true;
 
+    // Editar um programa (PEI, Portage ou VB-MAPP) reaproveita a rota
+    // de topo /protocolo-av com `state.edit` — mas é uma tela de
+    // edição: sem tab bar (e com "voltar"), só o Salvar no rodapé.
+    if (isEdicao && pathname === `/${CONSTANTES_ROUTERS.PROTOCOLO}`) {
+      return false;
+    }
+
     return ROUTES.some((route) => {
       if (!route.menu) return false;
       const routePath = `/${route.path}`;
       return pathname === routePath || pathname.startsWith(`${routePath}/`);
     });
-  }, [pathname]);
+  }, [pathname, isEdicao]);
 }
