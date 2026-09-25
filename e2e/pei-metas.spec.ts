@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 // Edição de um programa do Manual (PEI) — cards de meta recolhíveis,
-// itens de uma linha, desfazer exclusão, observação/conclusão opcionais
+// itens de uma linha, desfazer exclusão, observação opcional
 // e validação só da descrição da meta (ver foms/pei/MetaCard.tsx).
 
 const ITEM = {
@@ -115,7 +115,8 @@ test.describe('Cadastro de metas do PEI (Manual)', () => {
     const meta2 = page.locator('article').nth(1);
     await expect(meta2.getByText('1 item')).toBeVisible();
     await expect(meta2.getByText('Observação')).toBeVisible();
-    await expect(meta2.getByText('Conclusão')).toBeVisible();
+    // a conclusão saiu do PEI: nem no resumo, mesmo com dado antigo
+    await expect(meta2.getByText('Conclusão')).toHaveCount(0);
 
     // excluir item com desfazer
     await page.getByRole('button', { name: 'Excluir item 2' }).click();
@@ -133,10 +134,11 @@ test.describe('Cadastro de metas do PEI (Manual)', () => {
     await page.getByRole('button', { name: 'Adicionar item' }).click();
     await expect(page.getByLabel('Item 5', { exact: true })).toBeFocused();
 
-    // conclusão opcional, atrás do botão "+"
-    await expect(page.getByLabel('Conclusão', { exact: true })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Adicionar conclusão' }).click();
-    await page.getByLabel('Conclusão', { exact: true }).fill('Em andamento.');
+    // observação opcional, atrás do botão "+"; conclusão não existe mais
+    await expect(page.getByRole('button', { name: 'Adicionar conclusão' })).toHaveCount(0);
+    await expect(page.getByLabel('Observação', { exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Adicionar observação' }).click();
+    await page.getByLabel('Observação', { exact: true }).fill('Em andamento.');
 
 
     // meta nova sem descrição bloqueia o salvar com aviso no lugar certo
@@ -161,11 +163,10 @@ test.describe('Cadastro de metas do PEI (Manual)', () => {
       'Dizer bola',
       'Dizer água',
     ]);
-    expect(payload.metas[0]).toMatchObject({ status: 'aquisicao', conclusao: 'Em andamento.' });
+    expect(payload.metas[0]).toMatchObject({ status: 'aquisicao', observacao: 'Em andamento.' });
     expect(payload.metas[1]).toMatchObject({
       status: 'atingida',
       observacao: 'Melhor com objetos reais.',
-      conclusao: 'Atingida sem dica.',
     });
   });
 

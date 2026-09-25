@@ -13,7 +13,6 @@ import {
   META_TEXTO_CAMPOS,
   baseMetaIdFromField,
   isMetaTextoField,
-  metaConclusaoFieldId,
   metaObsFieldId,
   metaPropFromField,
   metaTextoFieldId,
@@ -95,11 +94,10 @@ export const usePeiForm = ({
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Ids de form de uma meta: descrição, observação, conclusão e itens.
+  // Ids de form de uma meta: descrição, observação e itens.
   const camposDaMeta = (meta: any) => [
     meta.id,
     metaObsFieldId(meta.id),
-    metaConclusaoFieldId(meta.id),
     ...(meta.subitems || []).map((sub: any) => sub.id),
   ];
 
@@ -233,9 +231,9 @@ export const usePeiForm = ({
 
       metasState.forEach((meta: any) => {
         setValue(meta.id, meta.value);
-        // observação/conclusão (ver metaObsField.ts): persistidas pelo
-        // backend e devolvidas em GET /pei/filtro. Meta sem elas deixa
-        // os campos do form vazios, exatamente como uma meta nova.
+        // observação (ver metaObsField.ts): persistida pelo backend e
+        // devolvida em GET /pei/filtro. Meta sem ela deixa o campo do
+        // form vazio, exatamente como uma meta nova.
         // `meta.status` não tem campo aqui — só é exibido no PEI e nos
         // relatórios —, mas continua vindo em `metas` pra ser reenviado
         // em onSubmit.
@@ -300,8 +298,8 @@ export const usePeiForm = ({
       }
       setMetasInvalidas([]);
 
-      // Observação e conclusão da meta (ver metaObsField.ts) são
-      // opcionais — nem toda meta tem —, por isso ficam de fora da
+      // A observação da meta (ver metaObsField.ts) é opcional — nem
+      // toda meta tem —, por isso fica de fora da
       // checagem de "nenhum campo vazio" abaixo (que agora só pega os
       // dados do programa).
       if (
@@ -325,7 +323,7 @@ export const usePeiForm = ({
       Object.keys(formvalue).forEach((key: any) => {
         // Tratados à parte, depois de payload.metas estar montado (ver
         // abaixo) — sem esse retorno antecipado, cairiam no branch de
-        // meta logo abaixo (o id da observação/conclusão também contém "-meta-",
+        // meta logo abaixo (o id da observação também contém "-meta-",
         // por ser o id da própria meta com um sufixo).
         if (isMetaTextoField(key)) return;
 
@@ -359,7 +357,7 @@ export const usePeiForm = ({
         }
       });
 
-      // Segundo passe: observação/conclusão de cada meta (ver metaObsField.ts) —
+      // Segundo passe: observação de cada meta (ver metaObsField.ts) —
       // precisa rodar depois do payload.metas estar montado acima, pra
       // achar a meta certa pelo id base. Só gera efeito quando o
       // formulário realmente tem esse campo (protocolo Manual — ver
@@ -516,10 +514,8 @@ export const usePeiForm = ({
     const copia = { ...OBJ_META, id, subitems };
     delete (copia as any).status;
     setValue(id as any, getValues(original.id as any));
-    ['obs', 'conclusao'].forEach((sufixo) => {
-      const valor = getValues(metaTextoFieldId(original.id, sufixo as any) as any);
-      if (valor) setValue(metaTextoFieldId(id, sufixo as any) as any, valor);
-    });
+    const obs = getValues(metaTextoFieldId(original.id, 'obs') as any);
+    if (obs) setValue(metaTextoFieldId(id, 'obs') as any, obs);
     (original.subitems || []).forEach((sub: any, i: number) =>
       setValue(subitems[i].id as any, getValues(sub.id as any))
     );

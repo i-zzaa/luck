@@ -1,6 +1,6 @@
-// Convenção de id de campo pros textos livres de uma meta do Manual (PEI)
-// — observação e conclusão — usados no react-hook-form ao lado do id "de
-// verdade" da meta (ex.: "3-meta-0"). "::" nunca aparece nos ids
+// Convenção de id de campo pro texto livre de uma meta do Manual (PEI)
+// — a observação (a conclusão saiu do formulário) — usado no
+// react-hook-form ao lado do id "de verdade" da meta (ex.: "3-meta-0"). "::" nunca aparece nos ids
 // compostos que usePeiForm.ts monta ("-meta-"/"-sub-item-"), então dá pra
 // reconhecer esses campos com segurança em Object.keys(formvalue) sem
 // confundir com o parsing de meta/subitem em onSubmit.
@@ -11,7 +11,6 @@
 // sufixo do id no form -> propriedade da meta no payload/backend
 export const META_TEXTO_CAMPOS = {
   obs: 'observacao',
-  conclusao: 'conclusao',
 } as const;
 
 type MetaTextoSufixo = keyof typeof META_TEXTO_CAMPOS;
@@ -24,9 +23,6 @@ export const metaTextoFieldId = (metaId: string, sufixo: MetaTextoSufixo) =>
   `${metaId}::${sufixo}`;
 
 export const metaObsFieldId = (metaId: string) => metaTextoFieldId(metaId, 'obs');
-
-export const metaConclusaoFieldId = (metaId: string) =>
-  metaTextoFieldId(metaId, 'conclusao');
 
 export const isMetaTextoField = (key: string) => META_TEXTO_REGEX.test(key);
 

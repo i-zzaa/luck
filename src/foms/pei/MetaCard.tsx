@@ -6,7 +6,7 @@ import {
   STATUS_META_PILL_CLASS,
 } from '../../constants/protocolo';
 import { AutoTextarea } from './AutoTextarea';
-import { metaConclusaoFieldId, metaObsFieldId } from './metaObsField';
+import { metaObsFieldId } from './metaObsField';
 
 interface MetaCardProps {
   meta: any;
@@ -14,8 +14,8 @@ interface MetaCardProps {
   control: any;
   open: boolean;
   onToggle: () => void;
-  // Manual (pei): meta em texto livre — descrição editável, observação,
-  // conclusão e menu (duplicar/excluir). Portage/VB-MAPP reaproveitam o
+  // Manual (pei): meta em texto livre — descrição editável, observação
+  // e menu (duplicar/excluir). Portage/VB-MAPP reaproveitam o
   // card só pra editar os itens de uma meta que vem do protocolo.
   isPei: boolean;
   invalid: boolean;
@@ -28,7 +28,7 @@ interface MetaCardProps {
 }
 
 // Um card por meta: recolhido mostra um resumo (descrição em 2 linhas,
-// nº de itens, se tem observação/conclusão); aberto mostra os campos.
+// nº de itens, se tem observação); aberto mostra os campos.
 // Quem decide qual está aberto é o pai (uma meta aberta por vez).
 export function MetaCard({
   meta,
@@ -47,22 +47,19 @@ export function MetaCard({
 }: MetaCardProps) {
   const subitems: any[] = meta.subitems || [];
   const obsId = metaObsFieldId(meta.id);
-  const conclusaoId = metaConclusaoFieldId(meta.id);
 
-  const [desc, obs, conclusao, ...itens] = useWatch({
+  const [desc, obs, ...itens] = useWatch({
     control,
-    name: [meta.id, obsId, conclusaoId, ...subitems.map((s) => s.id)],
+    name: [meta.id, obsId, ...subitems.map((s) => s.id)],
   }) as any[];
 
-  // Observação/conclusão são opcionais: ficam atrás de um botão "+" até
-  // serem usadas — ou abertas direto quando já têm texto.
+  // A observação é opcional: fica atrás de um botão "+" até ser usada —
+  // ou aberta direto quando já tem texto.
   const [showObs, setShowObs] = useState(false);
-  const [showConclusao, setShowConclusao] = useState(false);
   const [focusOpcional, setFocusOpcional] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const obsVisivel = isPei && (showObs || !!obs);
-  const conclusaoVisivel = isPei && (showConclusao || !!conclusao);
 
   const itensPreenchidos = itens.filter((v) => `${v ?? ''}`.trim()).length;
   const status = meta.status;
@@ -118,12 +115,6 @@ export function MetaCard({
                   <span className="flex items-center gap-1">
                     <i className="pi pi-pencil text-[11px]" />
                     Observação
-                  </span>
-                )}
-                {!!conclusao && (
-                  <span className="flex items-center gap-1">
-                    <i className="pi pi-check text-[11px]" />
-                    Conclusão
                   </span>
                 )}
               </span>
@@ -280,36 +271,15 @@ export function MetaCard({
               autoFocus={focusOpcional === 'obs'}
             />
           )}
-          {conclusaoVisivel && (
-            <AutoTextarea
-              id={conclusaoId}
-              label="Conclusão"
-              control={control}
-              placeholder="Como a meta foi concluída"
-              autoFocus={focusOpcional === 'conclusao'}
-            />
-          )}
-
-          {isPei && (!obsVisivel || !conclusaoVisivel) && (
+          {isPei && !obsVisivel && (
             <div className="flex flex-wrap gap-2">
-              {!obsVisivel && (
-                <ChipOpcional
-                  label="Observação"
-                  onClick={() => {
-                    setShowObs(true);
-                    setFocusOpcional('obs');
-                  }}
-                />
-              )}
-              {!conclusaoVisivel && (
-                <ChipOpcional
-                  label="Conclusão"
-                  onClick={() => {
-                    setShowConclusao(true);
-                    setFocusOpcional('conclusao');
-                  }}
-                />
-              )}
+              <ChipOpcional
+                label="Observação"
+                onClick={() => {
+                  setShowObs(true);
+                  setFocusOpcional('obs');
+                }}
+              />
             </div>
           )}
         </div>

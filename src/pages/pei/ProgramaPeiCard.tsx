@@ -26,12 +26,14 @@ function Colunas({ fonte }: { fonte: any }) {
 
   return (
     <div className="flex flex-col gap-2">
+      {/* Título numa linha e o conteúdo na de baixo, no mesmo estilo das
+          colunas SD/Resposta/SR+. */}
       {procedimento && (
-        <div className="flex items-baseline gap-1.5 text-[14px]">
-          <span className="text-[11px] font-bold tracking-[0.06em] text-[#71717a]">
-            PROCEDIMENTO
+        <div className="flex flex-col gap-1">
+          <span className="text-[12px] font-bold text-primary">Procedimento</span>
+          <span className="text-[14px] font-semibold leading-[1.35] text-[#27272a] break-words">
+            {procedimento}
           </span>
-          <span className="font-semibold text-[#27272a]">{procedimento}</span>
         </div>
       )}
       {!!colunas.length && (
@@ -110,12 +112,6 @@ function Meta({
         <p className="m-0 text-[13px] leading-[1.4] text-[#3f3f46]">
           <span className="font-bold">Observação: </span>
           {meta.observacao}
-        </p>
-      )}
-      {meta?.conclusao && (
-        <p className="m-0 text-[13px] leading-[1.4] text-[#3f3f46]">
-          <span className="font-bold">Conclusão: </span>
-          {meta.conclusao}
         </p>
       )}
     </div>
