@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import Login from '../foms/Login';
-import { getList } from '../server';
 import logoMark from '../assets/logo_negativo_multialcance.png';
-import logoLg from '../assets/logo-lg.jpg';
 
 import package_json from '../../package.json';
 
@@ -146,49 +143,16 @@ const SCATTERED_PUZZLE_PIECES: {
 ];
 
 export default function LoginPage() {
-  const [version, setVersion] = useState('');
-
-  const getVersion = useCallback(async () => {
-    const { data } = await getList('/');
-    setVersion(`v${package_json.version} · ${data}`);
-  }, []);
-
-  useEffect(() => {
-    getVersion();
-  }, [getVersion]);
-
   return (
-    <div className="h-screen w-full flex bg-white">
-      {/* Brand panel — hidden below the breakpoint where the form panel
-          needs the full width. The wavy edge is one smooth blob curve
-          drawn in white on top of the solid purple panel, not a jagged
-          multi-segment seam. */}
-      <div className="hidden lg:flex lg:w-[42%] relative flex-col items-center px-14 py-12 overflow-hidden bg-[#662977]">
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          {/* Preenchimento no tom do fundo claro do painel do formulário
-              (background: #f9f9f9), não branco puro — senão a onda cria
-              uma emenda visível contra o painel claro ao lado. */}
-          <path
-            fill="#f9f9f9"
-            d="M100,0 L95,0
-               C102,10 90,20 97,30
-               C104,38 92,48 98,58
-               C103,66 91,76 97,86
-               C101,92 94,97 98,100
-               L100,100 Z"
-          />
-        </svg>
-
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white opacity-[0.06] blur-3xl" />
-        <div className="absolute -bottom-28 -left-20 w-96 h-96 rounded-full bg-white opacity-[0.07] blur-3xl" />
-
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#662977]">
+      {/* Marca: no celular é o topo roxo da tela (o formulário sobe da base
+          num painel branco, e o teclado cobre só a parte de baixo); no
+          computador vira o painel lateral. */}
+      <header className="relative shrink-0 h-[268px] lg:h-auto lg:w-[42%] flex flex-col items-center justify-center gap-1.5 overflow-hidden px-6 text-white">
+        <div className="hidden lg:block absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white opacity-[0.06] blur-3xl" />
+        <div className="hidden lg:block absolute -bottom-28 -left-20 w-96 h-96 rounded-full bg-white opacity-[0.07] blur-3xl" />
         {/* Peças de quebra-cabeça espalhadas de fundo, bem discretas —
-            textura decorativa, não devem competir com o conteúdo central. */}
+            textura decorativa, não devem competir com a marca. */}
         {SCATTERED_PUZZLE_PIECES.map((piece, index) => (
           <PuzzlePiece
             key={index}
@@ -197,70 +161,42 @@ export default function LoginPage() {
             style={{ top: piece.top, left: piece.left, transform: `rotate(${piece.rotate}deg)` }}
           />
         ))}
+        <PuzzlePiece className="absolute top-8 left-6 w-11 h-11 text-white opacity-20 rotate-[-12deg]" />
 
-        {/* Cantinho decorativo — uma peça de quebra-cabeça em destaque,
-            ecoando o ícone da marca (ver logo-sm.png). */}
-        <PuzzlePiece className="absolute top-8 left-8 w-12 h-12 text-white opacity-20 rotate-[-12deg]" />
+        <img
+          src={logoMark}
+          alt="Multi Alcance · Núcleo Terapêutico ABA"
+          className="relative w-[214px] lg:w-[300px] h-auto"
+          style={{ filter: 'brightness(0) invert(1)', opacity: 0.95 }}
+        />
+        <p className="relative m-0 text-[15px] lg:text-[17px] font-bold text-yellow-400">
+          Cuidado que transforma.
+        </p>
+        <p className="relative hidden lg:block max-w-xs mt-2 text-center text-sm text-white opacity-80 leading-relaxed">
+          Organizamos o atendimento multidisciplinar de forma integrada
+          para apoiar o desenvolvimento de crianças e suas famílias.
+        </p>
+      </header>
 
-        <div className="relative flex-1 flex flex-col items-center justify-center text-center max-w-xs mx-auto">
-          <img
-            src={logoMark}
-            alt=""
-            className=" -mb-8"
-            style={{ filter: 'brightness(0) invert(1)', opacity: 0.95 }}
-          />
-
-          <div className="flex items-center gap-3 w-full max-w-[180px] mb-5">
-            <span className="h-px flex-1 bg-white opacity-30" />
-            <i className="pi pi-heart-fill text-white opacity-70" style={{ fontSize: 11 }} />
-            <span className="h-px flex-1 bg-white opacity-30" />
-          </div>
-
-          <p className="text-yellow-400 font-bold mb-2">Cuidado que transforma.</p>
-          <p className="text-white text-sm opacity-80 leading-relaxed">
-            Organizamos o atendimento multidisciplinar de forma integrada
-            para apoiar o desenvolvimento de crianças e suas famílias.
-          </p>
-        </div>
-      </div>
-
-      {/* Form panel — padding/margens enxutos de propósito: em telas mais
-          baixas (laptop com barra de endereço, zoom, etc.) o card inteiro
-          precisa caber em h-screen sem precisar de scroll interno. */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-background">
-        <div className="flex-1 flex items-center justify-center px-6 py-4 min-h-0">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg border border-gray-200 px-8 py-6 max-h-full overflow-y-auto">
-            {/* Compact brand lockup — only shown when the panel above is hidden */}
-            <div className="lg:hidden flex justify-center mb-5">
-              <img src={logoLg} alt="Multi Alcance" className="h-14" />
-            </div>
-
-            <div className="hidden lg:flex justify-center mb-3">
-              <div className="w-14 h-14 rounded-full bg-[#662977]/10 flex items-center justify-center">
-                <i className="pi pi-calendar text-violet-800" style={{ fontSize: 22 }} />
-              </div>
-            </div>
-
-            <h1 className="text-lg font-bold text-center text-gray-800">
-              Acesse sua agenda
-            </h1>
-            <p className="text-gray-400 text-sm text-center mt-1 mb-4">
-              Entre com seu login e senha para continuar.
+      <main className="flex-1 flex flex-col bg-white rounded-t-[28px] lg:rounded-none px-6 pt-7 pb-5 lg:justify-center">
+        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="m-0 text-[24px] font-bold text-[#27272a]">Entrar</h1>
+            <p className="m-0 text-[14px] leading-[1.45] text-gray-800">
+              Use o login e a senha que a clínica cadastrou para você.
             </p>
-
-            <Login />
-
-            <div className="flex items-center justify-center gap-2 mt-4 text-gray-400">
-              <i className="pi pi-shield" style={{ fontSize: 12 }} />
-              <span className="text-xs">Ambiente seguro e confidencial</span>
-            </div>
           </div>
+          <Login />
         </div>
 
-        <div className="text-xs text-gray-300 text-center pb-2 shrink-0">
-          {version}
-        </div>
-      </div>
+        <footer className="mt-auto lg:mt-10 pt-4 flex flex-col items-center gap-1">
+          <span className="flex items-center gap-1.5 text-[12px] text-gray-800">
+            <i className="pi pi-shield" style={{ fontSize: 12 }} />
+            Ambiente seguro e confidencial
+          </span>
+          <span className="text-[11px] text-[#71717a]">v{package_json.version}</span>
+        </footer>
+      </main>
     </div>
   );
 }

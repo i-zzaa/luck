@@ -61,6 +61,11 @@ test.describe('Login', () => {
     await page.locator('#password').fill('senha-errada');
     await page.getByRole('button', { name: 'Entrar' }).click();
 
+    // o erro aparece no próprio formulário (não num toast que some)
+    await expect(page.getByRole('alert')).toContainText('Login ou senha incorretos.');
+    // e a senha é limpa para digitar de novo
+    await expect(page.locator('#password')).toHaveValue('');
+
     // continua na tela de login (signed nunca vira true)
     await expect(page.locator('#username')).toBeVisible();
     const token = await page.evaluate(() => sessionStorage.getItem('token'));
@@ -74,7 +79,7 @@ test.describe('Login', () => {
     await page.goto('/');
     await page.locator('#username').fill('terapeuta.teste');
     await page.locator('#password').fill('senha-super-secreta');
-    await page.locator('.p-checkbox-box').click();
+    await page.getByLabel('Lembrar meu login neste celular').click();
 
     const stored = await page.evaluate(() => sessionStorage.getItem('rememberLogin'));
     expect(stored).not.toBeNull();
@@ -88,12 +93,12 @@ test.describe('Login', () => {
   test('desmarcar "Lembrar login" remove o dado guardado', async ({ page }) => {
     await page.goto('/');
     await page.locator('#username').fill('terapeuta.teste');
-    await page.locator('.p-checkbox-box').click(); // marca
+    await page.getByLabel('Lembrar meu login neste celular').click(); // marca
     await expect
       .poll(() => page.evaluate(() => sessionStorage.getItem('rememberLogin')))
       .not.toBeNull();
 
-    await page.locator('.p-checkbox-box').click(); // desmarca
+    await page.getByLabel('Lembrar meu login neste celular').click(); // desmarca
     const stored = await page.evaluate(() => sessionStorage.getItem('rememberLogin'));
     expect(stored).toBeNull();
   });
@@ -103,7 +108,7 @@ test.describe('Login', () => {
   }) => {
     await page.goto('/');
     await page.locator('#username').fill('terapeuta.teste');
-    await page.locator('.p-checkbox-box').click();
+    await page.getByLabel('Lembrar meu login neste celular').click();
     await expect
       .poll(() => page.evaluate(() => sessionStorage.getItem('rememberLogin')))
       .not.toBeNull();

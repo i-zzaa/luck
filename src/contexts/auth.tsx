@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, useRef, useContext, useCallb
 import { api, intercepttRoute } from '../server';
 import { useToast } from './toast';
 import { clearCache } from '../localStorage/sessionStorage';
-import { buildErrorToast } from '../util/error';
 import { registerMustChangePasswordListener } from '../util/mustChangePasswordBus';
 import type {
   AuthUserProps,
@@ -157,7 +156,10 @@ export const AuthProvider = ({ children }: Props) => {
           open: true,
         });
       } catch (error) {
-        renderToast(buildErrorToast(error, 'Usuário não encontrado!'));
+        // O erro sobe para a tela de login, que mostra o aviso no próprio
+        // formulário (login/senha incorretos, sem conexão) em vez de um
+        // toast que some.
+        throw error;
       }
     },
     [scheduleSessionEnd, renderToast]
