@@ -44,8 +44,8 @@ self.addEventListener('push', (event: PushEvent) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/logo-mini.png',
-      badge: '/logo-mini.png',
+      icon: `${import.meta.env.BASE_URL}logo-mini.png`,
+      badge: `${import.meta.env.BASE_URL}logo-mini.png`,
       tag: payload.tag,
       data: { url: payload.url || '/' },
     })
@@ -72,7 +72,11 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
         return;
       }
 
-      await self.clients.openWindow(targetUrl);
+      // A url do push é uma rota do app ("/agenda"); resolve dentro do
+      // escopo do SW para funcionar também com o app fora da raiz (/aba/).
+      await self.clients.openWindow(
+        new URL(targetUrl.replace(/^\//, ''), self.registration.scope).href
+      );
     })()
   );
 });

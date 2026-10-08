@@ -3,7 +3,8 @@ import { defineConfig, loadEnv } from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa';
 
-const manifestForPlugin: Partial<VitePWAOptions> = {
+// `base` vem de VITE_BASE (padrão '/'); permite servir o app fora da raiz.
+const manifestForPlugin = (base: string): Partial<VitePWAOptions> => ({
   includeAssets: ['favicon.ico', 'logo-mini.png', 'logo-md-write.png'],
   registerType: 'autoUpdate',
   // "generateSW" (o padrão, usado até aqui) gera o service worker inteiro
@@ -28,19 +29,19 @@ const manifestForPlugin: Partial<VitePWAOptions> = {
     description: 'App de prontuário multi alcance',
     icons: [
       {
-        src: '/logo-mini.png',
+        src: `${base}logo-mini.png`,
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/logo-mini.png',
+        src: `${base}logo-mini.png`,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/logo-mini.png',
+        src: `${base}logo-mini.png`,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any maskable',
@@ -49,17 +50,20 @@ const manifestForPlugin: Partial<VitePWAOptions> = {
     theme_color: '#662977',
     background_color: '#662977',
     display: 'standalone',
-    scope: '/',
-    start_url: '/?v=2',
+    scope: base,
+    start_url: `${base}?v=2`,
     orientation: 'portrait',
   },
-};
+});
 
 export default ({ mode }: any) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
+  const base = process.env.VITE_BASE || '/';
+
   return defineConfig({
-    plugins: [react(), reactRefresh(), VitePWA(manifestForPlugin)],
+    base,
+    plugins: [react(), reactRefresh(), VitePWA(manifestForPlugin(base))],
     // manualChunks agrupava cada pacote de node_modules num chunk próprio,
     // mas isso quebrava o code-splitting das rotas lazy (ex: jspdf ficava
     // sendo baixado eager em toda página mesmo só sendo usado dentro da

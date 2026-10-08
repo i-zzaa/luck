@@ -11,6 +11,7 @@
     "format": "prettier --write \"src/**/*.{ts,js,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --quiet",
     "build": "export NODE_OPTIONS='--max-old-space-size=8192' && tsc && vite build",
+    "build:servidor": "export NODE_OPTIONS='--max-old-space-size=8192' && tsc && vite build --mode servidor",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

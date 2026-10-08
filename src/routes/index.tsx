@@ -8,7 +8,7 @@ function Routes() {
   const { signed } = useAuth();
 
   return signed ? (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <PermissionProvider>
         <OtherRoutes />
       </PermissionProvider>
