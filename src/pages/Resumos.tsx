@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import moment from 'moment';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import { Input } from '../components';
 import { ButtonHeron } from '../components/button';
 import { LoadingHeron } from '../components/loading';
@@ -22,7 +23,11 @@ import {
 // atendeu. Terapeuta vê só as sessões dela (regra do backend).
 const Resumos = () => {
   const { renderToast } = useToast();
-  const { control, watch } = useForm<any>({ defaultValues: { pacienteId: null } });
+  // Vindo da tela do paciente, ele já chega escolhido.
+  const { state } = useLocation() as { state: { pacienteId?: any } | null };
+  const { control, watch } = useForm<any>({
+    defaultValues: { pacienteId: state?.pacienteId ?? null },
+  });
   const paciente = watch('pacienteId');
   const [mes, setMes] = useState(() => moment().format('YYYY-MM'));
   const [pacientes, setPacientes] = useState<any[]>([]);

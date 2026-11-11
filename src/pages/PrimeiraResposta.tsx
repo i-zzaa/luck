@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import { dropDown, getList } from '../server';
 
 import { useToast } from '../contexts/toast';
@@ -41,7 +42,11 @@ export default function PrimeiraResposta() {
 
   const { renderToast } = useToast();
   const { hasPermition } = permissionAuth();
-  const { control, setValue } = useForm<any>({ defaultValues: { pacienteId: null } });
+  // Vindo da tela do paciente, ele já chega escolhido e carrega direto.
+  const { state } = useLocation() as { state: { pacienteId?: any } | null };
+  const { control, setValue } = useForm<any>({
+    defaultValues: { pacienteId: state?.pacienteId ?? null },
+  });
 
   // Descarta resposta de um paciente anterior quando a pessoa troca rápido.
   const requisicao = useRef(0);
@@ -80,6 +85,11 @@ export default function PrimeiraResposta() {
   useEffect(() => {
     renderPacientes();
   }, [renderPacientes]);
+
+  useEffect(() => {
+    if (state?.pacienteId?.id) carregar(state.pacienteId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.pacienteId?.id]);
 
   const seletor = (
     <Input

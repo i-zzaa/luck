@@ -21,19 +21,6 @@ const useIsActiveTab = (path: string) => {
   return pathname === routePath || pathname.startsWith(`${routePath}/`);
 };
 
-// Rótulo curto só na tab bar: o `title` da rota é o título da página
-// ("Protocolo de Avaliação", "Primeira Resposta") e cortava em "Protocol…"
-// / "Primeira…" nos 5 slots da barra.
-// Função, não constante de módulo: OtherRoutes importa (via Nav) este
-// arquivo, e no load do módulo CONSTANTES_ROUTERS ainda é undefined
-// (import circular) — ler na hora de renderizar evita isso.
-const rotuloCurto = (path: string, title: string) => {
-  if (path === CONSTANTES_ROUTERS.PROTOCOLO) return 'Protocolo';
-  if (path === CONSTANTES_ROUTERS.PRIMEIRARESPOSTA) return '1ª resposta';
-  if (path === CONSTANTES_ROUTERS.RESUMOS) return 'Resumos';
-  return title;
-};
-
 function TabBarItem({ route }: { route: { path: string; icon: string; title: string } }) {
   const isActive = useIsActiveTab(route.path);
 
@@ -61,7 +48,7 @@ function TabBarItem({ route }: { route: { path: string; icon: string; title: str
             isActive ? 'text-primary font-bold' : 'text-gray-800 font-semibold'
           )}
         >
-          {rotuloCurto(route.path, route.title)}
+          {route.title}
         </span>
       </div>
     </NavLink>
@@ -88,7 +75,7 @@ function AgendaFab({ route }: { route: { path: string; icon: string; title: stri
   );
 }
 
-// Tab bar flutuante fixa no rodapé — só renderiza nas 5 rotas "de topo"
+// Tab bar flutuante fixa no rodapé — só renderiza nas rotas "de topo"
 // (ver useIsTabRoute, consultado por quem monta este componente). Pill
 // branca arredondada, com a Agenda (ação mais usada) como botão central
 // preenchido na cor primária — mesmo padrão visual de referência
@@ -98,7 +85,10 @@ export function BottomTabBar() {
 
   const agenda = menuItems.find((r) => r.path === CONSTANTES_ROUTERS.CALENDAR);
   const others = menuItems.filter((r) => r.path !== CONSTANTES_ROUTERS.CALENDAR);
-  // 2 à esquerda, Agenda no centro, 2 à direita
+  // Agenda sempre no centro: metade dos outros de cada lado (hoje, Início
+  // à esquerda e Pacientes à direita). Número ímpar de abas deixaria a
+  // Agenda fora do centro — por isso o que começa pelo paciente fica na
+  // tela do paciente, não vira aba.
   const meio = Math.ceil(others.length / 2);
   const esquerda = others.slice(0, meio);
   const direita = others.slice(meio);

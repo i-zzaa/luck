@@ -266,10 +266,14 @@ const PEI = () => {
   const protocoloPadrao = protocolos.find((p: any) => p.codigo === 'pei');
   const protocoloEfetivo = (p: any) => (p?.id ? p : protocoloPadrao);
 
-  // Sem permissão de escolher paciente não há troca de paciente pra
-  // disparar a busca — abre direto no Manual quando os protocolos chegam.
+  // Sem permissão de escolher paciente, ou com o paciente já vindo da tela
+  // do paciente, não há troca de paciente pra disparar a busca — abre
+  // direto no Manual quando os protocolos chegam.
   useEffect(() => {
-    if (!protocoloPadrao || protocoloForm?.id || podePaciente || state?.protocoloId) return;
+    if (!protocoloPadrao || protocoloForm?.id || state?.protocoloId) return;
+    // Quem escolhe paciente só busca depois de ter um — vindo da tela do
+    // paciente, ele já chega no state.
+    if (podePaciente && !pacienteForm?.id) return;
     setValue('protocoloId', protocoloPadrao);
     buscar(pacienteForm, protocoloPadrao);
     // eslint-disable-next-line react-hooks/exhaustive-deps

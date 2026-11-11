@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { CONSTANTES_ROUTERS, ROUTES } from '../../routes/OtherRoutes';
 
@@ -20,11 +20,12 @@ export function usePageTitle(): string {
       return ROUTES.find((route) => route.path === CONSTANTES_ROUTERS.HOME)?.title ?? '';
     }
 
-    const match = ROUTES.find((route) => {
-      if (route.path === '*') return false;
-      const routePath = `/${route.path}`;
-      return pathname === routePath || pathname.startsWith(`${routePath}/`);
-    });
+    // matchPath entende rota com parâmetro ("paciente/:id") e compara por
+    // segmento, então "/pei" não bate em "/pei-cadastro".
+    const match = ROUTES.find(
+      (route) =>
+        route.path !== '*' && matchPath({ path: `/${route.path}`, end: false }, pathname)
+    );
 
     return match?.title ?? '';
   }, [pathname]);

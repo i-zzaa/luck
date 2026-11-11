@@ -33,7 +33,7 @@ const authInit = (page: Page) => {
 };
 
 test.describe('Tab bar flutuante do rodapé', () => {
-  test('aparece nas rotas de topo, com os 5 itens e o ativo destacado', async ({ page }) => {
+  test('aparece nas rotas de topo, com Início, Agenda e Pacientes', async ({ page }) => {
     await mockApi(page);
     await authInit(page);
 
@@ -44,12 +44,13 @@ test.describe('Tab bar flutuante do rodapé', () => {
     await expect(tabbar).toBeVisible();
 
     // Agenda é o botão central elevado, sem rótulo visível — só
-    // aria-label (ver AgendaFab em BottomTabBar.tsx) — os outros 4 têm
-    // texto normal.
-    for (const label of ['Início', 'Protocolo', 'PEI', '1ª resposta']) {
+    // aria-label (ver AgendaFab em BottomTabBar.tsx) — os outros têm
+    // texto normal. O que começa pelo paciente fica na tela do paciente.
+    for (const label of ['Início', 'Pacientes']) {
       await expect(tabbar.getByText(label, { exact: true })).toBeVisible();
     }
     await expect(tabbar.getByRole('link', { name: 'Agenda' })).toBeVisible();
+    await expect(tabbar.getByRole('link')).toHaveCount(3);
   });
 
   test('navega ao clicar num item da tab bar (incluindo a Agenda central, sem rótulo)', async ({
@@ -103,8 +104,8 @@ test.describe('Tab bar flutuante do rodapé', () => {
     await expect(inicioTab).toBeVisible();
     await expect(inicioTab).toHaveClass(/text-primary/);
 
-    // título da barra superior também precisa aparecer (mesmo bug raiz)
-    await expect(page.getByText('Início').first()).toBeVisible();
+    // a Home de fato renderiza na raiz (a saudação substitui o título)
+    await expect(page.getByRole('heading', { name: /^(Bom dia|Boa tarde|Boa noite)/ })).toBeVisible();
   });
 });
 

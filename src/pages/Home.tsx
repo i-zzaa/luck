@@ -13,12 +13,10 @@ import {
   isPushSupported,
   subscribeToPush,
 } from '../util/pushNotifications';
+import { iniciais } from './paciente/util';
 
-type ViewMode = 'dia' | 'semana';
-
-// Ainda necessário só pro /terapeuta/dashboard, que aceita apenas
-// dataInicio/dataFim (sem `modo`). /evento/filtro já resolve o intervalo
-// no servidor.
+// Só pro /terapeuta/dashboard, que aceita apenas dataInicio/dataFim (sem
+// `modo`). /evento/filtro já resolve o intervalo no servidor.
 const getInicioSemana = (date: Date) => moment(date).startOf('isoWeek').toDate();
 
 const saudacao = () => {
@@ -81,137 +79,176 @@ export default function Home() {
     setPushDismissed(true);
   };
 
-  // -------------------- Agenda de hoje --------------------
-  // Independente da aba Hoje/Semana do painel: a agenda do dia fica
-  // sempre no topo, é o que a terapeuta mais consulta ao abrir o app.
-  const [eventosHoje, setEventosHoje] = useState<any[]>([]);
+
+  // -------------------- Agenda (esta semana e a próxima) --------------------
+  // Duas semanas numa chamada cada (modo=semana, agrupado no servidor):
+  // dá a agenda de hoje, a próxima sessão quando hoje não tem mais nada
+  // (mesmo que seja na semana seguinte) e os pacientes da semana.
+  const [eventos, setEventos] = useState<any[]>([]);
   const [agendaLoading, setAgendaLoading] = useState(false);
 
   useEffect(() => {
     if (!authUser?.id) return;
 
+    const semana = (data: Date) =>
+      getList(
+        `/evento/filtro?modo=semana&data=${formatdateeua(data)}&terapeutaId=${authUser.id}&agrupado=true`
+      ).then((agenda: any) => (agenda?.dias ?? []).flatMap((dia: any) => dia.itens ?? []));
+
     const buscar = async () => {
       setAgendaLoading(true);
-      // modo=dia + agrupado=true: intervalo e agrupamento resolvidos no
-      // servidor (itens 9 e 10 de heron-list-nest/docs/pedido-frontend-fase2.md).
-      try {
-        const agenda: any = await getList(
-          `/evento/filtro?modo=dia&data=${formatdateeua(new Date())}&terapeutaId=${authUser.id}&agrupado=true`
-        );
-        setEventosHoje((agenda?.dias ?? []).flatMap((dia: any) => dia.itens ?? []));
-      } catch {
-        setEventosHoje([]);
-      }
+      const hoje = new Date();
+      const [estaSemana, proximaSemana] = await Promise.all([
+        semana(hoje).catch(() => []),
+        semana(moment(hoje).add(7, 'days').toDate()).catch(() => []),
+      ]);
+      setEventos([...estaSemana, ...proximaSemana]);
       setAgendaLoading(false);
     };
 
     buscar();
   }, [authUser?.id]);
 
-  const sessoesHoje = useMemo(
+  const hojeIso = moment().format('YYYY-MM-DD');
+
+  const sessoes = useMemo(
     () =>
-      eventosHoje
-        .filter((item: any) => !isSlotLivre(item) && item?.data?.start)
+      eventos
+        .filter((item: any) => !isSlotLivre(item) && item?.data?.start && item?.date)
         .sort((a: any, b: any) =>
-          (a?.data?.start || '').localeCompare(b?.data?.start || '')
+          `${a.date} ${a.data.start}`.localeCompare(`${b.date} ${b.data.start}`)
         ),
-    [eventosHoje]
+    [eventos]
   );
 
-  // "Depois de agora" + ordenar por horário continua aqui: o backend não
-  // entrega isso pronto (agrupado ordena só os dias, não os itens dentro
-  // do dia).
-  const proximasHoje = useMemo(() => {
-    const agora = moment();
-    return sessoesHoje.filter((item: any) =>
-      moment(item.data.start, 'HH:mm').isAfter(agora)
-    );
-  }, [sessoesHoje]);
+  const sessoesHoje = sessoes.filter((item: any) => item.date === hojeIso);
 
-  const [proxima, ...seguintes] = proximasHoje;
+  // "Depois de agora" continua aqui: o backend não sabe que horas são no
+  // celular de quem abre a tela.
+  const agora = moment();
+  const restantesHoje = sessoesHoje.filter((item: any) =>
+    moment(item.data.start, 'HH:mm').isAfter(agora)
+  );
+  const proximoDia = sessoes.find((item: any) => item.date > hojeIso);
+  const proxima = restantesHoje[0] ?? proximoDia ?? null;
+  const proximaEhHoje = Boolean(proxima && proxima.date === hojeIso);
+
+  // Pacientes da semana atual (até hoje primeiro, depois os que vêm),
+  // sem repetir — atalho para a tela do paciente.
+  const fimDaSemana = moment().endOf('isoWeek').format('YYYY-MM-DD');
+  const pacientesDaSemana = useMemo(() => {
+    const vistos = new Map<string, { id: any; nome: string }>();
+    const daSemana = sessoes.filter((item: any) => item.date <= fimDaSemana);
+    const ordem = [
+      ...daSemana.filter((item: any) => item.date <= hojeIso).reverse(),
+      ...daSemana.filter((item: any) => item.date > hojeIso),
+    ];
+    ordem.forEach((item: any) => {
+      const id = item?.paciente?.id;
+      if (id === undefined || id === null || vistos.has(String(id))) return;
+      vistos.set(String(id), { id, nome: item.paciente.nome || item.title || '' });
+    });
+    return Array.from(vistos.values());
+  }, [sessoes, fimDaSemana, hojeIso]);
 
   const abrirSessao = (item: any) =>
     // `data`: em série recorrente o id é o da série, então é a data que
     // diz qual dia está sendo atendido (mesma regra de Schedule.tsx).
     navigate(`/${CONSTANTES_ROUTERS.SESSION}/${item.id}?data=${item.date}`);
 
-  // -------------------- Painel de produtividade --------------------
-  const [viewMode, setViewMode] = useState<ViewMode>('dia');
-  const [dashboardLoading, setDashboardLoading] = useState(false);
-  // Números já agregados pelo backend (GET /terapeuta/dashboard). O front
-  // só exibe.
+  const abrirPaciente = (paciente: { id: any; nome: string }) =>
+    navigate(`/${CONSTANTES_ROUTERS.PACIENTE.replace(':id', String(paciente.id))}`, {
+      state: { paciente },
+    });
+
+  // -------------------- Números da semana --------------------
   const [resumo, setResumo] = useState<any>(null);
 
   useEffect(() => {
     if (!authUser?.id) return;
 
-    const hoje = new Date();
-    const inicio = viewMode === 'semana' ? getInicioSemana(hoje) : hoje;
-    const fim =
-      viewMode === 'semana' ? moment(inicio).add(6, 'days').toDate() : hoje;
+    const inicio = getInicioSemana(new Date());
+    const fim = moment(inicio).add(6, 'days').toDate();
 
-    const buscar = async () => {
-      setDashboardLoading(true);
-      try {
-        const dashboard: any = await getList(
-          `/terapeuta/dashboard?terapeutaId=${authUser.id}&dataInicio=${formatdateeua(inicio)}&dataFim=${formatdateeua(fim)}`
-        );
-        setResumo(dashboard || null);
-      } catch {
-        setResumo(null);
-      }
-      setDashboardLoading(false);
-    };
+    // Números já agregados pelo backend (GET /terapeuta/dashboard). O front
+    // só exibe.
+    getList(
+      `/terapeuta/dashboard?terapeutaId=${authUser.id}&dataInicio=${formatdateeua(inicio)}&dataFim=${formatdateeua(fim)}`
+    )
+      .then((dashboard: any) => setResumo(dashboard || null))
+      .catch(() => setResumo(null));
+  }, [authUser?.id]);
 
-    buscar();
-  }, [viewMode, authUser?.id]);
-
-  const taxaComparecimento = resumo?.taxaComparecimento ?? null;
   const resumosPendentes: any[] = resumo?.resumosPendentes ?? [];
+
+  // O backend manda a data como DD/MM (sem ano). É da semana atual, então
+  // o ano é o de hoje — salvo na virada do ano, quando a data "no futuro"
+  // é do ano anterior.
+  const isoDePendente = (ddmm: string) => {
+    const data = moment(ddmm, 'DD/MM');
+    if (data.isAfter(moment(), 'day')) data.subtract(1, 'year');
+    return data.format('YYYY-MM-DD');
+  };
 
   // -------------------- Render --------------------
   const primeiroNome = (user?.nome || '').trim().split(' ')[0];
 
   const renderSaudacao = (
     <header className="px-1 mb-4">
-      <p className="text-[13px] font-semibold text-gray-800 first-letter:uppercase">
-        {moment().format('dddd, D [de] MMMM')}
-      </p>
-      <h1 className="text-[24px] leading-tight font-bold text-[#27272a]">
+      <h1 className="m-0 text-[24px] leading-tight font-bold text-[#27272a]">
         {saudacao()}
         {primeiroNome && `, ${primeiroNome}`}
       </h1>
+      <p className="m-0 mt-0.5 text-[14px] text-gray-800 first-letter:uppercase">
+        {moment().format('dddd, D [de] MMMM')}
+      </p>
     </header>
   );
 
-  // O resumo da sessão passou a ser obrigatório — isso deixou de ser um
-  // lembrete opcional e virou pendência real de compliance, por isso vem
-  // ANTES de tudo (é a coisa mais acionável da tela) e com visual de
-  // alerta, não só uma lista neutra.
-  const renderResumosPendentes = resumosPendentes.length > 0 && (
-    <section className="bg-[#fef2f2] border border-[#fecaca] rounded-[14px] p-3.5 mb-3">
-      <div className="flex items-center gap-2">
-        <i className="pi pi-exclamation-triangle text-[#b91c1c]" />
-        <span className="flex-1 text-[15px] font-bold text-[#7f1d1d]">
-          {resumosPendentes.length}{' '}
-          {plural(resumosPendentes.length, 'resumo pendente', 'resumos pendentes')}
-        </span>
+  // O resumo da sessão é obrigatório e só vale assinado — o que falta é
+  // pendência de verdade, por isso vem antes de tudo e cada linha já abre a
+  // sessão para finalizar.
+  const renderPendencias = resumosPendentes.length > 0 && (
+    <section className="mb-4">
+      <div className="px-1 mb-2">
+        <SectionTitle>Pendências</SectionTitle>
       </div>
-      <p className="text-[13px] text-[#7f1d1d] mt-1">
-        O resumo da sessão agora é obrigatório. Finalize os pendentes abaixo.
-      </p>
-      <ul className="mt-2.5 divide-y divide-[#fecaca]">
-        {resumosPendentes.map((item: any) => (
-          <li key={item.id} className="flex items-center gap-2 py-2">
-            <span className="flex-1 min-w-0 truncate text-[14px] font-semibold text-[#27272a]">
-              {item.pacienteNome}
-            </span>
-            <span className="shrink-0 text-[12px] text-[#7f1d1d]">
-              {item.data} · {item.horario}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="bg-[#fef2f2] border border-[#fecaca] rounded-[14px] overflow-hidden">
+        <div className="flex items-center gap-2 px-3.5 pt-3">
+          <i aria-hidden className="pi pi-exclamation-triangle text-[#b91c1c]" />
+          <span className="flex-1 text-[15px] font-bold text-[#7f1d1d]">
+            {resumosPendentes.length}{' '}
+            {plural(
+              resumosPendentes.length,
+              'sessão sem resumo assinado',
+              'sessões sem resumo assinado'
+            )}
+          </span>
+        </div>
+        <ul className="m-0 mt-1 p-0 list-none divide-y divide-[#fecaca]">
+          {resumosPendentes.map((item: any) => (
+            <li key={`${item.id}-${item.data}`}>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    `/${CONSTANTES_ROUTERS.SESSION}/${item.id}?data=${isoDePendente(item.data)}`
+                  )
+                }
+                className="w-full min-h-[48px] flex items-center gap-2 px-3.5 py-2 text-left active:bg-[#fee2e2]"
+              >
+                <span className="flex-1 min-w-0 truncate text-[14px] font-semibold text-[#27272a]">
+                  {item.pacienteNome}
+                </span>
+                <span className="shrink-0 text-[12px] text-[#7f1d1d]">
+                  {item.data} · {item.horario}
+                </span>
+                <i aria-hidden className="pi pi-chevron-right text-[#b91c1c] text-[12px]" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 
@@ -228,9 +265,9 @@ export default function Home() {
     !pushDismissed;
 
   const renderPushBanner = podeOferecerPush && (
-    <section className="bg-white border border-gray-200 rounded-[14px] p-3.5 mb-3 flex items-start gap-3">
+    <section className="bg-white border border-gray-200 rounded-[14px] p-3.5 mb-4 flex items-start gap-3">
       <span className="shrink-0 w-9 h-9 rounded-full bg-[#f3e8f7] flex items-center justify-center">
-        <i className="pi pi-bell text-primary" />
+        <i aria-hidden className="pi pi-bell text-primary" />
       </span>
       <div className="flex-1">
         <span className="text-[15px] font-bold text-[#27272a] block">
@@ -259,67 +296,124 @@ export default function Home() {
     </section>
   );
 
-  const renderProxima = proxima && (
-    <button
-      type="button"
-      onClick={() => abrirSessao(proxima)}
-      className="w-full text-left bg-primary text-white rounded-[14px] p-4 flex items-center gap-3"
-    >
-      <span className="flex-1 min-w-0">
-        <span className="block text-[12px] font-semibold uppercase tracking-wide opacity-80">
-          Próxima sessão · {faltaPara(proxima.data.start)}
-        </span>
-        <span className="block text-[18px] font-bold mt-1 truncate">
-          {proxima.title}
-        </span>
-        <span className="block text-[14px] opacity-90 mt-0.5">
-          {proxima.data.start}
-          {proxima.data.end && ` – ${proxima.data.end}`}
-          {proxima.modalidade?.nome && ` · ${proxima.modalidade.nome}`}
-        </span>
-      </span>
-      <i className="pi pi-chevron-right opacity-80" />
-    </button>
-  );
+  const quando = (item: any) =>
+    item.date === hojeIso
+      ? `Hoje · ${faltaPara(item.data.start)}`
+      : moment(item.date).calendar(null, {
+          nextDay: '[Amanhã]',
+          nextWeek: 'dddd',
+          sameElse: 'ddd, D [de] MMM',
+        });
 
-  const renderSeguintes = seguintes.length > 0 && (
-    <ul className="bg-white border border-gray-200 rounded-[14px] mt-2 divide-y divide-gray-200">
-      {seguintes.map((item: any) => (
-        <li key={`${item.id}-${item.data.start}`}>
-          <button
-            type="button"
-            onClick={() => abrirSessao(item)}
-            className="w-full min-h-[52px] flex items-center gap-3 px-3.5 py-2.5 text-left"
-          >
-            <span className="w-11 shrink-0 text-[14px] font-bold text-primary">
-              {item.data.start}
-            </span>
-            <span className="flex-1 min-w-0 truncate text-[14px] text-[#27272a]">
-              {item.title}
-            </span>
-            <i className="pi pi-chevron-right text-gray-400 text-[12px]" />
-          </button>
-        </li>
-      ))}
+  const pacienteDe = (item: any) =>
+    item?.paciente?.id !== undefined && item?.paciente?.id !== null
+      ? { id: item.paciente.id, nome: item.paciente.nome || item.title || '' }
+      : null;
+
+  // Próxima sessão em destaque, com os dois atalhos mais usados. Se hoje
+  // não tem mais nada, mostra a próxima de outro dia (sem "Iniciar").
+  const renderProxima = () => {
+    if (!proxima) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-[14px] p-4 flex items-center gap-3">
+          <i aria-hidden className="pi pi-check-circle text-primary text-[20px]" />
+          <span className="text-[14px] text-gray-800">
+            {sessoesHoje.length > 0
+              ? 'Todas as sessões de hoje já passaram.'
+              : 'Nenhuma sessão nos próximos dias.'}
+          </span>
+        </div>
+      );
+    }
+
+    const paciente = pacienteDe(proxima);
+    return (
+      <section className="bg-primary text-white rounded-[14px] p-4 flex flex-col gap-3">
+        {!proximaEhHoje && (
+          <span className="text-[13px] opacity-90">
+            {sessoesHoje.length > 0
+              ? 'As sessões de hoje já passaram.'
+              : 'Nenhuma sessão hoje.'}
+          </span>
+        )}
+        <div className="min-w-0">
+          <span className="block text-[12px] font-semibold uppercase tracking-wide opacity-80 first-letter:uppercase">
+            Próxima sessão · {quando(proxima)}
+          </span>
+          <span className="block text-[19px] font-bold mt-1 truncate">{proxima.title}</span>
+          <span className="block text-[14px] opacity-90 mt-0.5">
+            {proxima.data.start}
+            {proxima.data.end && ` – ${proxima.data.end}`}
+            {proxima.modalidade?.nome && ` · ${proxima.modalidade.nome}`}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          {proximaEhHoje && (
+            <button
+              type="button"
+              onClick={() => abrirSessao(proxima)}
+              className="flex-1 h-11 rounded-[12px] bg-white text-primary text-[15px] font-bold"
+            >
+              Iniciar sessão
+            </button>
+          )}
+          {paciente && (
+            <button
+              type="button"
+              onClick={() => abrirPaciente(paciente)}
+              className="flex-1 h-11 rounded-[12px] border border-white/60 text-white text-[15px] font-bold"
+            >
+              Ver paciente
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  };
+
+  // O resto de hoje (passadas e futuras, menos a que está em destaque).
+  const outrasHoje = sessoesHoje.filter((item: any) => item !== proxima);
+
+  const renderHoje = outrasHoje.length > 0 && (
+    <ul className="m-0 p-0 list-none bg-white border border-gray-200 rounded-[14px] mt-2 divide-y divide-gray-200 overflow-hidden">
+      {outrasHoje.map((item: any) => {
+        const passou = !moment(item.data.start, 'HH:mm').isAfter(agora);
+        return (
+          <li key={`${item.id}-${item.date}-${item.data.start}`}>
+            <button
+              type="button"
+              onClick={() => abrirSessao(item)}
+              className="w-full min-h-[52px] flex items-center gap-3 px-3.5 py-2.5 text-left"
+            >
+              <span
+                className={clsx(
+                  'w-11 shrink-0 text-[14px] font-bold',
+                  passou ? 'text-gray-800' : 'text-primary'
+                )}
+              >
+                {item.data.start}
+              </span>
+              <span className="flex-1 min-w-0 truncate text-[14px] text-[#27272a]">
+                {item.title}
+              </span>
+              {item?.statusEventos?.nome && (
+                <span className="shrink-0 text-[12px] text-gray-800">
+                  {item.statusEventos.nome}
+                </span>
+              )}
+              <i aria-hidden className="pi pi-chevron-right text-gray-400 text-[12px]" />
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 
-  const renderAgendaVazia = (
-    <div className="bg-white border border-gray-200 rounded-[14px] p-4 flex items-center gap-3">
-      <i className="pi pi-check-circle text-primary text-[20px]" />
-      <span className="text-[14px] text-gray-800">
-        {sessoesHoje.length > 0
-          ? 'Todas as sessões de hoje já passaram.'
-          : 'Nenhuma sessão agendada para hoje.'}
-      </span>
-    </div>
-  );
-
-  const renderAgendaHoje = (
-    <section className="mt-2">
+  const renderAgenda = (
+    <section>
       <div className="flex items-center justify-between px-1 mb-2">
         <SectionTitle>
-          {`Agenda de hoje${sessoesHoje.length ? ` · ${sessoesHoje.length}` : ''}`}
+          {`Hoje${sessoesHoje.length ? ` · ${sessoesHoje.length} ${plural(sessoesHoje.length, 'sessão', 'sessões')}` : ''}`}
         </SectionTitle>
         <button
           type="button"
@@ -330,78 +424,70 @@ export default function Home() {
         </button>
       </div>
       {agendaLoading ? (
-        <div className="h-[88px] rounded-[14px] bg-gray-200 animate-pulse" />
-      ) : proxima ? (
-        <>
-          {renderProxima}
-          {renderSeguintes}
-        </>
+        <div className="h-[148px] rounded-[14px] bg-gray-200 animate-pulse" />
       ) : (
-        renderAgendaVazia
+        <>
+          {renderProxima()}
+          {renderHoje}
+        </>
       )}
     </section>
   );
 
-  const renderTabs = (
-    <div className="bg-gray-200 rounded-full p-0.5 flex" role="tablist">
-      {(['dia', 'semana'] as ViewMode[]).map((mode) => (
-        <button
-          key={mode}
-          type="button"
-          role="tab"
-          aria-selected={viewMode === mode}
-          onClick={() => setViewMode(mode)}
-          className={clsx(
-            'rounded-full px-3 min-h-[32px] text-[13px] font-semibold',
-            viewMode === mode ? 'bg-white text-primary shadow-sm' : 'text-gray-800'
-          )}
-        >
-          {mode === 'dia' ? 'Hoje' : 'Semana'}
-        </button>
-      ))}
-    </div>
-  );
-
-  const renderStatTile = (label: string, value: string | number, icon: string) => (
-    <div className="bg-white border border-gray-200 rounded-[14px] p-3.5 flex flex-col gap-2">
-      <span className="w-8 h-8 rounded-full bg-[#f3e8f7] flex items-center justify-center">
-        <i className={clsx(icon, 'text-primary text-[14px]')} />
-      </span>
-      {dashboardLoading ? (
-        <span className="h-7 w-14 rounded bg-gray-200 animate-pulse" />
-      ) : (
-        <span className="text-[24px] leading-7 font-bold text-[#27272a]">{value}</span>
-      )}
-      <span className="text-[12px] text-gray-800">{label}</span>
-    </div>
-  );
-
-  const renderPainel = (
+  const renderPacientes = pacientesDaSemana.length > 0 && (
     <section className="mt-6">
       <div className="flex items-center justify-between px-1 mb-2">
-        <SectionTitle>Seus números</SectionTitle>
-        {renderTabs}
+        <SectionTitle>Pacientes da semana</SectionTitle>
+        <button
+          type="button"
+          onClick={() => navigate(`/${CONSTANTES_ROUTERS.PACIENTES}`)}
+          className="text-[13px] font-semibold text-primary min-h-[32px]"
+        >
+          Ver todos
+        </button>
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        {renderStatTile('sessões', resumo?.totalSessoes ?? '–', 'pi pi-calendar-check')}
-        {renderStatTile(
-          'comparecimento',
-          taxaComparecimento === null ? '–' : `${taxaComparecimento}%`,
-          'pi pi-check-circle'
-        )}
-        {renderStatTile('pacientes', resumo?.totalPacientes ?? '–', 'pi pi-users')}
-        {renderStatTile('horas atendidas', resumo?.horasAtendidas ?? '–', 'pi pi-clock')}
-      </div>
+      <ul className="m-0 p-0 list-none flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        {pacientesDaSemana.map((paciente) => (
+          <li key={paciente.id} className="shrink-0">
+            <button
+              type="button"
+              onClick={() => abrirPaciente(paciente)}
+              className="w-[76px] flex flex-col items-center gap-1.5 py-1"
+            >
+              <span className="w-12 h-12 rounded-full bg-[#f3e8f7] text-primary flex items-center justify-center text-[15px] font-bold">
+                {iniciais(paciente.nome)}
+              </span>
+              <span className="w-full text-center text-[12px] leading-tight text-[#27272a] truncate">
+                {paciente.nome.trim().split(/\s+/)[0]}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
+  );
+
+  // Uma linha discreta no fim; some quando a semana ainda não tem sessão
+  // (antes eram 4 cards grandes com zeros).
+  const renderNumeros = Number(resumo?.totalSessoes) > 0 && (
+    <p className="mt-6 px-1 text-[13px] text-gray-800">
+      <span className="font-bold text-[#27272a]">Esta semana:</span>{' '}
+      {resumo.totalSessoes} {plural(Number(resumo.totalSessoes), 'sessão', 'sessões')}
+      {resumo.taxaComparecimento !== null &&
+        resumo.taxaComparecimento !== undefined &&
+        ` · ${resumo.taxaComparecimento}% de presença`}
+      {resumo.horasAtendidas && ` · ${resumo.horasAtendidas}`}
+    </p>
   );
 
   return (
     <div className="font-inter">
       {renderSaudacao}
-      {renderResumosPendentes}
+      {renderPendencias}
       {renderPushBanner}
-      {renderAgendaHoje}
-      {renderPainel}
+      {renderAgenda}
+      {renderPacientes}
+      {renderNumeros}
     </div>
   );
 }

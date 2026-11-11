@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { CONSTANTES_ROUTERS, ROUTES } from '../../routes/OtherRoutes';
 
-// true quando a rota atual é uma das 5 rotas "de topo" (menu: true) —
+// true quando a rota atual é uma das rotas "de topo" (menu: true) —
 // é nelas que a tabbar flutuante aparece. Nas rotas de detalhe/edição
 // (Sessão, DTT, Metas, Cadastro de PEI) ela fica escondida, do mesmo
 // jeito que apps com tab bar nativa escondem a barra ao empilhar uma
