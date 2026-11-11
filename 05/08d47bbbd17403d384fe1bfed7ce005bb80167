@@ -1,0 +1,55 @@
+src/components/assinatura/QuadroDeAssinatura.tsx
+  s_4a1897bae80b0d::t_5ce8d6d6f9bec8 1-172
+src/pages/session/useSessionForm.ts
+  s_4a1897bae80b0d::t_2bc52f208ad6bb 53-55,57-58,112-113,155-157,174-177,198,200,269-273
+  s_4a1897bae80b0d::t_1914a481fa6b22 13,56
+src/components/assinatura/traco.ts
+  s_4a1897bae80b0d::t_a794a228701298 1-17,19-26,28-124
+  s_4a1897bae80b0d::t_1914a481fa6b22 18,27
+src/components/assinatura/Carimbo.tsx
+  s_4a1897bae80b0d::t_1914a481fa6b22 2
+  s_4a1897bae80b0d::t_7b7e01c18e92f0 1,3-102
+src/components/Nav/BottomTabBar.tsx
+  s_4a1897bae80b0d::t_90b60ad6843058 33
+src/components/assinatura/index.ts
+  s_4a1897bae80b0d::t_ad5c3a30e7b8df 1-4
+src/constants/pdfResumoSessoes.ts
+  s_4a1897bae80b0d::t_d614ab55025da6 1-250
+src/pages/session/Session.tsx
+  s_4a1897bae80b0d::t_2bc52f208ad6bb 18,50-54,261-277,281-282,292-298
+  s_4a1897bae80b0d::t_ff3ce0b4d1c1c5 299
+src/routes/OtherRoutes.tsx
+  s_4a1897bae80b0d::t_90b60ad6843058 23,36,67-68
+e2e/sessao.spec.ts
+  s_4a1897bae80b0d::t_71eceb381f3f24 169-171,179-192,195,214
+src/components/assinatura/JanelaDeAssinatura.tsx
+  s_4a1897bae80b0d::t_3c1c270a421436 1-5,7-101
+  s_4a1897bae80b0d::t_1914a481fa6b22 6
+src/pages/Resumos.tsx
+  s_4a1897bae80b0d::t_a55cd2b3cf4541 1-178
+src/components/assinatura/traco.test.ts
+  s_4a1897bae80b0d::t_5171b0fa27e558 1-26
+src/constants/pdfRelatorioEvolucao.ts
+  s_4a1897bae80b0d::t_c3f4d5d1d0a507 139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0508d47bbbd17403d384fe1bfed7ce005bb80167",
+  "prompts": {},
+  "humans": {
+    "h_a0172a54fbbd95": {
+      "author": "C1321644 Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  },
+  "sessions": {
+    "s_4a1897bae80b0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fbca7e5c-e412-4655-89b5-27eef7d9730a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "C1321644 Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
