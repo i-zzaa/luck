@@ -1,0 +1,24 @@
+src/foms/Login.tsx
+  s_cfb489c0fe400c::t_862b102136f893 91-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "354944ad12c078029abdb79bb48b8bd46d92e59c",
+  "prompts": {},
+  "humans": {
+    "h_a0172a54fbbd95": {
+      "author": "C1321644 Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  },
+  "sessions": {
+    "s_cfb489c0fe400c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f301214b-677c-4476-a839-9f87cc5ce304",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "C1321644 Isa Andressa Novaes Menezes <c1321644@interno.bb.com.br>"
+    }
+  }
+}
