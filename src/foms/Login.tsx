@@ -88,7 +88,10 @@ export default function Login() {
 
   const campoClasse = (comErro: boolean) =>
     clsx(
-      'h-[52px] flex items-center gap-2.5 rounded-[14px] bg-white pl-3.5 transition-colors',
+      // overflow-hidden: o fundo do autocompletar do navegador (box-shadow
+      // branco do .auth-input) é retangular e cobria os cantos arredondados
+      // da borda à direita.
+      'h-[52px] flex items-center gap-2.5 overflow-hidden rounded-[14px] bg-white pl-3.5 transition-colors',
       'focus-within:ring-2 focus-within:ring-[#662977]/25',
       comErro
         ? 'border-[1.5px] border-[#b91c1c]'
