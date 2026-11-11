@@ -30,6 +30,7 @@ const useIsActiveTab = (path: string) => {
 const rotuloCurto = (path: string, title: string) => {
   if (path === CONSTANTES_ROUTERS.PROTOCOLO) return 'Protocolo';
   if (path === CONSTANTES_ROUTERS.PRIMEIRARESPOSTA) return '1ª resposta';
+  if (path === CONSTANTES_ROUTERS.RESUMOS) return 'Resumos';
   return title;
 };
 

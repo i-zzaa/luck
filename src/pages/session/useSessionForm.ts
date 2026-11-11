@@ -10,6 +10,7 @@ import {
   mesclarRespostas,
   resumoTextLength,
 } from '../../util/sessionTree';
+import type { AssinaturaSessao, CarimboDados, TracoAssinatura } from '../../components/assinatura';
 
 const MAINTENANCE_VAZIA = { manual: [], vbmapp: [], portage: [] };
 
@@ -49,6 +50,12 @@ export const useSessionForm = () => {
   // sessão pra esse calendário).
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Assinatura gravada (modo leitura) e o carimbo de quem registra (modo
+  // nova), ambos vindos de GET /sessao/calendario/:id.
+  const [assinatura, setAssinatura] = useState<AssinaturaSessao | null>(null);
+  const [carimbo, setCarimbo] = useState<CarimboDados | null>(null);
+  // Janela de assinatura: último passo antes de gravar a sessão.
+  const [assinaturaAberta, setAssinaturaAberta] = useState(false);
 
   // As árvores já chegam no formato final de slots (item 7 da fase 1),
   // tanto da sessão gravada quanto do planejamento — só distribui nos
@@ -102,6 +109,8 @@ export const useSessionForm = () => {
       const leitura = result.modo === 'leitura';
       setIsEdit(leitura);
       if (leitura) setContent(result.resumo ?? '');
+      setAssinatura(result.assinatura ?? null);
+      setCarimbo(result.carimbo ?? result.assinatura?.carimbo ?? null);
       applyTrees(result);
     } catch (error) {
       renderToast(buildErrorToast(error, 'Não foi possível carregar a sessão.'));
@@ -143,7 +152,9 @@ export const useSessionForm = () => {
     }
   }, [calendarioId, urlSessao, renderToast]);
 
-  const handleSubmitSumary = useCallback(async () => {
+  // "Salvar": confere o resumo e pede a assinatura. A sessão só é gravada
+  // depois de assinada (salvarAssinada).
+  const handleSubmitSumary = useCallback(() => {
     const tamanhoResumo = resumoTextLength(content);
     if (minResumoLength && tamanhoResumo < minResumoLength) {
       renderToast({
@@ -160,6 +171,10 @@ export const useSessionForm = () => {
       return;
     }
 
+    setAssinaturaAberta(true);
+  }, [content, minResumoLength, renderToast]);
+
+  const salvarAssinada = useCallback(async (traco: TracoAssinatura) => {
     // Só as respostas (onde + o quê): a topologia das árvores, pacienteId
     // e data o servidor tira do planejamento/calendário. Cada seção edita
     // um estado próprio e cai na árvore carregada quando nada foi mexido
@@ -180,7 +195,9 @@ export const useSessionForm = () => {
         resumo: content,
         respostas,
         data: dataSessao,
+        assinatura: { traco },
       });
+      setAssinaturaAberta(false);
       renderToast({
         type: 'success',
         message: 'Sessão atualizada!',
@@ -199,7 +216,6 @@ export const useSessionForm = () => {
     calendarioId,
     dataSessao,
     content,
-    minResumoLength,
     dtt,
     list,
     portage,
@@ -250,6 +266,11 @@ export const useSessionForm = () => {
     // setter da árvore listMaintenance — é o que SessionMaintenance edita.
     setListMaintenance,
     handleSubmitSumary,
+    salvarAssinada,
+    assinatura,
+    carimbo,
+    assinaturaAberta,
+    fecharAssinatura: () => setAssinaturaAberta(false),
     refreshMetas,
   };
 };

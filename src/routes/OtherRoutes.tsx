@@ -20,6 +20,7 @@ const PrimeiraResposta = lazy(() => import('../pages/PrimeiraResposta'));
 const PROTOCOLO = lazy(() => import('../foms/Protocolo'));
 const Metas = lazy(() => import('../pages/Metas'));
 const PEICADASTRO = lazy(() => import('../foms/pei'));
+const Resumos = lazy(() => import('../pages/Resumos'));
 
 export enum CONSTANTES_ROUTERS {
   HOME = 'home',
@@ -32,6 +33,7 @@ export enum CONSTANTES_ROUTERS {
   METAS = 'metas',
   PRIMEIRARESPOSTA = 'primeira-resposta',
   PROTOCOLO = 'protocolo-av',
+  RESUMOS = 'resumos',
 }
 export interface RoutesProps {
   path: string;
@@ -62,6 +64,8 @@ export const ROUTES = [
   { path: CONSTANTES_ROUTERS.CALENDAR, componentRoute: Schedule, icon: 'pi pi-calendar', menu: true, title: 'Agenda' },
   { path: CONSTANTES_ROUTERS.PEI, componentRoute: PEI, icon: 'pi pi-book', menu: true, title: 'PEI' },
   { path: CONSTANTES_ROUTERS.PRIMEIRARESPOSTA, componentRoute: PrimeiraResposta, icon: 'pi pi-check-square', menu: true, title: 'Primeira Resposta' },
+  // Folha de "Relatório evolutivo de sessão": resumos assinados do mês.
+  { path: CONSTANTES_ROUTERS.RESUMOS, componentRoute: Resumos, icon: 'pi pi-file-edit', menu: true, title: 'Resumos de Sessão' },
 ]
 
 const OtherRoutes = () => {

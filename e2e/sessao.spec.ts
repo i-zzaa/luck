@@ -166,8 +166,9 @@ test.describe('Sessão', () => {
     await page.locator('.p-multistatecheckbox').first().click();
     await expect(protocolo.getByRole('radio', { name: 'VB-MAPP · 1/1' })).toBeVisible();
 
-    // resumo curto: o salvar não envia (validação do hook, com toast)
-    await page.getByRole('button', { name: 'Salvar' }).click();
+    // resumo curto: nem abre a assinatura (validação do hook, com toast)
+    await page.getByRole('button', { name: 'Assinar e finalizar' }).click();
+    await expect(page.getByTestId('quadro-assinatura')).toHaveCount(0);
     expect(salvos).toHaveLength(0);
 
     // resumo completo salva
@@ -175,9 +176,23 @@ test.describe('Sessão', () => {
     await editor.click();
     await editor.type('Sessão tranquila, boa participação.');
     await page.getByText('Miguel Santos').click(); // blur
-    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.getByRole('button', { name: 'Assinar e finalizar' }).click();
+
+    // antes de gravar, a terapeuta assina no quadro
+    const quadro = page.getByTestId('quadro-assinatura');
+    await expect(quadro).toBeVisible();
+    await page.getByRole('button', { name: 'Assinar e salvar' }).click();
+    expect(salvos).toHaveLength(0); // quadro em branco não salva
+    const caixa = (await quadro.boundingBox())!;
+    await page.mouse.move(caixa.x + 30, caixa.y + 100);
+    await page.mouse.down();
+    await page.mouse.move(caixa.x + 120, caixa.y + 60, { steps: 8 });
+    await page.mouse.move(caixa.x + 220, caixa.y + 110, { steps: 8 });
+    await page.mouse.up();
+    await page.getByRole('button', { name: 'Assinar e salvar' }).click();
 
     await expect.poll(() => salvos.length).toBe(1);
+    expect(salvos[0].assinatura.traco.length).toBeGreaterThan(0);
     const va1 = salvos[0].respostas.find((r: any) => r.nodeKey === 'va1');
     expect(va1.protocolo).toBe('vbmapp');
     expect(va1.slots[0]).not.toBeNull();
@@ -196,7 +211,7 @@ test.describe('Sessão', () => {
     await expect(page.getByText('4 seguidas', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Interrompa o item ao atingir 4 corretas seguidas.')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Metas' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Salvar' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Assinar e finalizar' })).toHaveCount(0);
     await expect(page.getByText('Somente leitura')).toBeVisible();
   });
 });

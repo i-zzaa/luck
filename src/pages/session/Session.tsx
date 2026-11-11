@@ -15,6 +15,7 @@ import { Segmentado } from '../../foms/protocolo/avaliacao';
 import { colorsData, firtUpperCase } from '../../util/util';
 import { contarComTentativa } from './sessaoUi';
 import { resolveEspecialidadeCodigo } from '../../util/especialidade';
+import { AssinaturaECarimbo, JanelaDeAssinatura } from '../../components/assinatura';
 
 type Protocolo = 'manual' | 'portage' | 'vbmapp';
 
@@ -46,6 +47,11 @@ export const Session = () => {
     setDTT,
     setListMaintenance,
     handleSubmitSumary,
+    salvarAssinada,
+    assinatura,
+    carimbo,
+    assinaturaAberta,
+    fecharAssinatura,
     refreshMetas,
   } = useSessionForm();
 
@@ -252,11 +258,28 @@ export const Session = () => {
         </Card>
       </div>
 
+      {/* Sessão já registrada: a assinatura e o carimbo de quem atendeu. */}
+      {isEdit && (
+        <section className="bg-white border border-gray-200 rounded-[14px] px-3.5 py-3">
+          {assinatura ? (
+            <AssinaturaECarimbo
+              traco={assinatura.traco}
+              carimbo={assinatura.carimbo}
+              assinadaEm={assinatura.assinadaEm}
+            />
+          ) : (
+            <span className="text-[13px] text-gray-800">
+              Sessão registrada antes da assinatura digital — sem assinatura.
+            </span>
+          )}
+        </section>
+      )}
+
       {!isEdit && (
         <div className="fixed inset-x-0 bottom-0 z-10 px-4 pt-3 bg-background border-t border-gray-300 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           <ButtonHeron
-            text="Salvar"
-            icon="pi pi-check"
+            text="Assinar e finalizar"
+            icon="pi pi-pencil"
             type="primary"
             size="full"
             loading={loading}
@@ -265,6 +288,14 @@ export const Session = () => {
           />
         </div>
       )}
+
+      <JanelaDeAssinatura
+        aberta={assinaturaAberta}
+        aoFechar={fecharAssinatura}
+        aoConfirmar={salvarAssinada}
+        carimbo={carimbo}
+        salvando={loading}
+      />
 
       <MetasBottomSheet
         open={metasSheetOpen}

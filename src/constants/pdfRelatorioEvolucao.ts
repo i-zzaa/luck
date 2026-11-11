@@ -136,7 +136,7 @@ const MARGIN_BOTTOM = 20;
 // recebe o pixel de verdade, não uma URL que pode ou não já estar
 // pronta.
 let logoDataUriCache: string | null = null;
-const carregarLogoBase64 = async (): Promise<string | null> => {
+export const carregarLogoBase64 = async (): Promise<string | null> => {
   if (logoDataUriCache) return logoDataUriCache;
   try {
     const response = await fetch(logoLg);
